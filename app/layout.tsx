@@ -21,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${nunito.variable} antialiased`}
+        className={`${nunito.className} antialiased`}
       >
         <Toaster theme="light" richColors closeButton />
         {children}
