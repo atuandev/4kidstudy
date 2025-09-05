@@ -8,7 +8,7 @@ export default function Home() {
       <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/globe.svg" alt="4KisStudy logo" width={24} height={24} />
+            <Image src="/mascot.svg" alt="4KisStudy logo" width={24} height={24} />
             <span className="font-semibold tracking-tight">4KisStudy</span>
           </Link>
           <nav className="hidden gap-6 text-sm font-medium sm:flex">
@@ -16,11 +16,8 @@ export default function Home() {
             <Link href="#method" className="hover:underline underline-offset-4">Method</Link>
           </nav>
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost">
-              <Link href="#learn-more">Learn more</Link>
-            </Button>
-            <Button asChild>
-              <Link href="#get-started">Get started</Link>
+            <Button asChild variant='secondary'>
+              <Link href="/learn" >Get started</Link>
             </Button>
           </div>
         </div>
@@ -37,14 +34,14 @@ export default function Home() {
               playful games, and daily micro-practice designed for ages 5-11.
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Button asChild size="lg">
-                <Link href="#get-started">Start learning now</Link>
+              <Button asChild size="lg" variant='secondary'>
+                <Link href="/learn">Start learning now</Link>
               </Button>
             </div>
           </div>
           <div className="relative mx-auto aspect-video w-full max-w-xl overflow-hidden rounded-xl border bg-muted/20">
             <Image
-              src="/next.svg"
+              src="/mascot.svg"
               alt="4KisStudy preview"
               fill
               className="object-contain p-8 dark:invert"
@@ -56,17 +53,17 @@ export default function Home() {
         <section id="features" className="border-t bg-muted/20">
           <div className="container mx-auto grid gap-8 px-4 py-16 sm:grid-cols-2 lg:grid-cols-3">
             <FeatureCard
-              iconSrc="/globe.svg"
+              iconSrc="/learn.svg"
               title="Native Pronunciation"
               description="Listen-and-repeat with instant feedback to build confident speaking."
             />
             <FeatureCard
-              iconSrc="/file.svg"
+              iconSrc="/practice.svg"
               title="Smart Vocabulary"
               description="Spaced repetition ensures words stick with short daily sessions."
             />
             <FeatureCard
-              iconSrc="/window.svg"
+              iconSrc="/leaderboard.svg"
               title="Bite-size Lessons"
               description="10-minute lessons tailored for Vietnamese learners aged 4–12."
             />
@@ -75,7 +72,7 @@ export default function Home() {
 
         <section id="method" className="container mx-auto grid gap-8 px-4 py-16 md:grid-cols-2 md:items-center">
           <div className="relative mx-auto aspect-video w-full max-w-xl overflow-hidden rounded-xl border bg-background">
-            <Image src="/globe.svg" alt="Method illustration" fill className="object-contain p-8" />
+            <Image src="/mascot.svg" alt="Method illustration" fill className="object-contain p-8" />
           </div>
           <div>
             <h2 className="text-3xl font-semibold tracking-tight">Method that works</h2>
