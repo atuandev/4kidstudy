@@ -41,7 +41,7 @@ export default function Home() {
           </div>
           <div className="relative mx-auto aspect-video w-full max-w-xl overflow-hidden rounded-xl border bg-muted/20">
             <Image
-              src="/mascot.svg"
+              src="/hero.svg"
               alt="4KisStudy preview"
               fill
               className="object-contain p-8 dark:invert"
