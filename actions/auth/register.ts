@@ -29,8 +29,6 @@ export const register = async (data: RegisterSchemaType) => {
     noAuth: true,
   })
 
-  console.log(payload);
-
   if (payload.user) {
     await setTokenToCookies(
       payload.tokens.accessToken,
