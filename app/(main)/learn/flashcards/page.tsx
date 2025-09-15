@@ -1,43 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import { Header } from "./_components/header";
-import { GradeSelection } from "./_components/grade-selection";
 import { TopicList } from "./_components/topic-list";
-import { Topic } from "@/types";
-
+import { GraduationCap } from "lucide-react";
+import { useGradeStore } from "@/lib/store";
 
 export default function FlashcardsPage() {
-  const [selectedGrade, setSelectedGrade] = useState<string | null>(null);
-  const [topics, setTopics] = useState<Topic[]>([]);
-  const [showGradeSelection, setShowGradeSelection] = useState(true);
-
-  const handleGradeSelect = (grade: string, fetchedTopics: Topic[]) => {
-    setSelectedGrade(grade);
-    setTopics(fetchedTopics);
-    setShowGradeSelection(false);
-  };
-
-  const handleBackToGrades = () => {
-    setShowGradeSelection(true);
-    setSelectedGrade(null);
-    setTopics([]);
-  };
+  const { selectedGrade, selectedGradeData, topics } = useGradeStore();
 
   return (
     <div>
-      <Header title="Học với Flashcard" />
       <div className="flex flex-col gap-6">
-        {showGradeSelection ? (
-          <GradeSelection onGradeSelect={handleGradeSelect} />
+        {!selectedGrade || !selectedGradeData ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <GraduationCap className="h-16 w-16 text-muted-foreground mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Chưa chọn lớp học</h2>
+            <p className="text-muted-foreground mb-4">
+              Vui lòng chọn lớp học từ thanh điều hướng để xem các chủ đề Flashcard
+            </p>
+          </div>
         ) : (
-          selectedGrade && (
-            <TopicList
-              topics={topics}
-              selectedGrade={selectedGrade}
-              onBack={handleBackToGrades}
-            />
-          )
+          <TopicList
+            topics={topics}
+            selectedGrade={selectedGrade}
+          />
         )}
       </div>
     </div>

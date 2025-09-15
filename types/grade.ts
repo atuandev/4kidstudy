@@ -3,7 +3,7 @@
  */
 export interface Grade {
   id: string;
-  value: string;
+  value: GradeValue;
   label: string;
   description: string;
 }
