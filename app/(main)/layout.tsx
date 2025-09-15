@@ -2,16 +2,14 @@ import type { PropsWithChildren } from "react";
 
 import { MobileHeader } from "@/components/mobile-header";
 import { Sidebar } from "@/components/sidebar";
-import { GradeSelectorButton } from "@/components/grade-selector-button";
 
-const MainLayout = ({ children }: PropsWithChildren) => {
+const Layout = ({ children }: PropsWithChildren) => {
   return (
     <>
       <MobileHeader />
       <Sidebar className="hidden lg:flex" />
       <main className="h-full pt-[50px] lg:pl-[256px] lg:pt-0">
         <div className="mx-auto h-full max-w-[1056px] pt-6">
-          <GradeSelectorButton />
           {children}
         </div>
       </main>
@@ -19,4 +17,4 @@ const MainLayout = ({ children }: PropsWithChildren) => {
   );
 };
 
-export default MainLayout;
+export default Layout;

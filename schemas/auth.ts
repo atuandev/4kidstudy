@@ -18,7 +18,8 @@ export const LoginSchema = z.object({
 export type LoginSchemaType = z.infer<typeof LoginSchema>
 
 /**
- * Register schema for user registration
+ * Register schema based on backend RegisterDto
+ * Matches the validation requirements from the NestJS backend
  */
 export const RegisterSchema = z.object({
   name: z
@@ -29,10 +30,6 @@ export const RegisterSchema = z.object({
     .string('Email là bắt buộc')
     .min(1, 'Email không được để trống')
     .email('Email không hợp lệ'),
-  phoneNumber: z
-    .string('Số điện thoại là bắt buộc')
-    .min(1, 'Số điện thoại không được để trống')
-    .regex(/^[0-9]{10,11}$/, 'Số điện thoại phải có 10-11 chữ số'),
   password: z
     .string('Mật khẩu là bắt buộc')
     .min(1, 'Mật khẩu không được để trống')

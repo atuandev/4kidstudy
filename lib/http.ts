@@ -1,3 +1,5 @@
+import { getAccessToken, getRefreshToken } from "./get-token"
+
 type CustomOptions = Omit<RequestInit, 'method'> & {
   baseUrl?: string
   noAuth?: boolean
@@ -37,15 +39,15 @@ const request = async <Response>(
         }
 
   // Get both tokens using server actions
-  // const [accessToken, refreshToken] = await Promise.all([
-  //   getAccessToken(),
-  //   getRefreshToken(),
-  // ])
+  const [accessToken, refreshToken] = await Promise.all([
+    getAccessToken(),
+    getRefreshToken(),
+  ])
 
   // Add Authorization header if token exists and auth is not disabled
-  // if (accessToken && !options?.noAuth) {
-  //   baseHeaders.Authorization = `Bearer ${accessToken}`
-  // }
+  if (accessToken && !options?.noAuth) {
+    baseHeaders.Authorization = `Bearer ${accessToken}`
+  }
 
   if (options?.isFileUpload) {
     delete baseHeaders['Content-Type']

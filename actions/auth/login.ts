@@ -33,8 +33,6 @@ export async function login(values: LoginSchemaType): Promise<LoginResponse> {
       noAuth: true,
     }
   );
-  console.log(payload);
-  
 
   if (payload.user) {
     await setTokenToCookies(
