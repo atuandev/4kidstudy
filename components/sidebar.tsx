@@ -34,8 +34,7 @@ export const Sidebar = ({ className }: SidebarProps) => {
           href="/leaderboard"
           iconSrc="/leaderboard.svg"
         />
-        {/* <SidebarItem label="Quests" href="/quests" iconSrc="/quests.svg" />
-        <SidebarItem label="Shop" href="/shop" iconSrc="/shop.svg" /> */}
+        <SidebarItem label="Hồ sơ" href="/profile" iconSrc="/profile.svg" />
       </div>
     </div>
   );
