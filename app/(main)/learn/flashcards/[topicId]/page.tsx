@@ -5,16 +5,16 @@ import { FlashcardsContent } from "./_components/flashcard-content";
 import { FlashcardsHeader } from "./_components/header";
 
 interface FlashcardsTopicPageProps {
-  params: {
+  params: Promise<{
     topicId: string;
-  };
+  }>;
 }
 
 export default async function FlashcardsTopicPage({
   params,
 }: FlashcardsTopicPageProps) {
-
-  const data = await getFlashcardsByTopic(parseInt(params.topicId, 10));
+  const { topicId } = await params;
+  const data = await getFlashcardsByTopic(parseInt(topicId, 10));
 
   return (
     <Suspense fallback={<p>Loading...</p>}>
