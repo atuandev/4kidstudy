@@ -17,7 +17,7 @@ export default function Home() {
           </nav>
           <div className="flex items-center gap-2">
             <Button asChild variant='secondary'>
-              <Link href="/learn" >Get started</Link>
+              <Link href="/login" >Get started</Link>
             </Button>
           </div>
         </div>
@@ -35,7 +35,7 @@ export default function Home() {
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <Button asChild size="lg" variant='secondary'>
-                <Link href="/learn">Start learning now</Link>
+                <Link href="/login">Start learning now</Link>
               </Button>
             </div>
           </div>
