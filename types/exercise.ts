@@ -1,7 +1,7 @@
 export type Exercise = {
   id: number;
   lessonId: number;
-  type: string;
+  type: ExerciseType;
   order: number;
   prompt: string;
   imageUrl?: string;
@@ -17,8 +17,10 @@ export type ExerciseOption = {
   exerciseId: number;
   text?: string;
   imageUrl?: string;
-  audioUrl: string;
+  audioUrl?: string;
   isCorrect: boolean;
   order: number;
   matchKey?: string;
 };
+
+export type ExerciseType = "SELECT_IMAGE" | "MULTIPLE_CHOICE" | "MATCHING" | "LISTENING" | "PRONUNCIATION";
