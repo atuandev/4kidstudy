@@ -16,7 +16,7 @@ export default function FinishPage({ lessonId, exercises }: FinishPageProps) {
   const router = useRouter();
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col">
       <ReactConfetti
         recycle={false}
         numberOfPieces={500}
@@ -24,7 +24,7 @@ export default function FinishPage({ lessonId, exercises }: FinishPageProps) {
         width={width}
         height={height}
       />
-      <div className="mx-auto flex h-full max-w-lg flex-col items-center justify-center gap-y-4 text-center lg:gap-y-8">
+      <div className="mx-auto flex flex-1 max-w-lg flex-col items-center justify-center gap-y-4 text-center lg:gap-y-8">
         <Image
           src="/finish.svg"
           alt="Finish"
@@ -54,7 +54,6 @@ export default function FinishPage({ lessonId, exercises }: FinishPageProps) {
         status="completed"
         onCheck={() => router.push("/practice")}
       />
-      ;
-    </>
+    </div>
   );
 }
