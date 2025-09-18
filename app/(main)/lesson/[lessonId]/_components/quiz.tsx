@@ -46,6 +46,10 @@ export const Quiz = ({
 
   const [selectedOption, setSelectedOption] = useState<number>();
   const [status, setStatus] = useState<"none" | "wrong" | "correct">("none");
+  
+  // Pronunciation exercise state
+  const [pronunciationState, setPronunciationState] = useState<string>("idle");
+  const [pronunciationScore, setPronunciationScore] = useState<any>(null);
 
   // Exercise stats store
   const { startSession, endSession, startExercise, completeExercise, skipExercise } = useExerciseStatsStore();
@@ -82,6 +86,10 @@ export const Quiz = ({
 
   const onNext = () => {
     setActiveIndex((current) => current + 1);
+    
+    // Reset pronunciation state for next exercise
+    setPronunciationState("idle");
+    setPronunciationScore(null);
   };
 
   const onSelect = (id: number) => {
@@ -131,6 +139,31 @@ export const Quiz = ({
       return;
     }
 
+    // Handle PRONUNCIATION exercise completion
+    if (exercise.type === "PRONUNCIATION" && pronunciationState === "completed" && pronunciationScore) {
+      const isGoodScore = pronunciationScore.overall >= 70;
+      
+      if (isGoodScore) {
+        startTransition(() => {
+          void correctControls.play();
+          setStatus("correct");
+          setPercentage((prev) => prev + 100 / exercises.length);
+          
+          // Track exercise completion
+          completeExercise(true, exercise.points);
+        });
+      } else {
+        startTransition(() => {
+          void incorrectControls.play();
+          setStatus("wrong");
+          
+          // Track exercise completion (incorrect, no points)
+          completeExercise(false, exercise.points);
+        });
+      }
+      return;
+    }
+
     // Handle MATCHING exercise completion
     if (exercise.type === "MATCHING" && selectedOption) {
       startTransition(() => {
@@ -169,6 +202,14 @@ export const Quiz = ({
         // Track exercise completion (incorrect, no points)
         completeExercise(false, exercise.points);
       });
+    }
+  };
+
+  // Handle pronunciation state changes
+  const handlePronunciationStateChange = (state: string, score?: any) => {
+    setPronunciationState(state);
+    if (score) {
+      setPronunciationScore(score);
     }
   };
 
@@ -240,6 +281,7 @@ export const Quiz = ({
                 audioUrl={exercise.audioUrl}
                 imageUrl={exercise.imageUrl}
                 prompt={exercise.prompt}
+                onPronunciationStateChange={handlePronunciationStateChange}
               />
             </div>
           </div>
@@ -247,7 +289,11 @@ export const Quiz = ({
       </div>
 
       <Footer
-        disabled={pending || (!selectedOption && exercise.type !== "MATCHING")}
+        disabled={
+          pending || 
+          (!selectedOption && exercise.type !== "MATCHING" && exercise.type !== "PRONUNCIATION") ||
+          (exercise.type === "PRONUNCIATION" && pronunciationState !== "completed")
+        }
         status={status}
         onCheck={onContinue}
         onSkip={onSkip}

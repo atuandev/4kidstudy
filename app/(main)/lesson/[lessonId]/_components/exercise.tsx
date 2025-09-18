@@ -18,6 +18,7 @@ type ExerciseProps = {
   audioUrl?: string;
   imageUrl?: string;
   prompt?: string;
+  onPronunciationStateChange?: (state: string, score?: any) => void;
 };
 
 export const Exercise = ({
@@ -31,6 +32,7 @@ export const Exercise = ({
   audioUrl,
   imageUrl,
   prompt,
+  onPronunciationStateChange,
 }: ExerciseProps) => {
   // Handle specialized exercise types
   if (type === "MATCHING") {
@@ -69,6 +71,7 @@ export const Exercise = ({
         disabled={disabled}
         targetText={targetText}
         audioUrl={audioUrl}
+        onStateChange={onPronunciationStateChange}
       />
     );
   }
