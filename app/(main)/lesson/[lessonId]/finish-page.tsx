@@ -1,19 +1,28 @@
+"use client";
+
 import ReactConfetti from "react-confetti";
 import { Footer } from "./_components/footer";
-import { ResultCard } from "./_components/result-card";
+import { ExerciseStatsDashboard } from "./_components/exercise-stats-dashboard";
 import Image from "next/image";
 import { useWindowSize } from "react-use";
 import { useRouter } from "next/navigation";
-import { Exercise } from "@/types";
+import { useExerciseStatsStore } from "@/lib/stores/exercise-stats-store";
 
 type FinishPageProps = {
   lessonId: number;
-  exercises: Exercise[];
 };
 
-export default function FinishPage({ lessonId, exercises }: FinishPageProps) {
+export default function FinishPage({ lessonId }: FinishPageProps) {
   const { width, height } = useWindowSize();
   const router = useRouter();
+  const { totalPoints, correctCount, totalExercises, getAccuracy } = useExerciseStatsStore();
+  
+  const accuracy = getAccuracy();
+  const completionMessage = 
+    accuracy >= 90 ? "Excellent work!" :
+    accuracy >= 70 ? "Great job!" :
+    accuracy >= 50 ? "Good effort!" :
+    "Keep practicing!";
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -42,11 +51,17 @@ export default function FinishPage({ lessonId, exercises }: FinishPageProps) {
         />
 
         <h1 className="text-lg font-bold text-neutral-700 lg:text-3xl">
-          Great job! <br /> You&apos;ve completed the lesson.
+          {completionMessage} <br /> You&apos;ve completed the lesson.
         </h1>
 
-        <div className="flex w-full items-center gap-x-4">
-          <ResultCard variant="points" value={exercises.length * 10} />
+        <div className="text-sm text-neutral-600 mb-4">
+          <p>Completed {correctCount} of {totalExercises} exercises correctly</p>
+          <p>Total Points Earned: {totalPoints}</p>
+        </div>
+
+        {/* Comprehensive Stats Dashboard */}
+        <div className="w-full max-w-2xl">
+          <ExerciseStatsDashboard />
         </div>
       </div>
       <Footer

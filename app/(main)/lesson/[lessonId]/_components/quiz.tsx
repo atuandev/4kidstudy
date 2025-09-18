@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 
 import { useAudio } from "react-use";
 
@@ -11,6 +11,7 @@ import { Exercise as ExerciseType } from "@/types";
 import FinishPage from "../finish-page";
 import { QuestionBubble } from "./question-bubble";
 import AudioPlayer from "./audio-player";
+import { useExerciseStatsStore } from "@/lib/stores/exercise-stats-store";
 
 type QuizProps = {
   initialPercentage: number;
@@ -46,6 +47,36 @@ export const Quiz = ({
   const [selectedOption, setSelectedOption] = useState<number>();
   const [status, setStatus] = useState<"none" | "wrong" | "correct">("none");
 
+  // Exercise stats store
+  const { startSession, endSession, startExercise, completeExercise, skipExercise } = useExerciseStatsStore();
+
+  // Initialize session and start first exercise
+  useEffect(() => {
+    startSession();
+    if (exercises.length > 0) {
+      startExercise();
+    }
+    
+    // Cleanup: end session when component unmounts
+    return () => {
+      endSession();
+    };
+  }, [startSession, endSession, startExercise, exercises.length]);
+
+  // Start new exercise when activeIndex changes
+  useEffect(() => {
+    if (activeIndex > 0 && activeIndex < exercises.length) {
+      startExercise();
+    }
+  }, [activeIndex, exercises.length, startExercise]);
+
+  // End session when quiz is completed (when there's no current exercise)
+  useEffect(() => {
+    if (!exercises[activeIndex]) {
+      endSession();
+    }
+  }, [activeIndex, exercises, endSession]);
+
   const exercise = exercises[activeIndex];
   const options = exercise?.options ?? [];
 
@@ -57,6 +88,21 @@ export const Quiz = ({
     if (status !== "none") return;
 
     setSelectedOption(id);
+  };
+
+  const onSkip = () => {
+    if (status !== "none") return;
+
+    // Track skip in stats
+    skipExercise();
+
+    // Update progress bar
+    setPercentage((prev) => prev + 100 / exercises.length);
+
+    // Move to next exercise
+    onNext();
+    setStatus("none");
+    setSelectedOption(undefined);
   };
 
   const onContinue = () => {
@@ -79,16 +125,24 @@ export const Quiz = ({
 
     if (!correctOption) return;
 
-    if (correctOption.id === selectedOption) {
+    const isCorrect = correctOption.id === selectedOption;
+    
+    if (isCorrect) {
       startTransition(() => {
         void correctControls.play();
         setStatus("correct");
         setPercentage((prev) => prev + 100 / exercises.length);
+        
+        // Track exercise completion
+        completeExercise(true, exercise.points);
       });
     } else {
       startTransition(() => {
         void incorrectControls.play();
         setStatus("wrong");
+        
+        // Track exercise completion (incorrect, no points)
+        completeExercise(false, exercise.points);
       });
     }
   };
@@ -101,7 +155,7 @@ export const Quiz = ({
         {finishAudio}
         {correctAudio}
 
-        <FinishPage lessonId={lessonId} exercises={exercises} />
+        <FinishPage lessonId={lessonId} />
       </>
     );
   }
@@ -171,6 +225,8 @@ export const Quiz = ({
         disabled={pending || !selectedOption}
         status={status}
         onCheck={onContinue}
+        onSkip={onSkip}
+        showSkip={status === "none"}
       />
     </>
   );
