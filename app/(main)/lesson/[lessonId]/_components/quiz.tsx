@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 
 import { useAudio } from "react-use";
 
@@ -9,6 +9,9 @@ import { Footer } from "./footer";
 import { Header } from "./header";
 import { Exercise as ExerciseType } from "@/types";
 import FinishPage from "../finish-page";
+import { QuestionBubble } from "./question-bubble";
+import AudioPlayer from "./audio-player";
+import { useExerciseStatsStore } from "@/lib/stores/exercise-stats-store";
 
 type QuizProps = {
   initialPercentage: number;
@@ -44,6 +47,36 @@ export const Quiz = ({
   const [selectedOption, setSelectedOption] = useState<number>();
   const [status, setStatus] = useState<"none" | "wrong" | "correct">("none");
 
+  // Exercise stats store
+  const { startSession, endSession, startExercise, completeExercise, skipExercise } = useExerciseStatsStore();
+
+  // Initialize session and start first exercise
+  useEffect(() => {
+    startSession();
+    if (exercises.length > 0) {
+      startExercise();
+    }
+    
+    // Cleanup: end session when component unmounts
+    return () => {
+      endSession();
+    };
+  }, [startSession, endSession, startExercise, exercises.length]);
+
+  // Start new exercise when activeIndex changes
+  useEffect(() => {
+    if (activeIndex > 0 && activeIndex < exercises.length) {
+      startExercise();
+    }
+  }, [activeIndex, exercises.length, startExercise]);
+
+  // End session when quiz is completed (when there's no current exercise)
+  useEffect(() => {
+    if (!exercises[activeIndex]) {
+      endSession();
+    }
+  }, [activeIndex, exercises, endSession]);
+
   const exercise = exercises[activeIndex];
   const options = exercise?.options ?? [];
 
@@ -55,6 +88,21 @@ export const Quiz = ({
     if (status !== "none") return;
 
     setSelectedOption(id);
+  };
+
+  const onSkip = () => {
+    if (status !== "none") return;
+
+    // Track skip in stats
+    skipExercise();
+
+    // Update progress bar
+    setPercentage((prev) => prev + 100 / exercises.length);
+
+    // Move to next exercise
+    onNext();
+    setStatus("none");
+    setSelectedOption(undefined);
   };
 
   const onContinue = () => {
@@ -77,16 +125,24 @@ export const Quiz = ({
 
     if (!correctOption) return;
 
-    if (correctOption.id === selectedOption) {
+    const isCorrect = correctOption.id === selectedOption;
+    
+    if (isCorrect) {
       startTransition(() => {
         void correctControls.play();
         setStatus("correct");
         setPercentage((prev) => prev + 100 / exercises.length);
+        
+        // Track exercise completion
+        completeExercise(true, exercise.points);
       });
     } else {
       startTransition(() => {
         void incorrectControls.play();
         setStatus("wrong");
+        
+        // Track exercise completion (incorrect, no points)
+        completeExercise(false, exercise.points);
       });
     }
   };
@@ -99,12 +155,17 @@ export const Quiz = ({
         {finishAudio}
         {correctAudio}
 
-        <FinishPage lessonId={lessonId} exercises={exercises} />
+        <FinishPage lessonId={lessonId} />
       </>
     );
   }
 
-  const title = exercise.prompt;
+  const title =
+    (exercise.type === "SELECT_IMAGE" && "Chọn ảnh đúng") ||
+    (exercise.type === "MULTIPLE_CHOICE" && "Chọn đáp án đúng") ||
+    (exercise.type === "MATCHING" && "Ghép cặp") ||
+    (exercise.type === "LISTENING" && "Nghe - chọn đáp án") ||
+    (exercise.type === "PRONUNCIATION" && "Luyện phát âm");
 
   return (
     <>
@@ -118,14 +179,30 @@ export const Quiz = ({
       <div className="h-[calc(100vh-300px)]">
         <div className="flex h-full items-center justify-center">
           <div className="flex w-full flex-col gap-y-12 px-6 lg:min-h-[350px] lg:w-[600px] lg:px-0">
-            <h1 className="text-center text-lg font-bold text-neutral-700 lg:text-start lg:text-3xl">
+            <h1 className="text-center text-lg font-bold text-neutral-700 lg:text-start lg:text-2xl">
               {title}
             </h1>
 
             <div>
-              {/* {challenge.type === "ASSIST" && (
-                <QuestionBubble question={challenge.question} />
-              )} */}
+              <QuestionBubble question={exercise.prompt} />
+              
+              {/* Audio player for SELECT_IMAGE exercise with vocabulary */}
+              {exercise.type === "SELECT_IMAGE" && exercise.audioUrl && (
+                <div className="flex items-center justify-center mb-6">
+                  <AudioPlayer 
+                    audioUrl={exercise.audioUrl} 
+                    variant="button"
+                    className="text-center"
+                  />
+                </div>
+              )}
+              
+              {/* Audio player for LISTENING exercise */}
+              {exercise.type === "LISTENING" && exercise.audioUrl && (
+                <div className="mb-4">
+                  <AudioPlayer audioUrl={exercise.audioUrl} />
+                </div>
+              )}
 
               <Exercise
                 options={options}
@@ -134,6 +211,10 @@ export const Quiz = ({
                 selectedOption={selectedOption}
                 disabled={pending}
                 type={exercise.type}
+                targetText={exercise.targetText}
+                audioUrl={exercise.audioUrl}
+                imageUrl={exercise.imageUrl}
+                prompt={exercise.prompt}
               />
             </div>
           </div>
@@ -144,6 +225,8 @@ export const Quiz = ({
         disabled={pending || !selectedOption}
         status={status}
         onCheck={onContinue}
+        onSkip={onSkip}
+        showSkip={status === "none"}
       />
     </>
   );

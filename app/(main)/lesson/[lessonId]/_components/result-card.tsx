@@ -1,52 +1,134 @@
-import { InfinityIcon } from "lucide-react";
+import { InfinityIcon, Clock, Target, Trophy, SkipForward } from "lucide-react";
 import Image from "next/image";
 
 import { cn } from "@/lib/utils";
 
 type ResultCardProps = {
   value: number;
-  variant: "points" | "hearts";
+  variant: "points" | "hearts" | "duration" | "accuracy" | "correct" | "skipped";
 };
 
 export const ResultCard = ({ value, variant }: ResultCardProps) => {
-  const imageSrc = variant === "points" ? "/points.svg" : "/heart.svg";
+  const getVariantConfig = () => {
+    switch (variant) {
+      case "points":
+        return {
+          imageSrc: "/points.svg",
+          title: "Total XP",
+          borderColor: "border-orange-400",
+          bgColor: "bg-orange-400",
+          textColor: "text-orange-400",
+          icon: null,
+          suffix: "",
+        };
+      case "hearts":
+        return {
+          imageSrc: "/heart.svg",
+          title: "Hearts Left",
+          borderColor: "border-rose-500",
+          bgColor: "bg-rose-500",
+          textColor: "text-rose-500",
+          icon: null,
+          suffix: "",
+        };
+      case "duration":
+        return {
+          imageSrc: null,
+          title: "Time Spent",
+          borderColor: "border-blue-400",
+          bgColor: "bg-blue-400",
+          textColor: "text-blue-400",
+          icon: Clock,
+          suffix: "s",
+        };
+      case "accuracy":
+        return {
+          imageSrc: null,
+          title: "Accuracy",
+          borderColor: "border-green-400",
+          bgColor: "bg-green-400",
+          textColor: "text-green-400",
+          icon: Target,
+          suffix: "%",
+        };
+      case "correct":
+        return {
+          imageSrc: null,
+          title: "Correct",
+          borderColor: "border-purple-400",
+          bgColor: "bg-purple-400",
+          textColor: "text-purple-400",
+          icon: Trophy,
+          suffix: "",
+        };
+      case "skipped":
+        return {
+          imageSrc: null,
+          title: "Skipped",
+          borderColor: "border-gray-400",
+          bgColor: "bg-gray-400",
+          textColor: "text-gray-400",
+          icon: SkipForward,
+          suffix: "",
+        };
+      default:
+        return {
+          imageSrc: "/points.svg",
+          title: "Total XP",
+          borderColor: "border-orange-400",
+          bgColor: "bg-orange-400",
+          textColor: "text-orange-400",
+          icon: null,
+          suffix: "",
+        };
+    }
+  };
+
+  const config = getVariantConfig();
+  const IconComponent = config.icon;
 
   return (
     <div
       className={cn(
         "w-full rounded-2xl border-2",
-        variant === "points" && "border-orange-400 bg-orange-400",
-        variant === "hearts" && "border-rose-500 bg-rose-500"
+        config.borderColor,
+        config.bgColor
       )}
     >
       <div
         className={cn(
           "rounded-t-xl p-1.5 text-center text-xs font-bold uppercase text-white",
-          variant === "points" && "bg-orange-400",
-          variant === "hearts" && "bg-rose-500"
+          config.bgColor
         )}
       >
-        {variant === "hearts" ? "Hears Left" : "Total XP"}
+        {config.title}
       </div>
 
       <div
         className={cn(
           "flex items-center justify-center rounded-2xl bg-white p-6 text-lg font-bold",
-          variant === "points" && "text-orange-400",
-          variant === "hearts" && "text-rose-500"
+          config.textColor
         )}
       >
-        <Image
-          src={imageSrc}
-          alt={variant}
-          height={30}
-          width={30}
-          className="mr-1.5"
-        />
+        {config.imageSrc && (
+          <Image
+            src={config.imageSrc}
+            alt={variant}
+            height={30}
+            width={30}
+            className="mr-1.5"
+          />
+        )}
+        {IconComponent && (
+          <IconComponent className="mr-1.5 h-6 w-6" />
+        )}
         {value === Infinity ? (
           <InfinityIcon className="h-6 w-6 stroke-[3]" />
         ) : (
-          value
+          <>
+            {value}
+            {config.suffix && <span className="text-sm ml-0.5">{config.suffix}</span>}
+          </>
         )}
       </div>
     </div>

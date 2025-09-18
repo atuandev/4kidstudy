@@ -1,6 +1,10 @@
 import { cn } from "@/lib/utils";
 
 import { Card } from "./card";
+import { MatchingExercise } from "./matching-exercise";
+import { PronunciationExercise } from "./pronunciation-exercise";
+import { ListeningExercise } from "./listening-exercise";
+import { MultipleChoiceExercise } from "./multiple-choice-exercise";
 import { ExerciseOption, ExerciseType } from "@/types";
 
 type ExerciseProps = {
@@ -10,6 +14,10 @@ type ExerciseProps = {
   selectedOption?: number;
   disabled?: boolean;
   type: ExerciseType;
+  targetText?: string;
+  audioUrl?: string;
+  imageUrl?: string;
+  prompt?: string;
 };
 
 export const Exercise = ({
@@ -19,15 +27,74 @@ export const Exercise = ({
   selectedOption,
   disabled,
   type,
+  targetText,
+  audioUrl,
+  imageUrl,
+  prompt,
 }: ExerciseProps) => {
+  // Handle specialized exercise types
+  if (type === "MATCHING") {
+    return (
+      <MatchingExercise
+        options={options}
+        onSelect={onSelect}
+        status={status}
+        selectedOption={selectedOption}
+        disabled={disabled}
+      />
+    );
+  }
+
+  if (type === "MULTIPLE_CHOICE") {
+    return (
+      <MultipleChoiceExercise
+        options={options}
+        onSelect={onSelect}
+        status={status}
+        selectedOption={selectedOption}
+        disabled={disabled}
+        imageUrl={imageUrl}
+        prompt={prompt}
+      />
+    );
+  }
+
+  if (type === "PRONUNCIATION") {
+    return (
+      <PronunciationExercise
+        options={options}
+        onSelect={onSelect}
+        status={status}
+        selectedOption={selectedOption}
+        disabled={disabled}
+        targetText={targetText}
+        audioUrl={audioUrl}
+      />
+    );
+  }
+
+  if (type === "LISTENING") {
+    // Determine mode based on whether we have targetText (sentence reconstruction) or just options (text choice)
+    const mode = targetText && targetText.split(" ").length > 1 
+      ? "sentence_reconstruction" 
+      : "text_choice";
+    
+    return (
+      <ListeningExercise
+        options={options}
+        onSelect={onSelect}
+        status={status}
+        selectedOption={selectedOption}
+        disabled={disabled}
+        targetText={targetText}
+        mode={mode}
+      />
+    );
+  }
+
+  // Handle standard exercise types with cards (SELECT_IMAGE only)
   return (
-    <div
-      className={cn(
-        "grid gap-2",
-        type === "SELECT_IMAGE" &&
-          "grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(0,1fr))]"
-      )}
-    >
+    <div className="grid grid-cols-2 gap-2 lg:grid-cols-[repeat(auto-fit,minmax(0,1fr))]">
       {options.map((option, i) => (
         <Card
           key={option.id}
@@ -41,6 +108,7 @@ export const Exercise = ({
           audioSrc={option.audioUrl || null}
           disabled={disabled}
           type={type}
+          matchKey={option.matchKey}
         />
       ))}
     </div>
