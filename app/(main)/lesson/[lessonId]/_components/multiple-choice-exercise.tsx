@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, isValidUrl } from "@/lib/utils";
 import Image from "next/image";
 import { ExerciseOption } from "@/types";
 
@@ -13,6 +13,7 @@ type MultipleChoiceExerciseProps = {
   imageUrl?: string;
   prompt?: string;
 };
+
 
 export function MultipleChoiceExercise({
   options,
@@ -29,14 +30,14 @@ export function MultipleChoiceExercise({
   return (
     <div className="space-y-6">
       {/* Main Image (for image-to-text format) */}
-      {imageUrl && (
+      {isValidUrl(imageUrl) && (
         <div className="flex justify-center">
           <div className="relative aspect-square max-h-[200px] w-full max-w-[300px] lg:max-h-[300px]">
             <Image 
-              src={imageUrl} 
+              src={imageUrl!} 
               fill 
               alt="Exercise image" 
-              className="rounded-lg object-cover"
+              className="rounded-lg object-fill"
             />
           </div>
         </div>
@@ -71,13 +72,13 @@ export function MultipleChoiceExercise({
           >
             <div>
               {/* Option Image (if provided) */}
-              {option.imageUrl && (
+              {isValidUrl(option.imageUrl) && (
                 <div className="relative mb-4 aspect-square max-h-[80px] w-full lg:max-h-[120px]">
                   <Image 
-                    src={option.imageUrl} 
+                    src={option.imageUrl!} 
                     fill 
                     alt={option.text || ""} 
-                    className="rounded-lg object-cover" 
+                    className="rounded-lg object-fill" 
                   />
                 </div>
               )}
