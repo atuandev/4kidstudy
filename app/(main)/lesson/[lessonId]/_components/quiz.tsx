@@ -10,6 +10,7 @@ import { Header } from "./header";
 import { Exercise as ExerciseType } from "@/types";
 import FinishPage from "../finish-page";
 import { QuestionBubble } from "./question-bubble";
+import AudioPlayer from "./audio-player";
 
 type QuizProps = {
   initialPercentage: number;
@@ -133,16 +134,7 @@ export const Quiz = ({
               
               {exercise.type === "LISTENING" && exercise.audioUrl && (
                 <div className="mb-4">
-                  <audio 
-                    key={exercise.audioUrl} 
-                    controls 
-                    className="w-full"
-                    preload="metadata"
-                    autoPlay
-                  >
-                    <source src={exercise.audioUrl} type="audio/mpeg" />
-                    Your browser does not support the audio element.
-                  </audio>
+                  <AudioPlayer audioUrl={exercise.audioUrl} />
                 </div>
               )}
 
