@@ -132,6 +132,18 @@ export const Quiz = ({
             <div>
               <QuestionBubble question={exercise.prompt} />
               
+              {/* Audio player for SELECT_IMAGE exercise with vocabulary */}
+              {exercise.type === "SELECT_IMAGE" && exercise.audioUrl && (
+                <div className="flex items-center justify-center mb-6">
+                  <AudioPlayer 
+                    audioUrl={exercise.audioUrl} 
+                    variant="button"
+                    className="text-center"
+                  />
+                </div>
+              )}
+              
+              {/* Audio player for LISTENING exercise */}
               {exercise.type === "LISTENING" && exercise.audioUrl && (
                 <div className="mb-4">
                   <AudioPlayer audioUrl={exercise.audioUrl} />
@@ -145,6 +157,10 @@ export const Quiz = ({
                 selectedOption={selectedOption}
                 disabled={pending}
                 type={exercise.type}
+                targetText={exercise.targetText}
+                audioUrl={exercise.audioUrl}
+                imageUrl={exercise.imageUrl}
+                prompt={exercise.prompt}
               />
             </div>
           </div>
