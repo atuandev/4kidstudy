@@ -87,6 +87,18 @@ export const Quiz = ({
   const onSelect = (id: number) => {
     if (status !== "none") return;
 
+    // Handle wrong match signal from MATCHING exercise
+    if (id === -1) {
+      startTransition(() => {
+        void incorrectControls.play();
+        setStatus("wrong");
+        
+        // Track exercise completion (incorrect, no points)
+        completeExercise(false, exercise.points);
+      });
+      return;
+    }
+
     setSelectedOption(id);
   };
 
@@ -106,8 +118,6 @@ export const Quiz = ({
   };
 
   const onContinue = () => {
-    if (!selectedOption) return;
-
     if (status === "wrong") {
       setStatus("none");
       setSelectedOption(undefined);
@@ -120,6 +130,21 @@ export const Quiz = ({
       setSelectedOption(undefined);
       return;
     }
+
+    // Handle MATCHING exercise completion
+    if (exercise.type === "MATCHING" && selectedOption) {
+      startTransition(() => {
+        void correctControls.play();
+        setStatus("correct");
+        setPercentage((prev) => prev + 100 / exercises.length);
+        
+        // Track exercise completion
+        completeExercise(true, exercise.points);
+      });
+      return;
+    }
+
+    if (!selectedOption) return;
 
     const correctOption = options.find((option) => option.isCorrect);
 
@@ -222,7 +247,7 @@ export const Quiz = ({
       </div>
 
       <Footer
-        disabled={pending || !selectedOption}
+        disabled={pending || (!selectedOption && exercise.type !== "MATCHING")}
         status={status}
         onCheck={onContinue}
         onSkip={onSkip}

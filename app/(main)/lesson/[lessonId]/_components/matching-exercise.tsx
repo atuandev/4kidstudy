@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { ExerciseOption } from "@/types";
 
@@ -27,6 +27,7 @@ export function MatchingExercise({
   const [selectedLeft, setSelectedLeft] = useState<number | null>(null);
   const [selectedRight, setSelectedRight] = useState<number | null>(null);
   const [matches, setMatches] = useState<Map<string, boolean>>(new Map());
+  const [wrongMatch, setWrongMatch] = useState<{ leftId: number; rightId: number } | null>(null);
 
   // Group options by matchKey to create pairs
   const { leftOptions, rightOptions, pairs } = useMemo(() => {
@@ -128,14 +129,20 @@ export function MatchingExercise({
       // Clear selections
       setSelectedLeft(null);
       setSelectedRight(null);
-
-      // Notify parent component
-      onSelect(leftId); // or rightId, doesn't matter for matching
+      
+      // Clear any previous wrong match state
+      setWrongMatch(null);
     } else {
       // Wrong match, show error briefly then clear
+      setWrongMatch({ leftId, rightId });
+      
+      // Trigger parent component's wrong state to play incorrect audio
+      onSelect(-1); // Use -1 to indicate wrong match
+      
       setTimeout(() => {
         setSelectedLeft(null);
         setSelectedRight(null);
+        setWrongMatch(null);
       }, 1000);
     }
   };
@@ -146,10 +153,16 @@ export function MatchingExercise({
 
   const isAllMatched = matches.size === pairs.length;
 
-  // Auto-complete the exercise when all pairs are matched
-  if (isAllMatched && status === "none") {
-    setTimeout(() => onSelect(0), 100); // Trigger completion
-  }
+  // Notify parent when all matches are complete, but don't auto-advance
+  useEffect(() => {
+    if (isAllMatched && matches.size > 0) {
+      // Trigger completion state by selecting any valid option
+      const firstOption = options.find(opt => opt.id > 0);
+      if (firstOption) {
+        onSelect(firstOption.id);
+      }
+    }
+  }, [isAllMatched, matches.size, options, onSelect]);
 
   return (
     <div className="grid grid-cols-2 gap-6">
@@ -166,13 +179,15 @@ export function MatchingExercise({
               "p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-blue-50",
               selectedLeft === option.id && "border-blue-300 bg-blue-100",
               isMatched(option) && "border-green-300 bg-green-100 cursor-default",
+              wrongMatch?.leftId === option.id && "border-red-300 bg-red-100",
               disabled && "pointer-events-none opacity-50"
             )}
           >
             <p className={cn(
               "text-sm font-medium lg:text-base",
               selectedLeft === option.id && "text-blue-600",
-              isMatched(option) && "text-green-600"
+              isMatched(option) && "text-green-600",
+              wrongMatch?.leftId === option.id && "text-red-600"
             )}>
               {option.text}
             </p>
@@ -193,13 +208,15 @@ export function MatchingExercise({
               "p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-blue-50",
               selectedRight === option.id && "border-blue-300 bg-blue-100",
               isMatched(option) && "border-green-300 bg-green-100 cursor-default",
+              wrongMatch?.rightId === option.id && "border-red-300 bg-red-100",
               disabled && "pointer-events-none opacity-50"
             )}
           >
             <p className={cn(
               "text-sm font-medium lg:text-base",
               selectedRight === option.id && "text-blue-600",
-              isMatched(option) && "text-green-600"
+              isMatched(option) && "text-green-600",
+              wrongMatch?.rightId === option.id && "text-red-600"
             )}>
               {option.text}
             </p>
