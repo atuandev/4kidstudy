@@ -9,6 +9,7 @@ import { Footer } from "./footer";
 import { Header } from "./header";
 import { Exercise as ExerciseType } from "@/types";
 import FinishPage from "../finish-page";
+import { QuestionBubble } from "./question-bubble";
 
 type QuizProps = {
   initialPercentage: number;
@@ -104,7 +105,12 @@ export const Quiz = ({
     );
   }
 
-  const title = exercise.prompt;
+  const title =
+    (exercise.type === "SELECT_IMAGE" && "Chọn ảnh đúng") ||
+    (exercise.type === "MULTIPLE_CHOICE" && "Chọn đáp án đúng") ||
+    (exercise.type === "MATCHING" && "Ghép cặp") ||
+    (exercise.type === "LISTENING" && "Nghe - chọn đáp án") ||
+    (exercise.type === "PRONUNCIATION" && "Luyện phát âm");
 
   return (
     <>
@@ -118,14 +124,27 @@ export const Quiz = ({
       <div className="h-[calc(100vh-300px)]">
         <div className="flex h-full items-center justify-center">
           <div className="flex w-full flex-col gap-y-12 px-6 lg:min-h-[350px] lg:w-[600px] lg:px-0">
-            <h1 className="text-center text-lg font-bold text-neutral-700 lg:text-start lg:text-3xl">
+            <h1 className="text-center text-lg font-bold text-neutral-700 lg:text-start lg:text-2xl">
               {title}
             </h1>
 
             <div>
-              {/* {challenge.type === "ASSIST" && (
-                <QuestionBubble question={challenge.question} />
-              )} */}
+              <QuestionBubble question={exercise.prompt} />
+              
+              {exercise.type === "LISTENING" && exercise.audioUrl && (
+                <div className="mb-4">
+                  <audio 
+                    key={exercise.audioUrl} 
+                    controls 
+                    className="w-full"
+                    preload="metadata"
+                    autoPlay
+                  >
+                    <source src={exercise.audioUrl} type="audio/mpeg" />
+                    Your browser does not support the audio element.
+                  </audio>
+                </div>
+              )}
 
               <Exercise
                 options={options}

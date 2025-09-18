@@ -25,7 +25,15 @@ export const Exercise = ({
       className={cn(
         "grid gap-2",
         type === "SELECT_IMAGE" &&
-          "grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(0,1fr))]"
+          "grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(0,1fr))]",
+        type === "MULTIPLE_CHOICE" &&
+          "grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(0,1fr))]",
+        type === "MATCHING" &&
+          "grid-cols-2",
+        type === "LISTENING" &&
+          "grid-cols-2",
+        type === "PRONUNCIATION" &&
+          "grid-cols-1"
       )}
     >
       {options.map((option, i) => (
