@@ -1,6 +1,7 @@
 "use client";
 
-import { cn, isValidUrl } from "@/lib/utils";
+import { useMemo } from "react";
+import { cn, isValidUrl, shuffleArray } from "@/lib/utils";
 import Image from "next/image";
 import { ExerciseOption } from "@/types";
 
@@ -26,6 +27,9 @@ export function MultipleChoiceExercise({
 }: MultipleChoiceExerciseProps) {
   // Detect if this is a fill-in-the-blank exercise
   const isFillInTheBlank = prompt && prompt.includes("____");
+
+  // Shuffle options to randomize display order
+  const shuffledOptions = useMemo(() => shuffleArray(options), [options]);
 
   return (
     <div className="space-y-6">
@@ -57,7 +61,7 @@ export function MultipleChoiceExercise({
 
       {/* Answer Options Grid */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-[repeat(auto-fit,minmax(0,1fr))]">
-        {options.map((option, i) => (
+        {shuffledOptions.map((option, i) => (
           <div
             key={option.id}
             onClick={() => !disabled && onSelect(option.id)}
