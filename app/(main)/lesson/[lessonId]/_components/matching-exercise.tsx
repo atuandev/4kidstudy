@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { cn } from "@/lib/utils";
+import { cn, shuffleArray } from "@/lib/utils";
 import { ExerciseOption } from "@/types";
 
 type MatchingExerciseProps = {
@@ -27,7 +27,11 @@ export function MatchingExercise({
   const [selectedLeft, setSelectedLeft] = useState<number | null>(null);
   const [selectedRight, setSelectedRight] = useState<number | null>(null);
   const [matches, setMatches] = useState<Map<string, boolean>>(new Map());
-  const [wrongMatch, setWrongMatch] = useState<{ leftId: number; rightId: number } | null>(null);
+  const [wrongMatch, setWrongMatch] = useState<{
+    leftId: number;
+    rightId: number;
+  } | null>(null);
+
 
   // Group options by matchKey to create pairs
   const { leftOptions, rightOptions, pairs } = useMemo(() => {
@@ -60,20 +64,31 @@ export function MatchingExercise({
       }
     });
 
-    // Separate into left (Vietnamese) and right (English) columns
-    // Assuming Vietnamese text contains Vietnamese characters or is longer
+    // Separate into left (Vietnamese/Images) and right (English) columns
     options.forEach((option) => {
-      const isVietnamese = option.text && /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/.test(option.text);
-      if (isVietnamese) {
+      const hasImage = !!option.imageUrl;
+      const isVietnamese =
+        option.text &&
+        /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/.test(
+          option.text
+        );
+      
+      // Left column: Options with images OR Vietnamese text
+      if (hasImage || isVietnamese) {
         leftOpts.push(option);
       } else {
+        // Right column: English text
         rightOpts.push(option);
       }
     });
 
-    // If no Vietnamese characters detected, use order to determine sides
-    if (leftOpts.length === 0 && rightOpts.length === 0) {
-      options.forEach((option, index) => {
+    // If we don't have items in both columns, distribute evenly
+    if (leftOpts.length === 0 || rightOpts.length === 0) {
+      const allOpts = [...options];
+      leftOpts.length = 0;
+      rightOpts.length = 0;
+      
+      allOpts.forEach((option, index) => {
         if (index % 2 === 0) {
           leftOpts.push(option);
         } else {
@@ -82,16 +97,17 @@ export function MatchingExercise({
       });
     }
 
+    // Shuffle both columns to randomize option order
     return {
-      leftOptions: leftOpts,
-      rightOptions: rightOpts,
+      leftOptions: shuffleArray(leftOpts),
+      rightOptions: shuffleArray(rightOpts),
       pairs: Array.from(pairMap.values()),
     };
   }, [options]);
 
   const handleLeftClick = (optionId: number) => {
     if (disabled) return;
-    
+
     setSelectedLeft(optionId);
     setSelectedRight(null);
 
@@ -103,7 +119,7 @@ export function MatchingExercise({
 
   const handleRightClick = (optionId: number) => {
     if (disabled) return;
-    
+
     setSelectedRight(optionId);
     setSelectedLeft(null);
 
@@ -125,20 +141,20 @@ export function MatchingExercise({
     if (isCorrectMatch) {
       // Add to matches
       setMatches((prev) => new Map(prev.set(leftOption.matchKey!, true)));
-      
+
       // Clear selections
       setSelectedLeft(null);
       setSelectedRight(null);
-      
+
       // Clear any previous wrong match state
       setWrongMatch(null);
     } else {
       // Wrong match, show error briefly then clear
       setWrongMatch({ leftId, rightId });
-      
+
       // Trigger parent component's wrong state to play incorrect audio
       onSelect(-1); // Use -1 to indicate wrong match
-      
+
       setTimeout(() => {
         setSelectedLeft(null);
         setSelectedRight(null);
@@ -157,7 +173,7 @@ export function MatchingExercise({
   useEffect(() => {
     if (isAllMatched && matches.size > 0) {
       // Trigger completion state by selecting any valid option
-      const firstOption = options.find(opt => opt.id > 0);
+      const firstOption = options.find((opt) => opt.id > 0);
       if (firstOption) {
         onSelect(firstOption.id);
       }
@@ -165,59 +181,67 @@ export function MatchingExercise({
   }, [isAllMatched, matches.size, options, onSelect]);
 
   return (
-    <div className="grid grid-cols-2 gap-6">
-      {/* Left Column (Vietnamese) */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+      {/* Left Column (Vietnamese/Images) */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
-          Tiếng Việt
-        </h3>
         {leftOptions.map((option) => (
           <div
             key={option.id}
             onClick={() => handleLeftClick(option.id)}
             className={cn(
-              "p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-blue-50",
+              "p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-blue-50 h-24 flex items-center justify-center",
               selectedLeft === option.id && "border-blue-300 bg-blue-100",
-              isMatched(option) && "border-green-300 bg-green-100 cursor-default",
+              isMatched(option) &&
+                "border-green-300 bg-green-100 cursor-default",
               wrongMatch?.leftId === option.id && "border-red-300 bg-red-100",
               disabled && "pointer-events-none opacity-50"
             )}
           >
-            <p className={cn(
-              "text-sm font-medium lg:text-base",
-              selectedLeft === option.id && "text-blue-600",
-              isMatched(option) && "text-green-600",
-              wrongMatch?.leftId === option.id && "text-red-600"
-            )}>
-              {option.text}
-            </p>
+            {option.imageUrl ? (
+              <img
+                src={option.imageUrl}
+                alt={option.text || "Exercise image"}
+                className="max-w-full max-h-16 object-contain rounded"
+              />
+            ) : (
+              <p
+                className={cn(
+                  "text-sm font-medium lg:text-base text-center",
+                  selectedLeft === option.id && "text-blue-600",
+                  isMatched(option) && "text-green-600",
+                  wrongMatch?.leftId === option.id && "text-red-600"
+                )}
+              >
+                {option.text}
+              </p>
+            )}
           </div>
         ))}
       </div>
 
       {/* Right Column (English) */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
-          English
-        </h3>
         {rightOptions.map((option) => (
           <div
             key={option.id}
             onClick={() => handleRightClick(option.id)}
             className={cn(
-              "p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-blue-50",
+              "p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-blue-50 h-24 flex items-center justify-center",
               selectedRight === option.id && "border-blue-300 bg-blue-100",
-              isMatched(option) && "border-green-300 bg-green-100 cursor-default",
+              isMatched(option) &&
+                "border-green-300 bg-green-100 cursor-default",
               wrongMatch?.rightId === option.id && "border-red-300 bg-red-100",
               disabled && "pointer-events-none opacity-50"
             )}
           >
-            <p className={cn(
-              "text-sm font-medium lg:text-base",
-              selectedRight === option.id && "text-blue-600",
-              isMatched(option) && "text-green-600",
-              wrongMatch?.rightId === option.id && "text-red-600"
-            )}>
+            <p
+              className={cn(
+                "text-sm font-medium lg:text-base text-center",
+                selectedRight === option.id && "text-blue-600",
+                isMatched(option) && "text-green-600",
+                wrongMatch?.rightId === option.id && "text-red-600"
+              )}
+            >
               {option.text}
             </p>
           </div>
