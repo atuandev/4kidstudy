@@ -36,8 +36,11 @@ export const Card = ({
   matchKey,
   isMatched,
 }: CardProps) => {
+  // Initialize audio - always render to prevent useAudio ref issues
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [audio, _, controls] = useAudio({ src: audioSrc || "/correct.wav" });
+  const [audio, _, controls] = useAudio({ 
+    src: audioSrc || "/correct.wav"
+  });
 
   const handleClick = useCallback(() => {
     if (disabled) return;

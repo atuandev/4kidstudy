@@ -222,7 +222,7 @@ export function PronunciationExercise({
             size="lg"
           >
             <Mic className="h-5 w-5" />
-            Start Recording
+            Ghi âm
           </Button>
         )}
 
@@ -230,7 +230,7 @@ export function PronunciationExercise({
           <div className="flex flex-col items-center space-y-3">
             <div className="flex items-center gap-2 text-red-600">
               <div className="h-3 w-3 bg-red-600 rounded-full animate-pulse" />
-              <span className="font-medium">Recording...</span>
+              <span className="font-medium">Đang ghi âm...</span>
             </div>
             <Button
               onClick={stopRecording}
@@ -238,19 +238,19 @@ export function PronunciationExercise({
               className="flex items-center gap-2"
             >
               <Square className="h-4 w-4" />
-              Stop Recording
+              Dừng ghi âm
             </Button>
           </div>
         )}
 
         {recordingState === "recorded" && (
           <div className="flex flex-col items-center space-y-3">
-            <p className="text-green-600 font-medium">Recording completed!</p>
+            <p className="text-green-600 font-medium">Đã ghi âm xong!</p>
             <div className="flex flex-col items-center gap-3">
               {recordedAudioUrl && (
                 <div className="flex flex-col items-center space-y-2">
                   <p className="text-sm font-medium text-neutral-600">
-                    Your recording:
+                    Ghi âm của bạn:
                   </p>
                   <AudioPlayer
                     audioUrl={recordedAudioUrl}
@@ -265,16 +265,15 @@ export function PronunciationExercise({
                   className="flex items-center gap-2"
                   variant="primary"
                 >
-                  Analyze Pronunciation
+                  Phân tích phát âm với AI
                 </Button>
                 <Button
                   onClick={resetRecording}
                   variant="primaryOutline"
-                  size="sm"
                   className="flex items-center gap-2"
                 >
                   <RotateCcw className="h-4 w-4" />
-                  Record Again
+                  Ghi âm lại
                 </Button>
               </div>
             </div>
@@ -284,11 +283,11 @@ export function PronunciationExercise({
         {recordingState === "analyzing" && (
           <div className="flex flex-col items-center space-y-3 w-full max-w-md">
             <p className="font-medium text-blue-600">
-              Analyzing pronunciation...
+              Đang phân tích phát âm...
             </p>
             <Progress value={analysisProgress} className="w-full" />
             <p className="text-sm text-neutral-500">
-              Using AI to analyze your pronunciation
+              Sử dụng AI để phân tích phát âm của bạn
             </p>
           </div>
         )}
@@ -299,7 +298,7 @@ export function PronunciationExercise({
               {recordedAudioUrl && (
                 <div className="flex flex-col items-center space-y-2">
                   <p className="text-sm font-medium text-neutral-600">
-                    Your recording:
+                    Ghi âm của bạn:
                   </p>
                   <AudioPlayer
                     audioUrl={recordedAudioUrl}
@@ -311,20 +310,19 @@ export function PronunciationExercise({
               <Button
                 onClick={resetRecording}
                 variant="secondaryOutline"
-                size="sm"
                 className="flex items-center gap-2"
               >
                 <RotateCcw className="h-4 w-4" />
-                Try Again
+                Ghi âm lại
               </Button>
             </div>
 
             <div className="w-full space-y-3">
               <h3 className="text-lg font-bold text-neutral-800">
-                Pronunciation Results
+                Kết quả phát âm
               </h3>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Accuracy:</span>
+                <span className="text-sm font-medium">Độ chính xác:</span>
                 <span
                   className={cn(
                     "text-sm font-bold",
@@ -335,7 +333,7 @@ export function PronunciationExercise({
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Fluency:</span>
+                <span className="text-sm font-medium">Tốc độ:</span>
                 <span
                   className={cn(
                     "text-sm font-bold",
@@ -346,7 +344,7 @@ export function PronunciationExercise({
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Completeness:</span>
+                <span className="text-sm font-medium">Độ đầy đủ:</span>
                 <span
                   className={cn(
                     "text-sm font-bold",
@@ -358,7 +356,7 @@ export function PronunciationExercise({
               </div>
               <hr className="my-2" />
               <div className="flex justify-between items-center">
-                <span className="font-bold">Overall Score:</span>
+                <span className="font-bold">Điểm tổng:</span>
                 <span
                   className={cn(
                     "text-lg font-bold",

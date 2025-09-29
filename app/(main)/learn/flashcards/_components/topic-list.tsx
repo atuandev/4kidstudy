@@ -2,33 +2,26 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { Topic, GRADE_LABELS } from "@/types";
+import { Topic } from "@/types";
 import { TopicCard } from "./topic-card";
 
 interface TopicListProps {
   topics: Topic[];
-  selectedGrade: string;
 }
 
-export function TopicList({ topics, selectedGrade }: TopicListProps) {
-  const getGradeLabel = (grade: string) => {
-    return GRADE_LABELS[grade as keyof typeof GRADE_LABELS] || grade;
-  };
-
+export function TopicList({ topics }: TopicListProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <Link href="/learn">
           <Button variant="ghost" size="sm" className="flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
-            Quay lại
           </Button>
         </Link>
         <div>
           <h2 className="text-2xl font-bold">
-            Chủ đề - {getGradeLabel(selectedGrade)}
+            Danh sách {topics.length} Units
           </h2>
-          <p className="text-muted-foreground">{topics.length} chủ đề có sẵn</p>
         </div>
       </div>
 
@@ -36,7 +29,7 @@ export function TopicList({ topics, selectedGrade }: TopicListProps) {
         <Card>
           <CardContent className="py-8 text-center">
             <p className="text-muted-foreground">
-              Không có chủ đề nào cho lớp học này
+              Không có unit nào cho lớp học này
             </p>
           </CardContent>
         </Card>

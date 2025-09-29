@@ -1,12 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight, RotateCcw, BookOpen } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { FlashcardComponent } from './flashcard';
-import { Flashcard } from '@/types';
+import { useState } from "react";
+import { ChevronLeft, ChevronRight, RotateCcw, BookOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FlashcardComponent } from "./flashcard";
+import { Flashcard } from "@/types";
 
 interface FlashcardViewerProps {
   flashcards: Flashcard[];
@@ -30,8 +29,6 @@ export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
   const handleReset = () => {
     setCurrentIndex(0);
   };
-
-  const progress = flashcards.length > 0 ? ((currentIndex + 1) / flashcards.length) * 100 : 0;
 
   if (flashcards.length === 0) {
     return (
@@ -59,14 +56,10 @@ export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
       <Card className="mb-8">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-2xl font-bold">
-                {currentFlashcard.topic.title}
-              </CardTitle>
-              <p className="text-muted-foreground mt-1">
-                Grade {currentFlashcard.topic.grade.replace('GRADE_', '')}
-              </p>
-            </div>
+            <CardTitle className="text-2xl font-bold">
+              {currentFlashcard.topic.title}
+            </CardTitle>
+            
             <Button
               variant="default"
               size="sm"
@@ -74,29 +67,15 @@ export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
               className="flex items-center gap-2"
             >
               <RotateCcw className="h-4 w-4" />
-              Reset
+              Học lại
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">
-              Card {currentIndex + 1} of {flashcards.length}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {Math.round(progress)}% Complete
-            </span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </CardContent>
       </Card>
 
       {/* Flashcard */}
       <div className="mb-8">
-        <FlashcardComponent
-          flashcard={currentFlashcard}
-          className="mb-8"
-        />
+        <FlashcardComponent flashcard={currentFlashcard} className="mb-8" />
       </div>
 
       {/* Navigation Controls */}
@@ -104,28 +83,24 @@ export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <Button
-              variant="default"
+              variant="primary"
               onClick={handlePrevious}
               disabled={currentIndex === 0}
-              className="flex items-center gap-2"
             >
               <ChevronLeft className="h-4 w-4" />
-              Previous
+              Quay lại
             </Button>
 
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">
-                {currentIndex + 1} / {flashcards.length}
-              </p>
-            </div>
+            <p className="text-xl font-semibold">
+              {currentIndex + 1} / {flashcards.length}
+            </p>
 
             <Button
-              variant="default"
+              variant="primary"
               onClick={handleNext}
               disabled={currentIndex === flashcards.length - 1}
-              className="flex items-center gap-2"
             >
-              Next
+              Tiếp tục
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

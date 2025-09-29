@@ -10,14 +10,13 @@ type LessonIdPageProps = {
 export default async function LessonIdPage({ params }: LessonIdPageProps) {
   const { lessonId } = await params;
   const lessonIdNumber = parseInt(lessonId, 10);
-  
+
   const lessonData = await getExerciseByLessonId(lessonIdNumber);
 
   return (
     <Quiz
       initialLessonId={lessonIdNumber}
       initialLessonExercises={lessonData}
-      initialPercentage={0}
     />
   );
 }

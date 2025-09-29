@@ -27,15 +27,12 @@ export function GradeSelectorButton() {
 
   return (
     <div className="flex items-center gap-2 pb-4">
-      <GraduationCap className="h-4 w-4 text-muted-foreground" />
-      <span className="text-sm font-medium text-muted-foreground">Lớp:</span>
+      <GraduationCap className="size-8 text-muted-foreground" />
       <div className="flex gap-1">
         {GRADES.map((grade) => (
           <Button
             key={grade.id}
             variant={selectedGradeData?.value === grade.value ? "default" : "ghost"}
-            size="sm"
-            className="h-8 px-3"
             disabled={isLoading}
             onClick={() => handleGradeClick(grade)}
           >

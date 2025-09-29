@@ -15,14 +15,17 @@ type FinishPageProps = {
 export default function FinishPage({ lessonId }: FinishPageProps) {
   const { width, height } = useWindowSize();
   const router = useRouter();
-  const { totalPoints, correctCount, totalExercises, getAccuracy } = useExerciseStatsStore();
-  
+  const { getAccuracy } = useExerciseStatsStore();
+
   const accuracy = getAccuracy();
-  const completionMessage = 
-    accuracy >= 90 ? "Excellent work!" :
-    accuracy >= 70 ? "Great job!" :
-    accuracy >= 50 ? "Good effort!" :
-    "Keep practicing!";
+  const completionMessage =
+    accuracy >= 90
+      ? "Excellent work!"
+      : accuracy >= 70
+      ? "Great job!"
+      : accuracy >= 50
+      ? "Good effort!"
+      : "Keep practicing!";
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -51,13 +54,8 @@ export default function FinishPage({ lessonId }: FinishPageProps) {
         />
 
         <h1 className="text-lg font-bold text-neutral-700 lg:text-3xl">
-          {completionMessage} <br /> You&apos;ve completed the lesson.
+          {completionMessage} <br /> Bạn đã hoàn thành bài học.
         </h1>
-
-        <div className="text-sm text-neutral-600 mb-4">
-          <p>Completed {correctCount} of {totalExercises} exercises correctly</p>
-          <p>Total Points Earned: {totalPoints}</p>
-        </div>
 
         {/* Comprehensive Stats Dashboard */}
         <div className="w-full max-w-2xl">
