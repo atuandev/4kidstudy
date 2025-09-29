@@ -10,21 +10,18 @@ interface TopicListProps {
 }
 
 export function TopicList({ topics }: TopicListProps) {
-
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <Link href="/learn">
           <Button variant="ghost" size="sm" className="flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
-            Quay lại
           </Button>
         </Link>
         <div>
           <h2 className="text-2xl font-bold">
-            Danh sách Units
+            Danh sách {topics.length} Units
           </h2>
-          <p className="text-muted-foreground">Có {topics.length} units</p>
         </div>
       </div>
 
