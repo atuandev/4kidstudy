@@ -8,9 +8,9 @@ export const TopicCard = ({ topic }: { topic: Topic }) => {
   return (
     <Link key={topic.id} href={`/learn/flashcards/${topic.id}`}>
       <Card className="cursor-pointer transition-all hover:shadow-md hover:bg-muted/50">
-        <CardHeader className="pb-3">
+        <CardHeader>
           {topic.coverImage ? (
-            <div className="relative w-full h-32 mb-4 rounded-lg overflow-hidden">
+            <div className="relative w-full h-32 rounded-lg overflow-hidden">
               <Image
                 src={topic.coverImage}
                 alt={topic.title || `Topic cover image`}
@@ -19,13 +19,15 @@ export const TopicCard = ({ topic }: { topic: Topic }) => {
               />
             </div>
           ) : (
-            <div className="w-full h-32 mb-4 rounded-lg bg-muted flex items-center justify-center">
-              <span className="text-muted-foreground text-sm">No image</span>
+            <div className="w-full h-32 rounded-lg bg-muted flex items-center justify-center">
+              <span className="text-muted-foreground text-sm">
+                Không có ảnh
+              </span>
             </div>
           )}
         </CardHeader>
         <CardContent className="pt-0">
-          <CardTitle className="text-lg font-bold">{topic.title}</CardTitle>
+          <CardTitle className="text-lg font-bold">Unit {topic.order}: {topic.title}</CardTitle>
           <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
             {topic?.description}
           </p>

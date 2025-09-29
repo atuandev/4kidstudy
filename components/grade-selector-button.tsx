@@ -28,7 +28,6 @@ export function GradeSelectorButton() {
   return (
     <div className="flex items-center gap-2 pb-4">
       <GraduationCap className="h-4 w-4 text-muted-foreground" />
-      <span className="text-sm font-medium text-muted-foreground">Lớp:</span>
       <div className="flex gap-1">
         {GRADES.map((grade) => (
           <Button

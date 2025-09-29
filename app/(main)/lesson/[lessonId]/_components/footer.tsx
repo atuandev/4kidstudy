@@ -38,14 +38,14 @@ export const Footer = ({
           {status === "correct" && (
             <div className="flex items-center text-base font-bold text-green-500 lg:text-2xl">
               <CheckCircle className="mr-4 h-6 w-6 lg:h-10 lg:w-10" />
-              Nicely done!
+              Rất tốt!
             </div>
           )}
 
           {status === "wrong" && (
             <div className="flex items-center text-base font-bold text-rose-500 lg:text-2xl">
               <XCircle className="mr-4 h-6 w-6 lg:h-10 lg:w-10" />
-              Try again.
+              Làm lại.
             </div>
           )}
 
@@ -55,7 +55,7 @@ export const Footer = ({
               size={isMobile ? "sm" : "lg"}
               onClick={() => (window.location.href = `/lesson/${lessonId}`)}
             >
-              Practice again
+              Làm lại
             </Button>
           )}
 
@@ -68,7 +68,7 @@ export const Footer = ({
               className="text-neutral-500 hover:text-neutral-700"
               title="Skip this exercise (Press 'S')"
             >
-              Skip
+              Bỏ qua
             </Button>
           )}
         </div>
@@ -80,10 +80,10 @@ export const Footer = ({
           size={isMobile ? "sm" : "lg"}
           variant={status === "wrong" ? "danger" : "secondary"}
         >
-          {status === "none" && "Check"}
-          {status === "correct" && "Next"}
-          {status === "wrong" && "Retry"}
-          {status === "completed" && "Continue"}
+          {status === "none" && "Kiểm tra"}
+          {status === "correct" && "Tiếp tục"}
+          {status === "wrong" && "Làm lại"}
+          {status === "completed" && "Tiếp tục"}
         </Button>
       </div>
     </footer>

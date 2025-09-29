@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight, RotateCcw, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { FlashcardComponent } from './flashcard';
 import { Flashcard } from '@/types';
 
@@ -30,8 +29,6 @@ export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
   const handleReset = () => {
     setCurrentIndex(0);
   };
-
-  const progress = flashcards.length > 0 ? ((currentIndex + 1) / flashcards.length) * 100 : 0;
 
   if (flashcards.length === 0) {
     return (
@@ -63,9 +60,6 @@ export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
               <CardTitle className="text-2xl font-bold">
                 {currentFlashcard.topic.title}
               </CardTitle>
-              <p className="text-muted-foreground mt-1">
-                Grade {currentFlashcard.topic.grade.replace('GRADE_', '')}
-              </p>
             </div>
             <Button
               variant="default"
@@ -74,21 +68,10 @@ export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
               className="flex items-center gap-2"
             >
               <RotateCcw className="h-4 w-4" />
-              Reset
+              Học lại
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">
-              Card {currentIndex + 1} of {flashcards.length}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {Math.round(progress)}% Complete
-            </span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </CardContent>
       </Card>
 
       {/* Flashcard */}
@@ -110,7 +93,7 @@ export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
               className="flex items-center gap-2"
             >
               <ChevronLeft className="h-4 w-4" />
-              Previous
+              Quay lại
             </Button>
 
             <div className="text-center">
@@ -125,7 +108,7 @@ export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
               disabled={currentIndex === flashcards.length - 1}
               className="flex items-center gap-2"
             >
-              Next
+              Tiếp tục
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
