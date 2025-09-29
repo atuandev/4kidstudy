@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight, RotateCcw, BookOpen } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FlashcardComponent } from './flashcard';
-import { Flashcard } from '@/types';
+import { useState } from "react";
+import { ChevronLeft, ChevronRight, RotateCcw, BookOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FlashcardComponent } from "./flashcard";
+import { Flashcard } from "@/types";
 
 interface FlashcardViewerProps {
   flashcards: Flashcard[];
@@ -76,10 +76,7 @@ export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
 
       {/* Flashcard */}
       <div className="mb-8">
-        <FlashcardComponent
-          flashcard={currentFlashcard}
-          className="mb-8"
-        />
+        <FlashcardComponent flashcard={currentFlashcard} className="mb-8" />
       </div>
 
       {/* Navigation Controls */}
@@ -87,26 +84,22 @@ export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <Button
-              variant="default"
+              variant="primary"
               onClick={handlePrevious}
               disabled={currentIndex === 0}
-              className="flex items-center gap-2"
             >
               <ChevronLeft className="h-4 w-4" />
               Quay lại
             </Button>
 
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">
-                {currentIndex + 1} / {flashcards.length}
-              </p>
-            </div>
+            <p className="text-xl font-semibold">
+              {currentIndex + 1} / {flashcards.length}
+            </p>
 
             <Button
-              variant="default"
+              variant="primary"
               onClick={handleNext}
               disabled={currentIndex === flashcards.length - 1}
-              className="flex items-center gap-2"
             >
               Tiếp tục
               <ChevronRight className="h-4 w-4" />

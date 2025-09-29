@@ -27,7 +27,7 @@ export function FlashcardComponent({
 
     try {
       setIsLoading(true);
-      
+
       // Wait for any existing play promise to complete or fail
       if (currentPlayPromiseRef.current) {
         try {
@@ -41,19 +41,19 @@ export function FlashcardComponent({
         // Pause and reset audio before setting new source
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
-        
+
         // Set new source
         audioRef.current.src = flashcard.audioUrl;
-        
+
         // Create new play promise and store reference
         const playPromise = audioRef.current.play();
         currentPlayPromiseRef.current = playPromise;
-        
+
         await playPromise;
       }
     } catch (error) {
       // Only log non-abort errors to avoid console spam
-      if (error instanceof Error && error.name !== 'AbortError') {
+      if (error instanceof Error && error.name !== "AbortError") {
         console.error("Error playing audio:", error);
       }
     } finally {
@@ -75,7 +75,7 @@ export function FlashcardComponent({
 
     // Reset flip state when flashcard changes
     setIsFlipped(false);
-    
+
     // Auto-play audio
     autoPlayAudio();
 
@@ -95,7 +95,7 @@ export function FlashcardComponent({
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
-        audioRef.current.src = '';
+        audioRef.current.src = "";
       }
       currentPlayPromiseRef.current = null;
     };
@@ -142,9 +142,14 @@ export function FlashcardComponent({
               )}
 
               <div className="flex flex-col items-center gap-2">
-                <h2 className="text-3xl font-bold text-gray-800">
+                <h2 className="text-5xl font-bold text-gray-800">
                   {flashcard.term}
                 </h2>
+
+                <p className="text-2xl text-gray-600 font-medium">
+                  {flashcard.phonetic}
+                </p>
+
                 <Button
                   size="sm"
                   variant="ghost"
@@ -157,19 +162,15 @@ export function FlashcardComponent({
                 >
                   <Volume2
                     className={cn(
-                      "w-5 h-5 text-blue-600",
+                      "w-6 h-6 text-blue-600",
                       isLoading && "animate-pulse"
                     )}
                   />
                 </Button>
-
-                <p className="text-lg text-gray-600 font-medium">
-                  {flashcard.phonetic}
-                </p>
               </div>
             </div>
 
-            <div className="absolute bottom-4 text-sm text-gray-500 flex items-center gap-1">
+            <div className="absolute bottom-4 text-gray-500 flex items-center gap-1">
               <RotateCcw className="w-4 h-4" />
               Nhấn để lật
             </div>
@@ -183,34 +184,30 @@ export function FlashcardComponent({
             )}
           >
             <div className="flex flex-col items-center space-y-6 text-center">
+              <h3 className="text-4xl font-bold text-gray-800">
+                {flashcard.meaningVi}
+              </h3>
+
               <div className="space-y-2">
-                <h3 className="text-4xl font-bold text-gray-800">
-                  {flashcard.meaningVi}
-                </h3>
-              </div>
+                {flashcard.exampleEn && (
+                  <div className="p-2 bg-white rounded-lg shadow-sm">
+                    <p className="text-gray-600 italic">
+                      "{flashcard.exampleEn}"
+                    </p>
+                  </div>
+                )}
 
-              <div className="space-y-3 max-w-sm">
-                <div className="p-3 bg-white rounded-lg shadow-sm">
-                  <p className="text-gray-700 font-medium mb-1">
-                    Example (English):
-                  </p>
-                  <p className="text-gray-600 italic">
-                    "{flashcard.exampleEn}"
-                  </p>
-                </div>
-
-                <div className="p-3 bg-white rounded-lg shadow-sm">
-                  <p className="text-gray-700 font-medium mb-1">
-                    Example (Vietnamese):
-                  </p>
-                  <p className="text-gray-600 italic">
-                    "{flashcard.exampleVi}"
-                  </p>
-                </div>
+                {flashcard.exampleVi && (
+                  <div className="p-2 bg-white rounded-lg shadow-sm">
+                    <p className="text-gray-600 italic">
+                      "{flashcard.exampleVi}"
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="absolute bottom-4 text-sm text-gray-500 flex items-center gap-1">
+            <div className="absolute bottom-4 text-gray-500 flex items-center gap-1">
               <RotateCcw className="w-4 h-4" />
               Nhấn để lật
             </div>

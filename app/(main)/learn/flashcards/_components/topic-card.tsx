@@ -27,8 +27,8 @@ export const TopicCard = ({ topic }: { topic: Topic }) => {
           )}
         </CardHeader>
         <CardContent className="pt-0">
-          <CardTitle className="text-lg font-bold">{topic.title}</CardTitle>
-          <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+          <CardTitle className="text-xl font-bold">{topic.title}</CardTitle>
+          <p className="text-muted-foreground mb-4 line-clamp-3">
             {topic?.description}
           </p>
           <div className="flex items-center justify-between">
