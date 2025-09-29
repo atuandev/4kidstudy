@@ -56,11 +56,10 @@ export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
       <Card className="mb-8">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-2xl font-bold">
-                {currentFlashcard.topic.title}
-              </CardTitle>
-            </div>
+            <CardTitle className="text-2xl font-bold">
+              {currentFlashcard.topic.title}
+            </CardTitle>
+            
             <Button
               variant="default"
               size="sm"

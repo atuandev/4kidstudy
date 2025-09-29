@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Volume2, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Flashcard } from "@/types";
+import { AudioRecord } from "./audio-record";
 
 interface FlashcardComponentProps {
   flashcard: Flashcard;
@@ -19,10 +20,13 @@ export function FlashcardComponent({
 }: FlashcardComponentProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [autoplayFailed, setAutoplayFailed] = useState(false);
+  
   const audioRef = useRef<HTMLAudioElement>(null);
   const currentPlayPromiseRef = useRef<Promise<void> | null>(null);
 
-  const playAudio = async () => {
+  const playAudio = async (isManualPlay = false) => {
     if (!flashcard.audioUrl || isLoading) return;
 
     try {
@@ -50,11 +54,24 @@ export function FlashcardComponent({
         currentPlayPromiseRef.current = playPromise;
 
         await playPromise;
+        
+        // If manual play succeeds, mark user as having interacted and clear autoplay failure
+        if (isManualPlay) {
+          setHasUserInteracted(true);
+          setAutoplayFailed(false);
+        }
       }
     } catch (error) {
-      // Only log non-abort errors to avoid console spam
-      if (error instanceof Error && error.name !== "AbortError") {
-        console.error("Error playing audio:", error);
+      if (error instanceof Error) {
+        if (error.name === "NotAllowedError") {
+          // User hasn't interacted with document yet
+          if (!isManualPlay) {
+            setAutoplayFailed(true);
+          }
+        } else if (error.name !== "AbortError") {
+          // Only log non-abort errors to avoid console spam
+          console.error("Error playing audio:", error);
+        }
       }
     } finally {
       setIsLoading(false);
@@ -62,10 +79,35 @@ export function FlashcardComponent({
     }
   };
 
+
+  // Detect user interaction
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      setHasUserInteracted(true);
+      setAutoplayFailed(false);
+    };
+
+    // Listen for various user interactions
+    const events = ['click', 'touchstart', 'keydown'];
+    
+    events.forEach(event => {
+      document.addEventListener(event, handleUserInteraction, { once: true });
+    });
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, handleUserInteraction);
+      });
+    };
+  }, []);
+
   // Auto-play audio when flashcard changes
   useEffect(() => {
     const autoPlayAudio = async () => {
       if (flashcard.audioUrl && !isLoading) {
+        // Reset autoplay failed state for new flashcard
+        setAutoplayFailed(false);
+        
         // Add a small delay to ensure the component has fully rendered
         setTimeout(() => {
           playAudio();
@@ -76,7 +118,7 @@ export function FlashcardComponent({
     // Reset flip state when flashcard changes
     setIsFlipped(false);
 
-    // Auto-play audio
+    // Always try auto-play (will fail gracefully if user hasn't interacted)
     autoPlayAudio();
 
     // Cleanup function to handle component unmount or flashcard change
@@ -150,23 +192,33 @@ export function FlashcardComponent({
                   {flashcard.phonetic}
                 </p>
 
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="p-2 rounded-full hover:bg-blue-300 bg-blue-200"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    playAudio();
-                  }}
-                  disabled={isLoading || !flashcard.audioUrl}
-                >
-                  <Volume2
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
                     className={cn(
-                      "w-6 h-6 text-blue-600",
-                      isLoading && "animate-pulse"
+                      "p-2 rounded-full hover:bg-blue-300 bg-blue-200",
+                      autoplayFailed && !hasUserInteracted && "animate-pulse ring-2 ring-blue-400"
                     )}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playAudio(true);
+                    }}
+                    disabled={isLoading || !flashcard.audioUrl}
+                  >
+                    <Volume2
+                      className={cn(
+                        "h-6 w-6 text-blue-600",
+                        isLoading && "animate-pulse"
+                      )}
+                    />
+                  </Button>
+
+                  <AudioRecord 
+                    onStopPropagation={(e) => e.stopPropagation()}
+                    resetTrigger={flashcard.id}
                   />
-                </Button>
+                </div>
               </div>
             </div>
 
