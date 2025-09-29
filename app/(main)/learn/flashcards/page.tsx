@@ -21,7 +21,6 @@ export default function FlashcardsPage() {
         ) : (
           <TopicList
             topics={topics}
-            selectedGrade={selectedGrade}
           />
         )}
       </div>
