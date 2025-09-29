@@ -63,9 +63,8 @@ export const Footer = ({
           {status === "none" && showSkip && onSkip && (
             <Button
               onClick={onSkip}
-              variant="secondaryOutline"
+              variant="default"
               size={isMobile ? "sm" : "lg"}
-              className="text-neutral-500 hover:text-neutral-700"
               title="Skip this exercise (Press 'S')"
             >
               Bỏ qua

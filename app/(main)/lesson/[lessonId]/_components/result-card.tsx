@@ -14,27 +14,17 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
       case "points":
         return {
           imageSrc: "/points.svg",
-          title: "Total XP",
+          title: "Tổng điểm",
           borderColor: "border-orange-400",
           bgColor: "bg-orange-400",
           textColor: "text-orange-400",
           icon: null,
           suffix: "",
         };
-      case "hearts":
-        return {
-          imageSrc: "/heart.svg",
-          title: "Hearts Left",
-          borderColor: "border-rose-500",
-          bgColor: "bg-rose-500",
-          textColor: "text-rose-500",
-          icon: null,
-          suffix: "",
-        };
       case "duration":
         return {
           imageSrc: null,
-          title: "Time Spent",
+          title: "Thời gian",
           borderColor: "border-blue-400",
           bgColor: "bg-blue-400",
           textColor: "text-blue-400",
@@ -44,7 +34,7 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
       case "accuracy":
         return {
           imageSrc: null,
-          title: "Accuracy",
+          title: "Độ chính xác",
           borderColor: "border-green-400",
           bgColor: "bg-green-400",
           textColor: "text-green-400",
@@ -54,17 +44,17 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
       case "correct":
         return {
           imageSrc: null,
-          title: "Correct",
-          borderColor: "border-purple-400",
-          bgColor: "bg-purple-400",
-          textColor: "text-purple-400",
+          title: "Số câu đúng",
+          borderColor: "border-yellow-400",
+          bgColor: "bg-yellow-400",
+          textColor: "text-yellow-400",
           icon: Trophy,
           suffix: "",
         };
       case "skipped":
         return {
           imageSrc: null,
-          title: "Skipped",
+          title: "Bỏ qua",
           borderColor: "border-gray-400",
           bgColor: "bg-gray-400",
           textColor: "text-gray-400",
@@ -74,7 +64,7 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
       default:
         return {
           imageSrc: "/points.svg",
-          title: "Total XP",
+          title: "Tổng điểm",
           borderColor: "border-orange-400",
           bgColor: "bg-orange-400",
           textColor: "text-orange-400",

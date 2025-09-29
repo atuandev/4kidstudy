@@ -1,5 +1,4 @@
-import { useMemo } from "react";
-import { cn, shuffleArray } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 import { Card } from "./card";
 import { MatchingExercise } from "./matching-exercise";
@@ -35,11 +34,9 @@ export const Exercise = ({
   prompt,
   onPronunciationStateChange,
 }: ExerciseProps) => {
-  // Shuffle options for SELECT_IMAGE exercise type
-  const shuffledOptions = useMemo(() => {
-    // Only shuffle for SELECT_IMAGE type, other types handle their own randomization
-    return type === "SELECT_IMAGE" ? shuffleArray(options) : options;
-  }, [options, type]);
+  // Use original options order to prevent hydration mismatch
+  // Options order should be consistent between server and client
+  const exerciseOptions = options;
   // Handle specialized exercise types
   if (type === "MATCHING") {
     return (
@@ -104,7 +101,7 @@ export const Exercise = ({
   // Handle standard exercise types with cards (SELECT_IMAGE only)
   return (
     <div className="grid grid-cols-2 gap-2 lg:grid-cols-[repeat(auto-fit,minmax(0,1fr))]">
-      {shuffledOptions.map((option, i) => (
+      {exerciseOptions.map((option, i) => (
         <Card
           key={option.id}
           id={option.id}

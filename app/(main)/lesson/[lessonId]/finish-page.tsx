@@ -51,12 +51,12 @@ export default function FinishPage({ lessonId }: FinishPageProps) {
         />
 
         <h1 className="text-lg font-bold text-neutral-700 lg:text-3xl">
-          {completionMessage} <br /> You&apos;ve completed the lesson.
+          {completionMessage} <br /> Bạn đã hoàn thành bài học.
         </h1>
 
         <div className="text-sm text-neutral-600 mb-4">
-          <p>Completed {correctCount} of {totalExercises} exercises correctly</p>
-          <p>Total Points Earned: {totalPoints}</p>
+          <p>Bạn đã hoàn thành {correctCount} trong {totalExercises} bài học</p>
+          <p>Tổng điểm: {totalPoints}</p>
         </div>
 
         {/* Comprehensive Stats Dashboard */}

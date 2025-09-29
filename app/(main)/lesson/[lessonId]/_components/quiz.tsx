@@ -51,7 +51,17 @@ export const Quiz = ({
   const [pronunciationScore, setPronunciationScore] = useState<any>(null);
 
   // Exercise stats store
-  const { startSession, endSession, startExercise, completeExercise, skipExercise } = useExerciseStatsStore();
+  const { 
+    startSession, 
+    endSession, 
+    startExercise, 
+    completeExercise, 
+    skipExercise,
+    totalPoints,
+    correctCount,
+    totalExercises: completedExercises,
+    startTime
+  } = useExerciseStatsStore();
 
   // Initialize session and start first exercise
   useEffect(() => {
@@ -80,8 +90,24 @@ export const Quiz = ({
     }
   }, [activeIndex, exercises, endSession]);
 
+  // Force re-render every second for realtime duration
+  const [, forceUpdate] = useState({});
+  useEffect(() => {
+    const interval = setInterval(() => {
+      forceUpdate({});
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   const exercise = exercises[activeIndex];
   const options = exercise?.options ?? [];
+
+  // Calculate realtime duration
+  const getCurrentDuration = () => {
+    if (!startTime) return 0;
+    return Math.floor((Date.now() - startTime) / 1000);
+  };
 
   const onNext = () => {
     setActiveIndex((current) => current + 1);
@@ -239,7 +265,14 @@ export const Quiz = ({
       {correctAudio}
       {finishAudio}
 
-      <Header percentage={percentage} />
+      <Header 
+        percentage={percentage} 
+        currentExercise={activeIndex + 1}
+        totalExercises={exercises.length}
+        correctCount={correctCount}
+        totalPoints={totalPoints}
+        duration={getCurrentDuration()}
+      />
 
       <div className="h-[calc(100vh-300px)]">
         <div className="flex h-full items-center justify-center">
