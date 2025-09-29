@@ -32,7 +32,6 @@ export const Quiz = ({
   });
   const [finishAudio] = useAudio({
     src: "/finish.mp3",
-    autoPlay: true,
   });
 
   const [pending, startTransition] = useTransition();
