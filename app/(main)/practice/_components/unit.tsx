@@ -1,26 +1,17 @@
-
-import { LessonButton } from "./lesson-button"
+import { LessonButton } from "./lesson-button";
 import { UnitBanner } from "./unit-banner";
-import { Lesson } from "@/types";
+import { Lesson, Topic } from "@/types";
 
 type UnitProps = {
-  order: number;
-  title: string;
-  description: string;
+  topic: Topic;
   lessons: Lesson[];
   activeLessonPercentage: number;
 };
 
-export const Unit = ({
-  order,
-  title,
-  description,
-  lessons,
-  activeLessonPercentage,
-}: UnitProps) => {
+export const Unit = ({ topic, lessons, activeLessonPercentage }: UnitProps) => {
   return (
     <>
-      <UnitBanner title={title} description={description} order={order} />
+      <UnitBanner topic={topic} />
 
       <div className="relative flex flex-col items-center">
         {lessons.map((lesson, i) => {

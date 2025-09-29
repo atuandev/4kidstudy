@@ -26,9 +26,7 @@ export default function Units() {
         {topics.map((topic: Topic) => (
           <div key={topic.id} className="mb-10">
             <Unit
-              order={topic.order}
-              title={topic.title}
-              description={topic.description || ""}
+              topic={topic}
               lessons={topic.lessons}
               activeLessonPercentage={topic.activeLessonPercentage || 0}
             />
