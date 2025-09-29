@@ -12,15 +12,14 @@ import FinishPage from "../finish-page";
 import { QuestionBubble } from "./question-bubble";
 import AudioPlayer from "./audio-player";
 import { useExerciseStatsStore } from "@/lib/stores/exercise-stats-store";
+import { Difficulty } from "./difficulty";
 
 type QuizProps = {
-  initialPercentage: number;
   initialLessonId: number;
   initialLessonExercises: ExerciseType[];
 };
 
 export const Quiz = ({
-  initialPercentage,
   initialLessonId,
   initialLessonExercises,
 }: QuizProps) => {
@@ -37,30 +36,27 @@ export const Quiz = ({
   const [pending, startTransition] = useTransition();
 
   const [lessonId] = useState(initialLessonId);
-  const [percentage, setPercentage] = useState(() => {
-    return initialPercentage === 100 ? 0 : initialPercentage;
-  });
   const [exercises] = useState(initialLessonExercises);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const [selectedOption, setSelectedOption] = useState<number>();
   const [status, setStatus] = useState<"none" | "wrong" | "correct">("none");
-  
+
   // Pronunciation exercise state
   const [pronunciationState, setPronunciationState] = useState<string>("idle");
   const [pronunciationScore, setPronunciationScore] = useState<any>(null);
 
   // Exercise stats store
-  const { 
-    startSession, 
-    endSession, 
-    startExercise, 
-    completeExercise, 
+  const {
+    startSession,
+    endSession,
+    startExercise,
+    completeExercise,
     skipExercise,
     totalPoints,
     correctCount,
     totalExercises: completedExercises,
-    startTime
+    startTime,
   } = useExerciseStatsStore();
 
   // Initialize session and start first exercise
@@ -69,7 +65,7 @@ export const Quiz = ({
     if (exercises.length > 0) {
       startExercise();
     }
-    
+
     // Cleanup: end session when component unmounts
     return () => {
       endSession();
@@ -96,7 +92,7 @@ export const Quiz = ({
     const interval = setInterval(() => {
       forceUpdate({});
     }, 1000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -111,7 +107,7 @@ export const Quiz = ({
 
   const onNext = () => {
     setActiveIndex((current) => current + 1);
-    
+
     // Reset pronunciation state for next exercise
     setPronunciationState("idle");
     setPronunciationScore(null);
@@ -125,7 +121,7 @@ export const Quiz = ({
       startTransition(() => {
         void incorrectControls.play();
         setStatus("wrong");
-        
+
         // Track exercise completion (incorrect, no points)
         completeExercise(false, exercise.points);
       });
@@ -140,9 +136,6 @@ export const Quiz = ({
 
     // Track skip in stats
     skipExercise();
-
-    // Update progress bar
-    setPercentage((prev) => prev + 100 / exercises.length);
 
     // Move to next exercise
     onNext();
@@ -165,15 +158,18 @@ export const Quiz = ({
     }
 
     // Handle PRONUNCIATION exercise completion
-    if (exercise.type === "PRONUNCIATION" && pronunciationState === "completed" && pronunciationScore) {
+    if (
+      exercise.type === "PRONUNCIATION" &&
+      pronunciationState === "completed" &&
+      pronunciationScore
+    ) {
       const isGoodScore = pronunciationScore.overall >= 70;
-      
+
       if (isGoodScore) {
         startTransition(() => {
           void correctControls.play();
           setStatus("correct");
-          setPercentage((prev) => prev + 100 / exercises.length);
-          
+
           // Track exercise completion
           completeExercise(true, exercise.points);
         });
@@ -181,7 +177,7 @@ export const Quiz = ({
         startTransition(() => {
           void incorrectControls.play();
           setStatus("wrong");
-          
+
           // Track exercise completion (incorrect, no points)
           completeExercise(false, exercise.points);
         });
@@ -194,8 +190,7 @@ export const Quiz = ({
       startTransition(() => {
         void correctControls.play();
         setStatus("correct");
-        setPercentage((prev) => prev + 100 / exercises.length);
-        
+
         // Track exercise completion
         completeExercise(true, exercise.points);
       });
@@ -209,13 +204,12 @@ export const Quiz = ({
     if (!correctOption) return;
 
     const isCorrect = correctOption.id === selectedOption;
-    
+
     if (isCorrect) {
       startTransition(() => {
         void correctControls.play();
         setStatus("correct");
-        setPercentage((prev) => prev + 100 / exercises.length);
-        
+
         // Track exercise completion
         completeExercise(true, exercise.points);
       });
@@ -223,7 +217,7 @@ export const Quiz = ({
       startTransition(() => {
         void incorrectControls.play();
         setStatus("wrong");
-        
+
         // Track exercise completion (incorrect, no points)
         completeExercise(false, exercise.points);
       });
@@ -265,7 +259,7 @@ export const Quiz = ({
       {correctAudio}
       {finishAudio}
 
-      <Header 
+      <Header
         currentExercise={activeIndex + 1}
         totalExercises={exercises.length}
         correctCount={correctCount}
@@ -281,19 +275,20 @@ export const Quiz = ({
             </h1>
 
             <div>
+              <Difficulty difficulty={exercise.difficulty} />
               <QuestionBubble question={exercise.prompt} />
-              
+
               {/* Audio player for SELECT_IMAGE exercise with vocabulary */}
               {exercise.type === "SELECT_IMAGE" && exercise.audioUrl && (
                 <div className="flex items-center justify-center mb-6">
-                  <AudioPlayer 
-                    audioUrl={exercise.audioUrl} 
+                  <AudioPlayer
+                    audioUrl={exercise.audioUrl}
                     variant="button"
                     className="text-center"
                   />
                 </div>
               )}
-              
+
               {/* Audio player for LISTENING exercise */}
               {exercise.type === "LISTENING" && exercise.audioUrl && (
                 <div className="mb-4">
@@ -321,9 +316,12 @@ export const Quiz = ({
 
       <Footer
         disabled={
-          pending || 
-          (!selectedOption && exercise.type !== "MATCHING" && exercise.type !== "PRONUNCIATION") ||
-          (exercise.type === "PRONUNCIATION" && pronunciationState !== "completed")
+          pending ||
+          (!selectedOption &&
+            exercise.type !== "MATCHING" &&
+            exercise.type !== "PRONUNCIATION") ||
+          (exercise.type === "PRONUNCIATION" &&
+            pronunciationState !== "completed")
         }
         status={status}
         onCheck={onContinue}

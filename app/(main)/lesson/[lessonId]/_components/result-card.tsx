@@ -7,7 +7,6 @@ type ResultCardProps = {
   value: number;
   variant:
     | "points"
-    | "hearts"
     | "duration"
     | "accuracy"
     | "correct"

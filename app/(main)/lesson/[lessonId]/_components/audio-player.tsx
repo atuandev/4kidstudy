@@ -48,7 +48,7 @@ export default function AudioPlayer({
         autoPlay
       >
         <source src={audioUrl} type="audio/mpeg" />
-        Your browser does not support the audio element.
+        Trình duyệt của bạn không hỗ trợ phần tử âm thanh.
       </audio>
     </div>
   );
