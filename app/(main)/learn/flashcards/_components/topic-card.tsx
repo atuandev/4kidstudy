@@ -27,7 +27,7 @@ export const TopicCard = ({ topic }: { topic: Topic }) => {
           )}
         </CardHeader>
         <CardContent className="pt-0">
-          <CardTitle className="text-lg font-bold">Unit {topic.order}: {topic.title}</CardTitle>
+          <CardTitle className="text-lg font-bold">{topic.title}</CardTitle>
           <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
             {topic?.description}
           </p>
