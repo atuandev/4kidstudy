@@ -18,7 +18,7 @@ export const UnitBanner = ({ topic }: UnitBannerProps) => {
           alt={topic.title}
           width={100}
           height={100}
-          className="rounded-lg object-cover h-20"
+          className="rounded-lg object-cover h-20 border-4 border-green-600"
         />
       </div>
     </div>
