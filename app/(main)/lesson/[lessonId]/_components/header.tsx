@@ -4,7 +4,6 @@ import { Progress } from "@/components/ui/progress";
 import { useRouter } from "next/navigation";
 
 type HeaderProps = {
-  percentage: number;
   currentExercise: number;
   totalExercises: number;
   correctCount: number;
@@ -13,7 +12,6 @@ type HeaderProps = {
 };
 
 export const Header = ({
-  percentage,
   currentExercise,
   totalExercises,
   correctCount,
@@ -30,6 +28,11 @@ export const Header = ({
 
   const accuracy =
     totalExercises > 0 ? Math.round((correctCount / totalExercises) * 100) : 0;
+
+  const progress =
+    totalExercises > 0
+      ? Math.round((currentExercise / totalExercises) * 100)
+      : 0;
 
   return (
     <header className="mx-auto flex w-full max-w-[1140px] flex-col gap-y-4 px-10 pt-[20px] lg:pt-[50px]">
@@ -78,7 +81,7 @@ export const Header = ({
       </div>
 
       {/* Progress bar */}
-      <Progress value={percentage} />
+      <Progress value={progress} />
     </header>
   );
 };

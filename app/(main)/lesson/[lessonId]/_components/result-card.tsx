@@ -5,7 +5,13 @@ import { cn } from "@/lib/utils";
 
 type ResultCardProps = {
   value: number;
-  variant: "points" | "hearts" | "duration" | "accuracy" | "correct" | "skipped";
+  variant:
+    | "points"
+    | "hearts"
+    | "duration"
+    | "accuracy"
+    | "correct"
+    | "skipped";
 };
 
 export const ResultCard = ({ value, variant }: ResultCardProps) => {
@@ -96,7 +102,7 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
 
       <div
         className={cn(
-          "flex items-center justify-center rounded-2xl bg-white p-6 text-lg font-bold",
+          "flex items-center justify-center rounded-2xl bg-white p-6 text-xl font-bold",
           config.textColor
         )}
       >
@@ -109,15 +115,15 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
             className="mr-1.5"
           />
         )}
-        {IconComponent && (
-          <IconComponent className="mr-1.5 h-6 w-6" />
-        )}
+        {IconComponent && <IconComponent className="mr-1.5 h-6 w-6" />}
         {value === Infinity ? (
           <InfinityIcon className="h-6 w-6 stroke-[3]" />
         ) : (
           <>
             {value}
-            {config.suffix && <span className="text-sm ml-0.5">{config.suffix}</span>}
+            {config.suffix && (
+              <span className="text-sm ml-0.5">{config.suffix}</span>
+            )}
           </>
         )}
       </div>

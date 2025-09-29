@@ -266,7 +266,6 @@ export const Quiz = ({
       {finishAudio}
 
       <Header 
-        percentage={percentage} 
         currentExercise={activeIndex + 1}
         totalExercises={exercises.length}
         correctCount={correctCount}
