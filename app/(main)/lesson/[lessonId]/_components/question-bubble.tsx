@@ -22,14 +22,16 @@ export const QuestionBubble = ({ question }: QuestionBubbleProps) => {
         className="block lg:hidden"
       />
 
-      <div className="relative rounded-xl border-2 px-4 py-2 text-base lg:text-2xl">
-        {question}
+      {question && (
+        <div className="relative rounded-xl border-2 px-4 py-2 text-base lg:text-2xl">
+          {question}
 
-        <div
-          className="absolute -left-3 top-1/2 h-0 w-0 -translate-y-1/2 rotate-90 transform border-x-8 border-t-8 border-x-transparent"
-          aria-hidden
-        />
-      </div>
+          <div
+            className="absolute -left-3 top-1/2 h-0 w-0 -translate-y-1/2 rotate-90 transform border-x-8 border-t-8 border-x-transparent"
+            aria-hidden
+          />
+        </div>
+      )}
     </div>
   );
 };
