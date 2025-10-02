@@ -31,23 +31,31 @@ export async function middleware(request: NextRequest) {
 
   // Route protection logic
   if (accessToken) {
+    const decoded = decodeToken(accessToken)
+    const isAdmin = decoded?.role.includes('ADMIN')
+
     // Redirect authenticated users away from auth pages
     if (isMatchingRoute(pathname, ROUTES.auth)) {
       const redirectParam = request.nextUrl.searchParams.get('redirect')
       if (redirectParam) {
         return NextResponse.redirect(new URL(redirectParam, request.url))
-      } else {
-        return NextResponse.redirect(new URL('/account', request.url))
       }
+      // Redirect admin to /admin, regular users to /learn
+      return NextResponse.redirect(new URL(isAdmin ? '/admin' : '/learn', request.url))
     }
 
     // Restrict admin routes to admin users
-    // if (isMatchingRoute(pathname, ROUTES.admin)) {
-    //   const decoded = decodeToken(accessToken)
-    //   if (!decoded?.role.includes('ADMIN')) {
-    //     return NextResponse.redirect(new URL('/admin', request.url))
-    //   } 
-    // }
+    if (isMatchingRoute(pathname, ROUTES.admin)) {
+      if (!isAdmin) {
+        return NextResponse.redirect(new URL('/learn', request.url))
+      }
+    }
+
+    if (isMatchingRoute(pathname, ROUTES.protected)) {
+      if (isAdmin) {
+        return NextResponse.redirect(new URL('/admin', request.url))
+      }
+    }
   } else {
     // Redirect unauthenticated users away from protected routes
     if (isMatchingRoute(pathname, [...ROUTES.protected, ...ROUTES.admin])) {
