@@ -80,9 +80,9 @@ export function SentenceCard({
   };
 
   return (
-    <Card className="w-[800px] overflow-hidden mx-auto mt-4">
+    <Card className="w-full max-w-4xl overflow-hidden mx-auto">
       {/* Image Section */}
-      <div className="relative aspect-video w-[800px] overflow-y-hidden">
+      <div className="relative aspect-video w-full overflow-y-hidden">
         <div className="flex h-full items-center justify-center p-8">
           <div className="relative h-full w-full max-w-2xl">
             <Image

@@ -24,6 +24,5 @@ export interface UserProfileResponse {
 
 export const getProfile = async () => {
   const { payload } = await http.get<UserProfileResponse>(`/users/me`);
-  console.log(payload);
   return payload;
 };
