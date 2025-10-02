@@ -4,3 +4,4 @@ export * from "./grade";
 export * from "./flashcard";
 export * from "./lesson";
 export * from "./exercise";
+export * from "./sentence";

@@ -1,6 +1,6 @@
 "use client";
 
-import { TopicList } from "./_components/topic-list";
+import { TopicList } from "../_components/topic-list";
 import { GraduationCap } from "lucide-react";
 import { useGradeStore } from "@/lib/store";
 
