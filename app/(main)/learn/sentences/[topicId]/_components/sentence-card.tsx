@@ -84,7 +84,7 @@ export function SentenceCard({
       {/* Image Section */}
       <div className="relative aspect-video w-full overflow-y-hidden">
         <div className="flex h-full items-center justify-center p-8">
-          <div className="relative h-full w-full max-w-2xl">
+          <div className="relative h-full w-full max-w-xl">
             <Image
               src={sentenceImage.imageUrl}
               alt="Sentence illustration"
@@ -120,13 +120,13 @@ export function SentenceCard({
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 space-y-2">
                     {/* English sentence */}
-                    <p className="text-base font-medium leading-relaxed text-gray-900">
+                    <p className="text-2xl font-bold leading-relaxed text-gray-900">
                       {sentence.text}
-                    </p>
+                    </p>  
 
                     {/* Vietnamese meaning */}
                     {sentence.meaningVi && (
-                      <p className="text-sm text-gray-600">
+                      <p className="text-xl text-gray-600">
                         {sentence.meaningVi}
                       </p>
                     )}
@@ -162,8 +162,8 @@ export function SentenceCard({
                             <Lightbulb className="h-5 w-5 text-yellow-600" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs">
-                          <p className="text-sm mt-1">{sentence.hintVi}</p>
+                        <TooltipContent side="bottom" className="max-w-xs">
+                          <p className="text-lg mt-1">{sentence.hintVi}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
