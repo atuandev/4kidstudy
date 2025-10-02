@@ -1,7 +1,7 @@
 import { Suspense } from "react";
-import { SentencesHeader } from "./_components/header";
 import { getSentenceImagesByTopicId } from "@/actions/sentence";
 import { SentenceViewer } from "./_components/sentence-viewer";
+import { getTopicById } from "@/actions/topic";
 
 interface SentencesTopicPageProps {
   params: Promise<{
@@ -13,12 +13,14 @@ export default async function SentencesTopicPage({
   params,
 }: SentencesTopicPageProps) {
   const { topicId } = await params;
-  const sentenceImages = await getSentenceImagesByTopicId(parseInt(topicId, 10));
+  const sentenceImages = await getSentenceImagesByTopicId(
+    parseInt(topicId, 10)
+  );
+  const topic = await getTopicById(parseInt(topicId, 10));
 
   return (
     <Suspense fallback={<p>Loading...</p>}>
-      <SentencesHeader />
-      <SentenceViewer sentenceImages={sentenceImages} />
+      <SentenceViewer sentenceImages={sentenceImages} topicTitle={topic.title} />
     </Suspense>
   );
 }

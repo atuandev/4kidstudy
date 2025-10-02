@@ -1,18 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, RotateCcw, BookOpen } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  RotateCcw,
+  BookOpen,
+  ArrowLeft,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SentenceCard } from "./sentence-card";
 import { SentenceImage } from "@/types";
+import Link from "next/link";
 
 interface SentenceViewerProps {
   sentenceImages: SentenceImage[];
   topicTitle?: string;
 }
 
-export function SentenceViewer({ sentenceImages, topicTitle }: SentenceViewerProps) {
+export function SentenceViewer({
+  sentenceImages,
+  topicTitle,
+}: SentenceViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const handleNext = () => {
@@ -58,10 +68,14 @@ export function SentenceViewer({ sentenceImages, topicTitle }: SentenceViewerPro
         <Card className="mb-8">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-2xl font-bold">
-                {topicTitle}
-              </CardTitle>
-              
+              <Link href="/learn/sentences">
+                <Button size="sm" variant="ghost">
+                  <ArrowLeft className="h-5 w-5 stroke-2 text-neutral-400" />
+                </Button>
+              </Link>
+
+              <CardTitle className="text-2xl font-bold">{topicTitle}</CardTitle>
+
               <Button
                 variant="default"
                 size="sm"
@@ -78,10 +92,7 @@ export function SentenceViewer({ sentenceImages, topicTitle }: SentenceViewerPro
 
       {/* Sentence Card */}
       <div className="mb-8">
-        <SentenceCard 
-          sentenceImage={currentSentenceImage} 
-          autoPlay={true}
-        />
+        <SentenceCard sentenceImage={currentSentenceImage} autoPlay={true} />
       </div>
 
       {/* Navigation Controls */}
@@ -115,4 +126,3 @@ export function SentenceViewer({ sentenceImages, topicTitle }: SentenceViewerPro
     </div>
   );
 }
-
