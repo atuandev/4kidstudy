@@ -122,6 +122,10 @@ export const columns: ColumnDef<Exercise>[] = [
       <DataTableColumnHeader column={column} title="ID" />
     ),
     cell: ({ row }) => <div className="w-[60px]">{row.getValue("id")}</div>,
+    filterFn: (row, id, value) => {
+      const rowId = String(row.getValue(id));
+      return rowId.includes(value);
+    },
   },
   {
     accessorKey: "prompt",
