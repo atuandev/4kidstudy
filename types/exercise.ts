@@ -10,6 +10,8 @@ export type Exercise = {
   points: number;
   difficulty?: number;
   options: ExerciseOption[];
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type ExerciseOption = {
@@ -23,4 +25,9 @@ export type ExerciseOption = {
   matchKey?: string;
 };
 
-export type ExerciseType = "SELECT_IMAGE" | "MULTIPLE_CHOICE" | "MATCHING" | "LISTENING" | "PRONUNCIATION";
+export type ExerciseType =
+  | "SELECT_IMAGE"
+  | "MULTIPLE_CHOICE"
+  | "MATCHING"
+  | "LISTENING"
+  | "PRONUNCIATION";

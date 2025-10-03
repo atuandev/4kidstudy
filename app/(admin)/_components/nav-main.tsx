@@ -21,7 +21,7 @@ export function NavMain({ items }: AdminSidebarMenuItemType) {
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Hafasa</SidebarGroupLabel>
+      <SidebarGroupLabel>4KidStudy</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) =>  {

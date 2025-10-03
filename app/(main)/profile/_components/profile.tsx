@@ -1,21 +1,26 @@
+"use client";
+
+import { logout } from "@/actions/auth/logout";
 import { UserProfileResponse } from "@/actions/user/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { 
+import {
   Calendar,
   Crown,
   Flame,
+  LogOutIcon,
   Mail,
   Settings,
   Star,
   Target,
   Trophy,
   User,
-  Zap
+  Zap,
 } from "lucide-react";
+import { redirect } from "next/navigation";
 
 interface ProfileProps {
   profile: UserProfileResponse;
@@ -29,19 +34,19 @@ export default function Profile({ profile }: ProfileProps) {
 
   // Format date
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   // Get user initials for avatar fallback
   const getInitials = (name: string) => {
     return name
-      .split(' ')
-      .map(part => part.charAt(0))
-      .join('')
+      .split(" ")
+      .map((part) => part.charAt(0))
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
@@ -64,20 +69,38 @@ export default function Profile({ profile }: ProfileProps) {
                 {level}
               </div>
             </div>
-            
+
             <div className="flex-1 space-y-2">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-foreground">{profile.name}</h1>
+                  <h1 className="text-3xl font-bold text-foreground">
+                    {profile.name}
+                  </h1>
                   <div className="flex items-center gap-2 text-muted-foreground mt-1">
                     <Mail className="h-4 w-4" />
                     <span className="text-sm">{profile.email}</span>
                   </div>
                 </div>
-                <Button variant="primary" className="self-start sm:self-center">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Chỉnh sửa hồ sơ
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="primary"
+                    size="icon"
+                    className="self-start sm:self-center"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="self-start sm:self-center"
+                    onClick={async () => {
+                      await logout();
+                      redirect("/login");
+                    }}
+                  >
+                    <LogOutIcon className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
 
               {/* XP Progress */}
@@ -117,7 +140,9 @@ export default function Profile({ profile }: ProfileProps) {
                   <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                     {profile.xp.toLocaleString()}
                   </div>
-                  <div className="text-sm text-muted-foreground">Tổng kinh nghiệm</div>
+                  <div className="text-sm text-muted-foreground">
+                    Tổng kinh nghiệm
+                  </div>
                 </div>
 
                 <div className="text-center p-4 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900">
@@ -137,7 +162,9 @@ export default function Profile({ profile }: ProfileProps) {
                   <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                     {profile._count.attempts}
                   </div>
-                  <div className="text-sm text-muted-foreground">Số bài đã luyện</div>
+                  <div className="text-sm text-muted-foreground">
+                    Số bài đã luyện
+                  </div>
                 </div>
 
                 <div className="text-center p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
@@ -147,7 +174,9 @@ export default function Profile({ profile }: ProfileProps) {
                   <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                     {profile._count.xpLogs}
                   </div>
-                  <div className="text-sm text-muted-foreground">Nhật ký kinh nghiệm</div>
+                  <div className="text-sm text-muted-foreground">
+                    Nhật ký kinh nghiệm
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -168,15 +197,17 @@ export default function Profile({ profile }: ProfileProps) {
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <span className="font-medium">Trạng thái tài khoản</span>
                   </div>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    profile.isActive 
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' 
-                      : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-                  }`}>
-                    {profile.isActive ? 'Hoạt động' : 'Không hoạt động'}
+                  <span
+                    className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      profile.isActive
+                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                        : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                    }`}
+                  >
+                    {profile.isActive ? "Hoạt động" : "Không hoạt động"}
                   </span>
                 </div>
-                
+
                 <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -213,7 +244,9 @@ export default function Profile({ profile }: ProfileProps) {
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Vai trò</label>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Vai trò
+                  </label>
                   <div className="mt-1">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary capitalize">
                       {profile.role}
@@ -224,26 +257,32 @@ export default function Profile({ profile }: ProfileProps) {
                 <Separator />
 
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Ngày sinh</label>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Ngày sinh
+                  </label>
                   <div className="mt-1 flex items-center gap-2 text-sm">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    {profile.dob ? formatDate(profile.dob) : 'Chưa thiết lập'}
+                    {profile.dob ? formatDate(profile.dob) : "Chưa thiết lập"}
                   </div>
                 </div>
 
                 <Separator />
 
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Giới tính</label>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Giới tính
+                  </label>
                   <div className="mt-1 text-sm font-medium capitalize">
-                    {profile.gender || 'Chưa xác định'}
+                    {profile.gender || "Chưa xác định"}
                   </div>
                 </div>
 
                 <Separator />
 
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Cập nhật lần cuối</label>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Cập nhật lần cuối
+                  </label>
                   <div className="mt-1 text-sm">
                     {formatDate(profile.updatedAt)}
                   </div>
@@ -258,7 +297,10 @@ export default function Profile({ profile }: ProfileProps) {
               <CardTitle className="text-lg">Hành động nhanh</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button variant="secondaryOutline" className="w-full justify-start">
+              <Button
+                variant="secondaryOutline"
+                className="w-full justify-start"
+              >
                 <Trophy className="h-4 w-4 mr-2" />
                 Xem thành tích
               </Button>
