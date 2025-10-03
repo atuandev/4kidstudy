@@ -22,3 +22,8 @@ export const getTopics = async () => {
   const { payload } = await http.get<Topic[]>(`/topics`);
   return payload;
 };
+
+export const deleteTopic = async (id: number) => {
+  const { payload } = await http.delete<Topic>(`/topics/${id}`);
+  return payload;
+};

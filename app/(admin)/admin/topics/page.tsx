@@ -8,7 +8,7 @@ export default async function TopicsPage() {
 
   return (
     <div className='container mx-auto space-y-4 py-10'>
-      <TypographyH3>Danh sách chủ đề</TypographyH3>
+      <TypographyH3>Danh sách Units</TypographyH3>
       <DataTable columns={columns} data={topics} />
     </div>
   );

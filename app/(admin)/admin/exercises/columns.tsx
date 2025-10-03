@@ -2,6 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,9 +13,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Exercise } from "@/types";
 import { DataTableColumnHeader } from "../_components/data-table-column-header";
+import { deleteExercise } from "@/actions/exercise";
 
 const exerciseTypeMap: Record<
   string,
@@ -39,6 +51,47 @@ const exerciseTypeMap: Record<
   LISTENING: { label: "Nghe", variant: "orange" },
   PRONUNCIATION: { label: "Phát âm", variant: "yellow" },
 };
+
+function DeleteExerciseDialog({ exercise }: { exercise: Exercise }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  function handleDelete() {
+    deleteExercise(exercise.id);
+    setIsOpen(false);
+  }
+
+  return (
+    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuItem
+        className="text-red-600"
+        onSelect={(e) => {
+          e.preventDefault();
+          setIsOpen(true);
+        }}
+      >
+        <Trash className="mr-2 h-4 w-4" />
+        Xóa
+      </DropdownMenuItem>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Hành động này không thể hoàn tác. Bài tập này sẽ bị xóa vĩnh viễn
+            khỏi hệ thống.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Hủy</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleDelete}
+          >
+            Xóa
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
 
 export const columns: ColumnDef<Exercise>[] = [
   {
@@ -178,10 +231,7 @@ export const columns: ColumnDef<Exercise>[] = [
               <Pencil className="mr-2 h-4 w-4" />
               Chỉnh sửa
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-red-600">
-              <Trash className="mr-2 h-4 w-4" />
-              Xóa
-            </DropdownMenuItem>
+            <DeleteExerciseDialog exercise={exercise} />
           </DropdownMenuContent>
         </DropdownMenu>
       );
