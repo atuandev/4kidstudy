@@ -15,4 +15,9 @@ export interface User {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  _count: {
+    attempts: number;
+    xpLogs: number;
+    streakLogs: number;
+  };
 }

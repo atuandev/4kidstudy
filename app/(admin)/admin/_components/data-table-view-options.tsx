@@ -1,8 +1,8 @@
 "use client";
 
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
-import { Settings2 } from "lucide-react";
 import { Table } from "@tanstack/react-table";
+import { Settings2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -45,7 +45,6 @@ export function DataTableViewOptions<TData>({
             return (
               <DropdownMenuCheckboxItem
                 key={column.id}
-                className="capitalize"
                 checked={column.getIsVisible()}
                 onCheckedChange={(value) => column.toggleVisibility(!!value)}
               >

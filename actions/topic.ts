@@ -17,3 +17,8 @@ export const getTopicById = async (id: number) => {
   const { payload } = await http.get<Topic>(`/topics/${id}`);
   return payload;
 };
+
+export const getTopics = async () => {
+  const { payload } = await http.get<Topic[]>(`/topics`);
+  return payload;
+};
