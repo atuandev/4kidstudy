@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Exercise } from "@/types";
+import { DataTableColumnHeader } from "../_components/data-table-column-header";
 
 const exerciseTypeMap: Record<
   string,
@@ -64,32 +65,16 @@ export const columns: ColumnDef<Exercise>[] = [
   },
   {
     accessorKey: "id",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          ID
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="ID" />
+    ),
     cell: ({ row }) => <div className="w-[60px]">{row.getValue("id")}</div>,
   },
   {
     accessorKey: "prompt",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Câu hỏi
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Câu hỏi" />
+    ),
     cell: ({ row }) => {
       const prompt = row.getValue("prompt") as string;
       return (
@@ -101,17 +86,9 @@ export const columns: ColumnDef<Exercise>[] = [
   },
   {
     accessorKey: "type",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Loại
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Loại" />
+    ),
     cell: ({ row }) => {
       const type = row.getValue("type") as string;
       const typeInfo = exerciseTypeMap[type] || {
@@ -126,49 +103,25 @@ export const columns: ColumnDef<Exercise>[] = [
   },
   {
     accessorKey: "lessonId",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Lesson ID
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Lesson ID" />
+    ),
     cell: ({ row }) => <div>{row.getValue("lessonId")}</div>,
   },
   {
     accessorKey: "order",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Thứ tự
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Thứ tự" />
+    ),
     cell: ({ row }) => (
       <div className="text-center">{row.getValue("order")}</div>
     ),
   },
   {
     accessorKey: "points",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Điểm
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Điểm" />
+    ),
     cell: ({ row }) => {
       const points = row.getValue("points") as number;
       return <div className="text-center font-medium">{points}</div>;
@@ -176,17 +129,9 @@ export const columns: ColumnDef<Exercise>[] = [
   },
   {
     accessorKey: "difficulty",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Độ khó
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Độ khó" />
+    ),
     cell: ({ row }) => {
       const difficulty = row.getValue("difficulty") as number | undefined;
       return <div className="text-center">{difficulty ?? "-"}</div>;
@@ -198,17 +143,9 @@ export const columns: ColumnDef<Exercise>[] = [
   },
   {
     accessorKey: "createdAt",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Ngày tạo
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Ngày tạo" />
+    ),
     cell: ({ row }) => {
       const date = new Date(row.getValue("createdAt"));
       return <div>{date.toLocaleDateString("vi-VN")}</div>;

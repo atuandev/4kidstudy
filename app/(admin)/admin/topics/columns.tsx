@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Topic } from "@/types";
+import { DataTableColumnHeader } from "../_components/data-table-column-header";
 
 const gradeMap: Record<
   string,
@@ -64,32 +65,16 @@ export const columns: ColumnDef<Topic>[] = [
   },
   {
     accessorKey: "id",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          ID
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="ID" />
+    ),
     cell: ({ row }) => <div className="w-[60px]">{row.getValue("id")}</div>,
   },
   {
     accessorKey: "title",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Tiêu đề
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Tiêu đề" />
+    ),
     cell: ({ row }) => {
       const title = row.getValue("title") as string;
       return (
@@ -101,17 +86,9 @@ export const columns: ColumnDef<Topic>[] = [
   },
   {
     accessorKey: "grade",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Lớp
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Lớp" />
+    ),
     cell: ({ row }) => {
       const grade = row.getValue("grade") as string | undefined;
       if (!grade) return <div>-</div>;
@@ -127,34 +104,18 @@ export const columns: ColumnDef<Topic>[] = [
   },
   {
     accessorKey: "order",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Thứ tự
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Thứ tự" />
+    ),
     cell: ({ row }) => (
       <div className="text-center">{row.getValue("order")}</div>
     ),
   },
   {
     accessorKey: "isActive",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Trạng thái
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Trạng thái" />
+    ),
     cell: ({ row }) => {
       const isActive = row.getValue("isActive") as boolean;
       return (
@@ -170,17 +131,9 @@ export const columns: ColumnDef<Topic>[] = [
   {
     accessorKey: "_count.lessons",
     id: "lessonsCount",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Số bài học
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Số bài học" />
+    ),
     cell: ({ row }) => {
       const count = row.original._count?.lessons || 0;
       return <div className="text-center">{count}</div>;
@@ -189,17 +142,9 @@ export const columns: ColumnDef<Topic>[] = [
   {
     accessorKey: "_count.flashcards",
     id: "flashcardsCount",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Số flashcard
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Số flashcard" />
+    ),
     cell: ({ row }) => {
       const count = row.original._count?.flashcards || 0;
       return <div className="text-center">{count}</div>;
@@ -207,17 +152,9 @@ export const columns: ColumnDef<Topic>[] = [
   },
   {
     accessorKey: "createdAt",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Ngày tạo
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Ngày tạo" />
+    ),
     cell: ({ row }) => {
       const date = new Date(row.getValue("createdAt"));
       return <div>{date.toLocaleDateString("vi-VN")}</div>;
