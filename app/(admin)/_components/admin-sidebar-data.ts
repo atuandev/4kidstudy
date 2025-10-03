@@ -1,4 +1,4 @@
-import { ChartNoAxesCombinedIcon, LucideIcon, PackageIcon, ReceiptIcon, SettingsIcon, UsersIcon } from 'lucide-react'
+import { BookAIcon, ChartNoAxesCombinedIcon, LucideIcon, NotebookIcon, NotebookTextIcon, ReceiptIcon, SettingsIcon, UsersIcon } from 'lucide-react'
 
 export type MainNavType = {
   title: string
@@ -16,18 +16,18 @@ export const sidebarData = {
     },
     {
       title: 'Chủ đề',
-      url: '/admin/products',
-      icon: PackageIcon,
+      url: '/admin/topics',
+      icon: NotebookIcon,
     },
     {
       title: 'Bài học',
-      url: '/admin/orders',
-      icon: ReceiptIcon,
+      url: '/admin/lessons',
+      icon: BookAIcon,
     },
     {
       title: 'Bài luyện tập',
-      url: '/admin/orders',
-      icon: ReceiptIcon,
+      url: '/admin/exercises',
+      icon: NotebookTextIcon,
     },
     {
       title: 'Người dùng',

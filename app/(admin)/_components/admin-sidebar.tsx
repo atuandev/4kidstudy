@@ -2,11 +2,11 @@
 
 import React from 'react'
 
-import { User } from '@/types/user'
 import { NavUser } from '@/app/(admin)/_components/nav-user'
 import { NavMain } from '@/app/(admin)/_components/nav-main'
 import { Sidebar, SidebarContent, SidebarFooter, SidebarRail } from '@/components/ui/sidebar'
 import { sidebarData } from '@/app/(admin)/_components/admin-sidebar-data'
+import { User } from '@/types'
 
 type AdminSidebarType = React.ComponentProps<typeof Sidebar> & {
   user: User
