@@ -2,6 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -218,8 +219,13 @@ export const columns: ColumnDef<Topic>[] = [
   {
     id: "actions",
     enableHiding: false,
-    cell: ({ row }) => {
+    cell: function ActionsCell({ row }) {
       const topic = row.original;
+      const router = useRouter();
+
+      function handleEdit() {
+        router.push(`/admin/topics/form?id=${topic.id}`);
+      }
 
       return (
         <DropdownMenu>
@@ -238,7 +244,7 @@ export const columns: ColumnDef<Topic>[] = [
               Copy ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleEdit}>
               <Pencil className="mr-2 h-4 w-4" />
               Chỉnh sửa
             </DropdownMenuItem>
