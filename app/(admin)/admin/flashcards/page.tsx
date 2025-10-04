@@ -13,6 +13,9 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { TypographyH3 } from '@/components/typography';
 import { DataTable } from './data-table';
 import { columns } from './columns';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { PlusIcon } from 'lucide-react';
 
 export default async function FlashcardsPage() {
   const [flashcards, topics] = await Promise.all([
@@ -44,7 +47,15 @@ export default async function FlashcardsPage() {
         </div>
       </header>
       <div className="space-y-6 px-4">
-        <TypographyH3>Danh sách Flashcards</TypographyH3>
+        <div className="flex items-center justify-between">
+          <TypographyH3>Danh sách Flashcards</TypographyH3>
+          <Link href="/admin/flashcards/form">
+            <Button variant="primary">
+              <PlusIcon className="h-4 w-4" />
+              Thêm flashcard
+            </Button>
+          </Link>
+        </div>
         <DataTable columns={columns} data={flashcards} topics={topics} />
       </div>
     </>
