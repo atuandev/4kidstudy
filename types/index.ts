@@ -6,3 +6,4 @@ export * from "./lesson";
 export * from "./exercise";
 export * from "./sentence";
 export * from "./user";
+export * from "./token";
