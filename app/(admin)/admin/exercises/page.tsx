@@ -18,7 +18,10 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 
 export default async function ExercisesPage() {
-  const exercises = await getExercises();
+  const [exercises, lessons] = await Promise.all([
+    getExercises(),
+    getLessons(),
+  ]);
 
   return (
     <>
@@ -48,13 +51,13 @@ export default async function ExercisesPage() {
         <div className="flex items-center justify-between">
           <TypographyH3>Danh sách câu hỏi</TypographyH3>
           <Link href="/admin/exercises/form">
-            <Button variant="default">
+            <Button variant="primary">
               <Plus className="h-4 w-4" />
               Thêm câu hỏi
             </Button>
           </Link>
         </div>
-        <DataTable columns={columns} data={exercises} />
+        <DataTable columns={columns} data={exercises} lessons={lessons} />
       </div>
     </>
   );

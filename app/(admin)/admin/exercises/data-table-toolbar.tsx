@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableViewOptions } from "../_components/data-table-view-options"
 import { DataTableFacetedFilter } from "../_components/data-table-faceted-filter";
+import { Lesson } from "@/types";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
+  lessons?: Lesson[];
 }
 
 const exerciseTypes = [
@@ -52,8 +54,17 @@ const difficultyLevels = [
 
 export function DataTableToolbar<TData>({
   table,
+  lessons,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
+
+  // Create lesson ID options for the faceted filter
+  const lessonIdOptions = lessons
+    ? lessons.map((lesson) => ({
+        value: String(lesson.id),
+        label: `Lesson ${lesson.id}`,
+      }))
+    : [];
 
   return (
     <div className="flex items-center justify-between">
@@ -74,6 +85,13 @@ export function DataTableToolbar<TData>({
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
+        {table.getColumn("lessonId") && lessonIdOptions.length > 0 && (
+          <DataTableFacetedFilter
+            column={table.getColumn("lessonId")}
+            title="Lesson ID"
+            options={lessonIdOptions}
+          />
+        )}
         {table.getColumn("type") && (
           <DataTableFacetedFilter
             column={table.getColumn("type")}
