@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ImageIcon, Loader2, Mic, Plus, Trash2, Upload } from "lucide-react";
+import { ImageIcon, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -336,7 +336,7 @@ export default function ExerciseFormPage() {
             name="prompt"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Câu hỏi/Hướng dẫn</FormLabel>
+                <FormLabel>Câu hỏi</FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="Nhập câu hỏi hoặc hướng dẫn" />
                 </FormControl>
@@ -419,7 +419,7 @@ export default function ExerciseFormPage() {
                       >
                         {({ open }) => (
                           <Button size="icon" onClick={() => open()}>
-                            <Mic className="h-4 w-4" />
+                            <Upload className="h-4 w-4" />
                           </Button>
                         )}
                       </CldUploadWidget>
@@ -438,7 +438,7 @@ export default function ExerciseFormPage() {
               name="order"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Thứ tự</FormLabel>
+                  <FormLabel>Thứ tự câu hỏi</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -515,7 +515,7 @@ export default function ExerciseFormPage() {
                   {exerciseType === "LISTENING" &&
                     "Thêm các đáp án cho bài nghe"}
                   {exerciseType === "PRONUNCIATION" &&
-                    "Không cần thêm tùy chọn - AI sẽ đánh giá phát âm"}
+                    "Không cần thêm đáp án - AI sẽ đánh giá phát âm"}
                 </p>
               </div>
               {exerciseType !== "PRONUNCIATION" && (
@@ -538,11 +538,12 @@ export default function ExerciseFormPage() {
                   <CardContent>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <Badge variant="secondary">Đáp án {index + 1}</Badge>
+                        <Badge variant="secondary" className="text-sm">
+                          Đáp án {index + 1}
+                        </Badge>
                         <Button
-                          type="button"
                           variant="ghost"
-                          size="sm"
+                          size="icon"
                           onClick={() => remove(index)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -567,33 +568,12 @@ export default function ExerciseFormPage() {
                                   }
                                 >
                                   {({ open }) => (
-                                    <Button
-                                      type="button"
-                                      variant="secondary"
-                                      onClick={() => open()}
-                                    >
+                                    <Button size="icon" onClick={() => open()}>
                                       <Upload className="h-4 w-4" />
                                     </Button>
                                   )}
                                 </CldUploadWidget>
                               </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={formControl}
-                        name={`options.${index}.text`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Mô tả (tùy chọn)</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Mô tả cho hình ảnh"
-                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -735,7 +715,7 @@ export default function ExerciseFormPage() {
                         name={`options.${index}.imageUrl`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Hình ảnh (tùy chọn)</FormLabel>
+                            <FormLabel>Hình ảnh</FormLabel>
                             <FormControl>
                               <div className="flex gap-2">
                                 <Input {...field} placeholder="URL hình ảnh" />
@@ -746,11 +726,7 @@ export default function ExerciseFormPage() {
                                   }
                                 >
                                   {({ open }) => (
-                                    <Button
-                                      type="button"
-                                      variant="secondary"
-                                      onClick={() => open()}
-                                    >
+                                    <Button size="icon" onClick={() => open()}>
                                       <Upload className="h-4 w-4" />
                                     </Button>
                                   )}
@@ -824,8 +800,8 @@ export default function ExerciseFormPage() {
             {exerciseType === "PRONUNCIATION" && (
               <div className="rounded-lg border p-4 bg-muted/50">
                 <p className="text-sm text-muted-foreground">
-                  Bài tập phát âm không cần tùy chọn. Học viên sẽ đọc văn bản
-                  đích và được đánh giá bằng AI.
+                  Bài tập phát âm không cần đáp án. Học viên sẽ đọc văn bản và
+                  được đánh giá bằng AI.
                 </p>
               </div>
             )}
