@@ -17,11 +17,15 @@ import { Difficulty } from "./difficulty";
 type QuizProps = {
   initialLessonId: number;
   initialLessonExercises: ExerciseType[];
+  unitTitle: string;
+  lessonIndex: number;
 };
 
 export const Quiz = ({
   initialLessonId,
   initialLessonExercises,
+  unitTitle,
+  lessonIndex,
 }: QuizProps) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [correctAudio, _c, correctControls] = useAudio({ src: "/correct.wav" });
@@ -265,6 +269,8 @@ export const Quiz = ({
         correctCount={correctCount}
         totalPoints={totalPoints}
         duration={getCurrentDuration()}
+        unitTitle={unitTitle}
+        lessonIndex={lessonIndex}
       />
 
       <div className="h-[calc(100vh-300px)]">

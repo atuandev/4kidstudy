@@ -9,6 +9,8 @@ type HeaderProps = {
   correctCount: number;
   totalPoints: number;
   duration: number;
+  unitTitle: string;
+  lessonIndex: number;
 };
 
 export const Header = ({
@@ -17,6 +19,8 @@ export const Header = ({
   correctCount,
   totalPoints,
   duration,
+  unitTitle,
+  lessonIndex,
 }: HeaderProps) => {
   const router = useRouter();
 
@@ -35,13 +39,25 @@ export const Header = ({
       : 0;
 
   return (
-    <header className="mx-auto flex w-full max-w-[1140px] flex-col gap-y-4 px-10 pt-[20px] lg:pt-[50px]">
+    <header className="mx-auto flex w-full max-w-[1140px] flex-col gap-y-4 px-10 pt-[20px]">
       {/* Top row with close button and stats */}
       <div className="flex items-center justify-between">
-        <X
-          onClick={() => router.push("/practice")}
-          className="cursor-pointer text-slate-500 transition hover:opacity-75"
-        />
+        <div className="flex items-center gap-x-4">
+          <X
+            onClick={() => router.push("/practice")}
+            className="cursor-pointer text-slate-500 transition hover:opacity-75"
+          />
+
+          <div className="flex items-center gap-x-2">
+            <span className="text-xl font-bold text-slate-700">
+              {unitTitle}
+            </span>
+            <span className="text-slate-400">•</span>
+            <span className="text-lg font-semibold text-slate-500">
+              Bài {lessonIndex + 1}
+            </span>
+          </div>
+        </div>
 
         {/* Real-time stats */}
         <div className="flex items-center gap-x-4 text-sm text-slate-600">
