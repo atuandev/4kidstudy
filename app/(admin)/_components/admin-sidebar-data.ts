@@ -4,7 +4,6 @@ import {
   LucideIcon,
   NotebookIcon,
   NotebookTextIcon,
-  ReceiptIcon,
   SettingsIcon,
   UsersIcon,
 } from "lucide-react";
@@ -33,6 +32,11 @@ export const sidebarData = {
     //   url: '/admin/lessons',
     //   icon: BookAIcon,
     // },
+    {
+      title: "Bài luyện tập",
+      url: "/admin/lessons",
+      icon: BookAIcon,
+    },
     {
       title: "Câu hỏi",
       url: "/admin/exercises",
