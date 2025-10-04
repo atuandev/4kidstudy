@@ -2,6 +2,7 @@
 
 import http from "@/lib/http";
 import { Topic } from "@/types";
+import { revalidatePath } from "next/cache";
 
 export const getTopicsByGrade = async (grade: string) => {
   try {
@@ -25,5 +26,6 @@ export const getTopics = async () => {
 
 export const deleteTopic = async (id: number) => {
   const { payload } = await http.delete<Topic>(`/topics/${id}`);
+  revalidatePath("/admin/topics");
   return payload;
 };
