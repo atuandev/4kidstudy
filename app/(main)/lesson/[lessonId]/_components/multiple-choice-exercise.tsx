@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 import { cn, isValidUrl, shuffleArray } from "@/lib/utils";
 import Image from "next/image";
 import { ExerciseOption } from "@/types";
@@ -29,7 +29,12 @@ export function MultipleChoiceExercise({
   const isFillInTheBlank = prompt && prompt.includes("____");
 
   // Shuffle options to randomize display order
-  const shuffledOptions = useMemo(() => shuffleArray(options), [options]);
+  // Use useState with useEffect to avoid hydration mismatch
+  const [shuffledOptions, setShuffledOptions] = useState(options);
+
+  useEffect(() => {
+    setShuffledOptions(shuffleArray(options));
+  }, [options]);
 
   return (
     <div className="space-y-6">
