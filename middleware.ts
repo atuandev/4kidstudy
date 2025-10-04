@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { jwtDecode, JwtPayload } from 'jwt-decode'
+import { refreshAccessToken } from './actions/auth/refresh'
 
 // Route configurations
 const ROUTES = {
@@ -25,9 +26,9 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request: { headers } })
 
   // Handle token refresh if needed
-  // if (accessToken && refreshToken) {
-  //   await handleTokenRefresh(accessToken, refreshToken, response)
-  // }
+  if (accessToken && refreshToken) {
+    await handleTokenRefresh(accessToken, refreshToken, response)
+  }
 
   // Route protection logic
   if (accessToken) {
@@ -69,34 +70,34 @@ export async function middleware(request: NextRequest) {
 /**
  * Checks if token needs refresh and handles the refresh process
  */
-// async function handleTokenRefresh(accessToken: string, refreshToken: string, response: NextResponse) {
-//   try {
-//     const decoded = decodeToken(accessToken)
+async function handleTokenRefresh(accessToken: string, refreshToken: string, response: NextResponse) {
+  try {
+    const decoded = decodeToken(accessToken)
 
-//     if (decoded?.exp && decoded.exp < Date.now() / 1000) {
-//       const payload = await refreshAccessToken(refreshToken)
+    if (decoded?.exp && decoded.exp < Date.now() / 1000) {
+      const payload = await refreshAccessToken(refreshToken)
 
-//       if (payload?.data?.accessToken && payload?.data?.refreshToken) {
-//         response.cookies.set('accessToken', payload.data.accessToken, {
-//           httpOnly: true,
-//           secure: process.env.NODE_ENV === 'production',
-//           path: '/',
-//           sameSite: 'lax',
-//         })
-//         response.cookies.set('refreshToken', payload.data.refreshToken, {
-//           httpOnly: true,
-//           secure: process.env.NODE_ENV === 'production',
-//           path: '/',
-//           sameSite: 'lax',
-//         })
-//       }
-//     }
-//   } catch (error) {
-//     console.error('Token decode error:', error)
-//     response.cookies.delete('accessToken')
-//     response.cookies.delete('refreshToken')
-//   }
-// }
+      if (payload?.accessToken && payload?.refreshToken) {
+        response.cookies.set('accessToken', payload.accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          path: '/',
+          sameSite: 'lax',
+        })
+        response.cookies.set('refreshToken', payload.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          path: '/',
+          sameSite: 'lax',
+        })
+      }
+    }
+  } catch (error) {
+    console.error('Token decode error:', error)
+    response.cookies.delete('accessToken')
+    response.cookies.delete('refreshToken')
+  }
+}
 
 /**
  * Safely decodes a JWT token

@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Combobox } from "@/components/ui/combobox";
 import {
   Form,
   FormControl,
@@ -298,23 +299,20 @@ export default function ExerciseFormPage() {
                 <FormLabel>
                   ID bài luyện tập <RequiredField />
                 </FormLabel>
-                <Select
-                  onValueChange={(value) => field.onChange(parseInt(value))}
-                  value={field.value?.toString()}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn ID bài luyện tập" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {availableLessons.map((lesson) => (
-                      <SelectItem key={lesson.id} value={lesson.id.toString()}>
-                        {lesson.id}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <Combobox
+                    options={availableLessons.map((lesson) => ({
+                      value: lesson.id.toString(),
+                      label: `${lesson.id} - ${lesson.title}`,
+                    }))}
+                    value={field.value?.toString()}
+                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    placeholder="Chọn ID bài luyện tập"
+                    searchPlaceholder="Tìm kiếm bài luyện tập..."
+                    emptyText="Không tìm thấy bài luyện tập."
+                    className="w-fit"
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

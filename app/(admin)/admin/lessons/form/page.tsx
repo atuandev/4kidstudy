@@ -1,13 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Check,
-  ChevronsUpDown,
-  ImageIcon,
-  Loader2,
-  Upload,
-} from "lucide-react";
+import { ImageIcon, Loader2, Upload } from "lucide-react";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -23,14 +17,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+import { Combobox } from "@/components/ui/combobox";
 import {
   Form,
   FormControl,
@@ -42,11 +29,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -56,7 +38,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
 
 import { createLesson, getLesson, updateLesson } from "@/actions/lesson";
 import { getTopics } from "@/actions/topic";
@@ -85,7 +66,6 @@ export default function LessonFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableTopics, setAvailableTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [topicComboboxOpen, setTopicComboboxOpen] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -283,78 +263,23 @@ export default function LessonFormPage() {
             control={formControl}
             name="topicId"
             render={({ field }) => (
-              <FormItem className="flex flex-col">
+              <FormItem>
                 <FormLabel>
                   Chủ đề <RequiredField />
                 </FormLabel>
-                <Popover
-                  open={topicComboboxOpen}
-                  onOpenChange={setTopicComboboxOpen}
-                >
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="default"
-                        role="combobox"
-                        aria-expanded={topicComboboxOpen}
-                        className={cn(
-                          "w-full justify-between",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          <>
-                            {
-                              availableTopics.find(
-                                (topic) => topic.id === field.value
-                              )?.title
-                            }{" "}
-                            (
-                            {getGradeLabel(
-                              availableTopics.find(
-                                (topic) => topic.id === field.value
-                              )?.grade || ""
-                            )}
-                            )
-                          </>
-                        ) : (
-                          "Chọn chủ đề"
-                        )}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder="Tìm kiếm chủ đề..." />
-                      <CommandList>
-                        <CommandEmpty>Không tìm thấy chủ đề.</CommandEmpty>
-                        <CommandGroup>
-                          {availableTopics.map((topic) => (
-                            <CommandItem
-                              key={topic.id}
-                              value={`${topic.title} ${topic.grade}`}
-                              onSelect={() => {
-                                field.onChange(topic.id);
-                                setTopicComboboxOpen(false);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  field.value === topic.id
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {topic.title} ({getGradeLabel(topic.grade || "")})
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                <FormControl>
+                  <Combobox
+                    options={availableTopics.map((topic) => ({
+                      value: topic.id.toString(),
+                      label: `${topic.title} (${getGradeLabel(topic.grade || "")})`,
+                    }))}
+                    value={field.value?.toString()}
+                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    placeholder="Chọn chủ đề"
+                    searchPlaceholder="Tìm kiếm chủ đề..."
+                    emptyText="Không tìm thấy chủ đề."
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
