@@ -165,6 +165,9 @@ export const columns: ColumnDef<Exercise>[] = [
       <DataTableColumnHeader column={column} title="Lesson ID" />
     ),
     cell: ({ row }) => <div>{row.getValue("lessonId")}</div>,
+    filterFn: (row, id, value) => {
+      return value.includes(String(row.getValue(id)));
+    },
   },
   {
     accessorKey: "order",
