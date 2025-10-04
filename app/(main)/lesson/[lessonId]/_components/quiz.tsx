@@ -273,9 +273,9 @@ export const Quiz = ({
         lessonIndex={lessonIndex}
       />
 
-      <div className="h-[calc(100vh-300px)]">
+      <div className="h-[calc(100vh-240px)]">
         <div className="flex h-full items-center justify-center">
-          <div className="flex w-full flex-col gap-y-12 px-6 lg:min-h-[350px] lg:w-[600px] lg:px-0">
+          <div className="flex w-full flex-col gap-4 px-6 lg:min-h-[350px] lg:w-[600px] lg:px-0">
             <h1 className="text-center text-lg font-bold text-neutral-700 lg:text-start lg:text-2xl">
               {title}
             </h1>

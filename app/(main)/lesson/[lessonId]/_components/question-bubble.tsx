@@ -6,7 +6,7 @@ type QuestionBubbleProps = {
 
 export const QuestionBubble = ({ question }: QuestionBubbleProps) => {
   return (
-    <div className="mb-6 flex items-center gap-x-4">
+    <div className="pb-4 flex items-center gap-x-4">
       <Image
         src="/mascot.svg"
         alt="Mascot"
