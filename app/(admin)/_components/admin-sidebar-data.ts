@@ -1,6 +1,8 @@
 import {
   BookAIcon,
   ChartNoAxesCombinedIcon,
+  LibraryIcon,
+  LibrarySquareIcon,
   LucideIcon,
   NotebookIcon,
   NotebookTextIcon,
@@ -27,10 +29,15 @@ export const sidebarData = {
       url: "/admin/topics",
       icon: NotebookIcon,
     },
+    {
+      title: 'Thẻ từ vựng',
+      url: '/admin/flashcards',
+      icon: LibraryIcon,
+    },
     // {
-    //   title: 'Bài học',
-    //   url: '/admin/lessons',
-    //   icon: BookAIcon,
+    //   title: 'Thẻ câu',
+    //   url: '/admin/sentences',
+    //   icon: LibrarySquareIcon,
     // },
     {
       title: "Bài luyện tập",
