@@ -13,6 +13,9 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { TypographyH3 } from "@/components/typography";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { PlusIcon } from "lucide-react";
 
 export default async function LessonsPage() {
   const [lessons, topics] = await Promise.all([getLessons(), getTopics()]);
@@ -41,7 +44,15 @@ export default async function LessonsPage() {
         </div>
       </header>
       <div className="space-y-6 px-4">
-        <TypographyH3>Danh sách Bài luyện tập</TypographyH3>
+        <div className="flex items-center justify-between">
+          <TypographyH3>Danh sách Bài luyện tập</TypographyH3>
+          <Link href="/admin/lessons/form">
+            <Button variant="primary">
+              <PlusIcon className="h-4 w-4" />
+              Thêm bài luyện tập
+            </Button>
+          </Link>
+        </div>
         <DataTable columns={columns} data={lessons} topics={topics} />
       </div>
     </>

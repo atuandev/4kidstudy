@@ -1,1 +1,1 @@
-export const UPLOAD_PRESET = "dz1x6r3cl";
+export const UPLOAD_PRESET = "4kidstudy";
