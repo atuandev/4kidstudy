@@ -2,6 +2,7 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, Pencil, Trash } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -241,8 +242,13 @@ export const columns: ColumnDef<Flashcard>[] = [
   {
     id: 'actions',
     enableHiding: false,
-    cell: ({ row }) => {
+    cell: function ActionsCell({ row }) {
       const flashcard = row.original;
+      const router = useRouter();
+
+      function handleEdit() {
+        router.push(`/admin/flashcards/form?id=${flashcard.id}`);
+      }
 
       return (
         <DropdownMenu>
@@ -261,7 +267,7 @@ export const columns: ColumnDef<Flashcard>[] = [
               Copy ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleEdit}>
               <Pencil className="mr-2 h-4 w-4" />
               Chỉnh sửa
             </DropdownMenuItem>
