@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/breadcrumb";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { PlusIcon } from "lucide-react";
+import Link from "next/link";
 
 export default async function TopicsPage() {
   const topics = await getTopics();
@@ -41,7 +44,15 @@ export default async function TopicsPage() {
         </div>
       </header>
       <div className="space-y-6 px-4">
-        <TypographyH3>Danh sách Units</TypographyH3>
+        <div className="flex items-center justify-between">
+          <TypographyH3>Danh sách Units</TypographyH3>
+          <Link href="/admin/topics/form">
+            <Button variant="primary">
+              <PlusIcon className="h-4 w-4" />
+              Thêm unit
+            </Button>
+          </Link>
+        </div>
         <DataTable columns={columns} data={topics} />
       </div>
     </>
