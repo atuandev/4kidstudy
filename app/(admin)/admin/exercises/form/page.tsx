@@ -39,7 +39,11 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 
-import { createExercise, getExercise, updateExercise } from "@/actions/exercise";
+import {
+  createExercise,
+  getExercise,
+  updateExercise,
+} from "@/actions/exercise";
 import { getLessons } from "@/actions/lesson";
 import { RequiredField } from "@/components/form/required-field";
 import { TypographyH3 } from "@/components/typography";
@@ -128,7 +132,6 @@ export default function ExerciseFormPage() {
   const onSubmit = async (data: CreateExerciseFormData) => {
     setIsSubmitting(true);
     try {
-      console.log(data);
       if (isEditMode) {
         await updateExercise(parseInt(exerciseId), data);
         toast.success("Cập nhật câu hỏi thành công");
@@ -143,10 +146,13 @@ export default function ExerciseFormPage() {
 
       // Handle specific error messages from backend
       const errorMessage = error?.payload?.message;
-      
+
       if (typeof errorMessage === "string") {
         // Check for order conflict error
-        if (errorMessage.includes("option with order") && errorMessage.includes("already exists")) {
+        if (
+          errorMessage.includes("option with order") &&
+          errorMessage.includes("already exists")
+        ) {
           toast.error("Thứ tự đáp án đã tồn tại. Vui lòng chọn thứ tự khác.");
           return;
         }
@@ -258,7 +264,7 @@ export default function ExerciseFormPage() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Bài học <RequiredField />
+                  ID bài luyện tập <RequiredField />
                 </FormLabel>
                 <Select
                   onValueChange={(value) => field.onChange(parseInt(value))}
@@ -266,13 +272,13 @@ export default function ExerciseFormPage() {
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Chọn bài học" />
+                      <SelectValue placeholder="Chọn ID bài luyện tập" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {availableLessons.map((lesson) => (
                       <SelectItem key={lesson.id} value={lesson.id.toString()}>
-                        {lesson.title}
+                        {lesson.id}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -412,11 +418,7 @@ export default function ExerciseFormPage() {
                         onSuccess={handleAudioUpload}
                       >
                         {({ open }) => (
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={() => open()}
-                          >
+                          <Button size="icon" onClick={() => open()}>
                             <Mic className="h-4 w-4" />
                           </Button>
                         )}

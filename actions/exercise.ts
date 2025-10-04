@@ -26,8 +26,6 @@ export async function createExercise(data: CreateExerciseFormData) {
 
 export async function updateExercise(id: number, data: Partial<CreateExerciseFormData>) {
   const { payload, status } = await http.put<Exercise>(`/exercises/${id}`, JSON.stringify(data));
-  console.log('status', status);
-  console.log('payload', payload);
   return payload;
 }
 
