@@ -656,7 +656,17 @@ export default function ExerciseFormPage() {
                             <FormControl>
                               <Checkbox
                                 checked={field.value}
-                                onCheckedChange={field.onChange}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    // Uncheck all other options
+                                    fields.forEach((_, i) => {
+                                      if (i !== index) {
+                                        form.setValue(`options.${i}.isCorrect`, false);
+                                      }
+                                    });
+                                  }
+                                  field.onChange(checked);
+                                }}
                               />
                             </FormControl>
                             <FormLabel className="font-normal">
@@ -711,7 +721,17 @@ export default function ExerciseFormPage() {
                             <FormControl>
                               <Checkbox
                                 checked={field.value}
-                                onCheckedChange={field.onChange}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    // Uncheck all other options
+                                    fields.forEach((_, i) => {
+                                      if (i !== index) {
+                                        form.setValue(`options.${i}.isCorrect`, false);
+                                      }
+                                    });
+                                  }
+                                  field.onChange(checked);
+                                }}
                               />
                             </FormControl>
                             <FormLabel className="font-normal">
@@ -851,7 +871,17 @@ export default function ExerciseFormPage() {
                             <FormControl>
                               <Checkbox
                                 checked={field.value}
-                                onCheckedChange={field.onChange}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    // Uncheck all other options
+                                    fields.forEach((_, i) => {
+                                      if (i !== index) {
+                                        form.setValue(`options.${i}.isCorrect`, false);
+                                      }
+                                    });
+                                  }
+                                  field.onChange(checked);
+                                }}
                               />
                             </FormControl>
                             <FormLabel className="font-normal">
