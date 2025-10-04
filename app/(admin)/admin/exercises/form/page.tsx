@@ -55,6 +55,8 @@ import {
 import { Lesson } from "@/types";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
+const UPLOAD_PRESET = "dz1x6r3cl";
+
 export default function ExerciseFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableLessons, setAvailableLessons] = useState<Lesson[]>([]);
@@ -70,7 +72,6 @@ export default function ExerciseFormPage() {
     defaultValues: {
       lessonId: 0,
       type: "MULTIPLE_CHOICE",
-      order: 0,
       prompt: "",
       imageUrl: "",
       audioUrl: "",
@@ -107,15 +108,21 @@ export default function ExerciseFormPage() {
             lessonId: exercise.lessonId,
             type: exercise.type,
             order: exercise.order,
-            prompt: exercise.prompt,
-            imageUrl: exercise.imageUrl || "",
-            audioUrl: exercise.audioUrl || "",
-            targetText: exercise.targetText || "",
-            hintEn: exercise.hintEn || "",
-            hintVi: exercise.hintVi || "",
+            prompt: exercise.prompt ?? "",
+            imageUrl: exercise.imageUrl ?? "",
+            audioUrl: exercise.audioUrl ?? "",
+            targetText: exercise.targetText ?? "",
+            hintEn: exercise.hintEn ?? "",
+            hintVi: exercise.hintVi ?? "",
             points: exercise.points,
             difficulty: exercise.difficulty,
-            options: exercise.options || [],
+            options: (exercise.options || []).map(opt => ({
+              ...opt,
+              text: opt.text ?? "",
+              imageUrl: opt.imageUrl ?? "",
+              audioUrl: opt.audioUrl ?? "",
+              matchKey: opt.matchKey ?? "",
+            })),
           });
         }
       } catch (error) {
@@ -143,7 +150,9 @@ export default function ExerciseFormPage() {
           toast.error("Cập nhật câu hỏi thất bại");
         }
       } else {
-        const createdExercise = await createExercise(data);
+        // Remove order field when creating to let backend auto-generate it
+        const { order, ...createData } = data;
+        const createdExercise = await createExercise(createData as CreateExerciseFormData);
         if (createdExercise) {
           toast.success("Tạo câu hỏi thành công");
         } else {
@@ -165,6 +174,19 @@ export default function ExerciseFormPage() {
           errorMessage.includes("already exists")
         ) {
           toast.error("Thứ tự đáp án đã tồn tại. Vui lòng chọn thứ tự khác.");
+          return;
+        }
+        // Check for exercise order conflict (unique constraint violation)
+        if (
+          errorMessage.includes("Unique constraint") ||
+          errorMessage.includes("already exists")
+        ) {
+          toast.error("Câu hỏi với thứ tự này đã tồn tại trong bài học. Vui lòng chọn thứ tự khác.");
+          return;
+        }
+        // Check for lesson not found
+        if (errorMessage.includes("Lesson") && errorMessage.includes("not found")) {
+          toast.error("Không tìm thấy bài học. Vui lòng chọn bài học khác.");
           return;
         }
         // Show the backend error message
@@ -389,7 +411,7 @@ export default function ExerciseFormPage() {
                       <div className="flex gap-2">
                         <Input {...field} placeholder="URL âm thanh" />
                         <CldUploadWidget
-                          uploadPreset="dz1x6r3cl"
+                          uploadPreset={UPLOAD_PRESET}
                           onSuccess={handleAudioUpload}
                         >
                           {({ open }) => (
@@ -419,7 +441,7 @@ export default function ExerciseFormPage() {
                     <div className="flex gap-2">
                       <Input {...field} placeholder="URL hình ảnh" />
                       <CldUploadWidget
-                        uploadPreset="dz1x6r3cl"
+                        uploadPreset={UPLOAD_PRESET}
                         onSuccess={handleImageUpload}
                       >
                         {({ open }) => (
@@ -454,7 +476,7 @@ export default function ExerciseFormPage() {
                     <div className="flex gap-2">
                       <Input {...field} placeholder="URL âm thanh" />
                       <CldUploadWidget
-                        uploadPreset="dz1x6r3cl"
+                        uploadPreset={UPLOAD_PRESET}
                         onSuccess={handleAudioUpload}
                       >
                         {({ open }) => (
@@ -472,24 +494,26 @@ export default function ExerciseFormPage() {
           )}
 
           {/* Points and Difficulty */}
-          <div className="grid gap-4 md:grid-cols-3">
-            <FormField
-              control={formControl}
-              name="order"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Thứ tự câu hỏi</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="number"
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <div className={`grid gap-4 ${isEditMode ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
+            {isEditMode && (
+              <FormField
+                control={formControl}
+                name="order"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Thứ tự câu hỏi</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={formControl}
@@ -767,7 +791,7 @@ export default function ExerciseFormPage() {
                               <div className="flex gap-2">
                                 <Input {...field} placeholder="URL hình ảnh" />
                                 <CldUploadWidget
-                                  uploadPreset="dz1x6r3cl"
+                                  uploadPreset={UPLOAD_PRESET}
                                   onSuccess={(result) =>
                                     handleOptionImageUpload(result, index)
                                   }

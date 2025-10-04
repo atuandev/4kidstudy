@@ -14,8 +14,14 @@ export const ExerciseOptionSchema = z.object({
     if (!val || val.trim() === '') return undefined;
     return val;
   }),
-  imageUrl: z.string().nullish().transform((val) => val ?? ''),
-  audioUrl: z.string().nullish().transform((val) => val ?? ''),
+  imageUrl: z.string().nullish().transform((val) => {
+    if (!val || val.trim() === '') return undefined;
+    return val;
+  }),
+  audioUrl: z.string().nullish().transform((val) => {
+    if (!val || val.trim() === '') return undefined;
+    return val;
+  }),
   isCorrect: z.boolean().default(false),
   order: z.number().int().min(0).default(0),
   matchKey: z.string().nullish().transform((val) => {
@@ -27,19 +33,31 @@ export const ExerciseOptionSchema = z.object({
 export const CreateExerciseSchema = z.object({
   lessonId: z.number().int().positive('Lesson ID is required'),
   type: ExerciseType,
-  order: z.number().int().min(0).default(0),
+  order: z.number().int().min(0).optional(),
   prompt: z.string().nullish().transform((val) => {
     if (!val || val.trim() === '') return undefined;
     return val;
   }),
-  imageUrl: z.string().nullish().transform((val) => val ?? ''),
-  audioUrl: z.string().nullish().transform((val) => val ?? ''),
+  imageUrl: z.string().nullish().transform((val) => {
+    if (!val || val.trim() === '') return undefined;
+    return val;
+  }),
+  audioUrl: z.string().nullish().transform((val) => {
+    if (!val || val.trim() === '') return undefined;
+    return val;
+  }),
   targetText: z.string().nullish().transform((val) => {
     if (!val || val.trim() === '') return undefined;
     return val;
   }),
-  hintEn: z.string().nullish().transform((val) => val ?? undefined),
-  hintVi: z.string().nullish().transform((val) => val ?? undefined),
+  hintEn: z.string().nullish().transform((val) => {
+    if (!val || val.trim() === '') return undefined;
+    return val;
+  }),
+  hintVi: z.string().nullish().transform((val) => {
+    if (!val || val.trim() === '') return undefined;
+    return val;
+  }),
   points: z.number().int().min(1).max(100).default(10),
   difficulty: z.number().int().min(1).max(3).default(1),
   options: z.array(ExerciseOptionSchema).default([]),
@@ -64,7 +82,7 @@ export const CreateExerciseSchema = z.object({
         path: ['targetText'],
       });
     }
-    if (!data.audioUrl || data.audioUrl.trim() === '') {
+    if (!data.audioUrl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'File âm thanh là bắt buộc cho bài tập phát âm',
@@ -75,7 +93,7 @@ export const CreateExerciseSchema = z.object({
 
   // Validate LISTENING type requires audioUrl
   if (data.type === 'LISTENING') {
-    if (!data.audioUrl || data.audioUrl.trim() === '') {
+    if (!data.audioUrl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'File âm thanh là bắt buộc cho bài tập nghe',
@@ -110,7 +128,7 @@ export const CreateExerciseSchema = z.object({
     data.options.forEach((option, index) => {
       // SELECT_IMAGE requires imageUrl
       if (data.type === 'SELECT_IMAGE') {
-        if (!option.imageUrl || option.imageUrl.trim() === '') {
+        if (!option.imageUrl) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: 'Hình ảnh là bắt buộc',
@@ -141,7 +159,7 @@ export const CreateExerciseSchema = z.object({
         }
         // At least text or imageUrl should be present
         const hasText = option.text !== undefined;
-        const hasImage = option.imageUrl && option.imageUrl.trim() !== '';
+        const hasImage = option.imageUrl !== undefined;
         if (!hasText && !hasImage) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,

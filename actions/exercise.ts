@@ -22,13 +22,38 @@ export async function getExercise(id: number) {
   return payload;
 }
 
+function cleanExerciseData(data: CreateExerciseFormData) {
+  // Remove undefined values from the main object
+  const cleanedData: any = {};
+  
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== undefined) {
+      cleanedData[key] = value;
+    }
+  });
+
+  // Clean options if they exist
+  if (cleanedData.options && Array.isArray(cleanedData.options)) {
+    cleanedData.options = cleanedData.options.map((option: any) => {
+      const cleanedOption: any = {};
+      Object.entries(option).forEach(([key, value]) => {
+        if (value !== undefined) {
+          cleanedOption[key] = value;
+        }
+      });
+      return cleanedOption;
+    });
+  }
+
+  return cleanedData;
+}
+
 export async function createExercise(data: CreateExerciseFormData) {
-  const { payload, status } = await http.post<Exercise>(
+  const cleanedData = cleanExerciseData(data);
+  const { payload } = await http.post<Exercise>(
     "/exercises",
-    JSON.stringify(data)
+    JSON.stringify(cleanedData)
   );
-  console.log('status', status);
-  console.log('payload', payload);
   revalidatePath("/admin/exercises");
   return payload;
 }
@@ -37,9 +62,10 @@ export async function updateExercise(
   id: number,
   data: Partial<CreateExerciseFormData>
 ) {
+  const cleanedData = cleanExerciseData(data as CreateExerciseFormData);
   const { payload } = await http.put<Exercise>(
     `/exercises/${id}`,
-    JSON.stringify(data)
+    JSON.stringify(cleanedData)
   );
   revalidatePath("/admin/exercises");
   return payload;
