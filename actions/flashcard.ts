@@ -2,6 +2,7 @@
 
 import http from '@/lib/http';
 import { Flashcard } from '@/types';
+import { revalidatePath } from 'next/cache';
 
 export async function getFlashcards() {
   const { payload } = await http.get<Flashcard[]>('/flashcards');
@@ -15,5 +16,6 @@ export async function getFlashcardsByTopic(topicId: number) {
 
 export async function deleteFlashcard(id: number) {
   const { payload } = await http.delete<Flashcard>(`/flashcards/${id}`);
+  revalidatePath("/admin/flashcards");
   return payload;
 }
