@@ -1,7 +1,7 @@
 "use client";
 
 import { logout } from "@/actions/auth/logout";
-import { UserProfileResponse } from "@/actions/user/profile";
+import { User as UserType } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +23,7 @@ import {
 import { redirect } from "next/navigation";
 
 interface ProfileProps {
-  profile: UserProfileResponse;
+  profile: UserType;
 }
 
 export default function Profile({ profile }: ProfileProps) {
