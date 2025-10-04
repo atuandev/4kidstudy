@@ -54,8 +54,7 @@ import {
 } from "@/schemas/exercise";
 import { Lesson } from "@/types";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-
-const UPLOAD_PRESET = "dz1x6r3cl";
+import { UPLOAD_PRESET } from "@/lib/constants";
 
 export default function ExerciseFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
