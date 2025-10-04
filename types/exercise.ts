@@ -7,6 +7,8 @@ export type Exercise = {
   imageUrl?: string;
   audioUrl?: string;
   targetText?: string;
+  hintEn?: string;
+  hintVi?: string;
   points: number;
   difficulty?: number;
   options: ExerciseOption[];
