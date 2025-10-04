@@ -131,18 +131,36 @@ export default function ExerciseFormPage() {
       console.log(data);
       if (isEditMode) {
         await updateExercise(parseInt(exerciseId), data);
-        toast.success('Cập nhật câu hỏi thành công');
+        toast.success("Cập nhật câu hỏi thành công");
       } else {
         await createExercise(data);
-        toast.success('Tạo câu hỏi thành công');
+        toast.success("Tạo câu hỏi thành công");
       }
-      router.push('/admin/exercises');
+      router.push("/admin/exercises");
       router.refresh();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to save exercise:", error);
-      toast.error(
-        isEditMode ? "Cập nhật câu hỏi thất bại" : "Tạo câu hỏi thất bại"
-      );
+
+      // Handle specific error messages from backend
+      const errorMessage = error?.payload?.message;
+      
+      if (typeof errorMessage === "string") {
+        // Check for order conflict error
+        if (errorMessage.includes("option with order") && errorMessage.includes("already exists")) {
+          toast.error("Thứ tự đáp án đã tồn tại. Vui lòng chọn thứ tự khác.");
+          return;
+        }
+        // Show the backend error message
+        toast.error(errorMessage);
+      } else if (Array.isArray(errorMessage)) {
+        // Handle validation errors array
+        toast.error(errorMessage.join(", "));
+      } else {
+        // Generic error message
+        toast.error(
+          isEditMode ? "Cập nhật câu hỏi thất bại" : "Tạo câu hỏi thất bại"
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
