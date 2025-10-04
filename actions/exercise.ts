@@ -23,10 +23,12 @@ export async function getExercise(id: number) {
 }
 
 export async function createExercise(data: CreateExerciseFormData) {
-  const { payload } = await http.post<Exercise>(
+  const { payload, status } = await http.post<Exercise>(
     "/exercises",
     JSON.stringify(data)
   );
+  console.log('status', status);
+  console.log('payload', payload);
   revalidatePath("/admin/exercises");
   return payload;
 }

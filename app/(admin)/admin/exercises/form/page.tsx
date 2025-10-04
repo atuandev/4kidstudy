@@ -133,11 +133,22 @@ export default function ExerciseFormPage() {
     setIsSubmitting(true);
     try {
       if (isEditMode) {
-        await updateExercise(parseInt(exerciseId), data);
-        toast.success("Cập nhật câu hỏi thành công");
+        const updatedExercise = await updateExercise(
+          parseInt(exerciseId),
+          data
+        );
+        if (updatedExercise) {
+          toast.success("Cập nhật câu hỏi thành công");
+        } else {
+          toast.error("Cập nhật câu hỏi thất bại");
+        }
       } else {
-        await createExercise(data);
-        toast.success("Tạo câu hỏi thành công");
+        const createdExercise = await createExercise(data);
+        if (createdExercise) {
+          toast.success("Tạo câu hỏi thành công");
+        } else {
+          toast.error("Tạo câu hỏi thất bại");
+        }
       }
       router.push("/admin/exercises");
       router.refresh();
@@ -347,24 +358,53 @@ export default function ExerciseFormPage() {
 
           {/* Target Text - Only for PRONUNCIATION */}
           {exerciseType === "PRONUNCIATION" && (
-            <FormField
-              control={formControl}
-              name="targetText"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Văn bản cần đọc <RequiredField />
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="Nhập văn bản học viên cần phát âm"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <>
+              <FormField
+                control={formControl}
+                name="targetText"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Văn bản cần đọc <RequiredField />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Nhập văn bản học viên cần phát âm"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={formControl}
+                name="audioUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      File âm thanh <RequiredField />
+                    </FormLabel>
+                    <FormControl>
+                      <div className="flex gap-2">
+                        <Input {...field} placeholder="URL âm thanh" />
+                        <CldUploadWidget
+                          uploadPreset="dz1x6r3cl"
+                          onSuccess={handleAudioUpload}
+                        >
+                          {({ open }) => (
+                            <Button size="icon" onClick={() => open()}>
+                              <Upload className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </CldUploadWidget>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
           )}
 
           {/* Main Image URL */}
@@ -530,6 +570,13 @@ export default function ExerciseFormPage() {
                 </Button>
               )}
             </div>
+
+            {/* Display options validation errors */}
+            {form.formState.errors.options?.message && (
+              <p className="text-sm font-medium text-destructive">
+                {form.formState.errors.options.message}
+              </p>
+            )}
 
             {/* Render option fields based on exercise type */}
             {exerciseType === "SELECT_IMAGE" &&
