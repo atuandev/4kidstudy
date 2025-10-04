@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { useGradeStore } from "@/lib/store";
 import { getTopicsByGrade } from "@/actions/topic";
 import { GRADES, type Grade } from "@/types/grade";
+import { useRouter } from "next/navigation";
 
 export function GradeSelectorButton() {
   const { selectedGradeData, setSelectedGrade, isLoading, setLoading } = useGradeStore();
+  const router = useRouter();
 
   const handleGradeClick = async (grade: Grade) => {
     if (isLoading) return;
@@ -18,6 +20,7 @@ export function GradeSelectorButton() {
       const response = await getTopicsByGrade(grade.value);
       const topics = Array.isArray(response.payload) ? response.payload : [];
       setSelectedGrade(grade.value, topics);
+      router.push("/learn/flashcards");
     } catch (error) {
       console.error("Error fetching topics:", error);
     } finally {

@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, RotateCcw, BookOpen } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCcw, BookOpen, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FlashcardComponent } from "./flashcard";
 import { Flashcard } from "@/types";
+import Link from "next/link";
 
 interface FlashcardViewerProps {
   flashcards: Flashcard[];
@@ -56,10 +57,15 @@ export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
       <Card className="mb-8">
         <CardHeader>
           <div className="flex items-center justify-between">
+            <Link href="/learn/flashcards">
+              <Button size="sm" variant="ghost">
+                <ArrowLeft className="h-5 w-5 stroke-2 text-neutral-400" />
+              </Button>
+            </Link>
             <CardTitle className="text-2xl font-bold">
               {currentFlashcard.topic.title}
             </CardTitle>
-            
+
             <Button
               variant="default"
               size="sm"
