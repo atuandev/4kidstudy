@@ -49,7 +49,7 @@ export default async function ExercisesPage() {
           <TypographyH3>Danh sách câu hỏi</TypographyH3>
           <Link href="/admin/exercises/form">
             <Button variant="default">
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="h-4 w-4" />
               Thêm câu hỏi
             </Button>
           </Link>

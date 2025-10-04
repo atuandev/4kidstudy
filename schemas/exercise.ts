@@ -9,6 +9,7 @@ export const ExerciseType = z.enum([
 ]);
 
 export const ExerciseOptionSchema = z.object({
+  id: z.number().int().positive().optional(),
   text: z.string().nullish().transform((val) => val ?? undefined),
   imageUrl: z.string().nullish().transform((val) => val ?? ''),
   audioUrl: z.string().nullish().transform((val) => val ?? ''),
