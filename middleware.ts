@@ -4,7 +4,7 @@ import { jwtDecode, JwtPayload } from 'jwt-decode'
 
 // Route configurations
 const ROUTES = {
-  protected: ['/learn'],
+  protected: ['/learn', '/practice', '/leaderboard', '/profile'],
   admin: ['/admin'],
   auth: ['/login', '/register'],
 }
