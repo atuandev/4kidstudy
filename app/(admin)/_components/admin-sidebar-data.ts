@@ -34,7 +34,7 @@ export const sidebarData = {
     //   icon: BookAIcon,
     // },
     {
-      title: "Bài luyện tập",
+      title: "Câu hỏi",
       url: "/admin/exercises",
       icon: NotebookTextIcon,
     },

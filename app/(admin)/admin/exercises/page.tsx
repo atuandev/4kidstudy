@@ -34,14 +34,14 @@ export default async function ExercisesPage() {
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>Bài luyện tập</BreadcrumbPage>
+                <BreadcrumbPage>Câu hỏi</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </div>
       </header>
       <div className="space-y-6 px-4">
-        <TypographyH3>Danh sách bài luyện tập</TypographyH3>
+        <TypographyH3>Danh sách câu hỏi</TypographyH3>
         <DataTable columns={columns} data={exercises} />
       </div>
     </>
