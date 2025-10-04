@@ -1,4 +1,5 @@
 import { getExercises } from "@/actions/exercise";
+import { getLessons } from "@/actions/lesson";
 import { TypographyH3 } from "@/components/typography";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
@@ -12,6 +13,9 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import Link from "next/link";
 
 export default async function ExercisesPage() {
   const exercises = await getExercises();
@@ -41,7 +45,15 @@ export default async function ExercisesPage() {
         </div>
       </header>
       <div className="space-y-6 px-4">
-        <TypographyH3>Danh sách câu hỏi</TypographyH3>
+        <div className="flex items-center justify-between">
+          <TypographyH3>Danh sách câu hỏi</TypographyH3>
+          <Link href="/admin/exercises/form">
+            <Button variant="default">
+              <Plus className="mr-2 h-4 w-4" />
+              Thêm câu hỏi
+            </Button>
+          </Link>
+        </div>
         <DataTable columns={columns} data={exercises} />
       </div>
     </>

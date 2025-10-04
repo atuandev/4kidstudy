@@ -3,6 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash } from "lucide-react";
 import { useState } from "react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -231,10 +232,12 @@ export const columns: ColumnDef<Exercise>[] = [
               Copy ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Pencil className="mr-2 h-4 w-4" />
-              Chỉnh sửa
-            </DropdownMenuItem>
+            <Link href={`/admin/exercises/form?id=${exercise.id}`}>
+              <DropdownMenuItem>
+                <Pencil className="mr-2 h-4 w-4" />
+                Chỉnh sửa
+              </DropdownMenuItem>
+            </Link>
             <DeleteExerciseDialog exercise={exercise} />
           </DropdownMenuContent>
         </DropdownMenu>
