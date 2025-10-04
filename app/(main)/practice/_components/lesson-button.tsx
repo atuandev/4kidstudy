@@ -102,7 +102,8 @@ export const LessonButton = ({
             variant={locked ? "locked" : "secondary"}
             className="h-[70px] w-[70px] border-b-8"
           >
-            <Icon
+            <p className="text-2xl font-bold">{index + 1}</p>
+            {/* <Icon
               className={cn(
                 "h-10 w-10",
                 locked
@@ -110,7 +111,7 @@ export const LessonButton = ({
                   : "fill-primary-foreground text-primary-foreground",
                 isCompleted && "fill-none stroke-[4]"
               )}
-            />
+            /> */}
           </Button>
         )}
       </div>
