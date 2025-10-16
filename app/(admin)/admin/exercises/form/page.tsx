@@ -80,7 +80,24 @@ export default function ExerciseFormPage() {
       hintVi: "",
       points: 10,
       difficulty: 1,
-      options: [],
+      options: [
+        {
+          text: "",
+          imageUrl: "",
+          audioUrl: "",
+          isCorrect: false,
+          order: 0,
+          matchKey: "",
+        },
+        {
+          text: "",
+          imageUrl: "",
+          audioUrl: "",
+          isCorrect: false,
+          order: 1,
+          matchKey: "",
+        },
+      ],
     },
   });
 
@@ -116,7 +133,7 @@ export default function ExerciseFormPage() {
             hintVi: exercise.hintVi ?? "",
             points: exercise.points,
             difficulty: exercise.difficulty,
-            options: (exercise.options || []).map(opt => ({
+            options: (exercise.options || []).map((opt) => ({
               ...opt,
               text: opt.text ?? "",
               imageUrl: opt.imageUrl ?? "",
@@ -140,27 +157,62 @@ export default function ExerciseFormPage() {
     setIsSubmitting(true);
     try {
       if (isEditMode) {
-        const updatedExercise = await updateExercise(
+        const { payload: updatedExercise, status } = await updateExercise(
           parseInt(exerciseId),
           data
         );
-        if (updatedExercise) {
-          toast.success("Cập nhật câu hỏi thành công");
-        } else {
+
+        if (status !== 201 && status !== 200 || !updatedExercise) {
           toast.error("Cập nhật câu hỏi thất bại");
+          return;
         }
+
+        toast.success("Cập nhật câu hỏi thành công");
       } else {
         // Remove order field when creating to let backend auto-generate it
         const { order, ...createData } = data;
-        const createdExercise = await createExercise(createData as CreateExerciseFormData);
-        if (createdExercise) {
-          toast.success("Tạo câu hỏi thành công");
-        } else {
+        const { payload: createdExercise, status } = await createExercise(
+          createData as CreateExerciseFormData
+        );
+
+        if (status !== 201 && status !== 200 || !createdExercise) {
           toast.error("Tạo câu hỏi thất bại");
+          return;
         }
+
+        const currentLessonId = form.getValues("lessonId");
+        form.reset({
+          lessonId: currentLessonId,
+          type: "MULTIPLE_CHOICE",
+          prompt: "",
+          imageUrl: "",
+          audioUrl: "",
+          targetText: "",
+          hintEn: "",
+          hintVi: "",
+          points: 10,
+          difficulty: 1,
+           options: [
+             {
+               text: "",
+               imageUrl: "",
+               audioUrl: "",
+               isCorrect: true,
+               order: 0,
+               matchKey: "",
+             },
+             {
+               text: "",
+               imageUrl: "",
+               audioUrl: "",
+               isCorrect: false,
+               order: 1,
+               matchKey: "",
+             },
+           ],
+        });
+        toast.success("Tạo câu hỏi thành công");
       }
-      router.push("/admin/exercises");
-      router.refresh();
     } catch (error: any) {
       console.error("Failed to save exercise:", error);
 
@@ -181,11 +233,16 @@ export default function ExerciseFormPage() {
           errorMessage.includes("Unique constraint") ||
           errorMessage.includes("already exists")
         ) {
-          toast.error("Câu hỏi với thứ tự này đã tồn tại trong bài học. Vui lòng chọn thứ tự khác.");
+          toast.error(
+            "Câu hỏi với thứ tự này đã tồn tại trong bài học. Vui lòng chọn thứ tự khác."
+          );
           return;
         }
         // Check for lesson not found
-        if (errorMessage.includes("Lesson") && errorMessage.includes("not found")) {
+        if (
+          errorMessage.includes("Lesson") &&
+          errorMessage.includes("not found")
+        ) {
           toast.error("Không tìm thấy bài học. Vui lòng chọn bài học khác.");
           return;
         }
@@ -491,7 +548,11 @@ export default function ExerciseFormPage() {
           )}
 
           {/* Points and Difficulty */}
-          <div className={`grid gap-4 ${isEditMode ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
+          <div
+            className={`grid gap-4 ${
+              isEditMode ? "md:grid-cols-3" : "md:grid-cols-2"
+            }`}
+          >
             {isEditMode && (
               <FormField
                 control={formControl}
@@ -503,7 +564,9 @@ export default function ExerciseFormPage() {
                       <Input
                         {...field}
                         type="number"
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value))
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -661,7 +724,10 @@ export default function ExerciseFormPage() {
                                     // Uncheck all other options
                                     fields.forEach((_, i) => {
                                       if (i !== index) {
-                                        form.setValue(`options.${i}.isCorrect`, false);
+                                        form.setValue(
+                                          `options.${i}.isCorrect`,
+                                          false
+                                        );
                                       }
                                     });
                                   }
@@ -726,7 +792,10 @@ export default function ExerciseFormPage() {
                                     // Uncheck all other options
                                     fields.forEach((_, i) => {
                                       if (i !== index) {
-                                        form.setValue(`options.${i}.isCorrect`, false);
+                                        form.setValue(
+                                          `options.${i}.isCorrect`,
+                                          false
+                                        );
                                       }
                                     });
                                   }
@@ -876,7 +945,10 @@ export default function ExerciseFormPage() {
                                     // Uncheck all other options
                                     fields.forEach((_, i) => {
                                       if (i !== index) {
-                                        form.setValue(`options.${i}.isCorrect`, false);
+                                        form.setValue(
+                                          `options.${i}.isCorrect`,
+                                          false
+                                        );
                                       }
                                     });
                                   }

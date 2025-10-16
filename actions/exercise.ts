@@ -50,12 +50,12 @@ function cleanExerciseData(data: CreateExerciseFormData) {
 
 export async function createExercise(data: CreateExerciseFormData) {
   const cleanedData = cleanExerciseData(data);
-  const { payload } = await http.post<Exercise>(
+  const { payload, status } = await http.post<Exercise>(
     "/exercises",
     JSON.stringify(cleanedData)
   );
   revalidatePath("/admin/exercises");
-  return payload;
+  return { payload, status };
 }
 
 export async function updateExercise(
@@ -63,16 +63,16 @@ export async function updateExercise(
   data: Partial<CreateExerciseFormData>
 ) {
   const cleanedData = cleanExerciseData(data as CreateExerciseFormData);
-  const { payload } = await http.put<Exercise>(
+  const { payload, status } = await http.put<Exercise>(
     `/exercises/${id}`,
     JSON.stringify(cleanedData)
   );
   revalidatePath("/admin/exercises");
-  return payload;
+  return { payload, status };
 }
 
 export async function deleteExercise(id: number) {
-  const { payload } = await http.delete<Exercise>(`/exercises/${id}`);
+  const payload = await http.delete<Exercise>(`/exercises/${id}`);
 
   revalidatePath("/admin/exercises");
   return payload;
