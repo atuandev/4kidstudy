@@ -1,13 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Check,
-  ChevronsUpDown,
-  ImageIcon,
-  Loader2,
-  Upload,
-} from "lucide-react";
+import { ImageIcon, Loader2, Upload } from "lucide-react";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -23,14 +17,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+import { Combobox } from "@/components/ui/combobox";
 import {
   Form,
   FormControl,
@@ -41,11 +28,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -98,8 +80,6 @@ export default function FlashcardFormPage() {
   const [availableTopics, setAvailableTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedGrade, setSelectedGrade] = useState<string>("");
-  const [gradeComboboxOpen, setGradeComboboxOpen] = useState(false);
-  const [topicComboboxOpen, setTopicComboboxOpen] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -314,63 +294,23 @@ export default function FlashcardFormPage() {
           {/* Grade and Topic Selection - 2 Column Grid */}
           <div className="grid gap-4 md:grid-cols-2">
             {/* Grade Selection */}
-            <div className="flex flex-col space-y-2">
+            <FormItem className="flex flex-col">
               <FormLabel>
                 Khối lớp <RequiredField />
               </FormLabel>
-              <Popover
-                open={gradeComboboxOpen}
-                onOpenChange={setGradeComboboxOpen}
-              >
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="default"
-                    role="combobox"
-                    aria-expanded={gradeComboboxOpen}
-                    className={cn(
-                      "w-full justify-between",
-                      !selectedGrade && "text-muted-foreground"
-                    )}
-                  >
-                    {selectedGrade
-                      ? GRADES.find((grade) => grade.value === selectedGrade)
-                          ?.label
-                      : "Chọn khối lớp"}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
-                  <Command>
-                    <CommandInput placeholder="Tìm kiếm khối lớp..." />
-                    <CommandList>
-                      <CommandEmpty>Không tìm thấy khối lớp.</CommandEmpty>
-                      <CommandGroup>
-                        {GRADES.map((grade) => (
-                          <CommandItem
-                            key={grade.value}
-                            value={grade.label}
-                            onSelect={() => {
-                              handleGradeChange(grade.value);
-                              setGradeComboboxOpen(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                selectedGrade === grade.value
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              )}
-                            />
-                            {grade.label}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
+              <FormControl>
+                <Combobox
+                  options={GRADES.map((g) => ({ value: g.value, label: g.label }))}
+                  value={selectedGrade}
+                  onValueChange={(value) => handleGradeChange(value)}
+                  placeholder="Chọn khối lớp"
+                  searchPlaceholder="Tìm kiếm khối lớp..."
+                  emptyText="Không tìm thấy khối lớp."
+                  className={cn(!selectedGrade && "text-muted-foreground")}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
 
             {/* Topic Selection */}
             <FormField
@@ -381,68 +321,21 @@ export default function FlashcardFormPage() {
                   <FormLabel>
                     Chủ đề <RequiredField />
                   </FormLabel>
-                  <Popover
-                    open={topicComboboxOpen}
-                    onOpenChange={setTopicComboboxOpen}
-                  >
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="default"
-                          role="combobox"
-                          aria-expanded={topicComboboxOpen}
-                          disabled={!selectedGrade}
-                          className={cn(
-                            "w-full justify-between",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            <>
-                              {
-                                filteredTopics.find(
-                                  (topic) => topic.id === field.value
-                                )?.title
-                              }
-                            </>
-                          ) : (
-                            "Chọn chủ đề"
-                          )}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="start">
-                      <Command>
-                        <CommandInput placeholder="Tìm kiếm chủ đề..." />
-                        <CommandList>
-                          <CommandEmpty>Không tìm thấy chủ đề.</CommandEmpty>
-                          <CommandGroup>
-                            {filteredTopics.map((topic) => (
-                              <CommandItem
-                                key={topic.id}
-                                value={topic.title}
-                                onSelect={() => {
-                                  field.onChange(topic.id);
-                                  setTopicComboboxOpen(false);
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    field.value === topic.id
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {topic.title}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                  <FormControl>
+                    <Combobox
+                      options={filteredTopics.map((topic) => ({
+                        value: topic.id.toString(),
+                        label: topic.title,
+                      }))}
+                      value={field.value?.toString()}
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      placeholder={selectedGrade ? "Chọn chủ đề" : "Vui lòng chọn khối lớp trước"}
+                      searchPlaceholder="Tìm kiếm chủ đề..."
+                      emptyText={selectedGrade ? "Không tìm thấy chủ đề." : "Chưa chọn khối lớp."}
+                      disabled={!selectedGrade}
+                      className={cn(!field.value && "text-muted-foreground")}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
