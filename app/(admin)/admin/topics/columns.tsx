@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { CopyIcon, MoreHorizontal, Pencil, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -241,6 +241,7 @@ export const columns: ColumnDef<Topic>[] = [
                 navigator.clipboard.writeText(topic.id.toString())
               }
             >
+              <CopyIcon className="mr-2 h-4 w-4" />
               Copy ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />

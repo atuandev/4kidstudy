@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { CopyIcon, MoreHorizontal, Pencil, Trash } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -189,20 +189,6 @@ export const columns: ColumnDef<Exercise>[] = [
     },
   },
   {
-    accessorKey: "difficulty",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Độ khó" />
-    ),
-    cell: ({ row }) => {
-      const difficulty = row.getValue("difficulty") as number | undefined;
-      return <div className="text-center">{difficulty ?? "-"}</div>;
-    },
-    filterFn: (row, id, value) => {
-      const difficulty = row.getValue(id) as number | undefined;
-      return value.includes(String(difficulty));
-    },
-  },
-  {
     accessorKey: "createdAt",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Ngày tạo" />
@@ -232,6 +218,7 @@ export const columns: ColumnDef<Exercise>[] = [
                 navigator.clipboard.writeText(exercise.id.toString())
               }
             >
+              <CopyIcon className="mr-2 h-4 w-4" />
               Copy ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />

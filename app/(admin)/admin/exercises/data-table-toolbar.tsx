@@ -37,21 +37,6 @@ const exerciseTypes = [
   },
 ];
 
-const difficultyLevels = [
-  {
-    value: "1",
-    label: "Dễ (1)",
-  },
-  {
-    value: "2",
-    label: "Trung bình (2)",
-  },
-  {
-    value: "3",
-    label: "Khó (3)",
-  },
-];
-
 export function DataTableToolbar<TData>({
   table,
   lessons,
@@ -62,7 +47,7 @@ export function DataTableToolbar<TData>({
   const lessonIdOptions = lessons
     ? lessons.map((lesson) => ({
         value: String(lesson.id),
-        label: `Lesson ${lesson.id}`,
+        label: `${lesson.id} - ${lesson.title}`,
       }))
     : [];
 
@@ -88,7 +73,7 @@ export function DataTableToolbar<TData>({
         {table.getColumn("lessonId") && lessonIdOptions.length > 0 && (
           <DataTableFacetedFilter
             column={table.getColumn("lessonId")}
-            title="Lesson ID"
+            title="Bài luyện tập"
             options={lessonIdOptions}
           />
         )}
@@ -97,13 +82,6 @@ export function DataTableToolbar<TData>({
             column={table.getColumn("type")}
             title="Loại"
             options={exerciseTypes}
-          />
-        )}
-        {table.getColumn("difficulty") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("difficulty")}
-            title="Độ khó"
-            options={difficultyLevels}
           />
         )}
         {isFiltered && (

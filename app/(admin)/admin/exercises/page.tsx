@@ -17,11 +17,20 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 
-export default async function ExercisesPage() {
+export default async function ExercisesPage({
+  searchParams,
+}: {
+  searchParams?: { lessonId?: string };
+}) {
   const [exercises, lessons] = await Promise.all([
     getExercises(),
     getLessons(),
   ]);
+
+  const lessonIdParam = searchParams?.lessonId;
+  const filteredExercises = lessonIdParam
+    ? exercises.filter((e) => String(e.lessonId) === String(lessonIdParam))
+    : exercises;
 
   return (
     <>
@@ -57,7 +66,7 @@ export default async function ExercisesPage() {
             </Button>
           </Link>
         </div>
-        <DataTable columns={columns} data={exercises} lessons={lessons} />
+        <DataTable columns={columns} data={filteredExercises} lessons={lessons} />
       </div>
     </>
   );
