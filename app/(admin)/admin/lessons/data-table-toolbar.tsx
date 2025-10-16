@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { Table } from '@tanstack/react-table';
 
@@ -8,10 +9,10 @@ import { Input } from '@/components/ui/input';
 import { DataTableViewOptions } from '../_components/data-table-view-options';
 import { DataTableFacetedFilter } from '../_components/data-table-faceted-filter';
 import { Topic } from '@/types';
+import { getTopicsByGrade } from '@/actions/topic';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
-  topics: Topic[];
 }
 
 const grades = [
@@ -54,11 +55,47 @@ const statuses = [
 
 export function DataTableToolbar<TData>({
   table,
-  topics,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
+  const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
+  const [isLoadingTopics, setIsLoadingTopics] = useState(false);
 
-  const topicOptions = topics.map((topic) => ({
+  const gradeColumn = table.getColumn('grade');
+  const selectedGrades = (gradeColumn?.getFilterValue() as string[]) ?? [];
+  const hasSelectedGrade = selectedGrades.length > 0;
+
+  useEffect(() => {
+    const fetchTopicsByGrade = async () => {
+      if (!hasSelectedGrade) {
+        setFilteredTopics([]);
+        table.getColumn('topicId')?.setFilterValue(undefined);
+        return;
+      }
+
+      setIsLoadingTopics(true);
+      try {
+        const allTopics: Topic[] = [];
+        for (const grade of selectedGrades) {
+          const response = await getTopicsByGrade(grade);
+          allTopics.push(...response.payload);
+        }
+
+        const uniqueTopics = Array.from(
+          new Map(allTopics.map((topic) => [topic.id, topic])).values()
+        );
+        setFilteredTopics(uniqueTopics);
+      } catch (error) {
+        console.error('Error fetching topics by grade:', error);
+        setFilteredTopics([]);
+      } finally {
+        setIsLoadingTopics(false);
+      }
+    };
+
+    fetchTopicsByGrade();
+  }, [selectedGrades.join(','), hasSelectedGrade, table]);
+
+  const topicOptions = filteredTopics.map((topic) => ({
     value: String(topic.id),
     label: topic.title,
   }));
@@ -82,18 +119,19 @@ export function DataTableToolbar<TData>({
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        {table.getColumn('topicId') && (
-          <DataTableFacetedFilter
-            column={table.getColumn('topicId')}
-            title="Unit"
-            options={topicOptions}
-          />
-        )}
         {table.getColumn('grade') && (
           <DataTableFacetedFilter
             column={table.getColumn('grade')}
             title="Lớp"
             options={grades}
+          />
+        )}
+        {table.getColumn('topicId') && (
+          <DataTableFacetedFilter
+            column={table.getColumn('topicId')}
+            title="Unit"
+            options={topicOptions}
+            disabled={!hasSelectedGrade || isLoadingTopics}
           />
         )}
         {table.getColumn('status') && (
