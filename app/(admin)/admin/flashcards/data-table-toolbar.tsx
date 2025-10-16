@@ -125,7 +125,7 @@ export function DataTableToolbar<TData>({
         {table.getColumn("topicId") && (
           <DataTableFacetedFilter
             column={table.getColumn("topicId")}
-            title="Unit"
+            title="Chủ đề"
             options={topicOptions}
             disabled={!hasSelectedGrade || isLoadingTopics}
           />

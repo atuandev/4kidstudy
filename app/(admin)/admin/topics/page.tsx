@@ -37,7 +37,7 @@ export default async function TopicsPage() {
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>Units</BreadcrumbPage>
+                <BreadcrumbPage>Chủ đề</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -45,11 +45,11 @@ export default async function TopicsPage() {
       </header>
       <div className="space-y-6 px-4">
         <div className="flex items-center justify-between">
-          <TypographyH3>Danh sách Units</TypographyH3>
+          <TypographyH3>Danh sách chủ đề</TypographyH3>
           <Link href="/admin/topics/form">
             <Button variant="primary">
               <PlusIcon className="h-4 w-4" />
-              Thêm unit
+              Thêm chủ đề
             </Button>
           </Link>
         </div>
