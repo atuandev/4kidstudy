@@ -1,5 +1,4 @@
 import { getFlashcards } from '@/actions/flashcard';
-import { getTopics } from '@/actions/topic';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,10 +17,7 @@ import { Button } from '@/components/ui/button';
 import { PlusIcon } from 'lucide-react';
 
 export default async function FlashcardsPage() {
-  const [flashcards, topics] = await Promise.all([
-    getFlashcards(),
-    getTopics(),
-  ]);
+  const flashcards = await getFlashcards();
   return (
     <>
       <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
@@ -40,7 +36,7 @@ export default async function FlashcardsPage() {
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>Flashcards</BreadcrumbPage>
+                <BreadcrumbPage>Thẻ từ vựng</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -48,15 +44,15 @@ export default async function FlashcardsPage() {
       </header>
       <div className="space-y-6 px-4">
         <div className="flex items-center justify-between">
-          <TypographyH3>Danh sách Flashcards</TypographyH3>
+          <TypographyH3>Danh sách thẻ từ vựng</TypographyH3>
           <Link href="/admin/flashcards/form">
             <Button variant="primary">
               <PlusIcon className="h-4 w-4" />
-              Thêm flashcard
+              Thêm thẻ từ vựng
             </Button>
           </Link>
         </div>
-        <DataTable columns={columns} data={flashcards} topics={topics} />
+        <DataTable columns={columns} data={flashcards} />
       </div>
     </>
   );
