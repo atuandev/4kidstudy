@@ -1,18 +1,12 @@
-'use client';
+"use client";
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Check,
-  ChevronsUpDown,
-  ImageIcon,
-  Loader2,
-  Upload,
-} from 'lucide-react';
-import { CldUploadWidget } from 'next-cloudinary';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ImageIcon, Loader2, Upload } from "lucide-react";
+import { CldUploadWidget } from "next-cloudinary";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import {
   Breadcrumb,
@@ -21,16 +15,9 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Button } from '@/components/ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
+} from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
+import { Combobox } from "@/components/ui/combobox";
 import {
   Form,
   FormControl,
@@ -39,48 +26,51 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 import {
   createFlashcard,
   getFlashcard,
   updateFlashcard,
-} from '@/actions/flashcard';
-import { getTopics } from '@/actions/topic';
-import { RequiredField } from '@/components/form/required-field';
-import { TypographyH3 } from '@/components/typography';
+} from "@/actions/flashcard";
+import { getTopics } from "@/actions/topic";
+import { RequiredField } from "@/components/form/required-field";
+import { TypographyH3 } from "@/components/typography";
 import {
   CreateFlashcardFormData,
   CreateFlashcardSchema,
   flashcardStatusLabels,
-} from '@/schemas/flashcard';
-import { Topic } from '@/types';
-import { UPLOAD_PRESET } from '@/lib/constants';
+} from "@/schemas/flashcard";
+import { Topic } from "@/types";
+import { UPLOAD_PRESET } from "@/lib/constants";
+
+const GRADES = [
+  { value: "GRADE_1", label: "Lớp 1" },
+  { value: "GRADE_2", label: "Lớp 2" },
+  { value: "GRADE_3", label: "Lớp 3" },
+  { value: "GRADE_4", label: "Lớp 4" },
+  { value: "GRADE_5", label: "Lớp 5" },
+];
 
 function getGradeLabel(grade: string): string {
   const gradeMap: Record<string, string> = {
-    GRADE_1: 'Lớp 1',
-    GRADE_2: 'Lớp 2',
-    GRADE_3: 'Lớp 3',
-    GRADE_4: 'Lớp 4',
-    GRADE_5: 'Lớp 5',
+    GRADE_1: "Lớp 1",
+    GRADE_2: "Lớp 2",
+    GRADE_3: "Lớp 3",
+    GRADE_4: "Lớp 4",
+    GRADE_5: "Lớp 5",
   };
   return gradeMap[grade] || grade;
 }
@@ -89,11 +79,11 @@ export default function FlashcardFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableTopics, setAvailableTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [topicComboboxOpen, setTopicComboboxOpen] = useState(false);
+  const [selectedGrade, setSelectedGrade] = useState<string>("");
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const flashcardId = searchParams.get('id');
+  const flashcardId = searchParams.get("id");
   const isEditMode = !!flashcardId;
 
   const form = useForm<CreateFlashcardFormData>({
@@ -101,13 +91,13 @@ export default function FlashcardFormPage() {
     resolver: zodResolver(CreateFlashcardSchema) as any,
     defaultValues: {
       topicId: 0,
-      term: '',
-      phonetic: '',
-      meaningVi: '',
-      exampleEn: '',
-      exampleVi: '',
-      imageUrl: '',
-      audioUrl: '',
+      term: "",
+      phonetic: "",
+      meaningVi: "",
+      exampleEn: "",
+      exampleVi: "",
+      imageUrl: "",
+      audioUrl: "",
       isActive: true,
     },
   });
@@ -126,22 +116,27 @@ export default function FlashcardFormPage() {
 
         if (isEditMode) {
           const flashcard = await getFlashcard(parseInt(flashcardId));
+          // Find the topic to get its grade
+          const topic = fetchedTopics.find((t) => t.id === flashcard.topicId);
+          if (topic?.grade) {
+            setSelectedGrade(topic.grade);
+          }
           form.reset({
             topicId: flashcard.topicId,
             term: flashcard.term,
             phonetic: flashcard.phonetic,
             meaningVi: flashcard.meaningVi,
-            exampleEn: flashcard.exampleEn ?? '',
-            exampleVi: flashcard.exampleVi ?? '',
-            imageUrl: flashcard.imageUrl ?? '',
-            audioUrl: flashcard.audioUrl ?? '',
+            exampleEn: flashcard.exampleEn ?? "",
+            exampleVi: flashcard.exampleVi ?? "",
+            imageUrl: flashcard.imageUrl ?? "",
+            audioUrl: flashcard.audioUrl ?? "",
             order: flashcard.order,
             isActive: flashcard.isActive,
           });
         }
       } catch (error) {
-        console.error('Failed to fetch data:', error);
-        toast.error('Không thể tải dữ liệu');
+        console.error("Failed to fetch data:", error);
+        toast.error("Không thể tải dữ liệu");
       } finally {
         setIsLoading(false);
       }
@@ -159,9 +154,9 @@ export default function FlashcardFormPage() {
           data
         );
         if (updatedFlashcard) {
-          toast.success('Cập nhật flashcard thành công');
+          toast.success("Cập nhật flashcard thành công");
         } else {
-          toast.error('Cập nhật flashcard thất bại');
+          toast.error("Cập nhật flashcard thất bại");
         }
       } else {
         // Remove order field when creating to let backend auto-generate it
@@ -169,49 +164,49 @@ export default function FlashcardFormPage() {
         const { order, ...createData } = data;
         const createdFlashcard = await createFlashcard(createData);
         if (createdFlashcard) {
-          toast.success('Tạo flashcard thành công');
+          toast.success("Tạo flashcard thành công");
         } else {
-          toast.error('Tạo flashcard thất bại');
+          toast.error("Tạo flashcard thất bại");
         }
       }
-      router.push('/admin/flashcards');
+      router.push("/admin/flashcards");
       router.refresh();
     } catch (error) {
-      console.error('Failed to save flashcard:', error);
+      console.error("Failed to save flashcard:", error);
 
       // Handle specific error messages from backend
       const errorMessage = (
         error as { payload?: { message?: string | string[] } }
       )?.payload?.message;
 
-      if (typeof errorMessage === 'string') {
+      if (typeof errorMessage === "string") {
         // Check for order conflict error
         if (
-          errorMessage.includes('Unique constraint') ||
-          errorMessage.includes('already exists')
+          errorMessage.includes("Unique constraint") ||
+          errorMessage.includes("already exists")
         ) {
           toast.error(
-            'Flashcard với thứ tự này đã tồn tại trong chủ đề. Vui lòng chọn thứ tự khác.'
+            "Flashcard với thứ tự này đã tồn tại trong chủ đề. Vui lòng chọn thứ tự khác."
           );
           return;
         }
         // Check for topic not found
         if (
-          errorMessage.includes('Topic') &&
-          errorMessage.includes('not found')
+          errorMessage.includes("Topic") &&
+          errorMessage.includes("not found")
         ) {
-          toast.error('Không tìm thấy chủ đề. Vui lòng chọn chủ đề khác.');
+          toast.error("Không tìm thấy chủ đề. Vui lòng chọn chủ đề khác.");
           return;
         }
         // Show the backend error message
         toast.error(errorMessage);
       } else if (Array.isArray(errorMessage)) {
         // Handle validation errors array
-        toast.error(errorMessage.join(', '));
+        toast.error(errorMessage.join(", "));
       } else {
         // Generic error message
         toast.error(
-          isEditMode ? 'Cập nhật flashcard thất bại' : 'Tạo flashcard thất bại'
+          isEditMode ? "Cập nhật flashcard thất bại" : "Tạo flashcard thất bại"
         );
       }
     } finally {
@@ -222,20 +217,31 @@ export default function FlashcardFormPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleImageUpload = (result: any) => {
     if (result?.info?.secure_url) {
-      form.setValue('imageUrl', result.info.secure_url);
+      form.setValue("imageUrl", result.info.secure_url);
     }
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleAudioUpload = (result: any) => {
     if (result?.info?.secure_url) {
-      form.setValue('audioUrl', result.info.secure_url);
+      form.setValue("audioUrl", result.info.secure_url);
     }
+  };
+
+  const handleGradeChange = (grade: string) => {
+    setSelectedGrade(grade);
+    // Reset topic selection when grade changes
+    form.setValue("topicId", 0);
   };
 
   const handleCancel = () => {
     router.back();
   };
+
+  // Filter topics by selected grade
+  const filteredTopics = selectedGrade
+    ? availableTopics.filter((topic) => topic.grade === selectedGrade)
+    : [];
 
   if (isLoading) {
     return (
@@ -268,7 +274,7 @@ export default function FlashcardFormPage() {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbPage>
-                {isEditMode ? 'Chỉnh sửa' : 'Thêm mới'}
+                {isEditMode ? "Chỉnh sửa" : "Thêm mới"}
               </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
@@ -276,7 +282,7 @@ export default function FlashcardFormPage() {
       </div>
 
       <TypographyH3>
-        {isEditMode ? 'Chỉnh sửa flashcard' : 'Thêm flashcard mới'}
+        {isEditMode ? "Chỉnh sửa flashcard" : "Thêm flashcard mới"}
       </TypographyH3>
 
       {/* Form */}
@@ -285,124 +291,103 @@ export default function FlashcardFormPage() {
           onSubmit={form.handleSubmit(onSubmit as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
           className="space-y-6"
         >
-          {/* Topic Selection */}
-          <FormField
-            control={formControl}
-            name="topicId"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>
-                  Chủ đề <RequiredField />
-                </FormLabel>
-                <Popover
-                  open={topicComboboxOpen}
-                  onOpenChange={setTopicComboboxOpen}
-                >
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="default"
-                        role="combobox"
-                        aria-expanded={topicComboboxOpen}
-                        className={cn(
-                          'w-full justify-between',
-                          !field.value && 'text-muted-foreground'
-                        )}
-                      >
-                        {field.value ? (
-                          <>
-                            {
-                              availableTopics.find(
-                                (topic) => topic.id === field.value
-                              )?.title
-                            }{' '}
-                            (
-                            {getGradeLabel(
-                              availableTopics.find(
-                                (topic) => topic.id === field.value
-                              )?.grade || ''
-                            )}
-                            )
-                          </>
-                        ) : (
-                          'Chọn chủ đề'
-                        )}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder="Tìm kiếm chủ đề..." />
-                      <CommandList>
-                        <CommandEmpty>Không tìm thấy chủ đề.</CommandEmpty>
-                        <CommandGroup>
-                          {availableTopics.map((topic) => (
-                            <CommandItem
-                              key={topic.id}
-                              value={`${topic.title} ${topic.grade}`}
-                              onSelect={() => {
-                                field.onChange(topic.id);
-                                setTopicComboboxOpen(false);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  'mr-2 h-4 w-4',
-                                  field.value === topic.id
-                                    ? 'opacity-100'
-                                    : 'opacity-0'
-                                )}
-                              />
-                              {topic.title} ({getGradeLabel(topic.grade || '')})
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Grade and Topic Selection - 2 Column Grid */}
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Grade Selection */}
+            <FormItem className="flex flex-col">
+              <FormLabel>
+                Khối lớp <RequiredField />
+              </FormLabel>
+              <FormControl>
+                <Combobox
+                  options={GRADES.map((g) => ({
+                    value: g.value,
+                    label: g.label,
+                  }))}
+                  value={selectedGrade}
+                  onValueChange={(value) => handleGradeChange(value)}
+                  placeholder="Chọn khối lớp"
+                  searchPlaceholder="Tìm kiếm khối lớp..."
+                  emptyText="Không tìm thấy khối lớp."
+                  className={cn(!selectedGrade && "text-muted-foreground")}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
 
-          {/* Term */}
-          <FormField
-            control={formControl}
-            name="term"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Từ vựng <RequiredField />
-                </FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="Nhập từ vựng" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            {/* Topic Selection */}
+            <FormField
+              control={formControl}
+              name="topicId"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>
+                    Chủ đề <RequiredField />
+                  </FormLabel>
+                  <FormControl>
+                    <Combobox
+                      options={filteredTopics.map((topic) => ({
+                        value: topic.id.toString(),
+                        label: topic.title,
+                      }))}
+                      value={field.value?.toString()}
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      placeholder={
+                        selectedGrade
+                          ? "Chọn chủ đề"
+                          : "Vui lòng chọn khối lớp trước"
+                      }
+                      searchPlaceholder="Tìm kiếm chủ đề..."
+                      emptyText={
+                        selectedGrade
+                          ? "Không tìm thấy chủ đề."
+                          : "Chưa chọn khối lớp."
+                      }
+                      disabled={!selectedGrade}
+                      className={cn(!field.value && "text-muted-foreground")}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-          {/* Phonetic */}
-          <FormField
-            control={formControl}
-            name="phonetic"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Phiên âm <RequiredField />
-                </FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="Ví dụ: /həˈloʊ/" />
-                </FormControl>
-                <FormDescription>
-                  Phiên âm quốc tế IPA của từ vựng
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Term */}
+            <FormField
+              control={formControl}
+              name="term"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Từ vựng <RequiredField />
+                  </FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Nhập từ vựng" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Phonetic */}
+            <FormField
+              control={formControl}
+              name="phonetic"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Phiên âm <RequiredField />
+                  </FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Ví dụ: /həˈloʊ/" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           {/* Meaning Vietnamese */}
           <FormField
@@ -542,7 +527,7 @@ export default function FlashcardFormPage() {
           {/* Order and Status */}
           <div
             className={`grid gap-4 ${
-              isEditMode ? 'md:grid-cols-2' : 'md:grid-cols-1'
+              isEditMode ? "md:grid-cols-2" : "md:grid-cols-1"
             }`}
           >
             {isEditMode && (
@@ -576,10 +561,8 @@ export default function FlashcardFormPage() {
                     Trạng thái <RequiredField />
                   </FormLabel>
                   <Select
-                    onValueChange={(value) =>
-                      field.onChange(value === 'true')
-                    }
-                    value={field.value ? 'true' : 'false'}
+                    onValueChange={(value) => field.onChange(value === "true")}
+                    value={field.value ? "true" : "false"}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -615,7 +598,7 @@ export default function FlashcardFormPage() {
               {isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {isEditMode ? 'Cập nhật' : 'Tạo mới'}
+              {isEditMode ? "Cập nhật" : "Tạo mới"}
             </Button>
           </div>
         </form>
@@ -623,4 +606,3 @@ export default function FlashcardFormPage() {
     </div>
   );
 }
-

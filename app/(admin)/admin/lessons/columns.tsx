@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Pencil, Trash } from 'lucide-react';
+import { CopyIcon, MoreHorizontal, Pencil, Trash, List } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -269,7 +269,15 @@ export const columns: ColumnDef<Lesson>[] = [
                 navigator.clipboard.writeText(lesson.id.toString())
               }
             >
+              <CopyIcon className="mr-2 h-4 w-4" />
               Copy ID
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => router.push(`/admin/exercises?lessonId=${lesson.id}`)}
+            >
+              <List className="mr-2 h-4 w-4" />
+              Danh sách bài tập
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleEdit}>

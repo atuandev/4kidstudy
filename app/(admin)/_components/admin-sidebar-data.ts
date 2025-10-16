@@ -25,7 +25,7 @@ export const sidebarData = {
       icon: ChartNoAxesCombinedIcon,
     },
     {
-      title: "Units",
+      title: "Chủ đề",
       url: "/admin/topics",
       icon: NotebookIcon,
     },

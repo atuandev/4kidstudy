@@ -51,6 +51,14 @@ import {
 import { Topic } from "@/types";
 import { UPLOAD_PRESET } from "@/lib/constants";
 
+const GRADES = [
+  { value: "GRADE_1", label: "Lớp 1" },
+  { value: "GRADE_2", label: "Lớp 2" },
+  { value: "GRADE_3", label: "Lớp 3" },
+  { value: "GRADE_4", label: "Lớp 4" },
+  { value: "GRADE_5", label: "Lớp 5" },
+];
+
 function getGradeLabel(grade: string): string {
   const gradeMap: Record<string, string> = {
     GRADE_1: "Lớp 1",
@@ -66,6 +74,7 @@ export default function LessonFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableTopics, setAvailableTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedGrade, setSelectedGrade] = useState<string>("");
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -102,6 +111,11 @@ export default function LessonFormPage() {
 
         if (isEditMode) {
           const lesson = await getLesson(parseInt(lessonId));
+          // Infer grade from the selected topic when editing
+          const topic = fetchedTopics.find((t) => t.id === lesson.topicId);
+          if (topic?.grade) {
+            setSelectedGrade(topic.grade);
+          }
           form.reset({
             topicId: lesson.topicId,
             title: lesson.title,
@@ -210,6 +224,10 @@ export default function LessonFormPage() {
     router.back();
   };
 
+  const filteredTopics = selectedGrade
+    ? availableTopics.filter((topic) => topic.grade === selectedGrade)
+    : [];
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -258,32 +276,56 @@ export default function LessonFormPage() {
           onSubmit={form.handleSubmit(onSubmit as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
           className="space-y-6"
         >
-          {/* Topic Selection */}
-          <FormField
-            control={formControl}
-            name="topicId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Chủ đề <RequiredField />
-                </FormLabel>
-                <FormControl>
-                  <Combobox
-                    options={availableTopics.map((topic) => ({
-                      value: topic.id.toString(),
-                      label: `${topic.title} (${getGradeLabel(topic.grade || "")})`,
-                    }))}
-                    value={field.value?.toString()}
-                    onValueChange={(value) => field.onChange(parseInt(value))}
-                    placeholder="Chọn chủ đề"
-                    searchPlaceholder="Tìm kiếm chủ đề..."
-                    emptyText="Không tìm thấy chủ đề."
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Grade and Topic Selection - 2 Column Grid */}
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Grade Selection */}
+            <FormItem>
+              <FormLabel>
+                Khối lớp <RequiredField />
+              </FormLabel>
+              <FormControl>
+                <Combobox
+                  options={GRADES.map((g) => ({ value: g.value, label: g.label }))}
+                  value={selectedGrade}
+                  onValueChange={(value) => {
+                    setSelectedGrade(value);
+                    form.setValue("topicId", 0);
+                  }}
+                  placeholder="Chọn khối lớp"
+                  searchPlaceholder="Tìm kiếm khối lớp..."
+                  emptyText="Không tìm thấy khối lớp."
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+
+            {/* Topic Selection */}
+            <FormField
+              control={formControl}
+              name="topicId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Chủ đề <RequiredField />
+                  </FormLabel>
+                  <FormControl>
+                    <Combobox
+                      options={filteredTopics.map((topic) => ({
+                        value: topic.id.toString(),
+                        label: topic.title,
+                      }))}
+                      value={field.value?.toString()}
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      placeholder={selectedGrade ? "Chọn chủ đề" : "Vui lòng chọn khối lớp trước"}
+                      searchPlaceholder="Tìm kiếm chủ đề..."
+                      emptyText={selectedGrade ? "Không tìm thấy chủ đề." : "Chưa chọn khối lớp."}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           {/* Title */}
           <FormField
