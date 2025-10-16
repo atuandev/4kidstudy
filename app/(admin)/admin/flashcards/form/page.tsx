@@ -300,7 +300,10 @@ export default function FlashcardFormPage() {
               </FormLabel>
               <FormControl>
                 <Combobox
-                  options={GRADES.map((g) => ({ value: g.value, label: g.label }))}
+                  options={GRADES.map((g) => ({
+                    value: g.value,
+                    label: g.label,
+                  }))}
                   value={selectedGrade}
                   onValueChange={(value) => handleGradeChange(value)}
                   placeholder="Chọn khối lớp"
@@ -329,9 +332,17 @@ export default function FlashcardFormPage() {
                       }))}
                       value={field.value?.toString()}
                       onValueChange={(value) => field.onChange(parseInt(value))}
-                      placeholder={selectedGrade ? "Chọn chủ đề" : "Vui lòng chọn khối lớp trước"}
+                      placeholder={
+                        selectedGrade
+                          ? "Chọn chủ đề"
+                          : "Vui lòng chọn khối lớp trước"
+                      }
                       searchPlaceholder="Tìm kiếm chủ đề..."
-                      emptyText={selectedGrade ? "Không tìm thấy chủ đề." : "Chưa chọn khối lớp."}
+                      emptyText={
+                        selectedGrade
+                          ? "Không tìm thấy chủ đề."
+                          : "Chưa chọn khối lớp."
+                      }
                       disabled={!selectedGrade}
                       className={cn(!field.value && "text-muted-foreground")}
                     />

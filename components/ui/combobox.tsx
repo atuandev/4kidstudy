@@ -72,9 +72,11 @@ export function Combobox({
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value}
-                  onSelect={(currentValue) => {
-                    onValueChange?.(currentValue === value ? "" : currentValue);
+                  // Use label for CommandItem value so the search filters by title/label
+                  value={option.label}
+                  onSelect={() => {
+                    // Return the option value (id) while allowing filtering by label
+                    onValueChange?.(option.value === value ? "" : option.value);
                     setOpen(false);
                   }}
                 >
