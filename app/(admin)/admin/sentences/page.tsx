@@ -12,6 +12,9 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { TypographyH3 } from "@/components/typography";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { PlusIcon } from "lucide-react";
 
 export default async function SentencesPage() {
   const sentenceImages = await getSentenceImages();
@@ -40,7 +43,15 @@ export default async function SentencesPage() {
         </div>
       </header>
       <div className="space-y-6 px-4">
-        <TypographyH3>Danh sách Câu</TypographyH3>
+        <div className="flex items-center justify-between">
+          <TypographyH3>Danh sách Câu với hình ảnh</TypographyH3>
+          <Link href="/admin/sentences/form">
+            <Button variant="primary">
+              <PlusIcon className="h-4 w-4" />
+              Thêm câu
+            </Button>
+          </Link>
+        </div>
         <DataTable columns={columns} data={sentenceImages} />
       </div>
     </>

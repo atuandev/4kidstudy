@@ -169,9 +169,9 @@ export const columns: ColumnDef<SentenceImage>[] = [
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href={`/admin/sentences/${image.id}`}>
+              <Link href={`/admin/sentences/form?id=${image.id}`}>
                 <Pencil className="mr-2 h-4 w-4" />
-                Chỉnh sửa câu
+                Chỉnh sửa
               </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
