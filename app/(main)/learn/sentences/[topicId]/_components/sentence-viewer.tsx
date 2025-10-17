@@ -1,22 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SentenceImage } from "@/types";
 import {
+  ArrowLeft,
+  BookOpen,
   ChevronLeft,
   ChevronRight,
   RotateCcw,
-  BookOpen,
-  ArrowLeft,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SentenceCard } from "./sentence-card";
-import { SentenceImage } from "@/types";
 import Link from "next/link";
+import { useState } from "react";
+import { SentenceCard } from "./sentence-card";
 
 interface SentenceViewerProps {
   sentenceImages: SentenceImage[];
-  topicTitle?: string;
+  topicTitle: string;
 }
 
 export function SentenceViewer({
@@ -62,45 +62,45 @@ export function SentenceViewer({
   const currentSentenceImage = sentenceImages[currentIndex];
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-4">
       {/* Header */}
-      {topicTitle && (
-        <Card className="mb-8">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <Link href={`/learn/units`}>
-                <Button size="sm" variant="ghost">
-                  <ArrowLeft className="h-5 w-5 stroke-2 text-neutral-400" />
-                </Button>
-              </Link>
-
-              <CardTitle className="text-2xl font-bold">{topicTitle}</CardTitle>
-
-              <Button
-                variant="default"
-                size="sm"
-                onClick={handleReset}
-                className="flex items-center gap-2"
-              >
-                <RotateCcw className="h-4 w-4" />
-                Học lại
+      <Card className="mb-8 bg-primary">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <Link href={`/learn/units`}>
+              <Button size="sm" variant="default">
+                <ArrowLeft className="size-8" />
               </Button>
-            </div>
-          </CardHeader>
-        </Card>
-      )}
+            </Link>
+
+            <CardTitle className="text-2xl font-bold text-primary-foreground">
+              {topicTitle}
+            </CardTitle>
+
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleReset}
+              className="flex items-center gap-2"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Học lại
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
 
       {/* Sentence Card */}
       <div className="mb-8">
-        <SentenceCard sentenceImage={currentSentenceImage} autoPlay={true} />
+        <SentenceCard sentenceImage={currentSentenceImage} />
       </div>
 
       {/* Navigation Controls */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent>
           <div className="flex items-center justify-between">
             <Button
-              variant="primary"
+              variant="secondary"
               onClick={handlePrevious}
               disabled={currentIndex === 0}
             >
@@ -113,7 +113,7 @@ export function SentenceViewer({
             </p>
 
             <Button
-              variant="primary"
+              variant="secondary"
               onClick={handleNext}
               disabled={currentIndex === sentenceImages.length - 1}
             >
