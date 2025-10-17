@@ -44,7 +44,7 @@ export default async function LessonsPage() {
       </header>
       <div className="space-y-6 px-4">
         <div className="flex items-center justify-between">
-          <TypographyH3>Danh sách Bài luyện tập</TypographyH3>
+          <TypographyH3>Danh sách bài luyện tập</TypographyH3>
           <Link href="/admin/lessons/form">
             <Button variant="primary">
               <PlusIcon className="h-4 w-4" />

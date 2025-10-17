@@ -1,4 +1,4 @@
-import { getSentences } from '@/actions/sentence';
+import { getSentenceImages } from "@/actions/sentence";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -6,15 +6,18 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { TypographyH3 } from '@/components/typography';
-import { DataTable } from './data-table';
-import { columns } from './columns';
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { TypographyH3 } from "@/components/typography";
+import { DataTable } from "./data-table";
+import { columns } from "./columns";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { PlusIcon } from "lucide-react";
 
 export default async function SentencesPage() {
-  const sentences = await getSentences();
+  const sentenceImages = await getSentenceImages();
   return (
     <>
       <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
@@ -40,8 +43,16 @@ export default async function SentencesPage() {
         </div>
       </header>
       <div className="space-y-6 px-4">
-        <TypographyH3>Danh sách Câu</TypographyH3>
-        <DataTable columns={columns} data={sentences} />
+        <div className="flex items-center justify-between">
+          <TypographyH3>Danh sách thẻ câu</TypographyH3>
+          <Link href="/admin/sentences/form">
+            <Button variant="primary">
+              <PlusIcon className="h-4 w-4" />
+              Thêm thẻ câu
+            </Button>
+          </Link>
+        </div>
+        <DataTable columns={columns} data={sentenceImages} />
       </div>
     </>
   );

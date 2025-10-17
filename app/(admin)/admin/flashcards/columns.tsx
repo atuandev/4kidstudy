@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { ColumnDef } from '@tanstack/react-table';
-import { CopyIcon, MoreHorizontal, Pencil, Trash } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { ColumnDef } from "@tanstack/react-table";
+import { CopyIcon, MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,34 +23,35 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
-import { Flashcard } from '@/types';
-import { DataTableColumnHeader } from '../_components/data-table-column-header';
-import { deleteFlashcard } from '@/actions/flashcard';
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Flashcard } from "@/types";
+import { DataTableColumnHeader } from "../_components/data-table-column-header";
+import { deleteFlashcard } from "@/actions/flashcard";
+import Image from "next/image";
 
 const gradeMap: Record<
   string,
   {
     label: string;
     variant:
-      | 'default'
-      | 'secondary'
-      | 'destructive'
-      | 'outline'
-      | 'warning'
-      | 'danger'
-      | 'purple'
-      | 'sky'
-      | 'yellow'
-      | 'orange';
+      | "default"
+      | "secondary"
+      | "destructive"
+      | "outline"
+      | "warning"
+      | "danger"
+      | "purple"
+      | "sky"
+      | "yellow"
+      | "orange";
   }
 > = {
-  GRADE_1: { label: 'Lớp 1', variant: 'default' },
-  GRADE_2: { label: 'Lớp 2', variant: 'purple' },
-  GRADE_3: { label: 'Lớp 3', variant: 'sky' },
-  GRADE_4: { label: 'Lớp 4', variant: 'orange' },
-  GRADE_5: { label: 'Lớp 5', variant: 'yellow' },
+  GRADE_1: { label: "Lớp 1", variant: "default" },
+  GRADE_2: { label: "Lớp 2", variant: "purple" },
+  GRADE_3: { label: "Lớp 3", variant: "sky" },
+  GRADE_4: { label: "Lớp 4", variant: "orange" },
+  GRADE_5: { label: "Lớp 5", variant: "yellow" },
 };
 
 function DeleteFlashcardDialog({ flashcard }: { flashcard: Flashcard }) {
@@ -92,12 +93,12 @@ function DeleteFlashcardDialog({ flashcard }: { flashcard: Flashcard }) {
 
 export const columns: ColumnDef<Flashcard>[] = [
   {
-    id: 'select',
+    id: "select",
     header: ({ table }) => (
       <Checkbox
         checked={
           table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && 'indeterminate')
+          (table.getIsSomePageRowsSelected() && "indeterminate")
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
@@ -114,23 +115,44 @@ export const columns: ColumnDef<Flashcard>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: 'id',
+    accessorKey: "id",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="ID" />
     ),
-    cell: ({ row }) => <div className="w-[60px]">{row.getValue('id')}</div>,
+    cell: ({ row }) => <div className="w-[60px]">{row.getValue("id")}</div>,
     filterFn: (row, id, value) => {
       const rowId = String(row.getValue(id));
       return rowId.includes(value);
     },
   },
   {
-    accessorKey: 'term',
+    accessorKey: "imageUrl",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Hình ảnh" />
+    ),
+    cell: ({ row }) => {
+      const imageUrl = row.getValue("imageUrl") as string;
+      return (
+        <div className="h-12 w-16 overflow-hidden rounded border bg-muted">
+          {imageUrl ? (
+            <Image src={imageUrl} alt="image" width={64} height={48} />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+              -
+            </div>
+          )}
+        </div>
+      );
+    },
+    enableSorting: false,
+  },
+  {
+    accessorKey: "term",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Từ vựng" />
     ),
     cell: ({ row }) => {
-      const term = row.getValue('term') as string;
+      const term = row.getValue("term") as string;
       return (
         <div className="max-w-[200px] truncate font-medium" title={term}>
           {term}
@@ -139,26 +161,26 @@ export const columns: ColumnDef<Flashcard>[] = [
     },
   },
   {
-    accessorKey: 'phonetic',
+    accessorKey: "phonetic",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Phiên âm" />
     ),
     cell: ({ row }) => {
-      const phonetic = row.getValue('phonetic') as string;
+      const phonetic = row.getValue("phonetic") as string;
       return (
         <div className="max-w-[150px] truncate text-muted-foreground">
-          {phonetic || '-'}
+          {phonetic || "-"}
         </div>
       );
     },
   },
   {
-    accessorKey: 'meaningVi',
+    accessorKey: "meaningVi",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Nghĩa" />
     ),
     cell: ({ row }) => {
-      const meaning = row.getValue('meaningVi') as string;
+      const meaning = row.getValue("meaningVi") as string;
       return (
         <div className="max-w-[200px] truncate" title={meaning}>
           {meaning}
@@ -167,13 +189,13 @@ export const columns: ColumnDef<Flashcard>[] = [
     },
   },
   {
-    accessorKey: 'topicId',
-    id: 'topicId',
+    accessorKey: "topicId",
+    id: "topicId",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Unit" />
     ),
     cell: ({ row }) => {
-      const topicTitle = row.original.topic?.title || '-';
+      const topicTitle = row.original.topic?.title || "-";
       return (
         <div className="max-w-[200px] truncate" title={topicTitle}>
           {topicTitle}
@@ -185,8 +207,8 @@ export const columns: ColumnDef<Flashcard>[] = [
     },
   },
   {
-    accessorKey: 'topic.grade',
-    id: 'grade',
+    accessorKey: "topic.grade",
+    id: "grade",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Lớp" />
     ),
@@ -195,7 +217,7 @@ export const columns: ColumnDef<Flashcard>[] = [
       if (!grade) return <div>-</div>;
       const gradeInfo = gradeMap[grade] || {
         label: grade,
-        variant: 'outline' as const,
+        variant: "outline" as const,
       };
       return <Badge variant={gradeInfo.variant}>{gradeInfo.label}</Badge>;
     },
@@ -204,24 +226,24 @@ export const columns: ColumnDef<Flashcard>[] = [
     },
   },
   {
-    accessorKey: 'order',
+    accessorKey: "order",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Thứ tự" />
     ),
     cell: ({ row }) => (
-      <div className="text-center">{row.getValue('order')}</div>
+      <div className="text-center">{row.getValue("order")}</div>
     ),
   },
   {
-    accessorKey: 'isActive',
+    accessorKey: "isActive",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Trạng thái" />
     ),
     cell: ({ row }) => {
-      const isActive = row.getValue('isActive') as boolean;
+      const isActive = row.getValue("isActive") as boolean;
       return (
-        <Badge variant={isActive ? 'default' : 'outline'}>
-          {isActive ? 'Hoạt động' : 'Không hoạt động'}
+        <Badge variant={isActive ? "default" : "outline"}>
+          {isActive ? "Hoạt động" : "Không hoạt động"}
         </Badge>
       );
     },
@@ -230,17 +252,17 @@ export const columns: ColumnDef<Flashcard>[] = [
     },
   },
   {
-    accessorKey: 'createdAt',
+    accessorKey: "createdAt",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Ngày tạo" />
     ),
     cell: ({ row }) => {
-      const date = new Date(row.getValue('createdAt'));
-      return <div>{date.toLocaleDateString('vi-VN')}</div>;
+      const date = new Date(row.getValue("createdAt"));
+      return <div>{date.toLocaleDateString("vi-VN")}</div>;
     },
   },
   {
-    id: 'actions',
+    id: "actions",
     enableHiding: false,
     cell: function ActionsCell({ row }) {
       const flashcard = row.original;
@@ -279,4 +301,3 @@ export const columns: ColumnDef<Flashcard>[] = [
     },
   },
 ];
-
