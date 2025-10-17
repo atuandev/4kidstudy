@@ -354,7 +354,7 @@ export default function ExerciseFormPage() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  ID bài luyện tập <RequiredField />
+                  Bài luyện tập <RequiredField />
                 </FormLabel>
                 <FormControl>
                   <Combobox
@@ -364,7 +364,7 @@ export default function ExerciseFormPage() {
                     }))}
                     value={field.value?.toString()}
                     onValueChange={(value) => field.onChange(parseInt(value))}
-                    placeholder="Chọn ID bài luyện tập"
+                    placeholder="Chọn bài luyện tập"
                     searchPlaceholder="Tìm kiếm bài luyện tập..."
                     emptyText="Không tìm thấy bài luyện tập."
                     className="w-fit"

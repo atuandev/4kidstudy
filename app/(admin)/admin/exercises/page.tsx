@@ -50,7 +50,7 @@ export default async function ExercisesPage({
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>Câu hỏi</BreadcrumbPage>
+                <BreadcrumbPage>Câu hỏi luyện tập</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -58,11 +58,11 @@ export default async function ExercisesPage({
       </header>
       <div className="space-y-6 px-4">
         <div className="flex items-center justify-between">
-          <TypographyH3>Danh sách câu hỏi</TypographyH3>
+          <TypographyH3>Danh sách câu hỏi luyện tập</TypographyH3>
           <Link href="/admin/exercises/form">
             <Button variant="primary">
               <Plus className="h-4 w-4" />
-              Thêm câu hỏi
+              Thêm câu hỏi luyện tập
             </Button>
           </Link>
         </div>
