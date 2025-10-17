@@ -9,7 +9,7 @@ const Layout = ({ children }: PropsWithChildren) => {
       <MobileHeader />
       <Sidebar className="hidden lg:flex" />
       <main className="h-full pt-[50px] lg:pl-[256px] lg:pt-0">
-        <div className="mx-auto h-full max-w-[1280px] pt-6">
+        <div className="mx-auto h-full max-w-[1280px] pt-6 px-4">
           {children}
         </div>
       </main>

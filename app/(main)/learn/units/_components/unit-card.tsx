@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Topic } from '@/types';
 import Image from 'next/image';
 import { LibraryIcon, LibrarySquareIcon } from 'lucide-react';
+import { TypographyLarge } from '@/components/typography';
 
 interface UnitCardProps {
   topic: Topic;
@@ -35,15 +36,15 @@ export function UnitCard({ topic }: UnitCardProps) {
         </p>
         <div className='flex flex-col gap-2'>
           <Link href={`/learn/flashcards/${topic.id}`}>
-            <Button size='sm' variant='primary' className='w-full'>
+            <Button size='lg' variant='primary' className='w-full'>
               <LibraryIcon className='h-4 w-4' />
-              Thẻ từ vựng
+              <TypographyLarge className='text-primary-foreground'>Thẻ từ vựng</TypographyLarge>
             </Button>
           </Link>
           <Link href={`/learn/sentences/${topic.id}`}>
-            <Button size='sm' variant='secondary' className='w-full'>
+            <Button size='lg' variant='secondary' className='w-full'>
               <LibrarySquareIcon className='h-4 w-4' />
-              Thẻ câu
+              <TypographyLarge className='text-primary-foreground'>Thẻ câu</TypographyLarge>
             </Button>
           </Link>
         </div>
