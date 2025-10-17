@@ -178,7 +178,6 @@ export function FlashcardComponent({
                     alt={flashcard.term}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 256px) 100vw, 256px"
                   />
                 </div>
               )}

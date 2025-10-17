@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { SentenceImage } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,78 +12,36 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { AudioRecord } from "./audio-record";
+import { AudioControl } from "@/components/audio-control";
 
 interface SentenceCardProps {
   sentenceImage: SentenceImage;
-  autoPlay?: boolean;
 }
 
 export function SentenceCard({
   sentenceImage,
-  autoPlay = false,
 }: SentenceCardProps) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const isMountedRef = useRef(true);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-
-    if (sentenceImage.audioUrl && autoPlay) {
-      const audio = new Audio(sentenceImage.audioUrl);
-      audioRef.current = audio;
-
-      const timeoutId = setTimeout(() => {
-        if (isMountedRef.current && audioRef.current) {
-          const playPromise = audioRef.current.play();
-
-          if (playPromise !== undefined) {
-            playPromise
-              .then(() => {})
-              .catch((error) => {
-                if (error.name !== "AbortError") {
-                  console.error("Auto-play failed:", error);
-                }
-              });
-          }
-        }
-      }, 100);
-
-      return () => {
-        isMountedRef.current = false;
-        clearTimeout(timeoutId);
-
-        if (audioRef.current) {
-          const currentAudio = audioRef.current;
-          audioRef.current = null;
-
-          Promise.resolve().then(() => {
-            try {
-              currentAudio.pause();
-              currentAudio.currentTime = 0;
-            } catch (error) {
-              console.error("Error pausing audio:", error);
-            }
-          });
-        }
-      };
-    }
-
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, [sentenceImage.audioUrl, sentenceImage.id, autoPlay]);
 
   const handlePlayAudio = (audioUrl: string) => {
     const audio = new Audio(audioUrl);
-    audio.play();
+    audio.play().catch((error) => {
+      console.error("Error playing audio:", error);
+    });
   };
 
   return (
-    <Card className="w-full max-w-4xl overflow-hidden mx-auto">
-      {/* Image Section */}
-      <div className="relative aspect-video w-full overflow-y-hidden">
-        <div className="flex h-full items-center justify-center p-8">
-          <div className="relative h-full w-full max-w-xl">
+    <Card className="w-full overflow-hidden mx-auto">
+      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
+          {/* Audio Player */}
+          {sentenceImage.audioUrl && (
+            <AudioControl
+              audioUrl={sentenceImage.audioUrl}
+              className="w-full px-4"
+            />
+          )}
+          {/* Image Section */}
+          <div className="relative aspect-video w-full">
             <Image
               src={sentenceImage.imageUrl}
               alt="Sentence illustration"
@@ -94,20 +51,7 @@ export function SentenceCard({
             />
           </div>
         </div>
-        {sentenceImage.audioUrl && (
-          <Button
-            variant="secondary"
-            size="icon"
-            className="absolute right-4 top-4 h-12 w-12 rounded-full shadow-lg"
-            onClick={() => handlePlayAudio(sentenceImage.audioUrl!)}
-          >
-            <Volume2 className="h-6 w-6" />
-          </Button>
-        )}
-      </div>
 
-      {/* Sentences List */}
-      <CardContent className="space-y-4 p-6">
         <div className="space-y-3">
           {sentenceImage.sentences
             .filter((sentence) => sentence.isActive)
@@ -120,13 +64,13 @@ export function SentenceCard({
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 space-y-2">
                     {/* English sentence */}
-                    <p className="text-2xl font-bold leading-relaxed text-gray-900">
+                    <p className="text-xl sm:text-2xl font-bold leading-relaxed text-gray-900">
                       {sentence.text}
-                    </p>  
+                    </p>
 
                     {/* Vietnamese meaning */}
                     {sentence.meaningVi && (
-                      <p className="text-xl text-gray-600">
+                      <p className="text-lg sm:text-xl text-gray-600">
                         {sentence.meaningVi}
                       </p>
                     )}

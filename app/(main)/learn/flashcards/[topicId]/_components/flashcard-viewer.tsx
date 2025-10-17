@@ -52,17 +52,17 @@ export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
   const currentFlashcard = flashcards[currentIndex];
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-4">
       {/* Header */}
-      <Card className="mb-8">
+      <Card className="mb-8 bg-sky-400">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <Link href="/learn/flashcards">
-              <Button size="sm" variant="ghost">
-                <ArrowLeft className="h-5 w-5 stroke-2 text-neutral-400" />
+            <Link href={`/learn/units`}>
+              <Button size="sm" variant="default">
+                <ArrowLeft className="size-8" />
               </Button>
             </Link>
-            <CardTitle className="text-2xl font-bold">
+            <CardTitle className="text-2xl font-bold text-primary-foreground">
               {currentFlashcard.topic.title}
             </CardTitle>
 
@@ -86,7 +86,7 @@ export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
 
       {/* Navigation Controls */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent>
           <div className="flex items-center justify-between">
             <Button
               variant="primary"

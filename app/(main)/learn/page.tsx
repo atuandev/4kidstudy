@@ -1,6 +1,6 @@
 import { FeedWrapper } from "@/components/feed-wrapper";
-import { LearnCard } from "./_components/learn-card";
 import { StickyWrapper } from "@/components/sticky-wrapper";
+import { LearnCard } from "./units/_components/learn-card";
 
 export default function LearnPage() {
   return (
@@ -9,14 +9,9 @@ export default function LearnPage() {
       <FeedWrapper>
         <h1 className="text-2xl font-extrabold mb-4">Góc học tập</h1>
         <LearnCard
-          title="Flashcards"
-          description="Ôn tập từ vựng một cách hiệu quả với flashcards."
-          href="/learn/flashcards"
-        />
-        <LearnCard
-          title="Sentences"
-          description="Ôn tập câu một cách hiệu quả với sentences."
-          href="/learn/sentences"
+          title="Chủ đề"
+          description="Xem tất cả các chủ đề học tập theo lớp học."
+          href="/learn/units"
         />
       </FeedWrapper>
     </div>
