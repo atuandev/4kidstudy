@@ -65,7 +65,7 @@ export const columns: ColumnDef<SentenceImage>[] = [
             <Image src={imageUrl} alt="image" width={64} height={48} />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
-              N/A
+              -
             </div>
           )}
         </div>
