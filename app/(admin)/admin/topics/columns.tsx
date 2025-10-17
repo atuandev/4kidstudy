@@ -1,9 +1,10 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { CopyIcon, MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { CopyIcon, MoreHorizontal, Pencil, Trash, ImageIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -125,6 +126,32 @@ export const columns: ColumnDef<Topic>[] = [
       const rowId = String(row.getValue(id));
       return rowId.includes(value);
     },
+  },
+  {
+    accessorKey: "coverImage",
+    header: "Hình ảnh",
+    cell: ({ row }) => {
+      const coverImage = row.getValue("coverImage") as string | null;
+      return (
+        <div className="flex items-center justify-center w-[72px] h-[56px]">
+          {coverImage ? (
+            <div className="relative w-full h-full rounded-md overflow-hidden border">
+              <Image
+                src={coverImage}
+                alt={row.getValue("title") as string}
+                fill
+                className="object-cover"
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center w-full h-full rounded-md border bg-muted">
+              <ImageIcon className="h-6 w-6 text-muted-foreground" />
+            </div>
+          )}
+        </div>
+      );
+    },
+    enableSorting: false,
   },
   {
     accessorKey: "title",
