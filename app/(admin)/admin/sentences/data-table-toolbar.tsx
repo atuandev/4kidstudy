@@ -1,12 +1,15 @@
-'use client';
+"use client";
 
-import { X } from 'lucide-react';
-import { Table } from '@tanstack/react-table';
+import { useEffect, useState } from "react";
+import { X } from "lucide-react";
+import { Table } from "@tanstack/react-table";
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { DataTableViewOptions } from '../_components/data-table-view-options';
-import { DataTableFacetedFilter } from '../_components/data-table-faceted-filter';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { DataTableViewOptions } from "../_components/data-table-view-options";
+import { DataTableFacetedFilter } from "../_components/data-table-faceted-filter";
+import { Topic } from "@/types";
+import { getTopicsByGrade } from "@/actions/topic";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -14,42 +17,100 @@ interface DataTableToolbarProps<TData> {
 
 const statuses = [
   {
-    value: 'true',
-    label: 'Hoạt động',
+    value: "true",
+    label: "Hoạt động",
   },
   {
-    value: 'false',
-    label: 'Không hoạt động',
+    value: "false",
+    label: "Không hoạt động",
   },
+];
+
+const grades = [
+  { value: "GRADE_1", label: "Lớp 1" },
+  { value: "GRADE_2", label: "Lớp 2" },
+  { value: "GRADE_3", label: "Lớp 3" },
+  { value: "GRADE_4", label: "Lớp 4" },
+  { value: "GRADE_5", label: "Lớp 5" },
 ];
 
 export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
+  const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
+  const [isLoadingTopics, setIsLoadingTopics] = useState(false);
+
+  const gradeColumn = table.getColumn("grade");
+  const selectedGrades = (gradeColumn?.getFilterValue() as string[]) ?? [];
+  const hasSelectedGrade = selectedGrades.length > 0;
+
+  useEffect(() => {
+    const fetchTopicsBySelectedGrades = async () => {
+      if (!hasSelectedGrade) {
+        setFilteredTopics([]);
+        table.getColumn("topicId")?.setFilterValue(undefined);
+        return;
+      }
+
+      setIsLoadingTopics(true);
+      try {
+        const allTopics: Topic[] = [];
+        for (const grade of selectedGrades) {
+          const response = await getTopicsByGrade(grade);
+          allTopics.push(...response.payload);
+        }
+        
+        const uniqueTopics = Array.from(
+          new Map(allTopics.map((t) => [t.id, t])).values()
+        );
+        setFilteredTopics(uniqueTopics);
+      } catch (err) {
+        console.error("Error fetching topics by grade:", err);
+        setFilteredTopics([]);
+      } finally {
+        setIsLoadingTopics(false);
+      }
+    };
+
+    fetchTopicsBySelectedGrades();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGrades.join(","), hasSelectedGrade, table]);
+
+  const topicOptions = filteredTopics.map((topic) => ({
+    value: String(topic.id),
+    label: topic.title,
+  }));
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
           placeholder="Tìm kiếm ID..."
-          value={(table.getColumn('id')?.getFilterValue() as string) ?? ''}
+          value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn('id')?.setFilterValue(event.target.value)
+            table.getColumn("id")?.setFilterValue(event.target.value)
           }
           className="h-8 w-[100px] lg:w-[150px]"
         />
-        <Input
-          placeholder="Tìm kiếm câu..."
-          value={(table.getColumn('text')?.getFilterValue() as string) ?? ''}
-          onChange={(event) =>
-            table.getColumn('text')?.setFilterValue(event.target.value)
-          }
-          className="h-8 w-[150px] lg:w-[250px]"
-        />
-        {table.getColumn('isActive') && (
+        {table.getColumn("grade") && (
           <DataTableFacetedFilter
-            column={table.getColumn('isActive')}
+            column={table.getColumn("grade")}
+            title="Lớp"
+            options={grades}
+          />
+        )}
+        {table.getColumn("topicId") && (
+          <DataTableFacetedFilter
+            column={table.getColumn("topicId")}
+            title="Chủ đề"
+            options={topicOptions}
+            disabled={!hasSelectedGrade || isLoadingTopics}
+          />
+        )}
+        {table.getColumn("isActive") && (
+          <DataTableFacetedFilter
+            column={table.getColumn("isActive")}
             title="Trạng thái"
             options={statuses}
           />
@@ -69,4 +130,3 @@ export function DataTableToolbar<TData>({
     </div>
   );
 }
-

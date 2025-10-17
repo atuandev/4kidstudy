@@ -34,11 +34,11 @@ export const sidebarData = {
       url: '/admin/flashcards',
       icon: LibraryIcon,
     },
-    // {
-    //   title: 'Thẻ câu',
-    //   url: '/admin/sentences',
-    //   icon: LibrarySquareIcon,
-    // },
+    {
+      title: 'Thẻ câu',
+      url: '/admin/sentences',
+      icon: LibrarySquareIcon,
+    },
     {
       title: "Bài luyện tập",
       url: "/admin/lessons",

@@ -1,3 +1,5 @@
+import { Topic } from "./topic";
+
 export interface SentenceImage {
   id: number;
   topicId: number;
@@ -8,6 +10,7 @@ export interface SentenceImage {
   createdAt: string;
   updatedAt: string;
   sentences: Sentence[];
+  topic: Topic;
 }
 
 export interface Sentence {
