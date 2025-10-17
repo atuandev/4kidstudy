@@ -68,7 +68,7 @@ export function SentenceViewer({
         <Card className="mb-8">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <Link href="/learn/sentences">
+              <Link href={`/learn/units`}>
                 <Button size="sm" variant="ghost">
                   <ArrowLeft className="h-5 w-5 stroke-2 text-neutral-400" />
                 </Button>
