@@ -18,8 +18,8 @@ export function ExerciseStatsDashboard() {
         }`}
       >
         <ResultCard value={correctCount} variant="correct" />
-        <ResultCard value={duration} variant="duration" />
         <ResultCard value={accuracy} variant="accuracy" />
+        <ResultCard value={duration} variant="duration" />
         {/* Show skipped count if there are any skipped exercises */}
         {skippedCount > 0 && (
           <ResultCard value={skippedCount} variant="skipped" />
