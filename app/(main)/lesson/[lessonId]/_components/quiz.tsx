@@ -6,6 +6,7 @@ import { Header } from "./header";
 import { QuestionBubble } from "./question-bubble";
 import AudioPlayer from "./audio-player";
 import FinishPage from "../finish-page";
+import { ReviewMistakes } from "./review-mistakes";
 import {
   useQuizAudio,
   useQuizLogic,
@@ -50,6 +51,7 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
     pronunciation,
     activeIndex,
     exercises,
+    phase,
     pending,
     isDisabled,
     handleSelect,
@@ -58,15 +60,37 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
   } = useQuizLogic({ playCorrect, playIncorrect });
 
   // Stats
-  const { totalPoints, correctCount, skippedCount } = useExerciseStatsStore();
-  const { updatePronunciation } = useQuizStore();
+  const { totalPoints, correctCount, skippedCount, setReviewMode } = useExerciseStatsStore();
+  const { updatePronunciation, shouldShowReview, startReviewPhase, wrongExercises, setPhase } = useQuizStore();
 
   const handlePronunciationStateChange = (state: string, score?: any) => {
     updatePronunciation(state, score);
   };
 
-  // Quiz complete - show finish page
+  const handleStartReview = () => {
+    setPhase('review');
+    setReviewMode(true);
+    startReviewPhase();
+  };
+
+  // Quiz complete logic
   if (!exercise) {
+    // If normal phase is complete and there are wrong exercises, show review transition
+    if (shouldShowReview() && phase === 'normal') {
+      return (
+        <>
+          {incorrectAudio}
+          {finishAudio}
+          {correctAudio}
+          <ReviewMistakes 
+            wrongCount={wrongExercises.length} 
+            onStartReview={handleStartReview}
+          />
+        </>
+      );
+    }
+
+    // Otherwise show finish page (either no wrong exercises or review phase is complete)
     return (
       <>
         {incorrectAudio}
@@ -77,7 +101,9 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
     );
   }
 
-  const title = EXERCISE_TITLES[exercise.type] || "Exercise";
+  const title = phase === 'review' 
+    ? `Ôn luyện - ${EXERCISE_TITLES[exercise.type] || "Exercise"}`
+    : EXERCISE_TITLES[exercise.type] || "Exercise";
 
   return (
     <>
@@ -92,8 +118,8 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
         skipCount={skippedCount}
         totalPoints={totalPoints}
         duration={currentDuration}
-        unitTitle={lesson.topic.title}
-        lessonTitle={lesson.title}
+        unitTitle={phase === 'review' ? 'Ôn luyện' : lesson.topic.title}
+        lessonTitle={phase === 'review' ? 'Sửa lỗi sai' : lesson.title}
       />
 
       <div className="h-[calc(100vh-240px)]">
@@ -146,6 +172,9 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
         onCheck={handleContinue}
         onSkip={handleSkip}
         showSkip={status === "none"}
+        isAutoSkipExercise={['SELECT_IMAGE', 'MULTIPLE_CHOICE', 'LISTENING'].includes(exercise.type)}
+        hintVi={exercise.hintVi}
+        hintEn={exercise.hintEn}
       />
     </>
   );
