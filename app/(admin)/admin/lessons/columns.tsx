@@ -284,11 +284,11 @@ export const columns: ColumnDef<Lesson>[] = [
               onClick={() => router.push(`/admin/exercises?lessonId=${lesson.id}`)}
             >
               <List className="mr-2 h-4 w-4" />
-              Danh sách bài tập
+              Danh sách câu hỏi
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleAddExercises}>
               <Plus className="mr-2 h-4 w-4" />
-              Thêm bài tập
+              Thêm câu hỏi
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleEdit}>
