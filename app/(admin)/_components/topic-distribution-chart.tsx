@@ -91,8 +91,8 @@ export function TopicDistributionChart({ data }: TopicDistributionChartProps) {
             <ChartTooltip content={<ChartTooltipContent />} />
             <Legend />
             <Bar
-              dataKey="Thẻ từ vựng"
-              fill={chartConfig['Thẻ từ vựng'].color}
+              dataKey="Bài luyện tập"
+              fill={chartConfig['Bài luyện tập'].color}
               radius={[0, 4, 4, 0]}
             />
             <Bar
@@ -101,8 +101,8 @@ export function TopicDistributionChart({ data }: TopicDistributionChartProps) {
               radius={[0, 4, 4, 0]}
             />
             <Bar
-              dataKey="Bài luyện tập"
-              fill={chartConfig['Bài luyện tập'].color}
+              dataKey="Thẻ từ vựng"
+              fill={chartConfig['Thẻ từ vựng'].color}
               radius={[0, 4, 4, 0]}
             />
           </BarChart>
