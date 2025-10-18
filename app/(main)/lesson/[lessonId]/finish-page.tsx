@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import ReactConfetti from "react-confetti";
 import { Footer } from "./_components/footer";
 import { ExerciseStatsDashboard } from "./_components/exercise-stats-dashboard";
@@ -16,6 +17,11 @@ export default function FinishPage({ lessonId }: FinishPageProps) {
   const { width, height } = useWindowSize();
   const router = useRouter();
   const { getAccuracy } = useExerciseStatsStore();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const accuracy = getAccuracy();
   const completionMessage =
@@ -27,15 +33,19 @@ export default function FinishPage({ lessonId }: FinishPageProps) {
       ? "Good effort!"
       : "Keep practicing!";
 
+  const hasValidDimensions = width > 0 && height > 0 && isFinite(width) && isFinite(height);
+
   return (
     <div className="min-h-screen flex flex-col">
-      <ReactConfetti
-        recycle={false}
-        numberOfPieces={500}
-        tweenDuration={10_000}
-        width={width}
-        height={height}
-      />
+      {isMounted && hasValidDimensions && (
+        <ReactConfetti
+          recycle={false}
+          numberOfPieces={500}
+          tweenDuration={10_000}
+          width={width}
+          height={height}
+        />
+      )}
       <div className="mx-auto flex flex-1 max-w-lg flex-col items-center justify-center gap-y-4 text-center lg:gap-y-8">
         <Image
           src="/finish.svg"

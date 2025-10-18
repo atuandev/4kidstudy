@@ -1,4 +1,4 @@
-import { X, Trophy, Target, Clock } from "lucide-react";
+import { X, Trophy, Clock, CheckCircle2, SkipForward } from "lucide-react";
 
 import { Progress } from "@/components/ui/progress";
 import { useRouter } from "next/navigation";
@@ -7,20 +7,22 @@ type HeaderProps = {
   currentExercise: number;
   totalExercises: number;
   correctCount: number;
+  skipCount: number;
   totalPoints: number;
   duration: number;
   unitTitle: string;
-  lessonIndex: number;
+  lessonTitle: string;
 };
 
 export const Header = ({
   currentExercise,
   totalExercises,
   correctCount,
+  skipCount,
   totalPoints,
   duration,
   unitTitle,
-  lessonIndex,
+  lessonTitle,
 }: HeaderProps) => {
   const router = useRouter();
 
@@ -30,16 +32,13 @@ export const Header = ({
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
-  const accuracy =
-    totalExercises > 0 ? Math.round((correctCount / totalExercises) * 100) : 0;
-
   const progress =
     totalExercises > 0
       ? Math.round((currentExercise / totalExercises) * 100)
       : 0;
 
   return (
-    <header className="mx-auto flex w-full max-w-[1140px] flex-col gap-y-4 px-10 pt-[20px]">
+    <header className="mx-auto flex w-full flex-col gap-y-4 pt-4">
       {/* Top row with close button and stats */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-x-4">
@@ -54,7 +53,7 @@ export const Header = ({
             </span>
             <span className="text-slate-400">•</span>
             <span className="text-lg font-semibold text-slate-500">
-              Bài {lessonIndex + 1}
+              {lessonTitle}
             </span>
           </div>
         </div>
@@ -68,15 +67,21 @@ export const Header = ({
             </span>
           </div>
 
-          {/* Accuracy */}
-          {totalExercises > 0 && (
-            <div className="flex items-center gap-x-1 bg-green-50 rounded-lg px-2 py-1">
-              <Target className="h-4 w-4 text-green-500" />
-              <span className="font-medium text-xl text-green-500">
-                {accuracy}%
-              </span>
-            </div>
-          )}
+          {/* Correct Count */}
+          <div className="flex items-center gap-x-1 bg-green-50 rounded-lg px-2 py-1">
+            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <span className="font-medium text-xl text-green-500">
+              {correctCount}
+            </span>
+          </div>
+
+          {/* Skip Count */}
+          <div className="flex items-center gap-x-1 bg-red-50 rounded-lg px-2 py-1">
+            <SkipForward className="h-4 w-4 text-red-500" />
+            <span className="font-medium text-xl text-red-500">
+              {skipCount}
+            </span>
+          </div>
 
           {/* Points */}
           <div className="flex items-center gap-x-1 bg-yellow-50 rounded-lg px-2 py-1">

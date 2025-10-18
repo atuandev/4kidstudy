@@ -16,7 +16,7 @@ export const Sidebar = ({ className }: SidebarProps) => {
         className
       )}
     >
-      <Link href="/learn">
+      <Link href="/learn/units">
         <div className="flex items-center gap-x-3 pb-7 pl-4 pt-8">
           <Image src="/mascot.svg" alt="Mascot" height={40} width={40} />
 
@@ -27,7 +27,8 @@ export const Sidebar = ({ className }: SidebarProps) => {
       </Link>
 
       <div className="flex flex-1 flex-col gap-y-2">
-        <SidebarItem label="Học" href="/learn" iconSrc="/learn.svg" />
+        {/* TODO: Sidebar temp */}
+        <SidebarItem label="Học" href="/learn/units" iconSrc="/learn.svg" />
         <SidebarItem label="Luyện tập" href="/practice" iconSrc="/practice.svg" />
         <SidebarItem
           label="Bảng xếp hạng"

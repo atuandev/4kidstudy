@@ -31,6 +31,7 @@ export function MatchingExercise({
     leftId: number;
     rightId: number;
   } | null>(null);
+  const [hasNotifiedCompletion, setHasNotifiedCompletion] = useState(false);
 
 
   // Group options by matchKey to create pairs
@@ -169,16 +170,29 @@ export function MatchingExercise({
 
   const isAllMatched = matches.size === pairs.length;
 
-  // Notify parent when all matches are complete, but don't auto-advance
+  // Notify parent when all matches are complete, but only once
   useEffect(() => {
-    if (isAllMatched && matches.size > 0) {
-      // Trigger completion state by selecting any valid option
-      const firstOption = options.find((opt) => opt.id > 0);
-      if (firstOption) {
-        onSelect(firstOption.id);
-      }
+    if (isAllMatched && matches.size > 0 && !hasNotifiedCompletion) {
+      setHasNotifiedCompletion(true);
+      // Use a small delay to ensure the last match animation completes
+      setTimeout(() => {
+        // Trigger completion state by selecting any valid option
+        const firstOption = options.find((opt) => opt.id > 0);
+        if (firstOption) {
+          onSelect(firstOption.id);
+        }
+      }, 300);
     }
-  }, [isAllMatched, matches.size, options, onSelect]);
+  }, [isAllMatched, matches.size, hasNotifiedCompletion, options, onSelect]);
+
+  // Reset state when options change (new exercise)
+  useEffect(() => {
+    setHasNotifiedCompletion(false);
+    setMatches(new Map());
+    setSelectedLeft(null);
+    setSelectedRight(null);
+    setWrongMatch(null);
+  }, [options]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">

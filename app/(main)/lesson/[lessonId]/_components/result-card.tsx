@@ -20,9 +20,9 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
         return {
           imageSrc: "/points.svg",
           title: "Tổng điểm",
-          borderColor: "border-orange-400",
-          bgColor: "bg-orange-400",
-          textColor: "text-orange-400",
+          borderColor: "border-yellow-400",
+          bgColor: "bg-yellow-400",
+          textColor: "text-yellow-400",
           icon: null,
           suffix: "",
         };
@@ -40,9 +40,9 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
         return {
           imageSrc: null,
           title: "Độ chính xác",
-          borderColor: "border-green-400",
-          bgColor: "bg-green-400",
-          textColor: "text-green-400",
+          borderColor: "border-purple-400",
+          bgColor: "bg-purple-400",
+          textColor: "text-purple-400",
           icon: Target,
           suffix: "%",
         };
@@ -50,9 +50,9 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
         return {
           imageSrc: null,
           title: "Số câu đúng",
-          borderColor: "border-yellow-400",
-          bgColor: "bg-yellow-400",
-          textColor: "text-yellow-400",
+          borderColor: "border-green-400",
+          bgColor: "bg-green-400",
+          textColor: "text-green-400",
           icon: Trophy,
           suffix: "",
         };
@@ -60,9 +60,9 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
         return {
           imageSrc: null,
           title: "Bỏ qua",
-          borderColor: "border-gray-400",
-          bgColor: "bg-gray-400",
-          textColor: "text-gray-400",
+          borderColor: "border-red-400",
+          bgColor: "bg-red-400",
+          textColor: "text-red-400",
           icon: SkipForward,
           suffix: "",
         };
@@ -70,9 +70,9 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
         return {
           imageSrc: "/points.svg",
           title: "Tổng điểm",
-          borderColor: "border-orange-400",
-          bgColor: "bg-orange-400",
-          textColor: "text-orange-400",
+          borderColor: "border-yellow-400",
+          bgColor: "bg-yellow-400",
+          textColor: "text-yellow-400",
           icon: null,
           suffix: "",
         };
