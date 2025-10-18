@@ -1,5 +1,12 @@
-import { X, Trophy, Clock, CheckCircle2, SkipForward } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Clock,
+  SkipForward,
+  Trophy
+} from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useRouter } from "next/navigation";
 
@@ -42,10 +49,13 @@ export const Header = ({
       {/* Top row with close button and stats */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-x-4">
-          <X
+          <Button
+            variant="default"
+            size="icon"
             onClick={() => router.push("/practice")}
-            className="cursor-pointer text-slate-500 transition hover:opacity-75"
-          />
+          >
+            <ArrowLeft className="size-6" />
+          </Button>
 
           <div className="flex items-center gap-x-2">
             <span className="text-xl font-bold text-slate-700">
