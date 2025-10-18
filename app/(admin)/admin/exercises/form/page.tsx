@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Edit2, ImageIcon, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -54,6 +54,7 @@ import { Lesson, Topic } from "@/types";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UPLOAD_PRESET } from "@/lib/constants";
 import { GRADES, GradeValue } from "@/types/grade";
+import { useLessonFormStore } from "@/lib/stores/lesson-form-store";
 
 export default function ExerciseFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -67,6 +68,8 @@ export default function ExerciseFormPage() {
   const [selectedGrade, setSelectedGrade] = useState<GradeValue | null>(null);
   const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
   const router = useRouter();
+  const { selectedLesson, clearSelectedLesson } = useLessonFormStore();
+  const hasInitializedFromLesson = useRef(false);
 
   const form = useForm<CreateExerciseFormData>({
     resolver: zodResolver(CreateExerciseSchema) as any,
@@ -130,6 +133,45 @@ export default function ExerciseFormPage() {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (
+      selectedLesson && 
+      !hasInitializedFromLesson.current && 
+      availableLessons.length > 0 && 
+      availableTopics.length > 0 &&
+      !isLoading
+    ) {
+      // Find the lesson in available lessons to get fresh data with topic populated
+      const lesson = availableLessons.find((l) => l.id === selectedLesson.id);
+      
+      if (lesson) {
+        hasInitializedFromLesson.current = true;
+        
+        // Get grade from either the fresh lesson data or from the topics list
+        const topic = lesson.topic || availableTopics.find(t => t.id === lesson.topicId);
+        const grade = topic?.grade;
+        
+        if (grade) {
+          // Set values in sequence to ensure proper cascading
+          setSelectedGrade(grade);
+          
+          // Use requestAnimationFrame to ensure state is updated before next step
+          requestAnimationFrame(() => {
+            setSelectedTopicId(lesson.topicId);
+            
+            requestAnimationFrame(() => {
+              form.setValue("lessonId", lesson.id);
+              toast.success(`Đã chọn bài luyện tập: ${lesson.title}`);
+            });
+          });
+        }
+      } else {
+        console.warn('Lesson not found in available lessons');
+      }
+    }
+  }, [selectedLesson, availableLessons, availableTopics, isLoading, form]);
+
 
   // Filter topics by selected grade
   const filteredTopics = selectedGrade
@@ -438,6 +480,7 @@ export default function ExerciseFormPage() {
 
       toast.success(`Đã tạo thành công ${payload.length} câu hỏi`);
       setExerciseForms([]);
+      clearSelectedLesson();
       router.push("/admin/exercises");
     } catch (error: any) {
       console.error("Failed to create many exercises:", error);
@@ -463,9 +506,11 @@ export default function ExerciseFormPage() {
         )
       ) {
         setExerciseForms([]);
+        clearSelectedLesson();
         router.back();
       }
     } else {
+      clearSelectedLesson();
       router.back();
     }
   };
@@ -639,6 +684,7 @@ export default function ExerciseFormPage() {
                         Khối học <RequiredField />
                       </label>
                       <Combobox
+                        key={`grade-${selectedGrade || 'empty'}`}
                         options={GRADES.map((grade) => ({
                           value: grade.value,
                           label: grade.label,
@@ -663,6 +709,7 @@ export default function ExerciseFormPage() {
                           Chủ đề (Unit) <RequiredField />
                         </label>
                         <Combobox
+                          key={`topic-${selectedTopicId || 'empty'}-${selectedGrade}`}
                           options={filteredTopics.map((topic) => ({
                             value: topic.id.toString(),
                             label: `${topic.id} - ${topic.title}`,
@@ -692,6 +739,7 @@ export default function ExerciseFormPage() {
                         </FormLabel>
                         <FormControl>
                           <Combobox
+                            key={`lesson-${field.value || 'empty'}-${selectedTopicId}`}
                             options={filteredLessons.map((lesson) => ({
                               value: lesson.id.toString(),
                               label: `${lesson.id} - ${lesson.title}`,

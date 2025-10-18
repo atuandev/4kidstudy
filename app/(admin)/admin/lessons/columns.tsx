@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { CopyIcon, MoreHorizontal, Pencil, Trash, List } from 'lucide-react';
+import { CopyIcon, MoreHorizontal, Pencil, Trash, List, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -28,6 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import { Lesson } from '@/types';
 import { DataTableColumnHeader } from '../_components/data-table-column-header';
 import { deleteLesson } from '@/actions/lesson';
+import { useLessonFormStore } from '@/lib/stores/lesson-form-store';
 
 const statusMap: Record<
   string,
@@ -250,9 +251,15 @@ export const columns: ColumnDef<Lesson>[] = [
     cell: function ActionsCell({ row }) {
       const lesson = row.original;
       const router = useRouter();
+      const setSelectedLesson = useLessonFormStore((state) => state.setSelectedLesson);
 
       function handleEdit() {
         router.push(`/admin/lessons/form?id=${lesson.id}`);
+      }
+
+      function handleAddExercises() {
+        setSelectedLesson(lesson);
+        router.push('/admin/exercises/form');
       }
 
       return (
@@ -278,6 +285,10 @@ export const columns: ColumnDef<Lesson>[] = [
             >
               <List className="mr-2 h-4 w-4" />
               Danh sách bài tập
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleAddExercises}>
+              <Plus className="mr-2 h-4 w-4" />
+              Thêm bài tập
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleEdit}>
