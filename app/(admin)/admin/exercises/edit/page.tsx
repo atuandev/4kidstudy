@@ -43,6 +43,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 import { getExercise, updateExercise } from "@/actions/exercise";
 import { getLessons } from "@/actions/lesson";
+import { getTopics } from "@/actions/topic";
 import { RequiredField } from "@/components/form/required-field";
 import { TypographyH3 } from "@/components/typography";
 import {
@@ -50,13 +51,17 @@ import {
   CreateExerciseSchema,
   exerciseTypeLabels,
 } from "@/schemas/exercise";
-import { Lesson } from "@/types";
+import { Lesson, Topic } from "@/types";
 import { UPLOAD_PRESET } from "@/lib/constants";
+import { GRADES, GradeValue } from "@/types/grade";
 
 export default function EditExercisePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableLessons, setAvailableLessons] = useState<Lesson[]>([]);
+  const [availableTopics, setAvailableTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedGrade, setSelectedGrade] = useState<GradeValue | null>(null);
+  const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -108,11 +113,23 @@ export default function EditExercisePage() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const fetchedLessons = await getLessons();
+        const [fetchedLessons, fetchedTopics] = await Promise.all([
+          getLessons(),
+          getTopics(),
+        ]);
         setAvailableLessons(fetchedLessons);
+        setAvailableTopics(fetchedTopics);
 
         if (exerciseId) {
           const exercise = await getExercise(parseInt(exerciseId));
+          
+          // Set grade and topic based on the lesson
+          const lesson = fetchedLessons.find((l) => l.id === exercise.lessonId);
+          if (lesson && lesson.topic) {
+            setSelectedGrade(lesson.topic.grade || null);
+            setSelectedTopicId(lesson.topicId);
+          }
+          
           form.reset({
             lessonId: exercise.lessonId,
             type: exercise.type,
@@ -144,6 +161,16 @@ export default function EditExercisePage() {
 
     fetchData();
   }, [exerciseId]);
+
+  // Filter topics by selected grade
+  const filteredTopics = selectedGrade
+    ? availableTopics.filter((topic) => topic.grade === selectedGrade)
+    : [];
+
+  // Filter lessons by selected topic
+  const filteredLessons = selectedTopicId
+    ? availableLessons.filter((lesson) => lesson.topicId === selectedTopicId)
+    : [];
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -310,33 +337,82 @@ export default function EditExercisePage() {
       {/* Form */}
       <Form {...form}>
         <form onSubmit={handleFormSubmit} className="space-y-6">
+          {/* Grade Selection */}
+          <div>
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Khối học <RequiredField />
+            </label>
+            <Combobox
+              options={GRADES.map((grade) => ({
+                value: grade.value,
+                label: grade.label,
+              }))}
+              value={selectedGrade || ""}
+              onValueChange={(value) => {
+                setSelectedGrade(value as GradeValue);
+                setSelectedTopicId(null);
+                form.setValue("lessonId", 0);
+              }}
+              placeholder="Chọn khối học"
+              searchPlaceholder="Tìm kiếm khối học..."
+              emptyText="Không tìm thấy khối học."
+              className="w-fit mt-2"
+            />
+          </div>
+
+          {/* Unit/Topic Selection */}
+          {selectedGrade && (
+            <div>
+              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Chủ đề (Unit) <RequiredField />
+              </label>
+              <Combobox
+                options={filteredTopics.map((topic) => ({
+                  value: topic.id.toString(),
+                  label: `${topic.id} - ${topic.title}`,
+                }))}
+                value={selectedTopicId?.toString() || ""}
+                onValueChange={(value) => {
+                  setSelectedTopicId(parseInt(value));
+                  form.setValue("lessonId", 0);
+                }}
+                placeholder="Chọn chủ đề"
+                searchPlaceholder="Tìm kiếm chủ đề..."
+                emptyText="Không tìm thấy chủ đề."
+                className="w-fit mt-2"
+              />
+            </div>
+          )}
+
           {/* Lesson Selection */}
-          <FormField
-            control={formControl}
-            name="lessonId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Bài luyện tập <RequiredField />
-                </FormLabel>
-                <FormControl>
-                  <Combobox
-                    options={availableLessons.map((lesson) => ({
-                      value: lesson.id.toString(),
-                      label: `${lesson.id} - ${lesson.title}`,
-                    }))}
-                    value={field.value?.toString()}
-                    onValueChange={(value) => field.onChange(parseInt(value))}
-                    placeholder="Chọn bài luyện tập"
-                    searchPlaceholder="Tìm kiếm bài luyện tập..."
-                    emptyText="Không tìm thấy bài luyện tập."
-                    className="w-fit"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {selectedTopicId && (
+            <FormField
+              control={formControl}
+              name="lessonId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Bài luyện tập <RequiredField />
+                  </FormLabel>
+                  <FormControl>
+                    <Combobox
+                      options={filteredLessons.map((lesson) => ({
+                        value: lesson.id.toString(),
+                        label: `${lesson.id} - ${lesson.title}`,
+                      }))}
+                      value={field.value?.toString()}
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      placeholder="Chọn bài luyện tập"
+                      searchPlaceholder="Tìm kiếm bài luyện tập..."
+                      emptyText="Không tìm thấy bài luyện tập."
+                      className="w-fit"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           {/* Exercise Type */}
           <FormField
