@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Edit2, ImageIcon, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -42,6 +42,7 @@ import { Separator } from "@/components/ui/separator";
 
 import { createManyExercises } from "@/actions/exercise";
 import { getLessons } from "@/actions/lesson";
+import { getTopics } from "@/actions/topic";
 import { RequiredField } from "@/components/form/required-field";
 import { TypographyH3, TypographyH4 } from "@/components/typography";
 import {
@@ -49,19 +50,26 @@ import {
   CreateExerciseSchema,
   exerciseTypeLabels,
 } from "@/schemas/exercise";
-import { Lesson } from "@/types";
+import { Lesson, Topic } from "@/types";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UPLOAD_PRESET } from "@/lib/constants";
+import { GRADES, GradeValue } from "@/types/grade";
+import { useLessonFormStore } from "@/lib/stores/lesson-form-store";
 
 export default function ExerciseFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableLessons, setAvailableLessons] = useState<Lesson[]>([]);
+  const [availableTopics, setAvailableTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [exerciseForms, setExerciseForms] = useState<CreateExerciseFormData[]>(
     []
   );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [selectedGrade, setSelectedGrade] = useState<GradeValue | null>(null);
+  const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
   const router = useRouter();
+  const { selectedLesson, clearSelectedLesson } = useLessonFormStore();
+  const hasInitializedFromLesson = useRef(false);
 
   const form = useForm<CreateExerciseFormData>({
     resolver: zodResolver(CreateExerciseSchema) as any,
@@ -109,8 +117,12 @@ export default function ExerciseFormPage() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const fetchedLessons = await getLessons();
+        const [fetchedLessons, fetchedTopics] = await Promise.all([
+          getLessons(),
+          getTopics(),
+        ]);
         setAvailableLessons(fetchedLessons);
+        setAvailableTopics(fetchedTopics);
       } catch (error) {
         console.error("Failed to fetch data:", error);
         toast.error("Không thể tải dữ liệu");
@@ -121,6 +133,55 @@ export default function ExerciseFormPage() {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (
+      selectedLesson && 
+      !hasInitializedFromLesson.current && 
+      availableLessons.length > 0 && 
+      availableTopics.length > 0 &&
+      !isLoading
+    ) {
+      // Find the lesson in available lessons to get fresh data with topic populated
+      const lesson = availableLessons.find((l) => l.id === selectedLesson.id);
+      
+      if (lesson) {
+        hasInitializedFromLesson.current = true;
+        
+        // Get grade from either the fresh lesson data or from the topics list
+        const topic = lesson.topic || availableTopics.find(t => t.id === lesson.topicId);
+        const grade = topic?.grade;
+        
+        if (grade) {
+          // Set values in sequence to ensure proper cascading
+          setSelectedGrade(grade);
+          
+          // Use requestAnimationFrame to ensure state is updated before next step
+          requestAnimationFrame(() => {
+            setSelectedTopicId(lesson.topicId);
+            
+            requestAnimationFrame(() => {
+              form.setValue("lessonId", lesson.id);
+              toast.success(`Đã chọn bài luyện tập: ${lesson.title}`);
+            });
+          });
+        }
+      } else {
+        console.warn('Lesson not found in available lessons');
+      }
+    }
+  }, [selectedLesson, availableLessons, availableTopics, isLoading, form]);
+
+
+  // Filter topics by selected grade
+  const filteredTopics = selectedGrade
+    ? availableTopics.filter((topic) => topic.grade === selectedGrade)
+    : [];
+
+  // Filter lessons by selected topic
+  const filteredLessons = selectedTopicId
+    ? availableLessons.filter((lesson) => lesson.topicId === selectedTopicId)
+    : [];
 
   const validateExercise = (values: CreateExerciseFormData) => {
     if (
@@ -216,18 +277,157 @@ export default function ExerciseFormPage() {
     const exercise = exerciseForms[index];
     form.reset(exercise);
     setEditingIndex(index);
+
+    // Set grade and topic based on the lesson
+    const lesson = availableLessons.find((l) => l.id === exercise.lessonId);
+    if (lesson && lesson.topic) {
+      setSelectedGrade(lesson.topic.grade || null);
+      setSelectedTopicId(lesson.topicId);
+    }
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDeleteExercise = (index: number) => {
-    setExerciseForms((prev) => prev.filter((_, i) => i !== index));
+    const updatedExercises = exerciseForms.filter((_, i) => i !== index);
+    setExerciseForms(updatedExercises);
+
     if (editingIndex === index) {
       setEditingIndex(null);
-      const currentLessonId = form.getValues("lessonId");
-      const currentType = form.getValues("type");
+
+      // Keep grade and topic if there are remaining exercises
+      if (updatedExercises.length > 0) {
+        const lastExercise = updatedExercises[updatedExercises.length - 1];
+        const lesson = availableLessons.find(
+          (l) => l.id === lastExercise.lessonId
+        );
+
+        if (lesson && lesson.topic) {
+          setSelectedGrade(lesson.topic.grade || null);
+          setSelectedTopicId(lesson.topicId);
+
+          form.reset({
+            lessonId: lastExercise.lessonId,
+            type: lastExercise.type,
+            prompt: "",
+            imageUrl: "",
+            audioUrl: "",
+            targetText: "",
+            hintEn: "",
+            hintVi: "",
+            points: 10,
+            difficulty: 1,
+            options: [
+              {
+                text: "",
+                imageUrl: "",
+                audioUrl: "",
+                isCorrect: false,
+                order: 0,
+                matchKey: "",
+              },
+              {
+                text: "",
+                imageUrl: "",
+                audioUrl: "",
+                isCorrect: false,
+                order: 1,
+                matchKey: "",
+              },
+            ],
+          });
+        }
+      } else {
+        // Reset everything if no exercises left
+        setSelectedGrade(null);
+        setSelectedTopicId(null);
+        form.reset({
+          lessonId: 0,
+          type: "MULTIPLE_CHOICE",
+          prompt: "",
+          imageUrl: "",
+          audioUrl: "",
+          targetText: "",
+          hintEn: "",
+          hintVi: "",
+          points: 10,
+          difficulty: 1,
+          options: [
+            {
+              text: "",
+              imageUrl: "",
+              audioUrl: "",
+              isCorrect: false,
+              order: 0,
+              matchKey: "",
+            },
+            {
+              text: "",
+              imageUrl: "",
+              audioUrl: "",
+              isCorrect: false,
+              order: 1,
+              matchKey: "",
+            },
+          ],
+        });
+      }
+    }
+    toast.success("Đã xóa câu hỏi");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingIndex(null);
+
+    // Keep the current selections if there are any exercises
+    if (exerciseForms.length > 0) {
+      const lastExercise = exerciseForms[exerciseForms.length - 1];
+      const lesson = availableLessons.find(
+        (l) => l.id === lastExercise.lessonId
+      );
+
+      if (lesson && lesson.topic) {
+        setSelectedGrade(lesson.topic.grade || null);
+        setSelectedTopicId(lesson.topicId);
+
+        form.reset({
+          lessonId: lastExercise.lessonId,
+          type: lastExercise.type,
+          prompt: "",
+          imageUrl: "",
+          audioUrl: "",
+          targetText: "",
+          hintEn: "",
+          hintVi: "",
+          points: 10,
+          difficulty: 1,
+          options: [
+            {
+              text: "",
+              imageUrl: "",
+              audioUrl: "",
+              isCorrect: false,
+              order: 0,
+              matchKey: "",
+            },
+            {
+              text: "",
+              imageUrl: "",
+              audioUrl: "",
+              isCorrect: false,
+              order: 1,
+              matchKey: "",
+            },
+          ],
+        });
+      }
+    } else {
+      // Reset everything if no exercises
+      setSelectedGrade(null);
+      setSelectedTopicId(null);
       form.reset({
-        lessonId: currentLessonId,
-        type: currentType,
+        lessonId: 0,
+        type: "MULTIPLE_CHOICE",
         prompt: "",
         imageUrl: "",
         audioUrl: "",
@@ -256,43 +456,6 @@ export default function ExerciseFormPage() {
         ],
       });
     }
-    toast.success("Đã xóa câu hỏi");
-  };
-
-  const handleCancelEdit = () => {
-    setEditingIndex(null);
-    const currentLessonId = form.getValues("lessonId");
-    const currentType = form.getValues("type");
-    form.reset({
-      lessonId: currentLessonId,
-      type: currentType,
-      prompt: "",
-      imageUrl: "",
-      audioUrl: "",
-      targetText: "",
-      hintEn: "",
-      hintVi: "",
-      points: 10,
-      difficulty: 1,
-      options: [
-        {
-          text: "",
-          imageUrl: "",
-          audioUrl: "",
-          isCorrect: false,
-          order: 0,
-          matchKey: "",
-        },
-        {
-          text: "",
-          imageUrl: "",
-          audioUrl: "",
-          isCorrect: false,
-          order: 1,
-          matchKey: "",
-        },
-      ],
-    });
   };
 
   const handleSaveAll = async () => {
@@ -317,6 +480,7 @@ export default function ExerciseFormPage() {
 
       toast.success(`Đã tạo thành công ${payload.length} câu hỏi`);
       setExerciseForms([]);
+      clearSelectedLesson();
       router.push("/admin/exercises");
     } catch (error: any) {
       console.error("Failed to create many exercises:", error);
@@ -342,9 +506,11 @@ export default function ExerciseFormPage() {
         )
       ) {
         setExerciseForms([]);
+        clearSelectedLesson();
         router.back();
       }
     } else {
+      clearSelectedLesson();
       router.back();
     }
   };
@@ -511,6 +677,57 @@ export default function ExerciseFormPage() {
               </div>
               <Card>
                 <CardContent className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {/* Grade Selection */}
+                    <div>
+                      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        Khối học <RequiredField />
+                      </label>
+                      <Combobox
+                        key={`grade-${selectedGrade || 'empty'}`}
+                        options={GRADES.map((grade) => ({
+                          value: grade.value,
+                          label: grade.label,
+                        }))}
+                        value={selectedGrade || ""}
+                        onValueChange={(value) => {
+                          setSelectedGrade(value as GradeValue);
+                          setSelectedTopicId(null);
+                          form.setValue("lessonId", 0);
+                        }}
+                        placeholder="Chọn khối học"
+                        searchPlaceholder="Tìm kiếm khối học..."
+                        emptyText="Không tìm thấy khối học."
+                        className="w-fit mt-2"
+                      />
+                    </div>
+
+                    {/* Unit/Topic Selection */}
+                    {selectedGrade && (
+                      <div>
+                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          Chủ đề (Unit) <RequiredField />
+                        </label>
+                        <Combobox
+                          key={`topic-${selectedTopicId || 'empty'}-${selectedGrade}`}
+                          options={filteredTopics.map((topic) => ({
+                            value: topic.id.toString(),
+                            label: `${topic.id} - ${topic.title}`,
+                          }))}
+                          value={selectedTopicId?.toString() || ""}
+                          onValueChange={(value) => {
+                            setSelectedTopicId(parseInt(value));
+                            form.setValue("lessonId", 0);
+                          }}
+                          placeholder="Chọn chủ đề"
+                          searchPlaceholder="Tìm kiếm chủ đề..."
+                          emptyText="Không tìm thấy chủ đề."
+                          className="w-fit mt-2"
+                        />
+                      </div>
+                    )}
+                  </div>
+
                   {/* Lesson Selection */}
                   <FormField
                     control={formControl}
@@ -522,7 +739,8 @@ export default function ExerciseFormPage() {
                         </FormLabel>
                         <FormControl>
                           <Combobox
-                            options={availableLessons.map((lesson) => ({
+                            key={`lesson-${field.value || 'empty'}-${selectedTopicId}`}
+                            options={filteredLessons.map((lesson) => ({
                               value: lesson.id.toString(),
                               label: `${lesson.id} - ${lesson.title}`,
                             }))}
