@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { ExerciseOption } from "@/types";
 import AudioPlayer from "./audio-player";
+import { AudioControl } from "@/components/audio-control";
 
 type PronunciationExerciseProps = {
   options: ExerciseOption[];
@@ -18,7 +19,10 @@ type PronunciationExerciseProps = {
   disabled?: boolean;
   targetText?: string;
   audioUrl?: string;
-  onStateChange?: (state: RecordingState, score?: PronunciationScore | null) => void;
+  onStateChange?: (
+    state: RecordingState,
+    score?: PronunciationScore | null
+  ) => void;
 };
 
 type RecordingState =
@@ -87,7 +91,7 @@ export function PronunciationExercise({
         setRecordedAudioUrl(url);
 
         setRecordingState("recorded");
-        
+
         // Notify parent component of state change
         onStateChange?.("recorded", null);
 
@@ -123,7 +127,7 @@ export function PronunciationExercise({
 
     setRecordingState("analyzing");
     setAnalysisProgress(0);
-    
+
     // Notify parent component of state change
     onStateChange?.("analyzing", null);
 
@@ -151,7 +155,7 @@ export function PronunciationExercise({
 
             setScore(mockScore);
             setRecordingState("completed");
-            
+
             // Notify parent component of completion with score
             onStateChange?.("completed", mockScore);
           }, 500);
@@ -174,7 +178,7 @@ export function PronunciationExercise({
     setScore(null);
     setAnalysisProgress(0);
     setMediaRecorder(null);
-    
+
     // Notify parent component of state reset
     onStateChange?.("idle", null);
   }, [recordedAudioUrl, onStateChange]);
@@ -199,7 +203,7 @@ export function PronunciationExercise({
 
       {/* Audio Controls */}
       {audioUrl && (
-        <div className="flex flex-col items-center space-y-2">
+        <div className="space-y-2 pb-6">
           <p className="text-2xl font-bold text-neutral-800 lg:text-3xl">
             {targetText}
           </p>
@@ -245,20 +249,9 @@ export function PronunciationExercise({
 
         {recordingState === "recorded" && (
           <div className="flex flex-col items-center space-y-3">
-            <p className="text-green-600 font-medium">Đã ghi âm xong!</p>
-            <div className="flex flex-col items-center gap-3">
-              {recordedAudioUrl && (
-                <div className="flex flex-col items-center space-y-2">
-                  <p className="text-sm font-medium text-neutral-600">
-                    Ghi âm của bạn:
-                  </p>
-                  <AudioPlayer
-                    audioUrl={recordedAudioUrl}
-                    variant="button"
-                    className="flex items-center justify-center"
-                  />
-                </div>
-              )}
+            <p className="text-green-600 font-bold text-2xl">Đã ghi âm xong!</p>
+            <div className="space-y-6">
+              {recordedAudioUrl && <AudioControl audioUrl={recordedAudioUrl} />}
               <div className="flex gap-2">
                 <Button
                   onClick={analyzeRecording}
@@ -286,30 +279,26 @@ export function PronunciationExercise({
               Đang phân tích phát âm...
             </p>
             <Progress value={analysisProgress} className="w-full" />
-            <p className="text-sm text-neutral-500">
+            <p className="text-neutral-500">
               Sử dụng AI để phân tích phát âm của bạn
             </p>
           </div>
         )}
 
         {recordingState === "completed" && score && (
-          <div className="flex gap-8 space-y-4 w-full max-w-md">
+          <div className="flex gap-8 space-y-4 w-full">
             <div className="flex flex-col items-center gap-3">
               {recordedAudioUrl && (
                 <div className="flex flex-col items-center space-y-2">
-                  <p className="text-sm font-medium text-neutral-600">
-                    Ghi âm của bạn:
+                  <p className="font-bold text-lg text-neutral-600">
+                    Ghi âm của bạn
                   </p>
-                  <AudioPlayer
-                    audioUrl={recordedAudioUrl}
-                    variant="button"
-                    className="flex items-center justify-center"
-                  />
+                  <AudioControl audioUrl={recordedAudioUrl} />
                 </div>
               )}
               <Button
                 onClick={resetRecording}
-                variant="secondaryOutline"
+                variant="primaryOutline"
                 className="flex items-center gap-2"
               >
                 <RotateCcw className="h-4 w-4" />
@@ -356,7 +345,7 @@ export function PronunciationExercise({
               </div>
               <hr className="my-2" />
               <div className="flex justify-between items-center">
-                <span className="font-bold">Điểm tổng:</span>
+                <span className="font-bold">Điểm tổng: </span>
                 <span
                   className={cn(
                     "text-lg font-bold",

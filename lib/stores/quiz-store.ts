@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { Exercise } from '@/types';
 
 type QuizStatus = 'none' | 'wrong' | 'correct';
+type QuizPhase = 'normal' | 'review' | 'transition';
 
 type PronunciationState = {
   state: string;
@@ -23,6 +24,10 @@ type QuizState = {
   
   // Transition state
   isPending: boolean;
+  
+  // Wrong exercises tracking
+  wrongExercises: Exercise[];
+  phase: QuizPhase;
 };
 
 type QuizActions = {
@@ -47,10 +52,16 @@ type QuizActions = {
   // Pending state
   setPending: (isPending: boolean) => void;
   
+  // Wrong exercises
+  addWrongExercise: (exercise: Exercise) => void;
+  startReviewPhase: () => void;
+  setPhase: (phase: QuizPhase) => void;
+  
   // Getters
   getCurrentExercise: () => Exercise | undefined;
   getOptions: () => any[];
   isQuizComplete: () => boolean;
+  shouldShowReview: () => boolean;
 };
 
 type QuizStore = QuizState & QuizActions;
@@ -66,6 +77,8 @@ const initialState: QuizState = {
     score: null,
   },
   isPending: false,
+  wrongExercises: [],
+  phase: 'normal',
 };
 
 export const useQuizStore = create<QuizStore>((set, get) => ({
@@ -84,6 +97,8 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
         score: null,
       },
       isPending: false,
+      wrongExercises: [],
+      phase: 'normal',
     });
   },
 
@@ -149,6 +164,39 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
     set({ isPending });
   },
 
+  // Wrong exercises
+  addWrongExercise: (exercise: Exercise) => {
+    const state = get();
+    // Only add if not already in the list and is reviewable exercise type
+    const isReviewableType = ['SELECT_IMAGE', 'MULTIPLE_CHOICE', 'LISTENING'].includes(exercise.type);
+    const alreadyAdded = state.wrongExercises.some(e => e.id === exercise.id);
+    
+    if (isReviewableType && !alreadyAdded) {
+      set({
+        wrongExercises: [...state.wrongExercises, exercise],
+      });
+    }
+  },
+
+  startReviewPhase: () => {
+    const state = get();
+    set({
+      phase: 'review',
+      exercises: state.wrongExercises,
+      activeIndex: 0,
+      selectedOption: undefined,
+      status: 'none',
+      pronunciation: {
+        state: 'idle',
+        score: null,
+      },
+    });
+  },
+
+  setPhase: (phase: QuizPhase) => {
+    set({ phase });
+  },
+
   // Getters
   getCurrentExercise: () => {
     const state = get();
@@ -163,6 +211,11 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
   isQuizComplete: () => {
     const state = get();
     return state.activeIndex >= state.exercises.length;
+  },
+
+  shouldShowReview: () => {
+    const state = get();
+    return state.wrongExercises.length > 0 && state.phase === 'normal';
   },
 }));
 

@@ -16,12 +16,14 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     pronunciation,
     activeIndex,
     exercises,
+    phase,
     nextExercise,
     selectOption,
     clearSelection,
     setStatus,
     getCurrentExercise,
     getOptions,
+    addWrongExercise,
   } = useQuizStore();
 
   const { completeExercise, skipExercise } = useExerciseStatsStore();
@@ -61,12 +63,30 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
   const handleSkip = () => {
     if (status !== 'none') return;
 
+    // Add to wrong list if not in review phase and is reviewable type
+    if (exercise && phase === 'normal') {
+      const isReviewableType = ['SELECT_IMAGE', 'MULTIPLE_CHOICE', 'LISTENING'].includes(exercise.type);
+      if (isReviewableType) {
+        addWrongExercise(exercise);
+      }
+    }
+
     skipExercise();
     nextExercise();
   };
 
   const handleContinue = () => {
     if (status === 'wrong') {
+      // For auto-skip exercises (SELECT_IMAGE, MULTIPLE_CHOICE, LISTENING), 
+      // skip to next exercise instead of retrying
+      const isAutoSkipType = exercise && ['SELECT_IMAGE', 'MULTIPLE_CHOICE', 'LISTENING'].includes(exercise.type);
+      
+      if (isAutoSkipType) {
+        nextExercise();
+        return;
+      }
+      
+      // For other exercises, allow retry
       clearSelection();
       return;
     }
@@ -120,6 +140,12 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
         playIncorrect();
         setStatus('wrong');
         completeExercise(false, exercise.points);
+        
+        // Add to wrong list if in normal phase and is reviewable type
+        const isReviewableType = ['SELECT_IMAGE', 'MULTIPLE_CHOICE', 'LISTENING'].includes(exercise.type);
+        if (phase === 'normal' && isReviewableType) {
+          addWrongExercise(exercise);
+        }
       }
     });
   };
@@ -144,6 +170,7 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     pronunciation,
     activeIndex,
     exercises,
+    phase,
     pending,
     isDisabled,
     handleSelect,
