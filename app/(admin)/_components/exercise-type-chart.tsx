@@ -45,8 +45,8 @@ export function ExerciseTypeChart({ data }: ExerciseTypeChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Loại bài tập</CardTitle>
-        <CardDescription>Phân bố bài tập theo loại</CardDescription>
+        <CardTitle>Loại câu hỏi luyện tập</CardTitle>
+        <CardDescription>Phân bố câu hỏi luyện tập theo loại</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[300px] w-full">
