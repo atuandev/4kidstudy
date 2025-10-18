@@ -42,6 +42,7 @@ import { Separator } from "@/components/ui/separator";
 
 import {
   createExercise,
+  createManyExercises,
   getExercise,
   updateExercise,
 } from "@/actions/exercise";
@@ -61,6 +62,8 @@ export default function ExerciseFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableLessons, setAvailableLessons] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [createAnother, setCreateAnother] = useState(false);
+  const [savedExercises, setSavedExercises] = useState<CreateExerciseFormData[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -153,6 +156,31 @@ export default function ExerciseFormPage() {
     fetchData();
   }, [exerciseId, isEditMode]);
 
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Get current form values
+    const values = form.getValues();
+    
+    // Validate exactly one correct answer for applicable exercise types
+    if (['MULTIPLE_CHOICE', 'SELECT_IMAGE', 'LISTENING'].includes(values.type)) {
+      const correctAnswersCount = values.options?.filter((opt) => opt.isCorrect).length ?? 0;
+      
+      if (correctAnswersCount === 0) {
+        toast.error('Vui lòng chọn một đáp án đúng');
+        return;
+      }
+      
+      if (correctAnswersCount > 1) {
+        toast.error('Chỉ được chọn một đáp án đúng');
+        return;
+      }
+    }
+
+    // Trigger form validation and submission
+    await form.handleSubmit(onSubmit)();
+  };
+
   const onSubmit = async (data: CreateExerciseFormData) => {
     setIsSubmitting(true);
     try {
@@ -168,50 +196,63 @@ export default function ExerciseFormPage() {
         }
 
         toast.success("Cập nhật câu hỏi thành công");
+        router.push("/admin/exercises");
       } else {
         // Remove order field when creating to let backend auto-generate it
         const { order, ...createData } = data;
-        const { payload: createdExercise, status } = await createExercise(
-          createData as CreateExerciseFormData
-        );
+        
+        if (createAnother) {
+          // Add to saved exercises for batch creation
+          setSavedExercises((prev) => [...prev, createData as CreateExerciseFormData]);
+          
+          const currentLessonId = form.getValues("lessonId");
+          const currentType = form.getValues("type");
+          form.reset({
+            lessonId: currentLessonId,
+            type: currentType,
+            prompt: "",
+            imageUrl: "",
+            audioUrl: "",
+            targetText: "",
+            hintEn: "",
+            hintVi: "",
+            points: 10,
+            difficulty: 1,
+            options: [
+              {
+                text: "",
+                imageUrl: "",
+                audioUrl: "",
+                isCorrect: true,
+                order: 0,
+                matchKey: "",
+              },
+              {
+                text: "",
+                imageUrl: "",
+                audioUrl: "",
+                isCorrect: false,
+                order: 1,
+                matchKey: "",
+              },
+            ],
+          });
+          
+          toast.success(`Đã lưu câu hỏi (${savedExercises.length + 1}). Tiếp tục tạo câu hỏi mới.`);
+          setCreateAnother(false);
+        } else {
+          const { payload: createdExercise, status } = await createExercise(
+            createData as CreateExerciseFormData
+          );
 
-        if (status !== 201 && status !== 200 || !createdExercise) {
-          toast.error("Tạo câu hỏi thất bại");
-          return;
+          if (status !== 201 && status !== 200 || !createdExercise) {
+            toast.error("Tạo câu hỏi thất bại");
+            return;
+          }
+
+          toast.success("Tạo câu hỏi thành công");
+          router.push("/admin/exercises");
         }
-
-        const currentLessonId = form.getValues("lessonId");
-        form.reset({
-          lessonId: currentLessonId,
-          type: "MULTIPLE_CHOICE",
-          prompt: "",
-          imageUrl: "",
-          audioUrl: "",
-          targetText: "",
-          hintEn: "",
-          hintVi: "",
-          points: 10,
-          difficulty: 1,
-           options: [
-             {
-               text: "",
-               imageUrl: "",
-               audioUrl: "",
-               isCorrect: true,
-               order: 0,
-               matchKey: "",
-             },
-             {
-               text: "",
-               imageUrl: "",
-               audioUrl: "",
-               isCorrect: false,
-               order: 1,
-               matchKey: "",
-             },
-           ],
-        });
-        toast.success("Tạo câu hỏi thành công");
       }
     } catch (error: any) {
       console.error("Failed to save exercise:", error);
@@ -297,8 +338,53 @@ export default function ExerciseFormPage() {
     });
   };
 
+  const handleSaveAll = async () => {
+    if (savedExercises.length === 0) {
+      toast.error("Không có câu hỏi nào để lưu");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const { payload, status } = await createManyExercises(savedExercises);
+
+      if (status !== 201 && status !== 200 || !payload) {
+        toast.error("Tạo hàng loạt câu hỏi thất bại");
+        return;
+      }
+
+      toast.success(`Đã tạo thành công ${payload.length} câu hỏi`);
+      setSavedExercises([]);
+      router.push("/admin/exercises");
+    } catch (error: any) {
+      console.error("Failed to create many exercises:", error);
+      const errorMessage = error?.payload?.message;
+
+      if (typeof errorMessage === "string") {
+        toast.error(errorMessage);
+      } else if (Array.isArray(errorMessage)) {
+        toast.error(errorMessage.join(", "));
+      } else {
+        toast.error("Tạo hàng loạt câu hỏi thất bại");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCancelAll = () => {
+    if (savedExercises.length > 0) {
+      if (confirm(`Bạn có ${savedExercises.length} câu hỏi chưa lưu. Bạn có chắc muốn hủy?`)) {
+        setSavedExercises([]);
+        router.back();
+      }
+    } else {
+      router.back();
+    }
+  };
+
   const handleCancel = () => {
-    router.back();
+    handleCancelAll();
   };
 
   if (isLoading) {
@@ -337,14 +423,16 @@ export default function ExerciseFormPage() {
         </Breadcrumb>
       </div>
 
-      <TypographyH3>
-        {isEditMode ? "Chỉnh sửa câu hỏi" : "Thêm câu hỏi mới"}
-      </TypographyH3>
+      <div className="flex items-center justify-between">
+        <TypographyH3>
+          {isEditMode ? "Chỉnh sửa câu hỏi" : "Thêm câu hỏi mới"}
+        </TypographyH3>
+      </div>
 
       {/* Form */}
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(onSubmit as any)}
+          onSubmit={handleFormSubmit}
           className="space-y-6"
         >
           {/* Lesson Selection */}
@@ -978,20 +1066,48 @@ export default function ExerciseFormPage() {
           </div>
 
           {/* Form Actions */}
-          <div className="flex justify-end gap-2 sticky bottom-0 bg-background pt-4 pb-2">
-            <Button
-              type="button"
-              onClick={handleCancel}
-              disabled={isSubmitting}
-            >
-              Hủy
-            </Button>
-            <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          <div className="flex justify-between gap-2 sticky bottom-0 bg-background pt-4 pb-2 border-t">
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="default"
+                onClick={handleCancel}
+                disabled={isSubmitting}
+              >
+                Hủy
+              </Button>
+              {!isEditMode && savedExercises.length > 0 && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleSaveAll}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Lưu tất cả ({savedExercises.length})
+                </Button>
               )}
-              {isEditMode ? "Cập nhật" : "Tạo mới"}
-            </Button>
+            </div>
+            <div className="flex gap-2">
+              {!isEditMode && (
+                <Button
+                  type="submit"
+                  variant="primaryOutline"
+                  disabled={isSubmitting}
+                  onClick={() => setCreateAnother(true)}
+                >
+                  Lưu và tạo tiếp
+                </Button>
+              )}
+              <Button type="submit" variant="primary" disabled={isSubmitting}>
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isEditMode ? "Cập nhật" : "Tạo và hoàn thành"}
+              </Button>
+            </div>
           </div>
         </form>
       </Form>
