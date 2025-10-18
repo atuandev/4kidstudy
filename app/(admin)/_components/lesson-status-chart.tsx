@@ -48,8 +48,8 @@ export function LessonStatusChart({ data }: LessonStatusChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Trạng thái bài học</CardTitle>
-        <CardDescription>Phân bố bài học theo trạng thái</CardDescription>
+        <CardTitle>Trạng thái bài luyện tập</CardTitle>
+        <CardDescription>Phân bố bài luyện tập theo trạng thái</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[300px] w-full">
