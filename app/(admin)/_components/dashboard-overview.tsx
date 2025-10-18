@@ -61,10 +61,13 @@ export async function DashboardOverview() {
   const topicDistributionData = topics
     .map((topic) => ({
       name: topic.title,
+      grade: topic.grade || 'GRADE_1',
+      flashcardCount: flashcards.filter((f) => f.topicId === topic.id).length,
+      sentenceImageCount: sentenceImages.filter((s) => s.topicId === topic.id).length,
       lessonCount: lessons.filter((l) => l.topicId === topic.id).length,
     }))
-    .filter((item) => item.lessonCount > 0)
-    .sort((a, b) => b.lessonCount - a.lessonCount)
+    .filter((item) => item.flashcardCount > 0 || item.sentenceImageCount > 0 || item.lessonCount > 0)
+    .sort((a, b) => (b.flashcardCount + b.sentenceImageCount + b.lessonCount) - (a.flashcardCount + a.sentenceImageCount + a.lessonCount))
     .slice(0, 10);
 
   return (
