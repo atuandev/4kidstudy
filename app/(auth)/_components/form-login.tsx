@@ -30,7 +30,8 @@ export function FormLogin() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/learn";
+  // TODO: change to /learn
+  const redirect = searchParams.get("redirect") || "/learn/units";
 
   const form = useForm<LoginSchemaType>({
     resolver: zodResolver(LoginSchema),
