@@ -111,13 +111,19 @@ export const CreateExerciseSchema = z.object({
     });
   }
 
-  // Validate at least one correct answer for multiple choice types
+  // Validate exactly one correct answer for multiple choice types
   if (['MULTIPLE_CHOICE', 'SELECT_IMAGE', 'LISTENING'].includes(data.type)) {
-    const hasCorrectAnswer = data.options?.some((opt) => opt.isCorrect);
-    if (!hasCorrectAnswer) {
+    const correctAnswersCount = data.options?.filter((opt) => opt.isCorrect).length ?? 0;
+    if (correctAnswersCount === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Cần có ít nhất một đáp án đúng',
+        path: ['options'],
+      });
+    } else if (correctAnswersCount > 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Chỉ được có một đáp án đúng',
         path: ['options'],
       });
     }

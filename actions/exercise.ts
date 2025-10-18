@@ -58,6 +58,18 @@ export async function createExercise(data: CreateExerciseFormData) {
   return { payload, status };
 }
 
+export async function createManyExercises(exercises: CreateExerciseFormData[]) {
+  const cleanedExercises = exercises.map((exercise) =>
+    cleanExerciseData(exercise)
+  );
+  const { payload, status } = await http.post<Exercise[]>(
+    "/exercises/bulk",
+    JSON.stringify({ exercises: cleanedExercises })
+  );
+  revalidatePath("/admin/exercises");
+  return { payload, status };
+}
+
 export async function updateExercise(
   id: number,
   data: Partial<CreateExerciseFormData>

@@ -34,7 +34,7 @@ export const Footer = ({
   return (
     <footer
       className={cn(
-        "min-h-[100px] border-t-2 py-4 lg:min-h-[140px]",
+        "border-t-2 py-4",
         status === "correct" && "border-transparent bg-green-100",
         status === "wrong" && "border-transparent bg-rose-100"
       )}
@@ -81,30 +81,30 @@ export const Footer = ({
 
           {/* Hints section - only show when wrong or correct */}
           {status === "correct" && (hintVi || hintEn) && (
-            <div className="flex flex-col gap-1 text-sm text-neutral-600 lg:text-base">
+            <div className="">
               {hintEn && (
-                <span className="text-green-500 font-bold text-2xl">
+                <div className="text-green-500 font-bold text-2xl">
                   {hintEn}
-                </span>
+                </div>
               )}
               {hintVi && (
-                <span className="text-green-500 font-semibold text-2xl">
+                <div className="text-green-500 font-semibold text-2xl">
                   {hintVi}
-                </span>
+                </div>
               )}
             </div>
           )}
           {status === "wrong" && (hintVi || hintEn) && (
-            <div className="flex flex-col gap-1 text-sm text-neutral-600 lg:text-base">
+            <div className="">
               {hintEn && (
-                <span className="text-rose-500 font-bold text-2xl">
+                <div className="text-rose-500 font-bold text-2xl">
                   {hintEn}
-                </span>
+                </div>
               )}
               {hintVi && (
-                <span className="text-rose-500 font-semibold text-2xl">
+                <div className="text-rose-500 font-semibold text-2xl">
                   {hintVi}
-                </span>
+                </div>
               )}
             </div>
           )}
