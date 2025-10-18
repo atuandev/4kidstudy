@@ -13,11 +13,12 @@ export function UnitList({ topics }: UnitListProps) {
   return (
     <div className='space-y-4'>
       <div className='flex items-center gap-4'>
-        <Link href='/learn'>
+        {/* TODO: Sidebar temp */}
+        {/* <Link href='/learn/units'>
           <Button variant='ghost' size='sm' className='flex items-center gap-2'>
             <ArrowLeft className='h-4 w-4' />
           </Button>
-        </Link>
+        </Link> */}
         <div>
           <h2 className='text-2xl font-bold'>Danh sách chủ đề</h2>
         </div>
