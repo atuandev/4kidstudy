@@ -1,12 +1,32 @@
-import { TypographyH3 } from "@/components/typography";
+import { TypographyH3 } from '@/components/typography';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
-  BreadcrumbPage
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+  BreadcrumbPage,
+} from '@/components/ui/breadcrumb';
+import { Separator } from '@/components/ui/separator';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { DashboardOverview } from '../_components/dashboard-overview';
+import { Suspense } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        {[...Array(6)].map((_, i) => (
+          <Skeleton key={i} className="h-[120px]" />
+        ))}
+      </div>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Skeleton className="h-[400px]" />
+        <Skeleton className="h-[400px]" />
+      </div>
+      <Skeleton className="h-[400px]" />
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   return (
@@ -27,8 +47,11 @@ export default function DashboardPage() {
           </Breadcrumb>
         </div>
       </header>
-      <div className="space-y-6 px-4">
-        <TypographyH3>Trang chủ</TypographyH3>
+      <div className="space-y-6 px-4 pb-8">
+        <TypographyH3>Tổng quan hệ thống</TypographyH3>
+        <Suspense fallback={<DashboardSkeleton />}>
+          <DashboardOverview />
+        </Suspense>
       </div>
     </>
   );
