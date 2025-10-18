@@ -1,264 +1,86 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
-
-import { useAudio } from "react-use";
-
 import { Exercise } from "./exercise";
 import { Footer } from "./footer";
 import { Header } from "./header";
-import { Exercise as ExerciseType } from "@/types";
-import FinishPage from "../finish-page";
 import { QuestionBubble } from "./question-bubble";
 import AudioPlayer from "./audio-player";
+import FinishPage from "../finish-page";
+import {
+  useQuizAudio,
+  useQuizLogic,
+  useQuizSession,
+  useQuizDuration,
+} from "../_hooks";
+import { useQuizStore } from "@/lib/stores/quiz-store";
 import { useExerciseStatsStore } from "@/lib/stores/exercise-stats-store";
-import { Difficulty } from "./difficulty";
+import { Exercise as ExerciseType, Lesson } from "@/types";
 
 type QuizProps = {
-  initialLessonId: number;
-  initialLessonExercises: ExerciseType[];
-  unitTitle: string;
-  lessonIndex: number;
+  lesson: Lesson;
+  lessonExercises: ExerciseType[];
 };
 
-export const Quiz = ({
-  initialLessonId,
-  initialLessonExercises,
-  unitTitle,
-  lessonIndex,
-}: QuizProps) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [correctAudio, _c, correctControls] = useAudio({ src: "/correct.wav" });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [incorrectAudio, _i, incorrectControls] = useAudio({
-    src: "/incorrect.wav",
+const EXERCISE_TITLES = {
+  SELECT_IMAGE: "Chọn ảnh đúng",
+  MULTIPLE_CHOICE: "Chọn đáp án đúng",
+  MATCHING: "Ghép cặp",
+  LISTENING: "Nghe - chọn đáp án",
+  PRONUNCIATION: "Luyện phát âm",
+} as const;
+
+export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
+  // Audio hooks - must be called first to render audio elements
+  const { correctAudio, incorrectAudio, finishAudio, playCorrect, playIncorrect } = useQuizAudio();
+
+  // Session management
+  const { startTime } = useQuizSession({
+    lessonId: lesson.id,
+    exercises: lessonExercises,
   });
-  const [finishAudio] = useAudio({
-    src: "/finish.mp3",
-  });
 
-  const [pending, startTransition] = useTransition();
+  const currentDuration = useQuizDuration(startTime);
 
-  const [lessonId] = useState(initialLessonId);
-  const [exercises] = useState(initialLessonExercises);
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const [selectedOption, setSelectedOption] = useState<number>();
-  const [status, setStatus] = useState<"none" | "wrong" | "correct">("none");
-
-  // Pronunciation exercise state
-  const [pronunciationState, setPronunciationState] = useState<string>("idle");
-  const [pronunciationScore, setPronunciationScore] = useState<any>(null);
-
-  // Exercise stats store
+  // Quiz logic - pass audio play functions
   const {
-    startSession,
-    endSession,
-    startExercise,
-    completeExercise,
-    skipExercise,
-    totalPoints,
-    correctCount,
-    totalExercises: completedExercises,
-    startTime,
-  } = useExerciseStatsStore();
+    exercise,
+    options,
+    selectedOption,
+    status,
+    pronunciation,
+    activeIndex,
+    exercises,
+    pending,
+    isDisabled,
+    handleSelect,
+    handleSkip,
+    handleContinue,
+  } = useQuizLogic({ playCorrect, playIncorrect });
 
-  // Initialize session and start first exercise
-  useEffect(() => {
-    startSession();
-    if (exercises.length > 0) {
-      startExercise();
-    }
+  // Stats
+  const { totalPoints, correctCount } = useExerciseStatsStore();
+  const { updatePronunciation } = useQuizStore();
 
-    // Cleanup: end session when component unmounts
-    return () => {
-      endSession();
-    };
-  }, [startSession, endSession, startExercise, exercises.length]);
-
-  // Start new exercise when activeIndex changes
-  useEffect(() => {
-    if (activeIndex > 0 && activeIndex < exercises.length) {
-      startExercise();
-    }
-  }, [activeIndex, exercises.length, startExercise]);
-
-  // End session when quiz is completed (when there's no current exercise)
-  useEffect(() => {
-    if (!exercises[activeIndex]) {
-      endSession();
-    }
-  }, [activeIndex, exercises, endSession]);
-
-  // Force re-render every second for realtime duration
-  const [, forceUpdate] = useState({});
-  useEffect(() => {
-    const interval = setInterval(() => {
-      forceUpdate({});
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const exercise = exercises[activeIndex];
-  const options = exercise?.options ?? [];
-
-  // Calculate realtime duration
-  const getCurrentDuration = () => {
-    if (!startTime) return 0;
-    return Math.floor((Date.now() - startTime) / 1000);
-  };
-
-  const onNext = () => {
-    setActiveIndex((current) => current + 1);
-
-    // Reset pronunciation state for next exercise
-    setPronunciationState("idle");
-    setPronunciationScore(null);
-  };
-
-  const onSelect = (id: number) => {
-    if (status !== "none") return;
-
-    // Handle wrong match signal from MATCHING exercise
-    if (id === -1) {
-      startTransition(() => {
-        void incorrectControls.play();
-        setStatus("wrong");
-
-        // Track exercise completion (incorrect, no points)
-        completeExercise(false, exercise.points);
-      });
-      return;
-    }
-
-    setSelectedOption(id);
-  };
-
-  const onSkip = () => {
-    if (status !== "none") return;
-
-    // Track skip in stats
-    skipExercise();
-
-    // Move to next exercise
-    onNext();
-    setStatus("none");
-    setSelectedOption(undefined);
-  };
-
-  const onContinue = () => {
-    if (status === "wrong") {
-      setStatus("none");
-      setSelectedOption(undefined);
-      return;
-    }
-
-    if (status === "correct") {
-      onNext();
-      setStatus("none");
-      setSelectedOption(undefined);
-      return;
-    }
-
-    // Handle PRONUNCIATION exercise completion
-    if (
-      exercise.type === "PRONUNCIATION" &&
-      pronunciationState === "completed" &&
-      pronunciationScore
-    ) {
-      const isGoodScore = pronunciationScore.overall >= 70;
-
-      if (isGoodScore) {
-        startTransition(() => {
-          void correctControls.play();
-          setStatus("correct");
-
-          // Track exercise completion
-          completeExercise(true, exercise.points);
-        });
-      } else {
-        startTransition(() => {
-          void incorrectControls.play();
-          setStatus("wrong");
-
-          // Track exercise completion (incorrect, no points)
-          completeExercise(false, exercise.points);
-        });
-      }
-      return;
-    }
-
-    // Handle MATCHING exercise completion
-    if (exercise.type === "MATCHING" && selectedOption) {
-      startTransition(() => {
-        void correctControls.play();
-        setStatus("correct");
-
-        // Track exercise completion
-        completeExercise(true, exercise.points);
-      });
-      return;
-    }
-
-    if (!selectedOption) return;
-
-    const correctOption = options.find((option) => option.isCorrect);
-
-    if (!correctOption) return;
-
-    const isCorrect = correctOption.id === selectedOption;
-
-    if (isCorrect) {
-      startTransition(() => {
-        void correctControls.play();
-        setStatus("correct");
-
-        // Track exercise completion
-        completeExercise(true, exercise.points);
-      });
-    } else {
-      startTransition(() => {
-        void incorrectControls.play();
-        setStatus("wrong");
-
-        // Track exercise completion (incorrect, no points)
-        completeExercise(false, exercise.points);
-      });
-    }
-  };
-
-  // Handle pronunciation state changes
   const handlePronunciationStateChange = (state: string, score?: any) => {
-    setPronunciationState(state);
-    if (score) {
-      setPronunciationScore(score);
-    }
+    updatePronunciation(state, score);
   };
 
+  // Quiz complete - show finish page
   if (!exercise) {
     return (
       <>
-        {/* Audio elements must be rendered for useAudio hook to work */}
         {incorrectAudio}
         {finishAudio}
         {correctAudio}
-
-        <FinishPage lessonId={lessonId} />
+        <FinishPage lessonId={lesson.id} />
       </>
     );
   }
 
-  const title =
-    (exercise.type === "SELECT_IMAGE" && "Chọn ảnh đúng") ||
-    (exercise.type === "MULTIPLE_CHOICE" && "Chọn đáp án đúng") ||
-    (exercise.type === "MATCHING" && "Ghép cặp") ||
-    (exercise.type === "LISTENING" && "Nghe - chọn đáp án") ||
-    (exercise.type === "PRONUNCIATION" && "Luyện phát âm");
+  const title = EXERCISE_TITLES[exercise.type] || "Exercise";
 
   return (
     <>
-      {/* Audio elements must be rendered for useAudio hook to work */}
       {incorrectAudio}
       {correctAudio}
       {finishAudio}
@@ -268,9 +90,9 @@ export const Quiz = ({
         totalExercises={exercises.length}
         correctCount={correctCount}
         totalPoints={totalPoints}
-        duration={getCurrentDuration()}
-        unitTitle={unitTitle}
-        lessonIndex={lessonIndex}
+        duration={currentDuration}
+        unitTitle={lesson.topic.title}
+        lessonTitle={lesson.title}
       />
 
       <div className="h-[calc(100vh-240px)]">
@@ -281,10 +103,8 @@ export const Quiz = ({
             </h1>
 
             <div>
-              <Difficulty difficulty={exercise.difficulty} />
               <QuestionBubble question={exercise.prompt} />
 
-              {/* Audio player for SELECT_IMAGE exercise with vocabulary */}
               {exercise.type === "SELECT_IMAGE" && exercise.audioUrl && (
                 <div className="flex items-center justify-center mb-6">
                   <AudioPlayer
@@ -295,7 +115,6 @@ export const Quiz = ({
                 </div>
               )}
 
-              {/* Audio player for LISTENING exercise */}
               {exercise.type === "LISTENING" && exercise.audioUrl && (
                 <div className="mb-4">
                   <AudioPlayer audioUrl={exercise.audioUrl} />
@@ -304,7 +123,7 @@ export const Quiz = ({
 
               <Exercise
                 options={options}
-                onSelect={onSelect}
+                onSelect={handleSelect}
                 status={status}
                 selectedOption={selectedOption}
                 disabled={pending}
@@ -321,17 +140,10 @@ export const Quiz = ({
       </div>
 
       <Footer
-        disabled={
-          pending ||
-          (!selectedOption &&
-            exercise.type !== "MATCHING" &&
-            exercise.type !== "PRONUNCIATION") ||
-          (exercise.type === "PRONUNCIATION" &&
-            pronunciationState !== "completed")
-        }
+        disabled={isDisabled}
         status={status}
-        onCheck={onContinue}
-        onSkip={onSkip}
+        onCheck={handleContinue}
+        onSkip={handleSkip}
         showSkip={status === "none"}
       />
     </>

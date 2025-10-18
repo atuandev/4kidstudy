@@ -12,17 +12,18 @@ export default async function LessonIdPage({ params }: LessonIdPageProps) {
   const { lessonId } = await params;
   const lessonIdNumber = parseInt(lessonId, 10);
 
-  const [lessonData, lesson] = await Promise.all([
+  const [lessonExercises, lesson] = await Promise.all([
     getExerciseByLessonId(lessonIdNumber),
     getLesson(lessonIdNumber),
   ]);
 
+  console.log(lessonExercises);
+  console.log(lesson);
+
   return (
     <Quiz
-      initialLessonId={lessonIdNumber}
-      initialLessonExercises={lessonData}
-      unitTitle={lesson.topic.title}
-      lessonIndex={lesson.order}
+      lesson={lesson}
+      lessonExercises={lessonExercises}
     />
   );
 }

@@ -10,7 +10,7 @@ type HeaderProps = {
   totalPoints: number;
   duration: number;
   unitTitle: string;
-  lessonIndex: number;
+  lessonTitle: string;
 };
 
 export const Header = ({
@@ -20,7 +20,7 @@ export const Header = ({
   totalPoints,
   duration,
   unitTitle,
-  lessonIndex,
+  lessonTitle,
 }: HeaderProps) => {
   const router = useRouter();
 
@@ -54,7 +54,7 @@ export const Header = ({
             </span>
             <span className="text-slate-400">•</span>
             <span className="text-lg font-semibold text-slate-500">
-              Bài {lessonIndex + 1}
+              {lessonTitle}
             </span>
           </div>
         </div>
