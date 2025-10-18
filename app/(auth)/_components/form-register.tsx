@@ -52,7 +52,8 @@ export function FormRegister() {
         setSuccess(
           "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản"
         );
-        router.push("/learn");
+        // TODO: change to /learn
+        router.push("/learn/units");
       } catch {
         setError("Đăng ký thất bại");
       }
