@@ -222,7 +222,7 @@ export const columns: ColumnDef<Exercise>[] = [
               Copy ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <Link href={`/admin/exercises/form?id=${exercise.id}`}>
+            <Link href={`/admin/exercises/edit?id=${exercise.id}`}>
               <DropdownMenuItem>
                 <Pencil className="mr-2 h-4 w-4" />
                 Chỉnh sửa
