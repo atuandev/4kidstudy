@@ -42,7 +42,6 @@ import { Separator } from "@/components/ui/separator";
 
 import { createManyExercises } from "@/actions/exercise";
 import { getLessons } from "@/actions/lesson";
-import { getTopics } from "@/actions/topic";
 import { RequiredField } from "@/components/form/required-field";
 import { TypographyH3, TypographyH4 } from "@/components/typography";
 import {
@@ -50,23 +49,19 @@ import {
   CreateExerciseSchema,
   exerciseTypeLabels,
 } from "@/schemas/exercise";
-import { Lesson, Topic } from "@/types";
+import { Lesson } from "@/types";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UPLOAD_PRESET } from "@/lib/constants";
-import { GRADES, GradeValue } from "@/types/grade";
 import { useLessonFormStore } from "@/lib/stores/lesson-form-store";
 
 export default function ExerciseFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableLessons, setAvailableLessons] = useState<Lesson[]>([]);
-  const [availableTopics, setAvailableTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [exerciseForms, setExerciseForms] = useState<CreateExerciseFormData[]>(
     []
   );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [selectedGrade, setSelectedGrade] = useState<GradeValue | null>(null);
-  const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
   const router = useRouter();
   const { selectedLesson, clearSelectedLesson } = useLessonFormStore();
   const hasInitializedFromLesson = useRef(false);
@@ -117,12 +112,8 @@ export default function ExerciseFormPage() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const [fetchedLessons, fetchedTopics] = await Promise.all([
-          getLessons(),
-          getTopics(),
-        ]);
+        const fetchedLessons = await getLessons();
         setAvailableLessons(fetchedLessons);
-        setAvailableTopics(fetchedTopics);
       } catch (error) {
         console.error("Failed to fetch data:", error);
         toast.error("Không thể tải dữ liệu");
@@ -136,52 +127,20 @@ export default function ExerciseFormPage() {
 
   useEffect(() => {
     if (
-      selectedLesson && 
-      !hasInitializedFromLesson.current && 
-      availableLessons.length > 0 && 
-      availableTopics.length > 0 &&
+      selectedLesson &&
+      !hasInitializedFromLesson.current &&
+      availableLessons.length > 0 &&
       !isLoading
     ) {
-      // Find the lesson in available lessons to get fresh data with topic populated
       const lesson = availableLessons.find((l) => l.id === selectedLesson.id);
-      
+
       if (lesson) {
         hasInitializedFromLesson.current = true;
-        
-        // Get grade from either the fresh lesson data or from the topics list
-        const topic = lesson.topic || availableTopics.find(t => t.id === lesson.topicId);
-        const grade = topic?.grade;
-        
-        if (grade) {
-          // Set values in sequence to ensure proper cascading
-          setSelectedGrade(grade);
-          
-          // Use requestAnimationFrame to ensure state is updated before next step
-          requestAnimationFrame(() => {
-            setSelectedTopicId(lesson.topicId);
-            
-            requestAnimationFrame(() => {
-              form.setValue("lessonId", lesson.id);
-              toast.success(`Đã chọn bài luyện tập: ${lesson.title}`);
-            });
-          });
-        }
-      } else {
-        console.warn('Lesson not found in available lessons');
+        form.setValue("lessonId", lesson.id);
+        toast.success(`Đã chọn bài luyện tập: ${lesson.title}`);
       }
     }
-  }, [selectedLesson, availableLessons, availableTopics, isLoading, form]);
-
-
-  // Filter topics by selected grade
-  const filteredTopics = selectedGrade
-    ? availableTopics.filter((topic) => topic.grade === selectedGrade)
-    : [];
-
-  // Filter lessons by selected topic
-  const filteredLessons = selectedTopicId
-    ? availableLessons.filter((lesson) => lesson.topicId === selectedTopicId)
-    : [];
+  }, [selectedLesson, availableLessons, isLoading, form]);
 
   const validateExercise = (values: CreateExerciseFormData) => {
     if (
@@ -277,14 +236,6 @@ export default function ExerciseFormPage() {
     const exercise = exerciseForms[index];
     form.reset(exercise);
     setEditingIndex(index);
-
-    // Set grade and topic based on the lesson
-    const lesson = availableLessons.find((l) => l.id === exercise.lessonId);
-    if (lesson && lesson.topic) {
-      setSelectedGrade(lesson.topic.grade || null);
-      setSelectedTopicId(lesson.topicId);
-    }
-
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -295,52 +246,39 @@ export default function ExerciseFormPage() {
     if (editingIndex === index) {
       setEditingIndex(null);
 
-      // Keep grade and topic if there are remaining exercises
       if (updatedExercises.length > 0) {
         const lastExercise = updatedExercises[updatedExercises.length - 1];
-        const lesson = availableLessons.find(
-          (l) => l.id === lastExercise.lessonId
-        );
-
-        if (lesson && lesson.topic) {
-          setSelectedGrade(lesson.topic.grade || null);
-          setSelectedTopicId(lesson.topicId);
-
-          form.reset({
-            lessonId: lastExercise.lessonId,
-            type: lastExercise.type,
-            prompt: "",
-            imageUrl: "",
-            audioUrl: "",
-            targetText: "",
-            hintEn: "",
-            hintVi: "",
-            points: 10,
-            difficulty: 1,
-            options: [
-              {
-                text: "",
-                imageUrl: "",
-                audioUrl: "",
-                isCorrect: false,
-                order: 0,
-                matchKey: "",
-              },
-              {
-                text: "",
-                imageUrl: "",
-                audioUrl: "",
-                isCorrect: false,
-                order: 1,
-                matchKey: "",
-              },
-            ],
-          });
-        }
+        form.reset({
+          lessonId: lastExercise.lessonId,
+          type: lastExercise.type,
+          prompt: "",
+          imageUrl: "",
+          audioUrl: "",
+          targetText: "",
+          hintEn: "",
+          hintVi: "",
+          points: 10,
+          difficulty: 1,
+          options: [
+            {
+              text: "",
+              imageUrl: "",
+              audioUrl: "",
+              isCorrect: false,
+              order: 0,
+              matchKey: "",
+            },
+            {
+              text: "",
+              imageUrl: "",
+              audioUrl: "",
+              isCorrect: false,
+              order: 1,
+              matchKey: "",
+            },
+          ],
+        });
       } else {
-        // Reset everything if no exercises left
-        setSelectedGrade(null);
-        setSelectedTopicId(null);
         form.reset({
           lessonId: 0,
           type: "MULTIPLE_CHOICE",
@@ -379,52 +317,39 @@ export default function ExerciseFormPage() {
   const handleCancelEdit = () => {
     setEditingIndex(null);
 
-    // Keep the current selections if there are any exercises
     if (exerciseForms.length > 0) {
       const lastExercise = exerciseForms[exerciseForms.length - 1];
-      const lesson = availableLessons.find(
-        (l) => l.id === lastExercise.lessonId
-      );
-
-      if (lesson && lesson.topic) {
-        setSelectedGrade(lesson.topic.grade || null);
-        setSelectedTopicId(lesson.topicId);
-
-        form.reset({
-          lessonId: lastExercise.lessonId,
-          type: lastExercise.type,
-          prompt: "",
-          imageUrl: "",
-          audioUrl: "",
-          targetText: "",
-          hintEn: "",
-          hintVi: "",
-          points: 10,
-          difficulty: 1,
-          options: [
-            {
-              text: "",
-              imageUrl: "",
-              audioUrl: "",
-              isCorrect: false,
-              order: 0,
-              matchKey: "",
-            },
-            {
-              text: "",
-              imageUrl: "",
-              audioUrl: "",
-              isCorrect: false,
-              order: 1,
-              matchKey: "",
-            },
-          ],
-        });
-      }
+      form.reset({
+        lessonId: lastExercise.lessonId,
+        type: lastExercise.type,
+        prompt: "",
+        imageUrl: "",
+        audioUrl: "",
+        targetText: "",
+        hintEn: "",
+        hintVi: "",
+        points: 10,
+        difficulty: 1,
+        options: [
+          {
+            text: "",
+            imageUrl: "",
+            audioUrl: "",
+            isCorrect: false,
+            order: 0,
+            matchKey: "",
+          },
+          {
+            text: "",
+            imageUrl: "",
+            audioUrl: "",
+            isCorrect: false,
+            order: 1,
+            matchKey: "",
+          },
+        ],
+      });
     } else {
-      // Reset everything if no exercises
-      setSelectedGrade(null);
-      setSelectedTopicId(null);
       form.reset({
         lessonId: 0,
         type: "MULTIPLE_CHOICE",
@@ -677,57 +602,6 @@ export default function ExerciseFormPage() {
               </div>
               <Card>
                 <CardContent className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {/* Grade Selection */}
-                    <div>
-                      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        Khối học <RequiredField />
-                      </label>
-                      <Combobox
-                        key={`grade-${selectedGrade || 'empty'}`}
-                        options={GRADES.map((grade) => ({
-                          value: grade.value,
-                          label: grade.label,
-                        }))}
-                        value={selectedGrade || ""}
-                        onValueChange={(value) => {
-                          setSelectedGrade(value as GradeValue);
-                          setSelectedTopicId(null);
-                          form.setValue("lessonId", 0);
-                        }}
-                        placeholder="Chọn khối học"
-                        searchPlaceholder="Tìm kiếm khối học..."
-                        emptyText="Không tìm thấy khối học."
-                        className="w-fit mt-2"
-                      />
-                    </div>
-
-                    {/* Unit/Topic Selection */}
-                    {selectedGrade && (
-                      <div>
-                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Chủ đề (Unit) <RequiredField />
-                        </label>
-                        <Combobox
-                          key={`topic-${selectedTopicId || 'empty'}-${selectedGrade}`}
-                          options={filteredTopics.map((topic) => ({
-                            value: topic.id.toString(),
-                            label: `${topic.id} - ${topic.title}`,
-                          }))}
-                          value={selectedTopicId?.toString() || ""}
-                          onValueChange={(value) => {
-                            setSelectedTopicId(parseInt(value));
-                            form.setValue("lessonId", 0);
-                          }}
-                          placeholder="Chọn chủ đề"
-                          searchPlaceholder="Tìm kiếm chủ đề..."
-                          emptyText="Không tìm thấy chủ đề."
-                          className="w-fit mt-2"
-                        />
-                      </div>
-                    )}
-                  </div>
-
                   {/* Lesson Selection */}
                   <FormField
                     control={formControl}
@@ -739,8 +613,8 @@ export default function ExerciseFormPage() {
                         </FormLabel>
                         <FormControl>
                           <Combobox
-                            key={`lesson-${field.value || 'empty'}-${selectedTopicId}`}
-                            options={filteredLessons.map((lesson) => ({
+                            key={`lesson-${field.value || "empty"}`}
+                            options={availableLessons.map((lesson) => ({
                               value: lesson.id.toString(),
                               label: `${lesson.id} - ${lesson.title}`,
                             }))}
