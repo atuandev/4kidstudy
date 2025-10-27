@@ -159,6 +159,21 @@ export default function ExerciseFormPage() {
         return false;
       }
     }
+
+    // Check for duplicate option texts
+    if (values.options && values.options.length > 0) {
+      const optionTexts = values.options
+        .map((opt) => opt.text?.trim())
+        .filter((text) => text && text.length > 0);
+
+      const uniqueTexts = new Set(optionTexts);
+
+      if (optionTexts.length !== uniqueTexts.size) {
+        toast.error("Các đáp án không được trùng nhau");
+        return false;
+      }
+    }
+
     return true;
   };
 
