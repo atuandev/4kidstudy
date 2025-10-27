@@ -19,5 +19,6 @@ export interface Topic {
   _count: {
     lessons: number;
     flashcards: number;
+    sentenceImages: number;
   };
 }

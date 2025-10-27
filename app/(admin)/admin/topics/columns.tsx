@@ -186,15 +186,6 @@ export const columns: ColumnDef<Topic>[] = [
     },
   },
   {
-    accessorKey: "order",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Thứ tự" />
-    ),
-    cell: ({ row }) => (
-      <div className="text-center">{row.getValue("order")}</div>
-    ),
-  },
-  {
     accessorKey: "isActive",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Trạng thái" />
@@ -215,7 +206,7 @@ export const columns: ColumnDef<Topic>[] = [
     accessorKey: "_count.lessons",
     id: "lessonsCount",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Số bài học" />
+      <DataTableColumnHeader column={column} title="Số bài luyện tập" />
     ),
     cell: ({ row }) => {
       const count = row.original._count?.lessons || 0;
@@ -226,10 +217,21 @@ export const columns: ColumnDef<Topic>[] = [
     accessorKey: "_count.flashcards",
     id: "flashcardsCount",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Số flashcard" />
+      <DataTableColumnHeader column={column} title="Số thẻ từ vựng" />
     ),
     cell: ({ row }) => {
       const count = row.original._count?.flashcards || 0;
+      return <div className="text-center">{count}</div>;
+    },
+  },
+  {
+    accessorKey: "_count.sentenceImages",
+    id: "sentenceImagesCount",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Số thẻ câu" />
+    ),
+    cell: ({ row }) => {
+      const count = row.original._count?.sentenceImages || 0;
       return <div className="text-center">{count}</div>;
     },
   },
