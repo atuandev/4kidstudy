@@ -1,112 +1,138 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { jwtDecode, JwtPayload } from 'jwt-decode'
-import { refreshAccessToken } from './actions/auth/refresh'
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { jwtDecode, JwtPayload } from "jwt-decode";
+import { refreshAccessToken } from "./actions/auth/refresh";
 
 // Route configurations
 const ROUTES = {
-  protected: ['/learn', '/practice', '/leaderboard', '/profile'],
-  admin: ['/admin'],
-  auth: ['/login', '/register'],
-}
+  protected: ["/learn", "/practice", "/leaderboard", "/profile"],
+  admin: ["/admin"],
+  auth: ["/login", "/register"],
+};
 
 // Extended JWT payload type
 interface AuthToken extends JwtPayload {
-  role: string
+  role: string;
 }
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  const accessToken = request.cookies.get('accessToken')?.value
-  const refreshToken = request.cookies.get('refreshToken')?.value
+  const { pathname } = request.nextUrl;
+  const accessToken = request.cookies.get("accessToken")?.value;
+  const refreshToken = request.cookies.get("refreshToken")?.value;
 
   // Set up response with path header
-  const headers = new Headers(request.headers)
-  headers.set('x-current-path', pathname)
-  const response = NextResponse.next({ request: { headers } })
+  const headers = new Headers(request.headers);
+  headers.set("x-current-path", pathname);
+  const response = NextResponse.next({ request: { headers } });
+
+  // TODO: Remove when have refresh token
+  checkExpiredToken(accessToken, request, response);
 
   // Handle token refresh if needed
   if (accessToken && refreshToken) {
-    await handleTokenRefresh(accessToken, refreshToken, response)
+    await handleTokenRefresh(accessToken, refreshToken, response);
   }
 
   // Route protection logic
   if (accessToken) {
-    const decoded = decodeToken(accessToken)
-    const isAdmin = decoded?.role.includes('ADMIN')
+    const decoded = decodeToken(accessToken);
+    const isAdmin = decoded?.role.includes("ADMIN");
 
     // Redirect authenticated users away from auth pages
     if (isMatchingRoute(pathname, ROUTES.auth)) {
-      const redirectParam = request.nextUrl.searchParams.get('redirect')
+      const redirectParam = request.nextUrl.searchParams.get("redirect");
       if (redirectParam) {
-        return NextResponse.redirect(new URL(redirectParam, request.url))
+        return NextResponse.redirect(new URL(redirectParam, request.url));
       }
       // Redirect admin to /admin, regular users to /learn
-      return NextResponse.redirect(new URL(isAdmin ? '/admin' : '/learn', request.url))
+      return NextResponse.redirect(
+        new URL(isAdmin ? "/admin" : "/learn", request.url)
+      );
     }
 
     // Restrict admin routes to admin users
     if (isMatchingRoute(pathname, ROUTES.admin)) {
       if (!isAdmin) {
-        return NextResponse.redirect(new URL('/learn', request.url))
+        return NextResponse.redirect(new URL("/learn", request.url));
       }
     }
 
     if (isMatchingRoute(pathname, ROUTES.protected)) {
       if (isAdmin) {
-        return NextResponse.redirect(new URL('/admin', request.url))
+        return NextResponse.redirect(new URL("/admin", request.url));
       }
     }
   } else {
     // Redirect unauthenticated users away from protected routes
     if (isMatchingRoute(pathname, [...ROUTES.protected, ...ROUTES.admin])) {
-      return NextResponse.redirect(new URL('/login', request.url))
+      return NextResponse.redirect(new URL("/login", request.url));
     }
   }
 
-  return response
+  return response;
 }
 
 /**
  * Checks if token needs refresh and handles the refresh process
  */
-async function handleTokenRefresh(accessToken: string, refreshToken: string, response: NextResponse) {
+async function handleTokenRefresh(
+  accessToken: string,
+  refreshToken: string,
+  response: NextResponse
+) {
   try {
-    const decoded = decodeToken(accessToken)
+    const decoded = decodeToken(accessToken);
 
     if (decoded?.exp && decoded.exp < Date.now() / 1000) {
-      const payload = await refreshAccessToken(refreshToken)
+      const payload = await refreshAccessToken(refreshToken);
 
       if (payload?.accessToken && payload?.refreshToken) {
-        response.cookies.set('accessToken', payload.accessToken, {
+        response.cookies.set("accessToken", payload.accessToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          path: '/',
-          sameSite: 'lax',
-        })
-        response.cookies.set('refreshToken', payload.refreshToken, {
+          secure: process.env.NODE_ENV === "production",
+          path: "/",
+          sameSite: "lax",
+        });
+        response.cookies.set("refreshToken", payload.refreshToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          path: '/',
-          sameSite: 'lax',
-        })
+          secure: process.env.NODE_ENV === "production",
+          path: "/",
+          sameSite: "lax",
+        });
       }
     }
   } catch (error) {
-    console.error('Token decode error:', error)
-    response.cookies.delete('accessToken')
-    response.cookies.delete('refreshToken')
+    console.error("Token decode error:", error);
+    response.cookies.delete("accessToken");
+    response.cookies.delete("refreshToken");
   }
 }
+
+const checkExpiredToken = (
+  token: string | undefined,
+  request: NextRequest,
+  response: NextResponse
+) => {
+  if (!token) {
+    return;
+  }
+
+  const decoded = decodeToken(token);
+  if (decoded?.exp && decoded.exp < Date.now() / 1000) {
+    response.cookies.delete("accessToken");
+    response.cookies.delete("refreshToken");
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+};
 
 /**
  * Safely decodes a JWT token
  */
 function decodeToken(token: string): AuthToken | null {
   try {
-    return jwtDecode<AuthToken>(token)
+    return jwtDecode<AuthToken>(token);
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -114,9 +140,9 @@ function decodeToken(token: string): AuthToken | null {
  * Checks if a pathname matches any route in the routes array
  */
 function isMatchingRoute(pathname: string, routes: string[]): boolean {
-  return routes.some(route => pathname.startsWith(route))
+  return routes.some((route) => pathname.startsWith(route));
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
-}
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+};
