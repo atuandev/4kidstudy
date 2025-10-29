@@ -43,14 +43,6 @@ export function ReviewMistakes({
           </p>
         </div>
 
-        {/* Info box */}
-        <div className="w-full rounded-lg border-2 border-blue-200 bg-blue-50 p-4">
-          <p className="text-sm text-blue-800 lg:text-base">
-            💡 <span className="font-semibold">Lưu ý:</span> Phần này không tính
-            điểm, chỉ giúp bạn ôn luyện thêm!
-          </p>
-        </div>
-
         {/* Start Review Button */}
         <Button
           onClick={onStartReview}

@@ -17,9 +17,6 @@ export default async function LessonIdPage({ params }: LessonIdPageProps) {
     getLesson(lessonIdNumber),
   ]);
 
-  console.log(lessonExercises);
-  console.log(lesson);
-
   return (
     <Quiz
       lesson={lesson}

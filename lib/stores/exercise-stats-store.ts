@@ -87,21 +87,21 @@ export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
       exerciseDuration = Math.floor((currentTime - state.currentExerciseStartTime) / 1000);
     }
     
-    // Don't award points or count exercises during review mode
-    if (state.isReviewMode) {
-      set({
-        duration: state.duration + exerciseDuration,
-        currentExerciseStartTime: null,
-      });
-    } else {
-      set({
-        totalPoints: state.totalPoints + (isCorrect ? points : 0),
-        correctCount: state.correctCount + (isCorrect ? 1 : 0),
-        totalExercises: state.totalExercises + 1,
-        duration: state.duration + exerciseDuration,
-        currentExerciseStartTime: null,
-      });
+    // Award points based on phase and correctness
+    // Normal phase: full points if correct (10), 0 if wrong
+    // Review phase: half points if correct (5), 0 if wrong
+    let pointsToAward = 0;
+    if (isCorrect) {
+      pointsToAward = state.isReviewMode ? Math.floor(points / 2) : points;
     }
+    
+    set({
+      totalPoints: state.totalPoints + pointsToAward,
+      correctCount: state.correctCount + (isCorrect ? 1 : 0),
+      totalExercises: state.totalExercises + 1,
+      duration: state.duration + exerciseDuration,
+      currentExerciseStartTime: null,
+    });
   },
 
   skipExercise: () => {
@@ -114,20 +114,13 @@ export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
       exerciseDuration = Math.floor((currentTime - state.currentExerciseStartTime) / 1000);
     }
     
-    // Don't count skips during review mode
-    if (state.isReviewMode) {
-      set({
-        duration: state.duration + exerciseDuration,
-        currentExerciseStartTime: null,
-      });
-    } else {
-      set({
-        skippedCount: state.skippedCount + 1,
-        totalExercises: state.totalExercises + 1,
-        duration: state.duration + exerciseDuration,
-        currentExerciseStartTime: null,
-      });
-    }
+    // Count skips but don't award points (0 points for skip)
+    set({
+      skippedCount: state.skippedCount + 1,
+      totalExercises: state.totalExercises + 1,
+      duration: state.duration + exerciseDuration,
+      currentExerciseStartTime: null,
+    });
   },
 
   setReviewMode: (isReview: boolean) => {

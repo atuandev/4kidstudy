@@ -15,6 +15,9 @@ type QuizState = {
   exercises: Exercise[];
   lessonId: number;
   
+  // Attempt tracking
+  attemptId: number | null;
+  
   // Selection state
   selectedOption: number | undefined;
   status: QuizStatus;
@@ -34,6 +37,9 @@ type QuizActions = {
   // Initialize quiz
   initializeQuiz: (lessonId: number, exercises: Exercise[]) => void;
   resetQuiz: () => void;
+  
+  // Attempt tracking
+  setAttemptId: (attemptId: number) => void;
   
   // Navigation
   nextExercise: () => void;
@@ -70,6 +76,7 @@ const initialState: QuizState = {
   activeIndex: 0,
   exercises: [],
   lessonId: 0,
+  attemptId: null,
   selectedOption: undefined,
   status: 'none',
   pronunciation: {
@@ -90,6 +97,7 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
       lessonId,
       exercises,
       activeIndex: 0,
+      attemptId: null,
       selectedOption: undefined,
       status: 'none',
       pronunciation: {
@@ -104,6 +112,11 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
 
   resetQuiz: () => {
     set(initialState);
+  },
+
+  // Attempt tracking
+  setAttemptId: (attemptId: number) => {
+    set({ attemptId });
   },
 
   // Navigation

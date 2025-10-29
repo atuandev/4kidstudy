@@ -1,4 +1,5 @@
 // Core domain types
+export * from "./attempt";
 export * from "./topic";
 export * from "./grade";
 export * from "./flashcard";

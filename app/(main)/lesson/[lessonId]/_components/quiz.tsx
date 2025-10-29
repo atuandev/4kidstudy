@@ -32,15 +32,22 @@ const EXERCISE_TITLES = {
 
 export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
   // Audio hooks - must be called first to render audio elements
-  const { correctAudio, incorrectAudio, finishAudio, playCorrect, playIncorrect } = useQuizAudio();
+  const {
+    correctAudio,
+    incorrectAudio,
+    finishAudio,
+    playCorrect,
+    playIncorrect,
+  } = useQuizAudio();
 
   // Session management
-  const { startTime } = useQuizSession({
+  const { isInitializing } = useQuizSession({
     lessonId: lesson.id,
     exercises: lessonExercises,
   });
 
-  const currentDuration = useQuizDuration(startTime);
+  // Duration hook reads from store directly for reactivity
+  const currentDuration = useQuizDuration();
 
   // Quiz logic - pass audio play functions
   const {
@@ -60,15 +67,22 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
   } = useQuizLogic({ playCorrect, playIncorrect });
 
   // Stats
-  const { totalPoints, correctCount, skippedCount, setReviewMode } = useExerciseStatsStore();
-  const { updatePronunciation, shouldShowReview, startReviewPhase, wrongExercises, setPhase } = useQuizStore();
+  const { totalPoints, correctCount, skippedCount, setReviewMode } =
+    useExerciseStatsStore();
+  const {
+    updatePronunciation,
+    shouldShowReview,
+    startReviewPhase,
+    wrongExercises,
+    setPhase,
+  } = useQuizStore();
 
   const handlePronunciationStateChange = (state: string, score?: any) => {
     updatePronunciation(state, score);
   };
 
   const handleStartReview = () => {
-    setPhase('review');
+    setPhase("review");
     setReviewMode(true);
     startReviewPhase();
   };
@@ -76,14 +90,14 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
   // Quiz complete logic
   if (!exercise) {
     // If normal phase is complete and there are wrong exercises, show review transition
-    if (shouldShowReview() && phase === 'normal') {
+    if (shouldShowReview() && phase === "normal") {
       return (
         <>
           {incorrectAudio}
           {finishAudio}
           {correctAudio}
-          <ReviewMistakes 
-            wrongCount={wrongExercises.length} 
+          <ReviewMistakes
+            wrongCount={wrongExercises.length}
             onStartReview={handleStartReview}
           />
         </>
@@ -101,9 +115,10 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
     );
   }
 
-  const title = phase === 'review' 
-    ? `Ôn luyện - ${EXERCISE_TITLES[exercise.type] || "Exercise"}`
-    : EXERCISE_TITLES[exercise.type] || "Exercise";
+  const title =
+    phase === "review"
+      ? `Ôn luyện - ${EXERCISE_TITLES[exercise.type] || "Exercise"}`
+      : EXERCISE_TITLES[exercise.type] || "Exercise";
 
   return (
     <>
@@ -118,8 +133,8 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
         skipCount={skippedCount}
         totalPoints={totalPoints}
         duration={currentDuration}
-        unitTitle={phase === 'review' ? 'Ôn luyện' : lesson.topic.title}
-        lessonTitle={phase === 'review' ? 'Sửa lỗi sai' : lesson.title}
+        unitTitle={phase === "review" ? "Ôn luyện" : lesson.topic.title}
+        lessonTitle={phase === "review" ? "Sửa lỗi sai" : lesson.title}
       />
 
       <div className="h-[calc(100vh-260px)]">
@@ -172,7 +187,11 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
         onCheck={handleContinue}
         onSkip={handleSkip}
         showSkip={status === "none"}
-        isAutoSkipExercise={['SELECT_IMAGE', 'MULTIPLE_CHOICE', 'LISTENING'].includes(exercise.type)}
+        isAutoSkipExercise={[
+          "SELECT_IMAGE",
+          "MULTIPLE_CHOICE",
+          "LISTENING",
+        ].includes(exercise.type)}
         hintVi={exercise.hintVi}
         hintEn={exercise.hintEn}
       />

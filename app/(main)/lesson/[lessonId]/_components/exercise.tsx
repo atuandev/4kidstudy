@@ -1,5 +1,3 @@
-import { cn } from "@/lib/utils";
-
 import { Card } from "./card";
 import { MatchingExercise } from "./matching-exercise";
 import { PronunciationExercise } from "./pronunciation-exercise";
