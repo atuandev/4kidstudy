@@ -1,6 +1,7 @@
 import { useTransition } from 'react';
 import { useQuizStore } from '@/lib/stores/quiz-store';
 import { useExerciseStatsStore } from '@/lib/stores/exercise-stats-store';
+import { submitExercise } from '@/actions/attempt';
 
 type UseQuizLogicProps = {
   playCorrect: () => void;
@@ -17,6 +18,7 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     activeIndex,
     exercises,
     phase,
+    attemptId,
     nextExercise,
     selectOption,
     clearSelection,
@@ -26,7 +28,7 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     addWrongExercise,
   } = useQuizStore();
 
-  const { completeExercise, skipExercise } = useExerciseStatsStore();
+  const { completeExercise, skipExercise, startExercise, currentExerciseStartTime } = useExerciseStatsStore();
 
   const exercise = getCurrentExercise();
   const options = getOptions();
@@ -40,8 +42,21 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
         playIncorrect();
         setStatus('wrong');
         
-        if (exercise) {
+        if (exercise && attemptId) {
           completeExercise(false, exercise.points);
+          
+          // Submit to backend
+          const timeSec = currentExerciseStartTime 
+            ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
+            : 0;
+          
+          void submitExercise(attemptId, {
+            exerciseId: exercise.id,
+            isCorrect: false,
+            selectedOptionId: undefined,
+            timeSec,
+            points: 0, // Wrong answer = 0 points
+          });
         }
       });
       return;
@@ -51,11 +66,27 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
 
     // Auto-complete MATCHING exercise when option is selected
     // This happens when all pairs are matched
-    if (exercise?.type === 'MATCHING' && id > 0) {
+    if (exercise?.type === 'MATCHING' && id > 0 && attemptId) {
       startTransition(() => {
         playCorrect();
         setStatus('correct');
         completeExercise(true, exercise.points);
+        
+        // Submit to backend
+        const timeSec = currentExerciseStartTime 
+          ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
+          : 0;
+        
+        // Normal phase: 10 points, Review phase: 5 points
+        const pointsToAward = phase === 'review' ? 5 : 10;
+        
+        void submitExercise(attemptId, {
+          exerciseId: exercise.id,
+          isCorrect: true,
+          selectedOptionId: id,
+          timeSec,
+          points: pointsToAward,
+        });
       });
     }
   };
@@ -69,6 +100,20 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
       if (isReviewableType) {
         addWrongExercise(exercise);
       }
+    }
+
+    // Submit skip to backend (0 points)
+    if (exercise && attemptId) {
+      const timeSec = currentExerciseStartTime 
+        ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
+        : 0;
+      
+      void submitExercise(attemptId, {
+        exerciseId: exercise.id,
+        isCorrect: false,
+        timeSec,
+        points: 0, // Skip = 0 points
+      });
     }
 
     skipExercise();
@@ -96,7 +141,7 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
       return;
     }
 
-    if (!exercise) return;
+    if (!exercise || !attemptId) return;
 
     // Handle PRONUNCIATION exercise
     if (
@@ -107,6 +152,13 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
       const isGoodScore = pronunciation.score.overall >= 70;
       
       startTransition(() => {
+        const timeSec = currentExerciseStartTime 
+          ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
+          : 0;
+        
+        // Normal phase: 10 points, Review phase: 5 points
+        const pointsToAward = isGoodScore ? (phase === 'review' ? 5 : 10) : 0;
+        
         if (isGoodScore) {
           playCorrect();
           setStatus('correct');
@@ -116,6 +168,21 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
           setStatus('wrong');
           completeExercise(false, exercise.points);
         }
+        
+        // Submit to backend with pronunciation data
+        void submitExercise(attemptId, {
+          exerciseId: exercise.id,
+          isCorrect: isGoodScore,
+          timeSec,
+          points: pointsToAward,
+          pronunciation: {
+            accuracy: pronunciation.score.accuracy,
+            fluency: pronunciation.score.fluency,
+            completeness: pronunciation.score.completeness,
+            prosody: pronunciation.score.prosody,
+            overall: pronunciation.score.overall,
+          },
+        });
       });
       return;
     }
@@ -132,6 +199,13 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     const isCorrect = correctOption.id === selectedOption;
 
     startTransition(() => {
+      const timeSec = currentExerciseStartTime 
+        ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
+        : 0;
+      
+      // Normal phase: 10 points, Review phase: 5 points
+      const pointsToAward = isCorrect ? (phase === 'review' ? 5 : 10) : 0;
+      
       if (isCorrect) {
         playCorrect();
         setStatus('correct');
@@ -147,6 +221,15 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
           addWrongExercise(exercise);
         }
       }
+      
+      // Submit to backend
+      void submitExercise(attemptId, {
+        exerciseId: exercise.id,
+        isCorrect,
+        selectedOptionId: selectedOption,
+        timeSec,
+        points: pointsToAward,
+      });
     });
   };
 
