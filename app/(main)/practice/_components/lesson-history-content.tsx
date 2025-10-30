@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp, History } from "lucide-react";
+import { ChevronDown, ChevronUp, History, Trophy } from "lucide-react";
 
 import {
   SheetContent,
@@ -89,12 +89,79 @@ export function LessonHistoryContent({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   }
 
+  function getBestAttempt(): Attempt | null {
+    if (attempts.length === 0) return null;
+    const completedAttempts = attempts.filter((a) => a.isCompleted);
+    if (completedAttempts.length === 0) return null;
+    return completedAttempts.reduce((best, current) => {
+      if (current.totalScore > best.totalScore) return current;
+      if (current.totalScore === best.totalScore && current.accuracyPct > best.accuracyPct) return current;
+      return best;
+    });
+  }
+
+  const bestAttempt = getBestAttempt();
+
   return (
     <SheetContent className="sm:max-w-2xl w-full">
       <SheetHeader>
         <SheetTitle>Lịch sử luyện tập</SheetTitle>
         <SheetDescription>{lesson.title}</SheetDescription>
       </SheetHeader>
+
+      {!isLoadingAttempts && bestAttempt && (
+        <div className="mt-6 mx-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Trophy className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Kết quả tốt nhất</h3>
+          </div>
+          <div className="border-2 border-yellow-400 rounded-lg bg-gradient-to-br from-yellow-50 to-amber-50 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">Lần {bestAttempt.attemptNumber}</span>
+              </div>
+              <Badge className="bg-yellow-500 hover:bg-yellow-600">
+                Xuất sắc
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-5 gap-2">
+              <div>
+                <span className="text-muted-foreground">Điểm</span>
+                <p className="font-bold text-lg">
+                  {bestAttempt.totalScore}/{bestAttempt.maxScore}
+                </p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Độ chính xác</span>
+                <p className="font-bold text-lg">{bestAttempt.accuracyPct}%</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Đúng</span>
+                <p className="font-bold text-green-600 text-lg">
+                  {bestAttempt.correctCount}
+                </p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Sai</span>
+                <p className="font-bold text-red-600 text-lg">
+                  {bestAttempt.incorrectCount}
+                </p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Thời gian</span>
+                <p className="font-bold text-lg">
+                  {formatDuration(bestAttempt.durationSec)}
+                </p>
+              </div>
+            </div>
+
+            <div className="text-sm text-muted-foreground">
+              {formatDate(bestAttempt.createdAt)}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mt-6 space-y-4 m-4 overflow-y-auto">
         {isLoadingAttempts ? (
@@ -107,7 +174,12 @@ export function LessonHistoryContent({
             <p className="text-muted-foreground">Chưa có lịch sử luyện tập</p>
           </div>
         ) : (
-          attempts.map((attempt) => {
+          <>
+            <div className="flex items-center gap-2 mb-2">
+              <History className="h-5 w-5 text-muted-foreground" />
+              <h3 className="font-semibold text-lg">Tất cả lần luyện tập</h3>
+            </div>
+            {attempts.map((attempt) => {
             const isExpanded = expandedAttemptId === attempt.id;
             return (
               <div
@@ -304,7 +376,8 @@ export function LessonHistoryContent({
                 )}
               </div>
             );
-          })
+            })}
+          </>
         )}
       </div>
     </SheetContent>
