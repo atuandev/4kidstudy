@@ -37,6 +37,7 @@ export const Unit = ({ topic, lessons, activeLessonPercentage }: UnitProps) => {
                 // current={isCurrent}
                 // locked={isLocked}
                 percentage={activeLessonPercentage}
+                lesson={lesson}
               />
             );
           })}
