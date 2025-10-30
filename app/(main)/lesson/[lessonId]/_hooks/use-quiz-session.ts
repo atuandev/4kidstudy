@@ -21,11 +21,11 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
     phase,
     shouldShowReview,
   } = useQuizStore();
-  
+
   // Get state values that need to be reactive
   const startTime = useExerciseStatsStore((state) => state.startTime);
   const duration = useExerciseStatsStore((state) => state.duration);
-  
+
   const [isInitializing, setIsInitializing] = useState(true);
   const attemptCreatedRef = useRef(false);
   const attemptCompletedRef = useRef(false);
@@ -33,15 +33,17 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
 
   // Initialize quiz and session - reset everything on mount ONCE per lesson
   useEffect(() => {
+    const isNewLesson = lastLessonIdRef.current !== lessonId;
+
     // Reset refs if lesson changed (check BEFORE async function)
-    if (lastLessonIdRef.current !== lessonId) {
+    if (isNewLesson) {
       attemptCreatedRef.current = false;
       attemptCompletedRef.current = false;
       lastLessonIdRef.current = lessonId;
     }
-    
+
     async function initializeAttempt() {
-      // Prevent double initialization for same lesson
+      // Prevent double initialization for same lesson (handles Strict Mode)
       if (attemptCreatedRef.current) {
         return;
       }
@@ -63,6 +65,7 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
         setAttemptId(attempt.id);
       } catch (error) {
         console.error("Failed to start attempt:", error);
+        attemptCreatedRef.current = false; // Allow retry on error
       }
 
       if (exercises.length > 0) {
@@ -73,14 +76,6 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
     }
 
     void initializeAttempt();
-
-    return () => {
-      useExerciseStatsStore.getState().endSession();
-      // Reset the flag so it can initialize again (important for React Strict Mode)
-      attemptCreatedRef.current = false;
-    };
-    // Only run on lessonId change to prevent double initialization
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonId]);
 
   // Start new exercise when activeIndex changes

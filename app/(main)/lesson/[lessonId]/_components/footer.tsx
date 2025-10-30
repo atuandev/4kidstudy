@@ -119,7 +119,7 @@ export const Footer = ({
         >
           {status === "none" && "Kiểm tra"}
           {status === "correct" && "Tiếp tục"}
-          {status === "wrong" && (isAutoSkipExercise ? "Tiếp tục" : "Làm lại")}
+          {status === "wrong" && "Tiếp tục"}
           {status === "completed" && "Tiếp tục"}
         </Button>
       </div>
