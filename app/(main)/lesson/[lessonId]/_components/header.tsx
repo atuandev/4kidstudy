@@ -1,3 +1,5 @@
+'use client';
+
 import {
   ArrowLeft,
   CheckCircle2,
@@ -5,7 +7,19 @@ import {
   SkipForward,
   Trophy
 } from "lucide-react";
+import { useState } from "react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useRouter } from "next/navigation";
@@ -31,7 +45,12 @@ export const Header = ({
   unitTitle,
   lessonTitle,
 }: HeaderProps) => {
-  const router = useRouter(); 
+  const router = useRouter();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleExit = () => {
+    router.push("/practice");
+  };
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -49,13 +68,27 @@ export const Header = ({
       {/* Top row with close button and stats */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-x-4">
-          <Button
-            variant="default"
-            size="icon"
-            onClick={() => router.push("/practice")}
-          >
-            <ArrowLeft className="size-6" />
-          </Button>
+          <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <AlertDialogTrigger asChild>
+              <Button variant="default" size="icon">
+                <ArrowLeft className="size-6" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Bạn có chắc muốn thoát?</AlertDialogTitle>
+                <AlertDialogDescription className="text-base">
+                  Tiến trình của bạn sẽ không được lưu. Bạn sẽ phải bắt đầu lại bài học này từ đầu.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                <AlertDialogAction onClick={handleExit}>
+                  Thoát
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           <div className="flex items-center gap-x-2">
             <span className="text-xl font-bold text-slate-700">

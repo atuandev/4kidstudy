@@ -87,7 +87,7 @@ export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
       {/* Navigation Controls */}
       <Card>
         <CardContent>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-center gap-4">
             <Button
               variant="primary"
               onClick={handlePrevious}

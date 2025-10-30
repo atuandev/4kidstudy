@@ -220,7 +220,7 @@ export function MatchingExercise({
             ) : (
               <p
                 className={cn(
-                  "text-sm font-medium lg:text-base text-center",
+                  "font-semibold text-neutral-600 text-xl text-center",
                   selectedLeft === option.id && "text-blue-600",
                   isMatched(option) && "text-green-600",
                   wrongMatch?.leftId === option.id && "text-red-600"
@@ -250,7 +250,7 @@ export function MatchingExercise({
           >
             <p
               className={cn(
-                "text-sm font-medium lg:text-base text-center",
+                "font-semibold text-neutral-600 text-xl text-center",
                 selectedRight === option.id && "text-blue-600",
                 isMatched(option) && "text-green-600",
                 wrongMatch?.rightId === option.id && "text-red-600"
