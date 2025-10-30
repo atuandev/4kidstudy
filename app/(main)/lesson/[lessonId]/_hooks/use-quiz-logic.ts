@@ -45,6 +45,11 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
         if (exercise && attemptId) {
           completeExercise(false, exercise.points);
           
+          // Add to wrong list if in normal phase
+          if (phase === 'normal') {
+            addWrongExercise(exercise);
+          }
+          
           // Submit to backend
           const timeSec = currentExerciseStartTime 
             ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
@@ -96,7 +101,7 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
 
     // Add to wrong list if not in review phase and is reviewable type
     if (exercise && phase === 'normal') {
-      const isReviewableType = ['SELECT_IMAGE', 'MULTIPLE_CHOICE', 'LISTENING'].includes(exercise.type);
+      const isReviewableType = ['SELECT_IMAGE', 'MULTIPLE_CHOICE', 'LISTENING', 'MATCHING'].includes(exercise.type);
       if (isReviewableType) {
         addWrongExercise(exercise);
       }
@@ -122,9 +127,9 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
 
   const handleContinue = () => {
     if (status === 'wrong') {
-      // For auto-skip exercises (SELECT_IMAGE, MULTIPLE_CHOICE, LISTENING), 
+      // For auto-skip exercises (SELECT_IMAGE, MULTIPLE_CHOICE, LISTENING, MATCHING), 
       // skip to next exercise instead of retrying
-      const isAutoSkipType = exercise && ['SELECT_IMAGE', 'MULTIPLE_CHOICE', 'LISTENING'].includes(exercise.type);
+      const isAutoSkipType = exercise && ['SELECT_IMAGE', 'MULTIPLE_CHOICE', 'LISTENING', 'MATCHING'].includes(exercise.type);
       
       if (isAutoSkipType) {
         nextExercise();
@@ -216,7 +221,7 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
         completeExercise(false, exercise.points);
         
         // Add to wrong list if in normal phase and is reviewable type
-        const isReviewableType = ['SELECT_IMAGE', 'MULTIPLE_CHOICE', 'LISTENING'].includes(exercise.type);
+        const isReviewableType = ['SELECT_IMAGE', 'MULTIPLE_CHOICE', 'LISTENING', 'MATCHING'].includes(exercise.type);
         if (phase === 'normal' && isReviewableType) {
           addWrongExercise(exercise);
         }

@@ -1,11 +1,22 @@
 "use client";
 
-import { Check, Crown, Star } from "lucide-react";
+import { Check, Crown, History, Star, Target } from "lucide-react";
 import Link from "next/link";
 import { CircularProgressbarWithChildren } from "react-circular-progressbar";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Sheet } from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Lesson } from "@/types";
+import { LessonHistoryContent } from "./lesson-history-content";
 
 import "react-circular-progressbar/dist/styles.css";
 
@@ -16,6 +27,7 @@ type LessonButtonProps = {
   locked?: boolean;
   current?: boolean;
   percentage: number;
+  lesson: Lesson;
 };
 
 export const LessonButton = ({
@@ -25,7 +37,10 @@ export const LessonButton = ({
   locked,
   current,
   percentage,
+  lesson,
 }: LessonButtonProps) => {
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
   const cycleLength = 8;
   const cycleIndex = index % cycleLength;
 
@@ -39,82 +54,69 @@ export const LessonButton = ({
   const rightPosition = indentationLevel * 40;
 
   const isFirst = index === 0;
-  const isLast = index === totalCount;
   const isCompleted = !current && !locked;
 
-  const Icon = isCompleted ? Check : isLast ? Crown : Star;
-
-  const href = isCompleted ? `/lesson/${id}` : "/lesson";
-
   return (
-    <Link
-      href={href}
-      aria-disabled={locked}
-      style={{ pointerEvents: locked ? "none" : "auto" }}
-    >
-      <div
-        className="relative"
-        style={{
-          right: `${rightPosition}px`,
-          marginTop: isFirst && !isCompleted ? 60 : 24,
-        }}
-      >
-        {current ? (
-          <div className="relative h-[102px] w-[102px]">
-            <div className="absolute -top-6 left-2.5 z-10 animate-bounce rounded-xl border-2 bg-white px-3 py-2.5 font-bold uppercase tracking-wide text-green-500">
-              Start
-              <div
-                className="absolute -bottom-2 left-1/2 h-0 w-0 -translate-x-1/2 transform border-x-8 border-t-8 border-x-transparent"
-                aria-hidden
-              />
-            </div>
-            <CircularProgressbarWithChildren
-              value={Number.isNaN(percentage) ? 0 : percentage}
-              styles={{
-                path: {
-                  stroke: "#4ade80",
-                },
-                trail: {
-                  stroke: "#e5e7eb",
-                },
-              }}
-            >
-              <Button
-                size="rounded"
-                variant={locked ? "locked" : "secondary"}
-                className="h-[70px] w-[70px] border-b-8"
-              >
-                <Icon
-                  className={cn(
-                    "h-10 w-10",
-                    locked
-                      ? "fill-neutral-400 stroke-neutral-400 text-neutral-400"
-                      : "fill-primary-foreground text-primary-foreground",
-                    isCompleted && "fill-none stroke-[4]"
-                  )}
-                />
-              </Button>
-            </CircularProgressbarWithChildren>
-          </div>
-        ) : (
-          <Button
-            size="rounded"
-            variant={locked ? "locked" : "secondary"}
-            className="h-[70px] w-[70px] border-b-8"
+    <>
+      <Popover>
+        <PopoverTrigger asChild>
+          <div
+            className="relative cursor-pointer"
+            style={{
+              right: `${rightPosition}px`,
+              marginTop: isFirst && !isCompleted ? 60 : 24,
+            }}
           >
-            <p className="text-2xl font-bold">{index + 1}</p>
-            {/* <Icon
-              className={cn(
-                "h-10 w-10",
-                locked
-                  ? "fill-neutral-400 stroke-neutral-400 text-neutral-400"
-                  : "fill-primary-foreground text-primary-foreground",
-                isCompleted && "fill-none stroke-[4]"
-              )}
-            /> */}
-          </Button>
-        )}
-      </div>
-    </Link>
+            <Button
+              size="rounded"
+              variant={locked ? "locked" : "secondary"}
+              className="h-[70px] w-[70px] border-b-8"
+            >
+              <p className="text-2xl font-bold">{index + 1}</p>
+            </Button>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent side="right" className="w-80">
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold text-lg">{lesson.title}</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {lesson.description}
+              </p>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm">
+                <Target className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Số bài tập:</span>
+                <Badge>{lesson._count?.exercises}</Badge>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="flex flex-col gap-2">
+              <Button asChild className="w-full" variant="secondary">
+                <Link href={`/lesson/${id}`}>Vào luyện tập</Link>
+              </Button>
+              <Button className="w-full" onClick={() => setIsSheetOpen(true)}>
+                <History className="h-4 w-4 mr-2" />
+                Xem lịch sử luyện tập
+              </Button>
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <LessonHistoryContent
+          lesson={lesson}
+          lessonId={id}
+          isOpen={isSheetOpen}
+        />
+      </Sheet>
+    </>
   );
 };

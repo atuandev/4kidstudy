@@ -181,7 +181,7 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
   addWrongExercise: (exercise: Exercise) => {
     const state = get();
     // Only add if not already in the list and is reviewable exercise type
-    const isReviewableType = ['SELECT_IMAGE', 'MULTIPLE_CHOICE', 'LISTENING'].includes(exercise.type);
+    const isReviewableType = ['SELECT_IMAGE', 'MULTIPLE_CHOICE', 'LISTENING', 'MATCHING'].includes(exercise.type);
     const alreadyAdded = state.wrongExercises.some(e => e.id === exercise.id);
     
     if (isReviewableType && !alreadyAdded) {
