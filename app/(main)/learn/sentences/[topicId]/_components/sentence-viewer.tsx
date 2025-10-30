@@ -98,7 +98,7 @@ export function SentenceViewer({
       {/* Navigation Controls */}
       <Card>
         <CardContent>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-center gap-4">
             <Button
               variant="secondary"
               onClick={handlePrevious}

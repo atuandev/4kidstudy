@@ -136,7 +136,7 @@ export function ListeningExercise({
             key={option.id}
             onClick={() => onSelect(option.id)}
             className={cn(
-              "p-4 rounded-xl border-2 border-b-4 cursor-pointer hover:bg-black/5 active:border-b-2",
+              "p-6 rounded-xl border-2 border-b-4 cursor-pointer hover:bg-black/5 active:border-b-2",
               selectedOption === option.id && "border-sky-300 bg-sky-100 hover:bg-sky-100",
               selectedOption === option.id && status === "correct" && "border-green-300 bg-green-100 hover:bg-green-100",
               selectedOption === option.id && status === "wrong" && "border-rose-300 bg-rose-100 hover:bg-rose-100",
@@ -145,21 +145,13 @@ export function ListeningExercise({
           >
             <div className="text-center">
               <p className={cn(
-                "text-sm font-medium text-neutral-600 lg:text-base",
+                "font-semibold text-neutral-600 text-xl",
                 selectedOption === option.id && "text-sky-500",
                 selectedOption === option.id && status === "correct" && "text-green-500",
                 selectedOption === option.id && status === "wrong" && "text-rose-500"
               )}>
                 {option.text}
               </p>
-              <div className={cn(
-                "mt-2 flex h-[20px] w-[20px] items-center justify-center rounded-lg border-2 text-xs font-semibold text-neutral-400 lg:h-[30px] lg:w-[30px] lg:text-[15px] mx-auto",
-                selectedOption === option.id && "border-sky-300 text-sky-500",
-                selectedOption === option.id && status === "correct" && "border-green-500 text-green-500",
-                selectedOption === option.id && status === "wrong" && "border-rose-500 text-rose-500"
-              )}>
-                {i + 1}
-              </div>
             </div>
           </div>
         ))}
@@ -216,10 +208,10 @@ export function ListeningExercise({
               onClick={() => handleWordClick(word.id)}
               disabled={disabled || word.isSelected}
               className={cn(
-                "px-3 py-2 rounded-lg text-sm font-medium border-2 transition-colors",
+                "px-3 py-2 rounded-lg font-semibold text-neutral-600 text-xl border-2 transition-colors",
                 word.isSelected 
                   ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400 cursor-pointer",
+                  : "bg-white text-neutral-600 border-gray-300 hover:bg-gray-50 hover:border-gray-400 cursor-pointer",
                 disabled && "opacity-50"
               )}
             >

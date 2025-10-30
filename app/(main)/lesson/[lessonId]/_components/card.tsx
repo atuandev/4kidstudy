@@ -73,7 +73,7 @@ export const Card = ({
             )}
             {text && (
               <p className={cn(
-                "text-sm font-medium text-neutral-600 lg:text-base",
+                "font-medium text-neutral-600 lg:text-lg",
                 selected && "text-sky-500",
                 selected && status === "correct" && "text-green-500",
                 selected && status === "wrong" && "text-rose-500"
@@ -94,7 +94,7 @@ export const Card = ({
             )}
             <div className="flex items-center justify-between">
               <p className={cn(
-                "text-sm text-neutral-600 lg:text-base",
+                "text-sm text-neutral-600 lg:text-lg",
                 selected && "text-sky-500",
                 selected && status === "correct" && "text-green-500",
                 selected && status === "wrong" && "text-rose-500"
@@ -117,7 +117,7 @@ export const Card = ({
         return (
           <div className="text-center">
             <p className={cn(
-              "text-sm font-medium text-neutral-700 lg:text-base",
+              "text-sm font-medium text-neutral-700 lg:text-lg",
               selected && "text-sky-500",
               isMatched && "text-green-500",
               selected && status === "wrong" && "text-rose-500"
@@ -142,7 +142,7 @@ export const Card = ({
         return (
           <div className="text-center">
             <p className={cn(
-              "text-sm font-medium text-neutral-600 lg:text-base",
+              "font-medium text-neutral-600 lg:text-lg",
               selected && "text-sky-500",
               selected && status === "correct" && "text-green-500",
               selected && status === "wrong" && "text-rose-500"
@@ -193,7 +193,7 @@ export const Card = ({
         return (
           <div className="flex items-center justify-between">
             <p className={cn(
-              "text-sm text-neutral-600 lg:text-base",
+              "font-medium text-neutral-600 lg:text-lg",
               selected && "text-sky-500",
               selected && status === "correct" && "text-green-500",
               selected && status === "wrong" && "text-rose-500"

@@ -95,7 +95,7 @@ export function MultipleChoiceExercise({
               {/* Option Text and Number */}
               <div className="flex items-center justify-between">
                 <p className={cn(
-                  "text-sm text-neutral-600 lg:text-base",
+                  "font-semibold text-neutral-600 text-xl",
                   isFillInTheBlank && "font-medium text-center flex-1",
                   selectedOption === option.id && "text-sky-500",
                   selectedOption === option.id && status === "correct" && "text-green-500",
@@ -103,32 +103,7 @@ export function MultipleChoiceExercise({
                 )}>
                   {option.text}
                 </p>
-
-                {!isFillInTheBlank && (
-                  <div className={cn(
-                    "flex h-[20px] w-[20px] items-center justify-center rounded-lg border-2 text-xs font-semibold text-neutral-400 lg:h-[30px] lg:w-[30px] lg:text-[15px]",
-                    selectedOption === option.id && "border-sky-300 text-sky-500",
-                    selectedOption === option.id && status === "correct" && "border-green-500 text-green-500",
-                    selectedOption === option.id && status === "wrong" && "border-rose-500 text-rose-500"
-                  )}>
-                    {i + 1}
-                  </div>
-                )}
               </div>
-
-              {/* For fill-in-the-blank, show the number below */}
-              {isFillInTheBlank && (
-                <div className="mt-2 flex justify-center">
-                  <div className={cn(
-                    "flex h-[20px] w-[20px] items-center justify-center rounded-lg border-2 text-xs font-semibold text-neutral-400 lg:h-[30px] lg:w-[30px] lg:text-[15px]",
-                    selectedOption === option.id && "border-sky-300 text-sky-500",
-                    selectedOption === option.id && status === "correct" && "border-green-500 text-green-500",
-                    selectedOption === option.id && status === "wrong" && "border-rose-500 text-rose-500"
-                  )}>
-                    {i + 1}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         ))}
