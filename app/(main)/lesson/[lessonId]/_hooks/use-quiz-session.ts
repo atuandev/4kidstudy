@@ -21,34 +21,41 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
     phase,
     shouldShowReview,
   } = useQuizStore();
-  const {
-    startSession,
-    endSession,
-    startExercise,
-    resetStats,
-    startTime,
-    duration,
-  } = useExerciseStatsStore();
+  
+  // Get state values that need to be reactive
+  const startTime = useExerciseStatsStore((state) => state.startTime);
+  const duration = useExerciseStatsStore((state) => state.duration);
+  
   const [isInitializing, setIsInitializing] = useState(true);
   const attemptCreatedRef = useRef(false);
   const attemptCompletedRef = useRef(false);
+  const lastLessonIdRef = useRef<number | null>(null);
 
-  // Initialize quiz and session - reset everything on mount ONCE
+  // Initialize quiz and session - reset everything on mount ONCE per lesson
   useEffect(() => {
+    // Reset refs if lesson changed (check BEFORE async function)
+    if (lastLessonIdRef.current !== lessonId) {
+      attemptCreatedRef.current = false;
+      attemptCompletedRef.current = false;
+      lastLessonIdRef.current = lessonId;
+    }
+    
     async function initializeAttempt() {
-      // Prevent double initialization
-      if (attemptCreatedRef.current) return;
+      // Prevent double initialization for same lesson
+      if (attemptCreatedRef.current) {
+        return;
+      }
       attemptCreatedRef.current = true;
 
       setIsInitializing(true);
 
       // Reset everything first to ensure clean state
       resetQuiz();
-      resetStats();
+      useExerciseStatsStore.getState().resetStats();
 
       // Then initialize with new data
       initializeQuiz(lessonId, exercises);
-      startSession();
+      useExerciseStatsStore.getState().startSession();
 
       // Start attempt on backend
       try {
@@ -59,7 +66,7 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
       }
 
       if (exercises.length > 0) {
-        startExercise();
+        useExerciseStatsStore.getState().startExercise();
       }
 
       setIsInitializing(false);
@@ -68,7 +75,9 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
     void initializeAttempt();
 
     return () => {
-      endSession();
+      useExerciseStatsStore.getState().endSession();
+      // Reset the flag so it can initialize again (important for React Strict Mode)
+      attemptCreatedRef.current = false;
     };
     // Only run on lessonId change to prevent double initialization
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -77,9 +86,9 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
   // Start new exercise when activeIndex changes
   useEffect(() => {
     if (activeIndex > 0 && activeIndex < exercises.length) {
-      startExercise();
+      useExerciseStatsStore.getState().startExercise();
     }
-  }, [activeIndex, exercises.length, startExercise]);
+  }, [activeIndex, exercises.length]);
 
   // Complete attempt when quiz is truly finished
   useEffect(() => {
@@ -110,7 +119,7 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
           finalDuration = 1;
         }
 
-        endSession();
+        useExerciseStatsStore.getState().endSession();
 
         // Complete attempt on backend with calculated duration
         try {
@@ -131,7 +140,6 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
     shouldShowReview,
     startTime,
     duration,
-    endSession,
   ]);
 
   return {
@@ -143,23 +151,39 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
 export function useQuizDuration() {
   const startTime = useExerciseStatsStore((state) => state.startTime);
   const [duration, setDuration] = useState(0);
-  console.log("duration", duration);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    // Clear any existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
     if (!startTime) {
       setDuration(0);
       return;
     }
 
+    // Function to calculate and update duration
+    const updateDuration = () => {
+      const now = Date.now();
+      const newDuration = Math.floor((now - startTime) / 1000);
+      setDuration(newDuration);
+    };
+
     // Update immediately
-    setDuration(Math.floor((Date.now() - startTime) / 1000));
+    updateDuration();
 
     // Then update every second
-    const interval = setInterval(() => {
-      setDuration(Math.floor((Date.now() - startTime) / 1000));
-    }, 1000);
+    intervalRef.current = setInterval(updateDuration, 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
   }, [startTime]);
 
   return duration;

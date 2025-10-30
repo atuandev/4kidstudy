@@ -41,12 +41,11 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
   } = useQuizAudio();
 
   // Session management
-  const { isInitializing } = useQuizSession({
+  useQuizSession({
     lessonId: lesson.id,
     exercises: lessonExercises,
   });
 
-  // Duration hook reads from store directly for reactivity
   const currentDuration = useQuizDuration();
 
   // Quiz logic - pass audio play functions
