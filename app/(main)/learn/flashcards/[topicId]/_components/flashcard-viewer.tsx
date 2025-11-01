@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, RotateCcw, BookOpen, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FlashcardComponent } from "./flashcard";
 import { Flashcard } from "@/types";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 interface FlashcardViewerProps {
   flashcards: Flashcard[];
@@ -20,7 +21,17 @@ interface FlashcardViewerProps {
 }
 
 export function FlashcardViewer({ flashcards, onRecordReview }: FlashcardViewerProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const searchParams = useSearchParams();
+  const initialIndex = parseInt(searchParams.get('index') || '0', 10);
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+  // Update index when URL changes
+  useEffect(() => {
+    const index = parseInt(searchParams.get('index') || '0', 10);
+    if (index >= 0 && index < flashcards.length) {
+      setCurrentIndex(index);
+    }
+  }, [searchParams, flashcards.length]);
 
   const handleNext = () => {
     if (currentIndex < flashcards.length - 1) {

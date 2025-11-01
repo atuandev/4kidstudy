@@ -11,8 +11,9 @@ import {
   RotateCcw,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SentenceCard } from "./sentence-card";
+import { useSearchParams } from "next/navigation";
 
 interface SentenceViewerProps {
   sentenceImages: SentenceImage[];
@@ -25,7 +26,17 @@ export function SentenceViewer({
   topicTitle,
   onRecordReview,
 }: SentenceViewerProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const searchParams = useSearchParams();
+  const initialIndex = parseInt(searchParams.get('index') || '0', 10);
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+  // Update index when URL changes
+  useEffect(() => {
+    const index = parseInt(searchParams.get('index') || '0', 10);
+    if (index >= 0 && index < sentenceImages.length) {
+      setCurrentIndex(index);
+    }
+  }, [searchParams, sentenceImages.length]);
 
   const handleNext = () => {
     if (currentIndex < sentenceImages.length - 1) {

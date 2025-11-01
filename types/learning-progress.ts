@@ -39,3 +39,15 @@ export interface LearningProgressStats {
     inProgress: number;
   };
 }
+
+export interface TopicProgress {
+  topicId: number;
+  totalFlashcards: number;
+  reviewedFlashcards: number;
+  flashcardProgress: number;
+  totalSentences: number;
+  reviewedSentences: number;
+  sentenceProgress: number;
+  lastReviewedFlashcardIndex?: number;
+  lastReviewedSentenceIndex?: number;
+}
