@@ -8,15 +8,18 @@ import { Volume2, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Flashcard } from "@/types";
 import { AudioRecord } from "./audio-record";
+import { ReviewContentFormData } from "@/schemas/learning-progress";
 
 interface FlashcardComponentProps {
   flashcard: Flashcard;
   className?: string;
+  onRecordReview?: (body: ReviewContentFormData) => Promise<unknown>;
 }
 
 export function FlashcardComponent({
   flashcard,
   className,
+  onRecordReview,
 }: FlashcardComponentProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +57,23 @@ export function FlashcardComponent({
         currentPlayPromiseRef.current = playPromise;
 
         await playPromise;
-        
+
+        // Record review whenever audio plays successfully (both manual and autoplay)
+        try {
+          if (typeof onRecordReview === 'function') {
+            // fire-and-forget
+            onRecordReview({ 
+              contentType: 'FLASHCARD', 
+              flashcardId: flashcard.id,
+              sentenceId: undefined 
+            }).catch((error: unknown) => {
+              console.error('record review failed', error);
+            });
+          }
+        } catch (err) {
+          console.error('record review error', err);
+        }
+
         // If manual play succeeds, mark user as having interacted and clear autoplay failure
         if (isManualPlay) {
           setHasUserInteracted(true);

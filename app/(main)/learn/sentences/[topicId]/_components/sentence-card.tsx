@@ -13,18 +13,32 @@ import {
 } from "@/components/ui/tooltip";
 import { AudioRecord } from "./audio-record";
 import { AudioControl } from "@/components/audio-control";
+import { ReviewContentFormData } from "@/schemas/learning-progress";
 
 interface SentenceCardProps {
   sentenceImage: SentenceImage;
+  onRecordReview?: (body: ReviewContentFormData) => Promise<unknown>;
 }
 
 export function SentenceCard({
   sentenceImage,
+  onRecordReview,
 }: SentenceCardProps) {
 
-  const handlePlayAudio = (audioUrl: string) => {
+  const handlePlayAudio = (audioUrl: string, sentenceId: number) => {
     const audio = new Audio(audioUrl);
-    audio.play().catch((error) => {
+    audio.play().then(() => {
+      // record review if handler provided
+      if (typeof onRecordReview === 'function') {
+        onRecordReview({ 
+          contentType: 'SENTENCE', 
+          flashcardId: undefined,
+          sentenceId 
+        }).catch((error: unknown) => {
+          console.error('record review failed', error);
+        });
+      }
+    }).catch((error) => {
       console.error("Error playing audio:", error);
     });
   };
@@ -82,7 +96,7 @@ export function SentenceCard({
                       variant="ghost"
                       size="icon"
                       className="h-10 w-10 shrink-0 bg-blue-50 hover:bg-blue-100 rounded-full"
-                      onClick={() => handlePlayAudio(sentence.audioUrl!)}
+                      onClick={() => handlePlayAudio(sentence.audioUrl!, sentence.id)}
                     >
                       <Volume2 className="h-5 w-5 text-blue-600" />
                     </Button>

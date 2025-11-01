@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { getSentenceImagesByTopicId } from "@/actions/sentence";
 import { SentenceViewer } from "./_components/sentence-viewer";
 import { getTopicById } from "@/actions/topic";
+import { reviewContent } from '@/actions/learning-progress';
 
 interface SentencesTopicPageProps {
   params: Promise<{
@@ -20,7 +21,7 @@ export default async function SentencesTopicPage({
 
   return (
     <Suspense fallback={<p>Loading...</p>}>
-      <SentenceViewer sentenceImages={sentenceImages} topicTitle={topic.title} />
+      <SentenceViewer sentenceImages={sentenceImages} topicTitle={topic.title} onRecordReview={reviewContent} />
     </Suspense>
   );
 }

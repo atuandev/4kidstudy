@@ -10,9 +10,16 @@ import Link from "next/link";
 
 interface FlashcardViewerProps {
   flashcards: Flashcard[];
+  // server action passed down to record reviews when user plays audio
+  onRecordReview?: (body: {
+    contentType: 'FLASHCARD' | 'SENTENCE';
+    flashcardId?: number;
+    sentenceId?: number;
+    isMastered?: boolean;
+  }) => Promise<any>;
 }
 
-export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
+export function FlashcardViewer({ flashcards, onRecordReview }: FlashcardViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const handleNext = () => {
@@ -81,7 +88,11 @@ export function FlashcardViewer({ flashcards }: FlashcardViewerProps) {
 
       {/* Flashcard */}
       <div className="mb-8">
-        <FlashcardComponent flashcard={currentFlashcard} className="mb-8" />
+        <FlashcardComponent
+          flashcard={currentFlashcard}
+          className="mb-8"
+          onRecordReview={onRecordReview}
+        />
       </div>
 
       {/* Navigation Controls */}

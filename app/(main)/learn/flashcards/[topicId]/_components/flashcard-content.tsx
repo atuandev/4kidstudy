@@ -1,6 +1,7 @@
 import { Flashcard } from "@/types";
 import { FlashcardViewer } from "./flashcard-viewer";
 import { ErrorDisplay } from "./error-display";
+import { reviewContent } from '@/actions/learning-progress';
 
 export async function FlashcardsContent({ data }: { data: Flashcard[] }) {
   if (!data || !Array.isArray(data)) {
@@ -16,5 +17,5 @@ export async function FlashcardsContent({ data }: { data: Flashcard[] }) {
     (a: Flashcard, b: Flashcard) => a.order - b.order
   );
 
-  return <FlashcardViewer flashcards={sortedFlashcards} />;
+  return <FlashcardViewer flashcards={sortedFlashcards} onRecordReview={reviewContent} />;
 }

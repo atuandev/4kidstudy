@@ -17,11 +17,13 @@ import { SentenceCard } from "./sentence-card";
 interface SentenceViewerProps {
   sentenceImages: SentenceImage[];
   topicTitle: string;
+  onRecordReview?: (body: { contentType: 'FLASHCARD' | 'SENTENCE'; flashcardId?: number; sentenceId?: number; isMastered?: boolean }) => Promise<any>;
 }
 
 export function SentenceViewer({
   sentenceImages,
   topicTitle,
+  onRecordReview,
 }: SentenceViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -92,7 +94,7 @@ export function SentenceViewer({
 
       {/* Sentence Card */}
       <div className="mb-8">
-        <SentenceCard sentenceImage={currentSentenceImage} />
+        <SentenceCard sentenceImage={currentSentenceImage} onRecordReview={onRecordReview} />
       </div>
 
       {/* Navigation Controls */}
