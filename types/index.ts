@@ -8,3 +8,4 @@ export * from "./exercise";
 export * from "./sentence";
 export * from "./user";
 export * from "./token";
+export * from "./learning-progress";

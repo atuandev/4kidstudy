@@ -8,7 +8,7 @@ import { StickyWrapper } from "@/components/sticky-wrapper";
 
 export default function Units() {
   const { topics } = useGradeStore();
-  
+  console.log('All topics:', topics);
   return (
     <div className="flex flex-row-reverse gap-[48px] px-6">
       <StickyWrapper>
@@ -20,7 +20,9 @@ export default function Units() {
               topic={topic}
               lessons={topic.lessons}
               activeLessonPercentage={0}
+                
             />
+            
           </div>
         ))}
       </FeedWrapper>
