@@ -1,3 +1,5 @@
+import { Exercise } from './exercise';
+
 export type PronunciationScore = {
   accuracy?: number;
   fluency?: number;
@@ -18,6 +20,7 @@ export type AttemptDetail = {
   maxPoints: number;
   attempts: number;
   pronunciation?: PronunciationScore;
+  exercise?: Exercise;
   createdAt: string;
   updatedAt: string;
 };

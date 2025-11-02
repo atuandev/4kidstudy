@@ -17,7 +17,6 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     pronunciation,
     activeIndex,
     exercises,
-    phase,
     attemptId,
     nextExercise,
     selectOption,
@@ -25,7 +24,9 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     setStatus,
     getCurrentExercise,
     getOptions,
-    addWrongExercise,
+    getExerciseAttemptCount,
+    incrementExerciseAttempt,
+    resetPronunciation,
   } = useQuizStore();
 
   const { completeExercise, skipExercise, startExercise, currentExerciseStartTime } = useExerciseStatsStore();
@@ -38,31 +39,28 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
 
     // Handle wrong match signal from MATCHING exercise
     if (id === -1) {
+      if (!exercise || !attemptId) return;
+      
+      const attemptCount = getExerciseAttemptCount(exercise.id);
+      incrementExerciseAttempt(exercise.id);
+      
       startTransition(() => {
         playIncorrect();
         setStatus('wrong');
+        completeExercise(false, 0);
         
-        if (exercise && attemptId) {
-          completeExercise(false, exercise.points);
-          
-          // Add to wrong list if in normal phase
-          if (phase === 'normal') {
-            addWrongExercise(exercise);
-          }
-          
-          // Submit to backend
-          const timeSec = currentExerciseStartTime 
-            ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
-            : 0;
-          
-          void submitExercise(attemptId, {
-            exerciseId: exercise.id,
-            isCorrect: false,
-            selectedOptionId: undefined,
-            timeSec,
-            points: 0, // Wrong answer = 0 points
-          });
-        }
+        // Submit to backend
+        const timeSec = currentExerciseStartTime 
+          ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
+          : 0;
+        
+        void submitExercise(attemptId, {
+          exerciseId: exercise.id,
+          isCorrect: false,
+          selectedOptionId: undefined,
+          timeSec,
+          points: 0,
+        });
       });
       return;
     }
@@ -72,18 +70,21 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     // Auto-complete MATCHING exercise when option is selected
     // This happens when all pairs are matched
     if (exercise?.type === 'MATCHING' && id > 0 && attemptId) {
+      const attemptCount = getExerciseAttemptCount(exercise.id);
+      incrementExerciseAttempt(exercise.id);
+      
+      // First attempt: 10 points, Second attempt: 5 points
+      const pointsToAward = attemptCount === 0 ? 10 : 5;
+      
       startTransition(() => {
         playCorrect();
         setStatus('correct');
-        completeExercise(true, exercise.points);
+        completeExercise(true, pointsToAward);
         
         // Submit to backend
         const timeSec = currentExerciseStartTime 
           ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
           : 0;
-        
-        // Normal phase: 10 points, Review phase: 5 points
-        const pointsToAward = phase === 'review' ? 5 : 10;
         
         void submitExercise(attemptId, {
           exerciseId: exercise.id,
@@ -99,14 +100,6 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
   const handleSkip = () => {
     if (status !== 'none') return;
 
-    // Add to wrong list if not in review phase and is reviewable type
-    if (exercise && phase === 'normal') {
-      const isReviewableType = ['SELECT_IMAGE', 'MULTIPLE_CHOICE', 'LISTENING', 'MATCHING'].includes(exercise.type);
-      if (isReviewableType) {
-        addWrongExercise(exercise);
-      }
-    }
-
     // Submit skip to backend (0 points)
     if (exercise && attemptId) {
       const timeSec = currentExerciseStartTime 
@@ -117,7 +110,7 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
         exerciseId: exercise.id,
         isCorrect: false,
         timeSec,
-        points: 0, // Skip = 0 points
+        points: 0,
       });
     }
 
@@ -127,17 +120,19 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
 
   const handleContinue = () => {
     if (status === 'wrong') {
-      // For auto-skip exercises (SELECT_IMAGE, MULTIPLE_CHOICE, LISTENING, MATCHING), 
-      // skip to next exercise instead of retrying
-      const isAutoSkipType = exercise && ['SELECT_IMAGE', 'MULTIPLE_CHOICE', 'LISTENING', 'MATCHING'].includes(exercise.type);
+      if (!exercise) return;
       
-      if (isAutoSkipType) {
+      const attemptCount = getExerciseAttemptCount(exercise.id);
+      
+      // If already attempted twice, move to next exercise
+      if (attemptCount >= 2) {
         nextExercise();
         return;
       }
       
-      // For other exercises, allow retry
+      // Otherwise, allow retry - reset selection and pronunciation state
       clearSelection();
+      resetPronunciation();
       return;
     }
 
@@ -156,22 +151,31 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     ) {
       const isGoodScore = pronunciation.score.overall >= 70;
       
+      // Get attempt count before incrementing for scoring
+      const attemptCount = getExerciseAttemptCount(exercise.id);
+      
+      // Only increment if this is a new submission (status === 'none')
+      if (status === 'none') {
+        incrementExerciseAttempt(exercise.id);
+      }
+      
+      // First attempt: 10 points, Second attempt: 5 points
+      // attemptCount = 0 means first attempt (before increment), attemptCount = 1 means second attempt
+      const pointsToAward = isGoodScore ? (attemptCount === 0 ? 10 : 5) : 0;
+      
       startTransition(() => {
         const timeSec = currentExerciseStartTime 
           ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
           : 0;
         
-        // Normal phase: 10 points, Review phase: 5 points
-        const pointsToAward = isGoodScore ? (phase === 'review' ? 5 : 10) : 0;
-        
         if (isGoodScore) {
           playCorrect();
           setStatus('correct');
-          completeExercise(true, exercise.points);
+          completeExercise(true, pointsToAward);
         } else {
           playIncorrect();
           setStatus('wrong');
-          completeExercise(false, exercise.points);
+          completeExercise(false, 0);
         }
         
         // Submit to backend with pronunciation data
@@ -202,29 +206,25 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     if (!correctOption) return;
 
     const isCorrect = correctOption.id === selectedOption;
+    const attemptCount = getExerciseAttemptCount(exercise.id);
+    incrementExerciseAttempt(exercise.id);
+    
+    // First attempt: 10 points, Second attempt: 5 points
+    const pointsToAward = isCorrect ? (attemptCount === 0 ? 10 : 5) : 0;
 
     startTransition(() => {
       const timeSec = currentExerciseStartTime 
         ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
         : 0;
       
-      // Normal phase: 10 points, Review phase: 5 points
-      const pointsToAward = isCorrect ? (phase === 'review' ? 5 : 10) : 0;
-      
       if (isCorrect) {
         playCorrect();
         setStatus('correct');
-        completeExercise(true, exercise.points);
+        completeExercise(true, pointsToAward);
       } else {
         playIncorrect();
         setStatus('wrong');
-        completeExercise(false, exercise.points);
-        
-        // Add to wrong list if in normal phase and is reviewable type
-        const isReviewableType = ['SELECT_IMAGE', 'MULTIPLE_CHOICE', 'LISTENING', 'MATCHING'].includes(exercise.type);
-        if (phase === 'normal' && isReviewableType) {
-          addWrongExercise(exercise);
-        }
+        completeExercise(false, 0);
       }
       
       // Submit to backend
@@ -258,7 +258,6 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     pronunciation,
     activeIndex,
     exercises,
-    phase,
     pending,
     isDisabled,
     handleSelect,

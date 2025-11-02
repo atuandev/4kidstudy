@@ -8,7 +8,6 @@ type ExerciseStats = {
   skippedCount: number;
   startTime: number | null;
   currentExerciseStartTime: number | null;
-  isReviewMode: boolean;
 };
 
 type ExerciseStatsActions = {
@@ -20,9 +19,6 @@ type ExerciseStatsActions = {
   startExercise: () => void;
   completeExercise: (isCorrect: boolean, points: number) => void;
   skipExercise: () => void;
-  
-  // Review mode
-  setReviewMode: (isReview: boolean) => void;
   
   // Getters
   getAccuracy: () => number;
@@ -43,7 +39,6 @@ export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
   skippedCount: 0,
   startTime: null,
   currentExerciseStartTime: null,
-  isReviewMode: false,
 
   // Actions
   startSession: () => {
@@ -55,7 +50,6 @@ export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
       totalExercises: 0,
       skippedCount: 0,
       currentExerciseStartTime: null,
-      isReviewMode: false,
     });
   },
 
@@ -87,16 +81,8 @@ export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
       exerciseDuration = Math.floor((currentTime - state.currentExerciseStartTime) / 1000);
     }
     
-    // Award points based on phase and correctness
-    // Normal phase: full points if correct (10), 0 if wrong
-    // Review phase: half points if correct (5), 0 if wrong
-    let pointsToAward = 0;
-    if (isCorrect) {
-      pointsToAward = state.isReviewMode ? Math.floor(points / 2) : points;
-    }
-    
     set({
-      totalPoints: state.totalPoints + pointsToAward,
+      totalPoints: state.totalPoints + points,
       correctCount: state.correctCount + (isCorrect ? 1 : 0),
       totalExercises: state.totalExercises + 1,
       duration: state.duration + exerciseDuration,
@@ -123,10 +109,6 @@ export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
     });
   },
 
-  setReviewMode: (isReview: boolean) => {
-    set({ isReviewMode: isReview });
-  },
-
   getAccuracy: () => {
     const state = get();
     if (state.totalExercises === 0) return 0;
@@ -148,7 +130,6 @@ export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
       skippedCount: 0,
       startTime: null,
       currentExerciseStartTime: null,
-      isReviewMode: false,
     });
   },
 }));
