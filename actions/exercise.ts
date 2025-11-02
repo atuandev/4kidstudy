@@ -89,3 +89,14 @@ export async function deleteExercise(id: number) {
   revalidatePath("/admin/exercises");
   return payload;
 }
+
+export async function importExercisesFromCsv(formData: FormData) {
+  const { payload } = await http.post<{
+    exercisesCreated: number;
+    optionsCreated: number;
+  }>('/exercises/import', formData, { isFileUpload: true });
+  
+  revalidatePath("/admin/exercises");
+  revalidatePath("/admin/lessons");
+  return payload;
+}

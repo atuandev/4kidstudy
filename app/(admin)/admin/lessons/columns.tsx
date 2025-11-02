@@ -28,6 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import { Lesson } from '@/types';
 import { DataTableColumnHeader } from '../_components/data-table-column-header';
 import { deleteLesson } from '@/actions/lesson';
+import { ImportCsvDialog } from './import-csv-dialog';
 import { useLessonFormStore } from '@/lib/stores/lesson-form-store';
 
 const statusMap: Record<
@@ -290,6 +291,10 @@ export const columns: ColumnDef<Lesson>[] = [
               <Plus className="mr-2 h-4 w-4" />
               Thêm câu hỏi
             </DropdownMenuItem>
+            <ImportCsvDialog
+              lessonId={lesson.id}
+              lessonTitle={lesson.title}
+            />
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleEdit}>
               <Pencil className="mr-2 h-4 w-4" />
