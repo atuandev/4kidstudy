@@ -29,6 +29,15 @@ export async function createFlashcard(data: CreateFlashcardFormData) {
   return payload;
 }
 
+export async function bulkCreateFlashcards(topicId: number, flashcards: Omit<CreateFlashcardFormData, 'topicId'>[]) {
+  const { payload } = await http.post<Flashcard[]>(
+    '/flashcards/bulk',
+    JSON.stringify({ topicId, flashcards })
+  );
+  revalidatePath('/admin/flashcards');
+  return payload;
+}
+
 export async function updateFlashcard(
   id: number,
   data: CreateFlashcardFormData

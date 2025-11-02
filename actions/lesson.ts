@@ -46,6 +46,15 @@ export async function createLesson(data: CreateLessonFormData) {
   return payload;
 }
 
+export async function bulkCreateLessons(topicId: number, lessons: Omit<CreateLessonFormData, 'topicId'>[]) {
+  const { payload } = await http.post<Lesson[]>(
+    "/lessons/bulk",
+    JSON.stringify({ topicId, lessons })
+  );
+  revalidatePath("/admin/lessons");
+  return payload;
+}
+
 export async function updateLesson(id: number, data: CreateLessonFormData) {
   const { payload } = await http.put<Lesson>(
     `/lessons/${id}`,

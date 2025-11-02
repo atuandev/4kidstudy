@@ -1,11 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ImageIcon, Loader2, Upload } from "lucide-react";
+import { ImageIcon, Loader2, Upload, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { toast } from "sonner";
 
 import {
@@ -38,12 +38,27 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 import {
   createFlashcard,
   getFlashcard,
   updateFlashcard,
+  getFlashcardsByTopic,
+  bulkCreateFlashcards,
+  deleteFlashcard,
 } from "@/actions/flashcard";
 import { getTopics } from "@/actions/topic";
 import { RequiredField } from "@/components/form/required-field";
@@ -52,6 +67,8 @@ import {
   CreateFlashcardFormData,
   CreateFlashcardSchema,
   flashcardStatusLabels,
+  CreateFlashcardsFormData,
+  CreateFlashcardsSchema,
 } from "@/schemas/flashcard";
 import { Topic } from "@/types";
 import { UPLOAD_PRESET } from "@/lib/constants";
@@ -64,45 +81,62 @@ const GRADES = [
   { value: "GRADE_5", label: "Lớp 5" },
 ];
 
-function getGradeLabel(grade: string): string {
-  const gradeMap: Record<string, string> = {
-    GRADE_1: "Lớp 1",
-    GRADE_2: "Lớp 2",
-    GRADE_3: "Lớp 3",
-    GRADE_4: "Lớp 4",
-    GRADE_5: "Lớp 5",
-  };
-  return gradeMap[grade] || grade;
-}
-
 export default function FlashcardFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableTopics, setAvailableTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedGrade, setSelectedGrade] = useState<string>("");
+  const [existingFlashcardsCount, setExistingFlashcardsCount] = useState(0);
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const flashcardId = searchParams.get("id");
+  const topicIdParam = searchParams.get("topicId");
   const isEditMode = !!flashcardId;
+  const isTopicLocked = !!topicIdParam;
 
-  const form = useForm<CreateFlashcardFormData>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(CreateFlashcardSchema) as any,
-    defaultValues: {
-      topicId: 0,
-      term: "",
-      phonetic: "",
-      meaningVi: "",
-      exampleEn: "",
-      exampleVi: "",
-      imageUrl: "",
-      audioUrl: "",
-      isActive: true,
-    },
+  // Use different schemas based on mode
+  const form = useForm<CreateFlashcardFormData | CreateFlashcardsFormData>({
+    resolver: zodResolver(
+      isTopicLocked ? CreateFlashcardsSchema : CreateFlashcardSchema
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ) as any,
+    defaultValues: isTopicLocked
+      ? {
+          topicId: 0,
+          flashcards: [
+            {
+              term: "",
+              phonetic: "",
+              meaningVi: "",
+              exampleEn: "",
+              exampleVi: "",
+              imageUrl: "",
+              audioUrl: "",
+              isActive: true,
+            },
+          ],
+        }
+      : {
+          topicId: 0,
+          term: "",
+          phonetic: "",
+          meaningVi: "",
+          exampleEn: "",
+          exampleVi: "",
+          imageUrl: "",
+          audioUrl: "",
+          isActive: true,
+        },
   });
 
-  // Type-safe control for FormField components
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    name: "flashcards" as any,
+  });
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formControl = form.control as any;
 
@@ -114,9 +148,56 @@ export default function FlashcardFormPage() {
         const fetchedTopics = await getTopics();
         setAvailableTopics(fetchedTopics);
 
-        if (isEditMode) {
+        if (topicIdParam) {
+          const parsedTopicId = parseInt(topicIdParam);
+          const topic = fetchedTopics.find((t) => t.id === parsedTopicId);
+          if (topic?.grade) {
+            setSelectedGrade(topic.grade);
+          }
+
+          // Load existing flashcards for this topic
+          const existingFlashcardsResponse = await getFlashcardsByTopic(parsedTopicId);
+          const existingFlashcards = existingFlashcardsResponse.payload || [];
+
+          if (existingFlashcards.length > 0) {
+            const allFlashcards = existingFlashcards.map((fc) => ({
+              id: fc.id,
+              term: fc.term,
+              phonetic: fc.phonetic,
+              meaningVi: fc.meaningVi,
+              exampleEn: fc.exampleEn ?? "",
+              exampleVi: fc.exampleVi ?? "",
+              imageUrl: fc.imageUrl ?? "",
+              audioUrl: fc.audioUrl ?? "",
+              order: fc.order,
+              isActive: fc.isActive,
+            }));
+            
+            setExistingFlashcardsCount(allFlashcards.length);
+
+            form.reset({
+              topicId: parsedTopicId,
+              flashcards: allFlashcards,
+            });
+          } else {
+            form.reset({
+              topicId: parsedTopicId,
+              flashcards: [
+                {
+                  term: "",
+                  phonetic: "",
+                  meaningVi: "",
+                  exampleEn: "",
+                  exampleVi: "",
+                  imageUrl: "",
+                  audioUrl: "",
+                  isActive: true,
+                },
+              ],
+            });
+          }
+        } else if (isEditMode) {
           const flashcard = await getFlashcard(parseInt(flashcardId));
-          // Find the topic to get its grade
           const topic = fetchedTopics.find((t) => t.id === flashcard.topicId);
           if (topic?.grade) {
             setSelectedGrade(topic.grade);
@@ -143,44 +224,98 @@ export default function FlashcardFormPage() {
     };
 
     fetchData();
-  }, [flashcardId, isEditMode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flashcardId, isEditMode, topicIdParam]);
 
-  const onSubmit = async (data: CreateFlashcardFormData) => {
+  const onSubmit = async (data: CreateFlashcardFormData | CreateFlashcardsFormData) => {
     setIsSubmitting(true);
     try {
       if (isEditMode) {
+        const singleData = data as CreateFlashcardFormData;
         const updatedFlashcard = await updateFlashcard(
           parseInt(flashcardId),
-          data
+          singleData
         );
         if (updatedFlashcard) {
           toast.success("Cập nhật flashcard thành công");
         } else {
           toast.error("Cập nhật flashcard thất bại");
         }
+        router.push("/admin/flashcards");
+        router.refresh();
+      } else if (isTopicLocked) {
+        // Bulk create/update mode
+        const bulkData = data as CreateFlashcardsFormData;
+        
+        // Split flashcards into existing (with id) and new (without id)
+        const existingFlashcards = bulkData.flashcards.filter(fc => fc.id);
+        const newFlashcards = bulkData.flashcards.filter(fc => !fc.id);
+
+        // Update existing flashcards individually
+        if (existingFlashcards.length > 0) {
+          await Promise.all(
+            existingFlashcards.map(flashcard =>
+              updateFlashcard(flashcard.id!, {
+                topicId: bulkData.topicId,
+                term: flashcard.term,
+                phonetic: flashcard.phonetic,
+                meaningVi: flashcard.meaningVi,
+                exampleEn: flashcard.exampleEn,
+                exampleVi: flashcard.exampleVi,
+                imageUrl: flashcard.imageUrl,
+                audioUrl: flashcard.audioUrl,
+                order: flashcard.order,
+                isActive: flashcard.isActive,
+              })
+            )
+          );
+        }
+
+        // Create new flashcards if any
+        if (newFlashcards.length > 0) {
+          const cleanedNewFlashcards = newFlashcards.map((flashcard) => {
+            const cleaned: Record<string, any> = { // eslint-disable-line @typescript-eslint/no-explicit-any
+              term: flashcard.term,
+              phonetic: flashcard.phonetic,
+              meaningVi: flashcard.meaningVi,
+              isActive: flashcard.isActive ?? true,
+            };
+            
+            // Only include optional fields if they have values
+            if (flashcard.exampleEn) cleaned.exampleEn = flashcard.exampleEn;
+            if (flashcard.exampleVi) cleaned.exampleVi = flashcard.exampleVi;
+            if (flashcard.imageUrl) cleaned.imageUrl = flashcard.imageUrl;
+            if (flashcard.audioUrl) cleaned.audioUrl = flashcard.audioUrl;
+            if (flashcard.order !== undefined && flashcard.order !== null) cleaned.order = flashcard.order;
+            
+            return cleaned;
+          });
+          await bulkCreateFlashcards(bulkData.topicId, cleanedNewFlashcards as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+        }
+
+        toast.success("Cập nhật thành công");
       } else {
-        // Remove order field when creating to let backend auto-generate it
+        // Single create mode
+        const singleData = data as CreateFlashcardFormData;
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { order, ...createData } = data;
+        const { order, ...createData } = singleData;
         const createdFlashcard = await createFlashcard(createData);
         if (createdFlashcard) {
           toast.success("Tạo flashcard thành công");
         } else {
           toast.error("Tạo flashcard thất bại");
         }
+        router.push("/admin/flashcards");
+        router.refresh();
       }
-      router.push("/admin/flashcards");
-      router.refresh();
     } catch (error) {
       console.error("Failed to save flashcard:", error);
 
-      // Handle specific error messages from backend
       const errorMessage = (
         error as { payload?: { message?: string | string[] } }
       )?.payload?.message;
 
       if (typeof errorMessage === "string") {
-        // Check for order conflict error
         if (
           errorMessage.includes("Unique constraint") ||
           errorMessage.includes("already exists")
@@ -190,7 +325,6 @@ export default function FlashcardFormPage() {
           );
           return;
         }
-        // Check for topic not found
         if (
           errorMessage.includes("Topic") &&
           errorMessage.includes("not found")
@@ -198,13 +332,10 @@ export default function FlashcardFormPage() {
           toast.error("Không tìm thấy chủ đề. Vui lòng chọn chủ đề khác.");
           return;
         }
-        // Show the backend error message
         toast.error(errorMessage);
       } else if (Array.isArray(errorMessage)) {
-        // Handle validation errors array
         toast.error(errorMessage.join(", "));
       } else {
-        // Generic error message
         toast.error(
           isEditMode ? "Cập nhật flashcard thất bại" : "Tạo flashcard thất bại"
         );
@@ -215,30 +346,83 @@ export default function FlashcardFormPage() {
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleImageUpload = (result: any) => {
+  function handleImageUpload(index: number | undefined, result: any) {
     if (result?.info?.secure_url) {
-      form.setValue("imageUrl", result.info.secure_url);
+      if (index !== undefined && isTopicLocked) {
+        form.setValue(`flashcards.${index}.imageUrl`, result.info.secure_url);
+      } else {
+        form.setValue("imageUrl", result.info.secure_url);
+      }
     }
-  };
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleAudioUpload = (result: any) => {
+  function handleAudioUpload(index: number | undefined, result: any) {
     if (result?.info?.secure_url) {
-      form.setValue("audioUrl", result.info.secure_url);
+      if (index !== undefined && isTopicLocked) {
+        form.setValue(`flashcards.${index}.audioUrl`, result.info.secure_url);
+      } else {
+        form.setValue("audioUrl", result.info.secure_url);
+      }
     }
-  };
+  }
 
-  const handleGradeChange = (grade: string) => {
+  function handleGradeChange(grade: string) {
     setSelectedGrade(grade);
-    // Reset topic selection when grade changes
     form.setValue("topicId", 0);
-  };
+  }
 
-  const handleCancel = () => {
+  function handleCancel() {
     router.back();
-  };
+  }
 
-  // Filter topics by selected grade
+  function handleAddFlashcard() {
+    const currentFlashcards = form.getValues("flashcards" as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    const nextOrder = currentFlashcards?.length || 0;
+    append({
+      term: "",
+      phonetic: "",
+      meaningVi: "",
+      exampleEn: "",
+      exampleVi: "",
+      imageUrl: "",
+      audioUrl: "",
+      order: nextOrder,
+      isActive: true,
+    });
+  }
+
+  async function handleRemoveFlashcard(index: number) {
+    const flashcard = form.getValues(`flashcards.${index}` as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    
+    // If flashcard has an id, it exists in the database and needs to be deleted
+    if (flashcard.id) {
+      try {
+        await deleteFlashcard(flashcard.id);
+        toast.success("Đã xóa flashcard thành công");
+        remove(index);
+      } catch (error) {
+        console.error("Failed to delete flashcard:", error);
+        toast.error("Xóa flashcard thất bại");
+      }
+    } else {
+      // Just remove from form array if it's a new flashcard not yet saved
+      remove(index);
+    }
+  }
+
+  function toggleCardExpanded(fieldId: string) {
+    setExpandedCards((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(fieldId)) {
+        newSet.delete(fieldId);
+      } else {
+        newSet.add(fieldId);
+      }
+      return newSet;
+    });
+  }
+
   const filteredTopics = selectedGrade
     ? availableTopics.filter((topic) => topic.grade === selectedGrade)
     : [];
@@ -274,7 +458,7 @@ export default function FlashcardFormPage() {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbPage>
-                {isEditMode ? "Chỉnh sửa" : "Thêm mới"}
+                {isEditMode ? "Chỉnh sửa" : isTopicLocked ? "Tạo/sửa nhiều flashcard" : "Thêm mới"}
               </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
@@ -282,7 +466,7 @@ export default function FlashcardFormPage() {
       </div>
 
       <TypographyH3>
-        {isEditMode ? "Chỉnh sửa flashcard" : "Thêm flashcard mới"}
+        {isEditMode ? "Chỉnh sửa flashcard" : isTopicLocked ? "Tạo/sửa nhiều flashcard" : "Thêm flashcard mới"}
       </TypographyH3>
 
       {/* Form */}
@@ -291,9 +475,8 @@ export default function FlashcardFormPage() {
           onSubmit={form.handleSubmit(onSubmit as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
           className="space-y-6"
         >
-          {/* Grade and Topic Selection - 2 Column Grid */}
+          {/* Grade and Topic Selection */}
           <div className="grid gap-4 md:grid-cols-2">
-            {/* Grade Selection */}
             <FormItem className="flex flex-col">
               <FormLabel>
                 Khối lớp <RequiredField />
@@ -310,12 +493,17 @@ export default function FlashcardFormPage() {
                   searchPlaceholder="Tìm kiếm khối lớp..."
                   emptyText="Không tìm thấy khối lớp."
                   className={cn(!selectedGrade && "text-muted-foreground")}
+                  disabled={isTopicLocked}
                 />
               </FormControl>
+              {isTopicLocked && (
+                <FormDescription>
+                  Khối lớp đã được chọn và không thể thay đổi
+                </FormDescription>
+              )}
               <FormMessage />
             </FormItem>
 
-            {/* Topic Selection */}
             <FormField
               control={formControl}
               name="topicId"
@@ -343,247 +531,510 @@ export default function FlashcardFormPage() {
                           ? "Không tìm thấy chủ đề."
                           : "Chưa chọn khối lớp."
                       }
-                      disabled={!selectedGrade}
+                      disabled={!selectedGrade || isTopicLocked}
                       className={cn(!field.value && "text-muted-foreground")}
                     />
                   </FormControl>
+                  {isTopicLocked && (
+                    <FormDescription>
+                      Chủ đề đã được chọn và không thể thay đổi
+                    </FormDescription>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* Term */}
-            <FormField
-              control={formControl}
-              name="term"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Từ vựng <RequiredField />
-                  </FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Nhập từ vựng" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Phonetic */}
-            <FormField
-              control={formControl}
-              name="phonetic"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Phiên âm <RequiredField />
-                  </FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Ví dụ: /həˈloʊ/" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Meaning Vietnamese */}
-          <FormField
-            control={formControl}
-            name="meaningVi"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Nghĩa tiếng Việt <RequiredField />
-                </FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="Nhập nghĩa tiếng Việt" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <Separator />
-
-          {/* Example English */}
-          <FormField
-            control={formControl}
-            name="exampleEn"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Ví dụ tiếng Anh</FormLabel>
-                <FormControl>
-                  <Textarea
-                    {...field}
-                    placeholder="Nhập câu ví dụ tiếng Anh"
-                    rows={2}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Câu ví dụ sử dụng từ vựng trong ngữ cảnh
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Example Vietnamese */}
-          <FormField
-            control={formControl}
-            name="exampleVi"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nghĩa ví dụ tiếng Việt</FormLabel>
-                <FormControl>
-                  <Textarea
-                    {...field}
-                    placeholder="Nhập nghĩa ví dụ tiếng Việt"
-                    rows={2}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Dịch nghĩa của câu ví dụ tiếng Anh
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <Separator />
-
-          {/* Image URL */}
-          <FormField
-            control={formControl}
-            name="imageUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Hình ảnh minh họa</FormLabel>
-                <FormControl>
-                  <div className="flex gap-2">
-                    <Input {...field} placeholder="URL hình ảnh" />
-                    <CldUploadWidget
-                      uploadPreset={UPLOAD_PRESET}
-                      onSuccess={handleImageUpload}
-                    >
-                      {({ open }) => (
-                        <Button
-                          type="button"
-                          size="icon"
-                          onClick={() => open()}
-                        >
-                          <ImageIcon className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </CldUploadWidget>
+          {/* Bulk Mode: List of Flashcards */}
+          {isTopicLocked ? (
+            <>
+              <Separator className="my-6" />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold">Danh sách flashcard</h3>
+                    {existingFlashcardsCount > 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        Đang có {existingFlashcardsCount} flashcard từ trước. Bạn có thể sửa hoặc thêm mới.
+                      </p>
+                    )}
                   </div>
-                </FormControl>
-                <FormDescription>
-                  Hình ảnh giúp học viên dễ nhớ từ vựng hơn
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <Button type="button" onClick={handleAddFlashcard} size="sm">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Thêm flashcard
+                  </Button>
+                </div>
 
-          {/* Audio URL */}
-          <FormField
-            control={formControl}
-            name="audioUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>File âm thanh phát âm</FormLabel>
-                <FormControl>
-                  <div className="flex gap-2">
-                    <Input {...field} placeholder="URL âm thanh" />
-                    <CldUploadWidget
-                      uploadPreset={UPLOAD_PRESET}
-                      onSuccess={handleAudioUpload}
-                    >
-                      {({ open }) => (
-                        <Button
-                          type="button"
-                          size="icon"
-                          onClick={() => open()}
-                        >
-                          <Upload className="h-4 w-4" />
-                        </Button>
+                {fields.map((field, index) => {
+                  const isExpanded = expandedCards.has(field.id);
+                  const flashcard = form.getValues(`flashcards.${index}` as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+                  const hasContent = flashcard?.term || flashcard?.meaningVi;
+
+                  return (
+                    <Card key={field.id} className="relative">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <button
+                            type="button"
+                            onClick={() => toggleCardExpanded(field.id)}
+                            className="flex items-center gap-2 text-left flex-1"
+                          >
+                            {isExpanded ? (
+                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            )}
+                            <CardTitle className="text-base">
+                              Flashcard #{index + 1}
+                              {hasContent && (
+                                <span className="ml-2 text-sm font-normal text-muted-foreground">
+                                  {flashcard.term ? ` - ${flashcard.term}` : ""}
+                                </span>
+                              )}
+                            </CardTitle>
+                          </button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                disabled={fields.length === 1}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Hành động này sẽ xóa flashcard vĩnh viễn.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleRemoveFlashcard(index)}>Xóa</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </CardHeader>
+
+                      {isExpanded && (
+                        <CardContent className="space-y-4 pt-0">
+                          <div className="grid gap-4 md:grid-cols-2">
+                            <FormField
+                              control={formControl}
+                              name={`flashcards.${index}.term`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>
+                                    Từ vựng <RequiredField />
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input {...field} placeholder="Nhập từ vựng" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={formControl}
+                              name={`flashcards.${index}.phonetic`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>
+                                    Phiên âm <RequiredField />
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input {...field} placeholder="Ví dụ: /həˈloʊ/" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <FormField
+                            control={formControl}
+                            name={`flashcards.${index}.meaningVi`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>
+                                  Nghĩa tiếng Việt <RequiredField />
+                                </FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="Nhập nghĩa tiếng Việt" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={formControl}
+                            name={`flashcards.${index}.exampleEn`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Ví dụ tiếng Anh</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    {...field}
+                                    placeholder="Nhập câu ví dụ tiếng Anh"
+                                    rows={2}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={formControl}
+                            name={`flashcards.${index}.exampleVi`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nghĩa ví dụ tiếng Việt</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    {...field}
+                                    placeholder="Nhập nghĩa ví dụ tiếng Việt"
+                                    rows={2}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={formControl}
+                            name={`flashcards.${index}.imageUrl`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Hình ảnh minh họa</FormLabel>
+                                <FormControl>
+                                  <div className="flex gap-2">
+                                    <Input {...field} placeholder="URL hình ảnh" />
+                                    <CldUploadWidget
+                                      uploadPreset={UPLOAD_PRESET}
+                                      onSuccess={(result) => handleImageUpload(index, result)}
+                                    >
+                                      {({ open }) => (
+                                        <Button
+                                          type="button"
+                                          size="icon"
+                                          onClick={() => open()}
+                                        >
+                                          <ImageIcon className="h-4 w-4" />
+                                        </Button>
+                                      )}
+                                    </CldUploadWidget>
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={formControl}
+                            name={`flashcards.${index}.audioUrl`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>File âm thanh phát âm</FormLabel>
+                                <FormControl>
+                                  <div className="flex gap-2">
+                                    <Input {...field} placeholder="URL âm thanh" />
+                                    <CldUploadWidget
+                                      uploadPreset={UPLOAD_PRESET}
+                                      onSuccess={(result) => handleAudioUpload(index, result)}
+                                    >
+                                      {({ open }) => (
+                                        <Button
+                                          type="button"
+                                          size="icon"
+                                          onClick={() => open()}
+                                        >
+                                          <Upload className="h-4 w-4" />
+                                        </Button>
+                                      )}
+                                    </CldUploadWidget>
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={formControl}
+                            name={`flashcards.${index}.isActive`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>
+                                  Trạng thái <RequiredField />
+                                </FormLabel>
+                                <Select
+                                  onValueChange={(value) => field.onChange(value === "true")}
+                                  value={field.value ? "true" : "false"}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Chọn trạng thái" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {Object.entries(flashcardStatusLabels).map(
+                                      ([value, label]) => (
+                                        <SelectItem key={value} value={value}>
+                                          {label}
+                                        </SelectItem>
+                                      )
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </CardContent>
                       )}
-                    </CldUploadWidget>
-                  </div>
-                </FormControl>
-                <FormDescription>
-                  File âm thanh phát âm chuẩn của từ vựng
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                    </Card>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            /* Single Mode: Original Form Fields */
+            <>
+              <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  control={formControl}
+                  name="term"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Từ vựng <RequiredField />
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Nhập từ vựng" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-          <Separator />
+                <FormField
+                  control={formControl}
+                  name="phonetic"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Phiên âm <RequiredField />
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ví dụ: /həˈloʊ/" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-          {/* Order and Status */}
-          <div
-            className={`grid gap-4 ${
-              isEditMode ? "md:grid-cols-2" : "md:grid-cols-1"
-            }`}
-          >
-            {isEditMode && (
               <FormField
                 control={formControl}
-                name="order"
+                name="meaningVi"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Thứ tự</FormLabel>
+                    <FormLabel>
+                      Nghĩa tiếng Việt <RequiredField />
+                    </FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="number"
-                        onChange={(e) =>
-                          field.onChange(parseInt(e.target.value))
-                        }
-                      />
+                      <Input {...field} placeholder="Nhập nghĩa tiếng Việt" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            )}
 
-            <FormField
-              control={formControl}
-              name="isActive"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Trạng thái <RequiredField />
-                  </FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange(value === "true")}
-                    value={field.value ? "true" : "false"}
-                  >
+              <Separator />
+
+              <FormField
+                control={formControl}
+                name="exampleEn"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ví dụ tiếng Anh</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn trạng thái" />
-                      </SelectTrigger>
+                      <Textarea
+                        {...field}
+                        placeholder="Nhập câu ví dụ tiếng Anh"
+                        rows={2}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      {Object.entries(flashcardStatusLabels).map(
-                        ([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+                    <FormDescription>
+                      Câu ví dụ sử dụng từ vựng trong ngữ cảnh
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={formControl}
+                name="exampleVi"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nghĩa ví dụ tiếng Việt</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder="Nhập nghĩa ví dụ tiếng Việt"
+                        rows={2}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Dịch nghĩa của câu ví dụ tiếng Anh
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Separator />
+
+              <FormField
+                control={formControl}
+                name="imageUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hình ảnh minh họa</FormLabel>
+                    <FormControl>
+                      <div className="flex gap-2">
+                        <Input {...field} placeholder="URL hình ảnh" />
+                        <CldUploadWidget
+                          uploadPreset={UPLOAD_PRESET}
+                          onSuccess={(result) => handleImageUpload(undefined, result)}
+                        >
+                          {({ open }) => (
+                            <Button
+                              type="button"
+                              size="icon"
+                              onClick={() => open()}
+                            >
+                              <ImageIcon className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </CldUploadWidget>
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      Hình ảnh giúp học viên dễ nhớ từ vựng hơn
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={formControl}
+                name="audioUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>File âm thanh phát âm</FormLabel>
+                    <FormControl>
+                      <div className="flex gap-2">
+                        <Input {...field} placeholder="URL âm thanh" />
+                        <CldUploadWidget
+                          uploadPreset={UPLOAD_PRESET}
+                          onSuccess={(result) => handleAudioUpload(undefined, result)}
+                        >
+                          {({ open }) => (
+                            <Button
+                              type="button"
+                              size="icon"
+                              onClick={() => open()}
+                            >
+                              <Upload className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </CldUploadWidget>
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      File âm thanh phát âm chuẩn của từ vựng
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Separator />
+
+              <div
+                className={`grid gap-4 ${
+                  isEditMode ? "md:grid-cols-2" : "md:grid-cols-1"
+                }`}
+              >
+                {isEditMode && (
+                  <FormField
+                    control={formControl}
+                    name="order"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Thứ tự</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="number"
+                            onChange={(e) =>
+                              field.onChange(parseInt(e.target.value))
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                <FormField
+                  control={formControl}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Trạng thái <RequiredField />
+                      </FormLabel>
+                      <Select
+                        onValueChange={(value) => field.onChange(value === "true")}
+                        value={field.value ? "true" : "false"}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn trạng thái" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Object.entries(flashcardStatusLabels).map(
+                            ([value, label]) => (
+                              <SelectItem key={value} value={value}>
+                                {label}
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </>
+          )}
 
           {/* Form Actions */}
           <div className="flex justify-end gap-2 sticky bottom-0 bg-background pt-4 pb-2">
@@ -598,7 +1049,7 @@ export default function FlashcardFormPage() {
               {isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {isEditMode ? "Cập nhật" : "Tạo mới"}
+              {isEditMode ? "Cập nhật" : isTopicLocked ? "Lưu tất cả" : "Tạo mới"}
             </Button>
           </div>
         </form>

@@ -29,12 +29,15 @@ export async function getSentenceImage(id: number) {
 }
 
 function cleanSentenceImageData(data: CreateSentenceImageFormData) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cleaned: any = {};
   Object.entries(data).forEach(([key, value]) => {
     if (value !== undefined) cleaned[key] = value;
   });
   if (Array.isArray(cleaned.sentences)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     cleaned.sentences = cleaned.sentences.map((s: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const cs: any = {};
       Object.entries(s).forEach(([k, v]) => {
         if (v !== undefined) cs[k] = v;
@@ -55,6 +58,21 @@ export async function createSentenceImage(data: CreateSentenceImageFormData) {
   return payload;
 }
 
+export async function bulkCreateSentences(
+  topicId: number,
+  sentenceImages: Omit<CreateSentenceImageFormData, 'topicId'>[]
+) {
+  const cleanedSentenceImages = sentenceImages.map((img) => 
+    cleanSentenceImageData({ ...img, topicId } as CreateSentenceImageFormData)
+  );
+  const { payload } = await http.post<SentenceImage[]>(
+    '/sentences/bulk',
+    JSON.stringify({ topicId, sentenceImages: cleanedSentenceImages })
+  );
+  revalidatePath('/admin/sentences');
+  return payload;
+}
+
 export async function updateSentenceImage(
   id: number,
   data: Partial<CreateSentenceImageFormData>
@@ -62,6 +80,25 @@ export async function updateSentenceImage(
   const body = cleanSentenceImageData(data as CreateSentenceImageFormData);
   const { payload } = await http.put<SentenceImage>(
     `/sentences/images/${id}`,
+    JSON.stringify(body)
+  );
+  revalidatePath('/admin/sentences');
+  return payload;
+}
+
+export async function updateSentence(
+  id: number,
+  data: Partial<Sentence>
+) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const body: any = {};
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== undefined && key !== 'id' && key !== 'sentenceImageId') {
+      body[key] = value;
+    }
+  });
+  const { payload } = await http.put<Sentence>(
+    `/sentences/${id}`,
     JSON.stringify(body)
   );
   revalidatePath('/admin/sentences');

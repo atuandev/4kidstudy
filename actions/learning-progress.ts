@@ -54,3 +54,13 @@ export async function getTopicProgress(
   );
   return payload;
 }
+
+/**
+ * Get last reviewed topic ID
+ */
+export async function getLastReviewedTopic(): Promise<number | null> {
+  const { payload } = await http.get<{ topicId: number | null }>(
+    '/learning-progress/last-topic',
+  );
+  return payload.topicId;
+}
