@@ -27,10 +27,10 @@ interface ProfileProps {
 }
 
 export default function Profile({ profile }: ProfileProps) {
-  // Calculate level from XP (assuming 1000 XP per level)
-  const level = Math.floor(profile.xp / 1000) + 1;
-  const currentLevelXP = profile.xp % 1000;
-  const xpProgress = (currentLevelXP / 1000) * 100;
+  // Calculate level from XP (assuming 100 XP per level)
+  const level = Math.floor(profile.xp / 100) + 1;
+  const currentLevelXP = profile.xp % 100;
+  const xpProgress = (currentLevelXP / 100) * 100;
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -106,11 +106,8 @@ export default function Profile({ profile }: ProfileProps) {
               {/* XP Progress */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Tiến độ cấp {level}
-                  </span>
                   <span className="text-sm font-bold text-primary">
-                    {currentLevelXP}/1000 Kinh nghiệm
+                    {currentLevelXP}/100 Kinh nghiệm
                   </span>
                 </div>
                 <Progress value={xpProgress} className="h-3" />
