@@ -1,15 +1,36 @@
+'use client';
+
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
 import { Topic } from '@/types';
 import { UnitCard } from './unit-card';
+import { useEffect, useRef } from 'react';
+import { getLastReviewedTopic } from '@/actions/learning-progress';
 
 interface UnitListProps {
   topics: Topic[];
 }
 
 export function UnitList({ topics }: UnitListProps) {
+  const topicRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
+
+  useEffect(() => {
+    const scrollToLastTopic = async () => {
+      try {
+        const lastTopicId = await getLastReviewedTopic();
+        if (lastTopicId && topicRefs.current[lastTopicId]) {
+          topicRefs.current[lastTopicId]?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          });
+        }
+      } catch (error) {
+        console.error('Failed to get last reviewed topic:', error);
+      }
+    };
+
+    scrollToLastTopic();
+  }, []);
+
   return (
     <div className='space-y-4'>
       <div className='flex items-center gap-4'>
@@ -35,7 +56,14 @@ export function UnitList({ topics }: UnitListProps) {
       ) : (
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           {topics.map((topic) => (
-            <UnitCard key={topic.id} topic={topic} />
+            <div
+              key={topic.id}
+              ref={(el) => {
+                topicRefs.current[topic.id] = el;
+              }}
+            >
+              <UnitCard topic={topic} />
+            </div>
           ))}
         </div>
       )}
