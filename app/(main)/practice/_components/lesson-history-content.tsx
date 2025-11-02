@@ -11,13 +11,21 @@ import {
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Lesson, Attempt } from "@/types";
+import { Lesson, Attempt, ExerciseType } from "@/types";
 import { getUserLessonAttempts, getAttemptById } from "@/actions/attempt";
 
 type LessonHistoryContentProps = {
   lesson: Lesson;
   lessonId: number;
   isOpen: boolean;
+};
+
+const EXERCISE_TYPE_LABELS: Record<ExerciseType, string> = {
+  SELECT_IMAGE: "Chọn ảnh đúng",
+  MULTIPLE_CHOICE: "Trắc nghiệm chữ",
+  MATCHING: "Ghép cặp",
+  LISTENING: "Nghe - chọn đáp án",
+  PRONUNCIATION: "Luyện phát âm (AI)",
 };
 
 export function LessonHistoryContent({
@@ -104,13 +112,55 @@ export function LessonHistoryContent({
     });
   }
 
+  /**
+   * Count exercises answered correctly on the 2nd attempt
+   */
+  function getCorrectOnSecondAttemptCount(attempt: Attempt): number {
+    if (!attempt.details || attempt.details.length === 0) return 0;
+    return attempt.details.filter(
+      (detail) => detail.isCorrect && detail.attempts === 2
+    ).length;
+  }
+
+  /**
+   * Count exercises answered correctly on the 2nd attempt with 5 points
+   */
+  function getCorrectOnSecondAttemptWith5PointsCount(attempt: Attempt): number {
+    if (!attempt.details || attempt.details.length === 0) return 0;
+    return attempt.details.filter(
+      (detail) =>
+        detail.isCorrect && detail.attempts === 2 && detail.maxPoints === 5
+    ).length;
+  }
+
   const bestAttempt = getBestAttempt();
 
+  // Load details for best attempt if not already loaded
+  useEffect(() => {
+    if (
+      bestAttempt &&
+      isOpen &&
+      (!bestAttempt.details || bestAttempt.details.length === 0)
+    ) {
+      getAttemptById(bestAttempt.id)
+        .then((data) => {
+          setAttempts((prev) =>
+            prev.map((a) => (a.id === bestAttempt.id ? data : a))
+          );
+        })
+        .catch((error) => {
+          console.error("Failed to load best attempt details:", error);
+        });
+    }
+  }, [bestAttempt, isOpen]);
+
   return (
-    <SheetContent className="sm:max-w-2xl w-full">
+    <SheetContent className="sm:max-w-4xl w-full">
       <SheetHeader>
         <SheetTitle>Lịch sử luyện tập</SheetTitle>
-        <SheetDescription className="text-lg font-bold">{lesson.title}</SheetDescription>
+        <SheetDescription className="text-lg font-bold">
+          {lesson.title}
+        </SheetDescription>
       </SheetHeader>
 
       {!isLoadingAttempts && bestAttempt && (
@@ -131,7 +181,7 @@ export function LessonHistoryContent({
               </Badge>
             </div>
 
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
               <div>
                 <span className="text-muted-foreground">Điểm</span>
                 <p className="font-bold text-lg">
@@ -145,9 +195,21 @@ export function LessonHistoryContent({
                 </p>
               </div>
               <div>
-                <span className="text-muted-foreground">Đúng</span>
+                <span className="text-muted-foreground">Đúng lần 1</span>
                 <p className="font-bold text-green-600 text-lg">
-                  {bestAttempt.correctCount}
+                  {bestAttempt.details
+                    ? bestAttempt.details.filter(
+                        (detail) => detail.isCorrect && detail.attempts === 1
+                      ).length
+                    : bestAttempt.correctCount}
+                </p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Đúng lần 2</span>
+                <p className="font-bold text-yellow-600 text-lg">
+                  {bestAttempt.details
+                    ? getCorrectOnSecondAttemptCount(bestAttempt)
+                    : 0}
                 </p>
               </div>
               <div>
@@ -159,7 +221,7 @@ export function LessonHistoryContent({
               <div>
                 <span className="text-muted-foreground">Thời gian</span>
                 <p className="font-bold text-lg">
-                  {formatDuration(bestAttempt.durationSec)}
+                  {formatDuration(bestAttempt.durationSec)}s
                 </p>
               </div>
             </div>
@@ -216,7 +278,7 @@ export function LessonHistoryContent({
                       </Badge>
                     </div>
 
-                    <div className="grid grid-cols-5 gap-2">
+                    <div className="grid grid-cols-6 gap-2">
                       <div>
                         <span className="text-muted-foreground">Điểm</span>
                         <p className="font-bold text-lg">
@@ -232,9 +294,26 @@ export function LessonHistoryContent({
                         </p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Đúng</span>
+                        <span className="text-muted-foreground">
+                          Đúng lần 1
+                        </span>
                         <p className="font-bold text-green-600 text-lg">
-                          {attempt.correctCount}
+                          {attempt.details
+                            ? attempt.details.filter(
+                                (detail) =>
+                                  detail.isCorrect && detail.attempts === 1
+                              ).length
+                            : attempt.correctCount}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">
+                          Đúng lần 2
+                        </span>
+                        <p className="font-bold text-yellow-600 text-lg">
+                          {attempt.details
+                            ? getCorrectOnSecondAttemptCount(attempt)
+                            : 0}
                         </p>
                       </div>
                       <div>
@@ -247,7 +326,7 @@ export function LessonHistoryContent({
                       <div>
                         <span className="text-muted-foreground">Thời gian</span>
                         <p className="font-bold text-lg">
-                          {formatDuration(attempt.durationSec)}
+                          {formatDuration(attempt.durationSec)}s
                         </p>
                       </div>
                     </div>
@@ -268,54 +347,74 @@ export function LessonHistoryContent({
                       ) : attemptDetails?.details &&
                         attemptDetails.details.length > 0 ? (
                         <div className="grid grid-cols-3 gap-2">
-                          {attemptDetails.details.map((detail, index) => (
-                            <div
-                              key={detail.id}
-                              className={cn(
-                                "border rounded-md p-3 space-y-2",
-                                detail.isCorrect
-                                  ? "bg-green-50 border-green-200"
-                                  : "bg-red-50 border-red-200"
-                              )}
-                            >
-                              <div className="flex items-center justify-between">
-                                <span className="font-medium text-sm">
-                                  Câu hỏi #{index + 1}
-                                </span>
-                                <Badge
-                                  variant={
-                                    detail.isCorrect ? "default" : "destructive"
-                                  }
-                                >
-                                  {detail.isCorrect ? "Đúng" : "Sai"}
-                                </Badge>
-                              </div>
+                          {attemptDetails.details.map((detail, index) => {
+                            const isCorrectOnSecondAttempt =
+                              detail.isCorrect && detail.attempts === 2;
+                            return (
+                              <div
+                                key={detail.id}
+                                className={cn(
+                                  "border rounded-md p-3 space-y-2",
+                                  isCorrectOnSecondAttempt
+                                    ? "bg-yellow-50 border-yellow-200"
+                                    : detail.isCorrect
+                                    ? "bg-green-50 border-green-200"
+                                    : "bg-red-50 border-red-200"
+                                )}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium text-md">
+                                    Câu hỏi #{index + 1}
+                                  </span>
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-white text-gray-600"
+                                  >
+                                    {
+                                      EXERCISE_TYPE_LABELS[
+                                        detail.exercise?.type ?? "SELECT_IMAGE"
+                                      ]
+                                    }
+                                  </Badge>
+                                </div>
 
-                              <div className="grid grid-cols-2 gap-2">
-                                <div>
+                                {/* <div>
                                   <span className="text-muted-foreground">
-                                    Điểm
+                                    Đáp án chọn
                                   </span>
                                   <p className="font-bold text-lg">
-                                    {detail.points}/{detail.maxPoints}
+                                    {detail.exercise?.options.find(
+                                      (option) =>
+                                        option.id === detail.selectedOptionId
+                                    )?.text ?? "Không có đáp án"}
                                   </p>
-                                </div>
-                                {detail.pronunciation && (
+                                </div> */}
+
+                                <div className="grid grid-cols-2 gap-2">
                                   <div>
                                     <span className="text-muted-foreground">
-                                      Phát âm:
+                                      Điểm
                                     </span>
-                                    <p className="font-medium">
-                                      {detail.pronunciation.overall?.toFixed(
-                                        1
-                                      ) ?? "N/A"}
-                                      %
+                                    <p className="font-bold text-lg">
+                                      {detail.points}/{detail.maxPoints}
                                     </p>
                                   </div>
-                                )}
-                              </div>
+                                  {detail.pronunciation && (
+                                    <div>
+                                      <span className="text-muted-foreground">
+                                        Phát âm:
+                                      </span>
+                                      <p className="font-bold text-lg">
+                                        {detail.pronunciation.overall?.toFixed(
+                                          1
+                                        ) ?? "N/A"}
+                                        %
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
 
-                              {/* {detail.pronunciation && (
+                                {/* {detail.pronunciation && (
                                 <div className="pt-2 border-t space-y-1">
                                   <p className="text-xs font-medium">
                                     Chi tiết phát âm:
@@ -380,8 +479,9 @@ export function LessonHistoryContent({
                                   </div>
                                 </div>
                               )} */}
-                            </div>
-                          ))}
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : (
                         <p className="text-sm text-muted-foreground text-center py-4">
