@@ -79,7 +79,9 @@ export default function LessonFormPage() {
   const searchParams = useSearchParams();
 
   const lessonId = searchParams.get("id");
+  const topicIdParam = searchParams.get("topicId");
   const isEditMode = !!lessonId;
+  const isTopicLocked = !!topicIdParam; // Lock topic if passed via query param
 
   const form = useForm<CreateLessonFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -109,7 +111,25 @@ export default function LessonFormPage() {
         const fetchedTopics = await getTopics();
         setAvailableTopics(fetchedTopics);
 
-        if (isEditMode) {
+        // If topicId is passed via query param (bulk create mode)
+        if (topicIdParam) {
+          const parsedTopicId = parseInt(topicIdParam);
+          const topic = fetchedTopics.find((t) => t.id === parsedTopicId);
+          if (topic?.grade) {
+            setSelectedGrade(topic.grade);
+          }
+          form.reset({
+            topicId: parsedTopicId,
+            title: "",
+            description: "",
+            status: "PUBLISHED",
+            theoryText: "",
+            phoneticsNote: "",
+            grammarNote: "",
+            audioUrl: "",
+            coverImage: "",
+          });
+        } else if (isEditMode) {
           const lesson = await getLesson(parseInt(lessonId));
           // Infer grade from the selected topic when editing
           const topic = fetchedTopics.find((t) => t.id === lesson.topicId);
@@ -138,7 +158,8 @@ export default function LessonFormPage() {
     };
 
     fetchData();
-  }, [lessonId, isEditMode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lessonId, isEditMode, topicIdParam]);
 
   const onSubmit = async (data: CreateLessonFormData) => {
     setIsSubmitting(true);
@@ -294,8 +315,14 @@ export default function LessonFormPage() {
                   placeholder="Chọn khối lớp"
                   searchPlaceholder="Tìm kiếm khối lớp..."
                   emptyText="Không tìm thấy khối lớp."
+                  disabled={isTopicLocked}
                 />
               </FormControl>
+              {isTopicLocked && (
+                <FormDescription>
+                  Khối lớp đã được chọn và không thể thay đổi
+                </FormDescription>
+              )}
               <FormMessage />
             </FormItem>
 
@@ -319,8 +346,14 @@ export default function LessonFormPage() {
                       placeholder={selectedGrade ? "Chọn chủ đề" : "Vui lòng chọn khối lớp trước"}
                       searchPlaceholder="Tìm kiếm chủ đề..."
                       emptyText={selectedGrade ? "Không tìm thấy chủ đề." : "Chưa chọn khối lớp."}
+                      disabled={isTopicLocked}
                     />
                   </FormControl>
+                  {isTopicLocked && (
+                    <FormDescription>
+                      Chủ đề đã được chọn và không thể thay đổi
+                    </FormDescription>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

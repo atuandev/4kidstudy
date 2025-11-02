@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { CopyIcon, MoreHorizontal, Pencil, Trash, ImageIcon } from "lucide-react";
+import { CopyIcon, MoreHorizontal, Pencil, Trash, ImageIcon, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
@@ -272,6 +272,31 @@ export const columns: ColumnDef<Topic>[] = [
             >
               <CopyIcon className="mr-2 h-4 w-4" />
               Copy ID
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() =>
+                router.push(`/admin/lessons/form?topicId=${topic.id}`)
+              }
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Tạo nhiều bài học
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                router.push(`/admin/flashcards/form?topicId=${topic.id}`)
+              }
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Tạo nhiều thẻ từ vựng
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                router.push(`/admin/sentences/form?topicId=${topic.id}`)
+              }
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Tạo nhiều thẻ câu
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleEdit}>

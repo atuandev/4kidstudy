@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ImageIcon, Loader2, Upload, Plus, Trash2 } from "lucide-react";
+import { ImageIcon, Loader2, Upload, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -37,7 +37,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   createSentenceImage,
   getSentenceImage,
+  getSentenceImagesByTopicId,
   updateSentenceImage,
+  bulkCreateSentences,
+  updateSentence,
 } from "@/actions/sentence";
 import { getTopics } from "@/actions/topic";
 import { RequiredField } from "@/components/form/required-field";
@@ -62,11 +65,15 @@ export default function SentenceFormPage() {
   const [availableTopics, setAvailableTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedGrade, setSelectedGrade] = useState<string>("");
+  const [existingSentencesCount, setExistingSentencesCount] = useState(0);
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const sentenceImageId = searchParams.get("id");
+  const topicIdParam = searchParams.get("topicId");
   const isEditMode = !!sentenceImageId;
+  const isTopicLocked = !!topicIdParam; // Lock topic if passed via query param
 
   const form = useForm<CreateSentenceImageFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -106,7 +113,65 @@ export default function SentenceFormPage() {
         const fetchedTopics = await getTopics();
         setAvailableTopics(fetchedTopics);
 
-        if (isEditMode) {
+        // If topicId is passed via query param (bulk create mode)
+        if (topicIdParam) {
+          const parsedTopicId = parseInt(topicIdParam);
+          const topic = fetchedTopics.find((t) => t.id === parsedTopicId);
+          if (topic?.grade) {
+            setSelectedGrade(topic.grade);
+          }
+
+          // Fetch existing sentence images for this topic
+          const existingSentenceImages = await getSentenceImagesByTopicId(
+            parsedTopicId
+          );
+
+          // Flatten all sentences from all sentence images
+          const allSentences = existingSentenceImages.flatMap((img) =>
+            img.sentences.map((s) => ({
+              id: s.id,
+              text: s.text,
+              meaningVi: s.meaningVi ?? "",
+              hintVi: s.hintVi ?? "",
+              audioUrl: s.audioUrl ?? "",
+              order: s.order,
+              isActive: s.isActive,
+            }))
+          );
+
+          setExistingSentencesCount(allSentences.length);
+
+          // If there are existing sentences, show them for editing/adding more
+          if (allSentences.length > 0) {
+            form.reset({
+              topicId: parsedTopicId,
+              imageUrl: existingSentenceImages[0]?.imageUrl || "",
+              audioUrl: existingSentenceImages[0]?.audioUrl ?? "",
+              order: 0,
+              isActive: true,
+              sentences: allSentences,
+            });
+          } else {
+            // No existing sentences, start with empty form
+            form.reset({
+              topicId: parsedTopicId,
+              imageUrl: "",
+              audioUrl: "",
+              order: 0,
+              isActive: true,
+              sentences: [
+                {
+                  text: "",
+                  meaningVi: "",
+                  hintVi: "",
+                  audioUrl: "",
+                  order: 0,
+                  isActive: true,
+                },
+              ],
+            });
+          }
+        } else if (isEditMode) {
           const sentenceImage = await getSentenceImage(
             parseInt(sentenceImageId)
           );
@@ -142,7 +207,8 @@ export default function SentenceFormPage() {
     };
 
     fetchData();
-  }, [sentenceImageId, isEditMode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sentenceImageId, isEditMode, topicIdParam]);
 
   const onSubmit = async (data: CreateSentenceImageFormData) => {
     setIsSubmitting(true);
@@ -157,18 +223,71 @@ export default function SentenceFormPage() {
         } else {
           toast.error("Cập nhật thất bại");
         }
+        router.push("/admin/sentences");
+        router.refresh();
+      } else if (isTopicLocked) {
+        // Bulk create/update mode
+        // Split sentences into existing (with id) and new (without id)
+        const existingSentences = data.sentences.filter(s => s.id);
+        const newSentences = data.sentences.filter(s => !s.id);
+
+        // Update existing sentences individually
+        if (existingSentences.length > 0) {
+          await Promise.all(
+            existingSentences.map(sentence => 
+              updateSentence(sentence.id!, {
+                text: sentence.text,
+                meaningVi: sentence.meaningVi,
+                hintVi: sentence.hintVi,
+                audioUrl: sentence.audioUrl,
+                order: sentence.order,
+                isActive: sentence.isActive,
+              })
+            )
+          );
+        }
+
+        // Create new sentences if any
+        if (newSentences.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const cleanedNewSentences = newSentences.map(({ id, ...sentence }) => sentence);
+          
+          const sentenceImageData = {
+            imageUrl: data.imageUrl,
+            audioUrl: data.audioUrl,
+            isActive: data.isActive,
+            sentences: cleanedNewSentences,
+          };
+
+          await bulkCreateSentences(data.topicId, [sentenceImageData]);
+        }
+        
+        toast.success("Cập nhật thành công");
+        // Reload the page to fetch updated data
+        router.refresh();
+        window.location.reload();
       } else {
+        // Normal create mode (single sentence image)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { order, ...createData } = data;
-        const created = await createSentenceImage(createData);
+        
+        // Remove 'id' field from all sentences
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const cleanedSentences = createData.sentences.map(({ id, ...sentence }) => sentence);
+        const finalData = {
+          ...createData,
+          sentences: cleanedSentences,
+        };
+
+        const created = await createSentenceImage(finalData);
         if (created) {
           toast.success("Tạo mới thành công");
+          router.push("/admin/sentences");
+          router.refresh();
         } else {
           toast.error("Tạo mới thất bại");
         }
       }
-      router.push("/admin/sentences");
-      router.refresh();
     } catch (error) {
       console.error("Failed to save sentence image:", error);
 
@@ -181,7 +300,7 @@ export default function SentenceFormPage() {
       } else if (Array.isArray(errorMessage)) {
         toast.error(errorMessage.join(", "));
       } else {
-        toast.error(isEditMode ? "Cập nhật thất bại" : "Tạo mới thất bại");
+        toast.error(isEditMode ? "Cập nhật thất bại" : "Lưu thất bại");
       }
     } finally {
       setIsSubmitting(false);
@@ -223,6 +342,18 @@ export default function SentenceFormPage() {
       audioUrl: "",
       order: nextOrder,
       isActive: true,
+    });
+  }
+
+  function toggleCardExpanded(fieldId: string) {
+    setExpandedCards((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(fieldId)) {
+        newSet.delete(fieldId);
+      } else {
+        newSet.add(fieldId);
+      }
+      return newSet;
     });
   }
 
@@ -301,8 +432,14 @@ export default function SentenceFormPage() {
                   placeholder="Chọn khối lớp"
                   searchPlaceholder="Tìm kiếm khối lớp..."
                   emptyText="Không tìm thấy khối lớp."
+                  disabled={isTopicLocked}
                 />
               </FormControl>
+              {isTopicLocked && (
+                <FormDescription>
+                  Khối lớp đã được chọn và không thể thay đổi
+                </FormDescription>
+              )}
               <FormMessage />
             </FormItem>
 
@@ -334,8 +471,14 @@ export default function SentenceFormPage() {
                           ? "Không tìm thấy chủ đề."
                           : "Chưa chọn khối lớp."
                       }
+                      disabled={isTopicLocked}
                     />
                   </FormControl>
+                  {isTopicLocked && (
+                    <FormDescription>
+                      Chủ đề đã được chọn và không thể thay đổi
+                    </FormDescription>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -461,7 +604,11 @@ export default function SentenceFormPage() {
               <div>
                 <TypographyH3>Danh sách câu</TypographyH3>
                 <p className="text-sm text-muted-foreground">
-                  Thêm các câu liên quan đến hình ảnh (tối thiểu 1 câu)
+                  {isTopicLocked && existingSentencesCount > 0
+                    ? `Đang hiển thị ${existingSentencesCount} câu có sẵn của chủ đề này. Bạn có thể chỉnh sửa hoặc thêm câu mới.`
+                    : isTopicLocked
+                    ? "Chủ đề này chưa có câu nào. Hãy thêm các câu mới."
+                    : "Thêm các câu liên quan đến hình ảnh (tối thiểu 1 câu)"}
                 </p>
               </div>
               <Button
@@ -475,11 +622,27 @@ export default function SentenceFormPage() {
               </Button>
             </div>
 
-            {fields.map((field, index) => (
+            {fields.map((field, index) => {
+              const isExpanded = expandedCards.has(field.id);
+              const sentenceText = form.watch(`sentences.${index}.text`);
+              const previewText = sentenceText || `Câu ${index + 1}`;
+              
+              return (
               <Card key={field.id}>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between text-base">
-                    <span>Câu {index + 1}</span>
+                    <button
+                      type="button"
+                      onClick={() => toggleCardExpanded(field.id)}
+                      className="flex items-center gap-2 hover:text-primary transition-colors"
+                    >
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                      <span className="truncate max-w-md">{previewText}</span>
+                    </button>
                     {fields.length > 1 && (
                       <Button
                         type="button"
@@ -492,6 +655,7 @@ export default function SentenceFormPage() {
                     )}
                   </CardTitle>
                 </CardHeader>
+                {isExpanded && (
                 <CardContent className="space-y-4">
                   {/* Sentence Text */}
                   <FormField
@@ -622,8 +786,10 @@ export default function SentenceFormPage() {
                     />
                   </div>
                 </CardContent>
+                )}
               </Card>
-            ))}
+              );
+            })}
           </div>
 
           {/* Form Actions */}
@@ -639,7 +805,9 @@ export default function SentenceFormPage() {
               {isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {isEditMode ? "Cập nhật" : "Tạo mới"}
+              {/* {isEditMode ? "Cập nhật" : "Tạo mới"}
+               */}
+               Cập nhật
             </Button>
           </div>
         </form>

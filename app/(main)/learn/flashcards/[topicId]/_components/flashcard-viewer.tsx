@@ -58,7 +58,7 @@ export function FlashcardViewer({ flashcards, onRecordReview }: FlashcardViewerP
               <BookOpen className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Flashcards</h3>
               <p className="text-muted-foreground">
-                This topic doesn't have any flashcards yet.
+                This topic doesn&apos;t have any flashcards yet.
               </p>
             </div>
           </CardContent>

@@ -84,7 +84,9 @@ export default function FlashcardFormPage() {
   const searchParams = useSearchParams();
 
   const flashcardId = searchParams.get("id");
+  const topicIdParam = searchParams.get("topicId");
   const isEditMode = !!flashcardId;
+  const isTopicLocked = !!topicIdParam; // Lock topic if passed via query param
 
   const form = useForm<CreateFlashcardFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -114,7 +116,25 @@ export default function FlashcardFormPage() {
         const fetchedTopics = await getTopics();
         setAvailableTopics(fetchedTopics);
 
-        if (isEditMode) {
+        // If topicId is passed via query param (bulk create mode)
+        if (topicIdParam) {
+          const parsedTopicId = parseInt(topicIdParam);
+          const topic = fetchedTopics.find((t) => t.id === parsedTopicId);
+          if (topic?.grade) {
+            setSelectedGrade(topic.grade);
+          }
+          form.reset({
+            topicId: parsedTopicId,
+            term: "",
+            phonetic: "",
+            meaningVi: "",
+            exampleEn: "",
+            exampleVi: "",
+            imageUrl: "",
+            audioUrl: "",
+            isActive: true,
+          });
+        } else if (isEditMode) {
           const flashcard = await getFlashcard(parseInt(flashcardId));
           // Find the topic to get its grade
           const topic = fetchedTopics.find((t) => t.id === flashcard.topicId);
@@ -143,7 +163,8 @@ export default function FlashcardFormPage() {
     };
 
     fetchData();
-  }, [flashcardId, isEditMode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flashcardId, isEditMode, topicIdParam]);
 
   const onSubmit = async (data: CreateFlashcardFormData) => {
     setIsSubmitting(true);
@@ -310,8 +331,14 @@ export default function FlashcardFormPage() {
                   searchPlaceholder="Tìm kiếm khối lớp..."
                   emptyText="Không tìm thấy khối lớp."
                   className={cn(!selectedGrade && "text-muted-foreground")}
+                  disabled={isTopicLocked}
                 />
               </FormControl>
+              {isTopicLocked && (
+                <FormDescription>
+                  Khối lớp đã được chọn và không thể thay đổi
+                </FormDescription>
+              )}
               <FormMessage />
             </FormItem>
 
@@ -343,10 +370,15 @@ export default function FlashcardFormPage() {
                           ? "Không tìm thấy chủ đề."
                           : "Chưa chọn khối lớp."
                       }
-                      disabled={!selectedGrade}
+                      disabled={!selectedGrade || isTopicLocked}
                       className={cn(!field.value && "text-muted-foreground")}
                     />
                   </FormControl>
+                  {isTopicLocked && (
+                    <FormDescription>
+                      Chủ đề đã được chọn và không thể thay đổi
+                    </FormDescription>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
