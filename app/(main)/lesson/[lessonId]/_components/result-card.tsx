@@ -39,7 +39,7 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
       case "accuracy":
         return {
           imageSrc: null,
-          title: "Độ chính xác",
+          title: "Tỷ lệ đúng",
           borderColor: "border-purple-400",
           bgColor: "bg-purple-400",
           textColor: "text-purple-400",

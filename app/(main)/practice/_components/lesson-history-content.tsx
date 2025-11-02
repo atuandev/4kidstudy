@@ -95,7 +95,11 @@ export function LessonHistoryContent({
     if (completedAttempts.length === 0) return null;
     return completedAttempts.reduce((best, current) => {
       if (current.totalScore > best.totalScore) return current;
-      if (current.totalScore === best.totalScore && current.accuracyPct > best.accuracyPct) return current;
+      if (
+        current.totalScore === best.totalScore &&
+        current.accuracyPct > best.accuracyPct
+      )
+        return current;
       return best;
     });
   }
@@ -106,7 +110,7 @@ export function LessonHistoryContent({
     <SheetContent className="sm:max-w-2xl w-full">
       <SheetHeader>
         <SheetTitle>Lịch sử luyện tập</SheetTitle>
-        <SheetDescription>{lesson.title}</SheetDescription>
+        <SheetDescription className="text-lg font-bold">{lesson.title}</SheetDescription>
       </SheetHeader>
 
       {!isLoadingAttempts && bestAttempt && (
@@ -118,7 +122,9 @@ export function LessonHistoryContent({
           <div className="border-2 border-yellow-400 rounded-lg bg-gradient-to-br from-yellow-50 to-amber-50 p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="font-semibold">Lần {bestAttempt.attemptNumber}</span>
+                <span className="font-semibold">
+                  Lần {bestAttempt.attemptNumber}
+                </span>
               </div>
               <Badge className="bg-yellow-500 hover:bg-yellow-600">
                 Xuất sắc
@@ -133,8 +139,10 @@ export function LessonHistoryContent({
                 </p>
               </div>
               <div>
-                <span className="text-muted-foreground">Độ chính xác</span>
-                <p className="font-bold text-lg">{bestAttempt.accuracyPct}%</p>
+                <span className="text-muted-foreground">Tỷ lệ đúng</span>
+                <p className="font-bold text-lg">
+                  {bestAttempt.accuracyPct.toFixed(1)}%
+                </p>
               </div>
               <div>
                 <span className="text-muted-foreground">Đúng</span>
@@ -180,202 +188,210 @@ export function LessonHistoryContent({
               <h3 className="font-semibold text-lg">Tất cả lần luyện tập</h3>
             </div>
             {attempts.map((attempt) => {
-            const isExpanded = expandedAttemptId === attempt.id;
-            return (
-              <div
-                key={attempt.id}
-                className="border rounded-lg overflow-hidden"
-              >
+              const isExpanded = expandedAttemptId === attempt.id;
+              return (
                 <div
-                  className="p-4 space-y-2 hover:bg-gray-50 cursor-pointer transition-colors"
-                  onClick={() => handleAttemptClick(attempt.id)}
+                  key={attempt.id}
+                  className="border rounded-lg overflow-hidden"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">
-                        Lần {attempt.attemptNumber}
-                      </span>
-                      {isExpanded ? (
-                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </div>
-                    <Badge
-                      variant={attempt.isCompleted ? "default" : "outline"}
-                    >
-                      {attempt.isCompleted ? "Hoàn thành" : "Chưa hoàn thành"}
-                    </Badge>
-                  </div>
-
-                  <div className="grid grid-cols-5 gap-2">
-                    <div>
-                      <span className="text-muted-foreground">Điểm</span>
-                      <p className="font-bold text-lg">
-                        {attempt.totalScore}/{attempt.maxScore}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">
-                        Độ chính xác
-                      </span>
-                      <p className="font-bold text-lg">{attempt.accuracyPct}%</p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Đúng</span>
-                      <p className="font-bold text-green-600 text-lg">
-                        {attempt.correctCount}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Sai</span>
-                      <p className="font-bold text-red-600 text-lg">
-                        {attempt.incorrectCount}
-                      </p>
+                  <div
+                    className="p-4 space-y-2 hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => handleAttemptClick(attempt.id)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">
+                          Lần {attempt.attemptNumber}
+                        </span>
+                        {isExpanded ? (
+                          <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                      <Badge
+                        variant={attempt.isCompleted ? "default" : "outline"}
+                      >
+                        {attempt.isCompleted ? "Hoàn thành" : "Chưa hoàn thành"}
+                      </Badge>
                     </div>
 
-                    <div>
-                      <span className="text-muted-foreground">Thời gian</span>
-                      <p className="font-bold text-lg">
-                        {formatDuration(attempt.durationSec)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="text-muted-foreground">
-                    {formatDate(attempt.createdAt)}
-                  </div>
-                </div>
-
-                {isExpanded && (
-                  <div className="border-t bg-gray-50 p-4">
-                    {isLoadingDetails ? (
-                      <div className="flex items-center justify-center py-4">
-                        <p className="text-sm text-muted-foreground">
-                          Đang tải chi tiết...
+                    <div className="grid grid-cols-5 gap-2">
+                      <div>
+                        <span className="text-muted-foreground">Điểm</span>
+                        <p className="font-bold text-lg">
+                          {attempt.totalScore}/{attempt.maxScore}
                         </p>
                       </div>
-                    ) : attemptDetails?.details &&
-                      attemptDetails.details.length > 0 ? (
-                      <div className="grid grid-cols-3 gap-2">
-                        {attemptDetails.details.map((detail, index) => (
-                          <div
-                            key={detail.id}
-                            className={cn(
-                              "border rounded-md p-3 space-y-2",
-                              detail.isCorrect
-                                ? "bg-green-50 border-green-200"
-                                : "bg-red-50 border-red-200"
-                            )}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className="font-medium text-sm">
-                                Bài tập #{index + 1}
-                              </span>
-                              <Badge
-                                variant={
-                                  detail.isCorrect ? "default" : "destructive"
-                                }
-                              >
-                                {detail.isCorrect ? "Đúng" : "Sai"}
-                              </Badge>
-                            </div>
+                      <div>
+                        <span className="text-muted-foreground">
+                          Tỷ lệ đúng
+                        </span>
+                        <p className="font-bold text-lg">
+                          {attempt.accuracyPct.toFixed(1)}%
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Đúng</span>
+                        <p className="font-bold text-green-600 text-lg">
+                          {attempt.correctCount}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Sai</span>
+                        <p className="font-bold text-red-600 text-lg">
+                          {attempt.incorrectCount}
+                        </p>
+                      </div>
 
-                            <div className="grid grid-cols-2 gap-2">
-                              <div>
-                                <span className="text-muted-foreground">
-                                  Điểm
+                      <div>
+                        <span className="text-muted-foreground">Thời gian</span>
+                        <p className="font-bold text-lg">
+                          {formatDuration(attempt.durationSec)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-muted-foreground">
+                      {formatDate(attempt.createdAt)}
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="border-t bg-gray-50 p-4">
+                      {isLoadingDetails ? (
+                        <div className="flex items-center justify-center py-4">
+                          <p className="text-sm text-muted-foreground">
+                            Đang tải chi tiết...
+                          </p>
+                        </div>
+                      ) : attemptDetails?.details &&
+                        attemptDetails.details.length > 0 ? (
+                        <div className="grid grid-cols-3 gap-2">
+                          {attemptDetails.details.map((detail, index) => (
+                            <div
+                              key={detail.id}
+                              className={cn(
+                                "border rounded-md p-3 space-y-2",
+                                detail.isCorrect
+                                  ? "bg-green-50 border-green-200"
+                                  : "bg-red-50 border-red-200"
+                              )}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium text-sm">
+                                  Câu hỏi #{index + 1}
                                 </span>
-                                <p className="font-bold text-lg">
-                                  {detail.points}/{detail.maxPoints}
-                                </p>
+                                <Badge
+                                  variant={
+                                    detail.isCorrect ? "default" : "destructive"
+                                  }
+                                >
+                                  {detail.isCorrect ? "Đúng" : "Sai"}
+                                </Badge>
                               </div>
-                              {detail.pronunciation && (
+
+                              <div className="grid grid-cols-2 gap-2">
                                 <div>
                                   <span className="text-muted-foreground">
-                                    Phát âm:
+                                    Điểm
                                   </span>
-                                  <p className="font-medium">
-                                    {detail.pronunciation.overall?.toFixed(1) ??
-                                      "N/A"}
-                                    %
+                                  <p className="font-bold text-lg">
+                                    {detail.points}/{detail.maxPoints}
                                   </p>
                                 </div>
-                              )}
-                            </div>
-
-                            {detail.pronunciation && (
-                              <div className="pt-2 border-t space-y-1">
-                                <p className="text-xs font-medium">
-                                  Chi tiết phát âm:
-                                </p>
-                                <div className="grid grid-cols-2 gap-1 text-xs">
-                                  {detail.pronunciation.accuracy !==
-                                    undefined && (
-                                    <div>
-                                      <span className="text-muted-foreground">
-                                        Độ chính xác:
-                                      </span>
-                                      <span className="ml-1 font-medium">
-                                        {detail.pronunciation.accuracy.toFixed(
-                                          1
-                                        )}
-                                        %
-                                      </span>
-                                    </div>
-                                  )}
-                                  {detail.pronunciation.fluency !==
-                                    undefined && (
-                                    <div>
-                                      <span className="text-muted-foreground">
-                                        Độ trôi chảy:
-                                      </span>
-                                      <span className="ml-1 font-medium">
-                                        {detail.pronunciation.fluency.toFixed(1)}
-                                        %
-                                      </span>
-                                    </div>
-                                  )}
-                                  {detail.pronunciation.completeness !==
-                                    undefined && (
-                                    <div>
-                                      <span className="text-muted-foreground">
-                                        Độ hoàn thành:
-                                      </span>
-                                      <span className="ml-1 font-medium">
-                                        {detail.pronunciation.completeness.toFixed(
-                                          1
-                                        )}
-                                        %
-                                      </span>
-                                    </div>
-                                  )}
-                                  {detail.pronunciation.prosody !== undefined && (
-                                    <div>
-                                      <span className="text-muted-foreground">
-                                        Ngữ điệu:
-                                      </span>
-                                      <span className="ml-1 font-medium">
-                                        {detail.pronunciation.prosody.toFixed(1)}
-                                        %
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
+                                {detail.pronunciation && (
+                                  <div>
+                                    <span className="text-muted-foreground">
+                                      Phát âm:
+                                    </span>
+                                    <p className="font-medium">
+                                      {detail.pronunciation.overall?.toFixed(
+                                        1
+                                      ) ?? "N/A"}
+                                      %
+                                    </p>
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground text-center py-4">
-                        Không có chi tiết bài tập
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
+
+                              {/* {detail.pronunciation && (
+                                <div className="pt-2 border-t space-y-1">
+                                  <p className="text-xs font-medium">
+                                    Chi tiết phát âm:
+                                  </p>
+                                  <div className="grid grid-cols-2 gap-1 text-xs">
+                                    {detail.pronunciation.accuracy !==
+                                      undefined && (
+                                      <div>
+                                        <span className="text-muted-foreground">
+                                          Độ chính xác:
+                                        </span>
+                                        <span className="ml-1 font-medium">
+                                          {detail.pronunciation.accuracy.toFixed(
+                                            1
+                                          )}
+                                          %
+                                        </span>
+                                      </div>
+                                    )}
+                                    {detail.pronunciation.fluency !==
+                                      undefined && (
+                                      <div>
+                                        <span className="text-muted-foreground">
+                                          Độ trôi chảy:
+                                        </span>
+                                        <span className="ml-1 font-medium">
+                                          {detail.pronunciation.fluency.toFixed(
+                                            1
+                                          )}
+                                          %
+                                        </span>
+                                      </div>
+                                    )}
+                                    {detail.pronunciation.completeness !==
+                                      undefined && (
+                                      <div>
+                                        <span className="text-muted-foreground">
+                                          Độ hoàn thành:
+                                        </span>
+                                        <span className="ml-1 font-medium">
+                                          {detail.pronunciation.completeness.toFixed(
+                                            1
+                                          )}
+                                          %
+                                        </span>
+                                      </div>
+                                    )}
+                                    {detail.pronunciation.prosody !==
+                                      undefined && (
+                                      <div>
+                                        <span className="text-muted-foreground">
+                                          Ngữ điệu:
+                                        </span>
+                                        <span className="ml-1 font-medium">
+                                          {detail.pronunciation.prosody.toFixed(
+                                            1
+                                          )}
+                                          %
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )} */}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          Không có chi tiết bài tập
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
             })}
           </>
         )}
@@ -383,4 +399,3 @@ export function LessonHistoryContent({
     </SheetContent>
   );
 }
-

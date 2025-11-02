@@ -18,8 +18,6 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
     activeIndex,
     setAttemptId,
     attemptId,
-    phase,
-    shouldShowReview,
   } = useQuizStore();
 
   // Get state values that need to be reactive
@@ -85,22 +83,16 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
     }
   }, [activeIndex, exercises.length]);
 
-  // Complete attempt when quiz is truly finished
+  // Complete attempt when quiz is finished
   useEffect(() => {
     async function finishAttempt() {
       // Prevent double completion
       if (attemptCompletedRef.current || !attemptId) return;
 
+      // Check if all exercises are complete
       const allExercisesComplete = activeIndex >= exercises.length;
 
-      // Only complete when:
-      // 1. All exercises done AND in review phase (review complete), OR
-      // 2. All exercises done AND in normal phase AND no review needed
-      const shouldComplete =
-        allExercisesComplete &&
-        (phase === "review" || (phase === "normal" && !shouldShowReview()));
-
-      if (shouldComplete) {
+      if (allExercisesComplete) {
         attemptCompletedRef.current = true;
 
         // Calculate duration BEFORE endSession (which sets startTime to null)
@@ -131,8 +123,6 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
     activeIndex,
     exercises.length,
     attemptId,
-    phase,
-    shouldShowReview,
     startTime,
     duration,
   ]);
