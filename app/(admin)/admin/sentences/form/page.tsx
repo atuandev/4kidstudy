@@ -33,6 +33,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 import {
   createSentenceImage,
@@ -533,7 +544,6 @@ export default function SentenceFormPage() {
                     </CldUploadWidget>
                   </div>
                 </FormControl>
-                <FormDescription>Hình ảnh minh họa cho các câu</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -664,14 +674,25 @@ export default function SentenceFormPage() {
                       <span className="truncate max-w-md">{previewText}</span>
                     </button>
                     {fields.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="dangerOutline"
-                        size="sm"
-                        onClick={() => handleRemoveSentence(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button type="button" variant="dangerOutline" size="sm">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Hành động này sẽ xóa câu vĩnh viễn.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Hủy</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleRemoveSentence(index)}>Xóa</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     )}
                   </CardTitle>
                 </CardHeader>

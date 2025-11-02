@@ -61,3 +61,55 @@ export const CreateLessonSchema = z.object({
 });
 
 export type CreateLessonFormData = z.infer<typeof CreateLessonSchema>;
+
+/**
+ * Schema for lesson item in bulk create (without topicId, with optional id)
+ */
+export const LessonWithOptionalIdSchema = z.object({
+  id: z.number().optional(),
+  
+  title: z
+    .string({
+      error: "Vui lòng nhập tiêu đề",
+    })
+    .min(1, "Vui lòng nhập tiêu đề")
+    .max(200, "Tiêu đề không được quá 200 ký tự"),
+
+  description: z
+    .string({
+      error: "Vui lòng nhập mô tả",
+    })
+    .min(1, "Vui lòng nhập mô tả"),
+
+  order: z.number().optional(),
+
+  status: z.enum(["PUBLISHED", "DRAFT", "ARCHIVED"], {
+    error: "Vui lòng chọn trạng thái",
+  }),
+
+  theoryText: z.string().optional().default(""),
+
+  phoneticsNote: z.string().optional().default(""),
+
+  grammarNote: z.string().optional().default(""),
+
+  audioUrl: z.string().optional().default(""),
+
+  coverImage: z.string().optional().default(""),
+});
+
+/**
+ * Schema for bulk creating lessons
+ */
+export const CreateLessonsSchema = z.object({
+  topicId: z
+    .number({
+      error: "Vui lòng chọn chủ đề",
+    })
+    .min(1, "Vui lòng chọn chủ đề"),
+  
+  lessons: z.array(LessonWithOptionalIdSchema).min(1, "Phải có ít nhất một bài luyện tập"),
+});
+
+export type LessonWithOptionalIdFormData = z.infer<typeof LessonWithOptionalIdSchema>;
+export type CreateLessonsFormData = z.infer<typeof CreateLessonsSchema>;

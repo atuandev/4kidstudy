@@ -40,6 +40,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 import {
   createFlashcard,
@@ -236,19 +247,12 @@ export default function FlashcardFormPage() {
         // Bulk create/update mode
         const bulkData = data as CreateFlashcardsFormData;
         
-        console.log("=== Bulk Submit Debug ===");
-        console.log("Total flashcards:", bulkData.flashcards.length);
-        
         // Split flashcards into existing (with id) and new (without id)
         const existingFlashcards = bulkData.flashcards.filter(fc => fc.id);
         const newFlashcards = bulkData.flashcards.filter(fc => !fc.id);
 
-        console.log("Existing flashcards:", existingFlashcards.length);
-        console.log("New flashcards:", newFlashcards.length);
-
         // Update existing flashcards individually
         if (existingFlashcards.length > 0) {
-          console.log("Updating existing flashcards...");
           await Promise.all(
             existingFlashcards.map(flashcard =>
               updateFlashcard(flashcard.id!, {
@@ -265,12 +269,10 @@ export default function FlashcardFormPage() {
               })
             )
           );
-          console.log("Updated successfully!");
         }
 
         // Create new flashcards if any
         if (newFlashcards.length > 0) {
-          console.log("Creating new flashcards...", newFlashcards);
           const cleanedNewFlashcards = newFlashcards.map((flashcard) => {
             const cleaned: Record<string, any> = { // eslint-disable-line @typescript-eslint/no-explicit-any
               term: flashcard.term,
@@ -288,14 +290,10 @@ export default function FlashcardFormPage() {
             
             return cleaned;
           });
-          console.log("Cleaned flashcards:", cleanedNewFlashcards);
-          const result = await bulkCreateFlashcards(bulkData.topicId, cleanedNewFlashcards as any); // eslint-disable-line @typescript-eslint/no-explicit-any
-          console.log("Create result:", result);
+          await bulkCreateFlashcards(bulkData.topicId, cleanedNewFlashcards as any); // eslint-disable-line @typescript-eslint/no-explicit-any
         }
 
-  // Do not reload the page so developer can inspect console/network debug logs
-  // after clicking "Lưu tất cả". Keep the toast but avoid refresh.
-  toast.success("Cập nhật thành công");
+        toast.success("Cập nhật thành công");
       } else {
         // Single create mode
         const singleData = data as CreateFlashcardFormData;
@@ -596,15 +594,30 @@ export default function FlashcardFormPage() {
                               )}
                             </CardTitle>
                           </button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleRemoveFlashcard(index)}
-                            disabled={fields.length === 1}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                disabled={fields.length === 1}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Hành động này sẽ xóa flashcard vĩnh viễn.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleRemoveFlashcard(index)}>Xóa</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </CardHeader>
 

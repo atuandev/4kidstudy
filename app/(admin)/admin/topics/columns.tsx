@@ -280,7 +280,7 @@ export const columns: ColumnDef<Topic>[] = [
               }
             >
               <Plus className="mr-2 h-4 w-4" />
-              Tạo nhiều bài học
+              Tạo nhiều bài luyện tập
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
