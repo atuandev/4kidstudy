@@ -41,6 +41,7 @@ import {
   updateSentenceImage,
   bulkCreateSentences,
   updateSentence,
+  deleteSentence,
 } from "@/actions/sentence";
 import { getTopics } from "@/actions/topic";
 import { RequiredField } from "@/components/form/required-field";
@@ -343,6 +344,25 @@ export default function SentenceFormPage() {
       order: nextOrder,
       isActive: true,
     });
+  }
+
+  async function handleRemoveSentence(index: number) {
+    const sentence = form.getValues(`sentences.${index}`);
+    
+    // If sentence has an id, it exists in the database and needs to be deleted
+    if (sentence.id) {
+      try {
+        await deleteSentence(sentence.id);
+        toast.success("Đã xóa câu thành công");
+        remove(index);
+      } catch (error) {
+        console.error("Failed to delete sentence:", error);
+        toast.error("Xóa câu thất bại");
+      }
+    } else {
+      // Just remove from form array if it's a new sentence not yet saved
+      remove(index);
+    }
   }
 
   function toggleCardExpanded(fieldId: string) {
@@ -648,7 +668,7 @@ export default function SentenceFormPage() {
                         type="button"
                         variant="dangerOutline"
                         size="sm"
-                        onClick={() => remove(index)}
+                        onClick={() => handleRemoveSentence(index)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

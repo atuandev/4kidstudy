@@ -27,6 +27,19 @@ export const CreateFlashcardSchema = z.object({
 
 export type CreateFlashcardFormData = z.infer<typeof CreateFlashcardSchema>;
 
+// Schema for bulk flashcards with optional id (for upsert)
+export const FlashcardWithOptionalIdSchema = CreateFlashcardSchema.extend({
+  id: z.number().int().positive().optional(),
+  topicId: z.number().int().positive().optional(), // topicId will be set at form level
+});
+
+export const CreateFlashcardsSchema = z.object({
+  topicId: z.number().int().positive('Chủ đề là bắt buộc'),
+  flashcards: z.array(FlashcardWithOptionalIdSchema).min(1, 'Phải có ít nhất 1 flashcard'),
+});
+
+export type CreateFlashcardsFormData = z.infer<typeof CreateFlashcardsSchema>;
+
 export const flashcardStatusLabels: Record<string, string> = {
   true: 'Hoạt động',
   false: 'Không hoạt động',
