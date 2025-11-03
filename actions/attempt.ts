@@ -70,3 +70,23 @@ export async function getUserLessonAttempts(lessonId: number): Promise<Attempt[]
   return payload;
 }
 
+/**
+ * Get user's overall practice statistics
+ */
+export async function getPracticeStatistics() {
+  const { payload } = await http.get<{
+    completeLessonCount: number;
+    totalLessonCount: number;
+    totalDurationSec: number;
+    totalCorrectCount: number;
+    totalIncorrectCount: number;
+    byType: Array<{
+      type: string;
+      correctCount: number;
+      correctOnSecondCount: number;
+      incorrectCount: number;
+    }>;
+  }>(`/attempts/statistics`);
+  return payload;
+}
+
