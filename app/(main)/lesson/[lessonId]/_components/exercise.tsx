@@ -78,11 +78,6 @@ export const Exercise = ({
   }
 
   if (type === "LISTENING") {
-    // Determine mode based on whether we have targetText (sentence reconstruction) or just options (text choice)
-    const mode = targetText && targetText.split(" ").length > 1 
-      ? "sentence_reconstruction" 
-      : "text_choice";
-    
     return (
       <ListeningExercise
         options={options}
@@ -90,8 +85,6 @@ export const Exercise = ({
         status={status}
         selectedOption={selectedOption}
         disabled={disabled}
-        targetText={targetText}
-        mode={mode}
       />
     );
   }
