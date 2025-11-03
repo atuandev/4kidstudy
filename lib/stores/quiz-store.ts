@@ -19,6 +19,7 @@ type QuizState = {
   
   // Selection state
   selectedOption: number | undefined;
+  selectedOption2: number | undefined;
   status: QuizStatus;
   
   // Pronunciation state
@@ -44,6 +45,7 @@ type QuizActions = {
   
   // Selection
   selectOption: (optionId: number) => void;
+  selectOptions: (optionId: number, optionId2?: number) => void;
   clearSelection: () => void;
   
   // Status
@@ -74,6 +76,7 @@ const initialState: QuizState = {
   lessonId: 0,
   attemptId: null,
   selectedOption: undefined,
+  selectedOption2: undefined,
   status: 'none',
   pronunciation: {
     state: 'idle',
@@ -94,6 +97,7 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
       activeIndex: 0,
       attemptId: null,
       selectedOption: undefined,
+      selectedOption2: undefined,
       status: 'none',
       pronunciation: {
         state: 'idle',
@@ -119,6 +123,7 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
     set({
       activeIndex: state.activeIndex + 1,
       selectedOption: undefined,
+      selectedOption2: undefined,
       status: 'none',
       pronunciation: {
         state: 'idle',
@@ -132,12 +137,20 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
     const state = get();
     if (state.status !== 'none') return;
     
-    set({ selectedOption: optionId });
+    set({ selectedOption: optionId, selectedOption2: undefined });
+  },
+
+  selectOptions: (optionId: number, optionId2?: number) => {
+    const state = get();
+    if (state.status !== 'none') return;
+    
+    set({ selectedOption: optionId, selectedOption2: optionId2 });
   },
 
   clearSelection: () => {
     set({ 
       selectedOption: undefined,
+      selectedOption2: undefined,
       status: 'none',
     });
   },

@@ -39,8 +39,8 @@ export const Footer = ({
         status === "wrong" && "border-transparent bg-rose-100"
       )}
     >
-      <div className="mx-auto flex h-full max-w-[1140px] items-center justify-between px-6 lg:px-10">
-        <div className="flex flex-col gap-2 lg:gap-3">
+      <div className="grid grid-cols-12 h-full max-w-[1140px] px-6 lg:px-10">
+        <div className="flex flex-col gap-2 lg:gap-3 col-span-6">
           <div className="flex items-center gap-4">
             {status === "correct" && (
               <div className="flex items-center text-base font-bold text-green-500 lg:text-2xl">
@@ -67,7 +67,7 @@ export const Footer = ({
             )}
 
             {/* Skip button - only show when in "none" state and skip is enabled */}
-            {status === "none" && showSkip && onSkip && (
+            {/* {status === "none" && showSkip && onSkip && (
               <Button
                 onClick={onSkip}
                 variant="default"
@@ -76,7 +76,7 @@ export const Footer = ({
               >
                 Bỏ qua
               </Button>
-            )}
+            )} */}
           </div>
 
           {/* Hints section - only show when wrong or correct */}
@@ -116,6 +116,7 @@ export const Footer = ({
           onClick={onCheck}
           size={isMobile ? "sm" : "lg"}
           variant={status === "wrong" ? "danger" : "secondary"}
+          className="col-span-2"
         >
           {status === "none" && "Kiểm tra"}
           {status === "correct" && "Tiếp tục"}

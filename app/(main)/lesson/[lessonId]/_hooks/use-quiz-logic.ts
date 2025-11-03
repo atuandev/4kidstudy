@@ -13,6 +13,7 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
   
   const {
     selectedOption,
+    selectedOption2,
     status,
     pronunciation,
     activeIndex,
@@ -20,6 +21,7 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     attemptId,
     nextExercise,
     selectOption,
+    selectOptions,
     clearSelection,
     setStatus,
     getCurrentExercise,
@@ -65,10 +67,16 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
       return;
     }
 
-    selectOption(id);
+    // For MATCHING exercises, options are already set via selectOptions in the component
+    // Don't call selectOption as it would reset selectedOption2 to undefined
+    if (exercise?.type !== 'MATCHING') {
+      selectOption(id);
+    }
 
     // Auto-complete MATCHING exercise when option is selected
     // This happens when all pairs are matched
+    // Note: For matching exercises, selectedOption2 should already be set via selectOptions
+    // when the last pair is matched in the matching-exercise component
     if (exercise?.type === 'MATCHING' && id > 0 && attemptId) {
       const attemptCount = getExerciseAttemptCount(exercise.id);
       incrementExerciseAttempt(exercise.id);
@@ -82,6 +90,8 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
         completeExercise(true, pointsToAward);
         
         // Submit to backend
+        // Read selectedOption2 from store at submission time to ensure we have the latest value
+        const currentState = useQuizStore.getState();
         const timeSec = currentExerciseStartTime 
           ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
           : 0;
@@ -90,6 +100,7 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
           exerciseId: exercise.id,
           isCorrect: true,
           selectedOptionId: id,
+          selectedOption2Id: currentState.selectedOption2,
           timeSec,
           points: pointsToAward,
         });
@@ -207,6 +218,13 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
 
     const isCorrect = correctOption.id === selectedOption;
     const attemptCount = getExerciseAttemptCount(exercise.id);
+    
+    // For standard exercises (non-matching):
+    // - First attempt: selectedOption2Id = undefined
+    // - Second attempt: Backend will preserve first wrong answer in selectedOption2Id
+    //   (if first attempt was wrong)
+    // For matching exercises: selectedOption2Id is set by the matching component
+    
     incrementExerciseAttempt(exercise.id);
     
     // First attempt: 10 points, Second attempt: 5 points
@@ -228,10 +246,14 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
       }
       
       // Submit to backend
+      // For second attempt: if first attempt was wrong, backend should preserve first wrong in selectedOption2Id
       void submitExercise(attemptId, {
         exerciseId: exercise.id,
         isCorrect,
         selectedOptionId: selectedOption,
+        // Don't set selectedOption2Id here for standard exercises - backend will handle retry logic
+        // Only set it for matching exercises
+        selectedOption2Id: exercise.type === 'MATCHING' ? selectedOption2 : undefined,
         timeSec,
         points: pointsToAward,
       });

@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { cn, shuffleArray } from "@/lib/utils";
 import { ExerciseOption } from "@/types";
+import { useQuizStore } from "@/lib/stores/quiz-store";
 
 type MatchingExerciseProps = {
   options: ExerciseOption[];
@@ -24,9 +25,14 @@ export function MatchingExercise({
   status,
   disabled,
 }: MatchingExerciseProps) {
+  const { selectOptions } = useQuizStore();
   const [selectedLeft, setSelectedLeft] = useState<number | null>(null);
   const [selectedRight, setSelectedRight] = useState<number | null>(null);
   const [matches, setMatches] = useState<Map<string, boolean>>(new Map());
+  const [lastMatchedPair, setLastMatchedPair] = useState<{
+    leftId: number;
+    rightId: number;
+  } | null>(null);
   const [wrongMatch, setWrongMatch] = useState<{
     leftId: number;
     rightId: number;
@@ -143,6 +149,9 @@ export function MatchingExercise({
       // Add to matches
       setMatches((prev) => new Map(prev.set(leftOption.matchKey!, true)));
 
+      // Store the matched pair
+      setLastMatchedPair({ leftId: leftId, rightId: rightId });
+
       // Clear selections
       setSelectedLeft(null);
       setSelectedRight(null);
@@ -172,18 +181,17 @@ export function MatchingExercise({
 
   // Notify parent when all matches are complete, but only once
   useEffect(() => {
-    if (isAllMatched && matches.size > 0 && !hasNotifiedCompletion) {
+    if (isAllMatched && matches.size > 0 && !hasNotifiedCompletion && lastMatchedPair) {
       setHasNotifiedCompletion(true);
       // Use a small delay to ensure the last match animation completes
       setTimeout(() => {
-        // Trigger completion state by selecting any valid option
-        const firstOption = options.find((opt) => opt.id > 0);
-        if (firstOption) {
-          onSelect(firstOption.id);
-        }
+        // Store both matched option IDs in the quiz store
+        selectOptions(lastMatchedPair.leftId, lastMatchedPair.rightId);
+        // Trigger completion state by selecting the left option
+        onSelect(lastMatchedPair.leftId);
       }, 300);
     }
-  }, [isAllMatched, matches.size, hasNotifiedCompletion, options, onSelect]);
+  }, [isAllMatched, matches.size, hasNotifiedCompletion, lastMatchedPair, options, onSelect, selectOptions]);
 
   // Reset state when options change (new exercise)
   useEffect(() => {
@@ -192,6 +200,7 @@ export function MatchingExercise({
     setSelectedLeft(null);
     setSelectedRight(null);
     setWrongMatch(null);
+    setLastMatchedPair(null);
   }, [options]);
 
   return (

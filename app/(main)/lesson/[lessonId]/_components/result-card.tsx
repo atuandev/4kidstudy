@@ -1,4 +1,4 @@
-import { InfinityIcon, Clock, Target, Trophy, SkipForward } from "lucide-react";
+import { CheckCircleIcon, Clock, InfinityIcon, SkipForward, Target, Trophy } from "lucide-react";
 import Image from "next/image";
 
 import { cn } from "@/lib/utils";
@@ -18,12 +18,12 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
     switch (variant) {
       case "points":
         return {
-          imageSrc: "/points.svg",
+          imageSrc: null,
           title: "Tổng điểm",
           borderColor: "border-yellow-400",
           bgColor: "bg-yellow-400",
           textColor: "text-yellow-400",
-          icon: null,
+          icon: Trophy,
           suffix: "",
         };
       case "duration":
@@ -53,7 +53,7 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
           borderColor: "border-green-400",
           bgColor: "bg-green-400",
           textColor: "text-green-400",
-          icon: Trophy,
+          icon: CheckCircleIcon,
           suffix: "",
         };
       case "skipped":
