@@ -57,7 +57,6 @@ export const Exercise = ({
         selectedOption={selectedOption}
         disabled={disabled}
         imageUrl={imageUrl}
-        prompt={prompt}
       />
     );
   }

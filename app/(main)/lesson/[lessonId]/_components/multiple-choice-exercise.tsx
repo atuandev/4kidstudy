@@ -12,9 +12,7 @@ type MultipleChoiceExerciseProps = {
   selectedOption?: number;
   disabled?: boolean;
   imageUrl?: string;
-  prompt?: string;
 };
-
 
 export function MultipleChoiceExercise({
   options,
@@ -23,13 +21,7 @@ export function MultipleChoiceExercise({
   selectedOption,
   disabled,
   imageUrl,
-  prompt,
 }: MultipleChoiceExerciseProps) {
-  // Detect if this is a fill-in-the-blank exercise
-  const isFillInTheBlank = prompt && prompt.includes("____");
-
-  // Shuffle options to randomize display order
-  // Use useState with useEffect to avoid hydration mismatch
   const [shuffledOptions, setShuffledOptions] = useState(options);
 
   useEffect(() => {
@@ -42,25 +34,13 @@ export function MultipleChoiceExercise({
       {isValidUrl(imageUrl) && (
         <div className="flex justify-center">
           <div className="relative aspect-square max-h-[200px] w-full max-w-[300px] lg:max-h-[300px]">
-            <Image 
-              src={imageUrl!} 
-              fill 
-              alt="Exercise image" 
+            <Image
+              src={imageUrl!}
+              fill
+              alt="Exercise image"
               className="rounded-lg object-fill"
             />
           </div>
-        </div>
-      )}
-
-      {/* Fill-in-the-blank sentence display */}
-      {isFillInTheBlank && prompt && (
-        <div className="text-center">
-          <p className="text-lg font-medium text-neutral-700 lg:text-xl">
-            {prompt.replace("____", "_______")}
-          </p>
-          <p className="mt-2 text-sm text-neutral-500">
-            Choose the correct word to fill in the blank
-          </p>
         </div>
       )}
 
@@ -73,9 +53,14 @@ export function MultipleChoiceExercise({
             className={cn(
               "h-full cursor-pointer rounded-xl border-2 border-b-4 p-4 hover:bg-black/5 active:border-b-2 lg:p-6",
               !disabled && "cursor-pointer",
-              selectedOption === option.id && "border-sky-300 bg-sky-100 hover:bg-sky-100",
-              selectedOption === option.id && status === "correct" && "border-green-300 bg-green-100 hover:bg-green-100",
-              selectedOption === option.id && status === "wrong" && "border-rose-300 bg-rose-100 hover:bg-rose-100",
+              selectedOption === option.id &&
+                "border-sky-300 bg-sky-100 hover:bg-sky-100",
+              selectedOption === option.id &&
+                status === "correct" &&
+                "border-green-300 bg-green-100 hover:bg-green-100",
+              selectedOption === option.id &&
+                status === "wrong" &&
+                "border-rose-300 bg-rose-100 hover:bg-rose-100",
               disabled && "pointer-events-none hover:bg-white"
             )}
           >
@@ -83,24 +68,29 @@ export function MultipleChoiceExercise({
               {/* Option Image (if provided) */}
               {isValidUrl(option.imageUrl) && (
                 <div className="relative mb-4 aspect-square max-h-[80px] w-full lg:max-h-[120px]">
-                  <Image 
-                    src={option.imageUrl!} 
-                    fill 
-                    alt={option.text || ""} 
-                    className="rounded-lg object-fill" 
+                  <Image
+                    src={option.imageUrl!}
+                    fill
+                    alt={option.text || ""}
+                    className="rounded-lg object-fill"
                   />
                 </div>
               )}
 
               {/* Option Text and Number */}
               <div className="flex items-center justify-between">
-                <p className={cn(
-                  "font-semibold text-neutral-600 text-xl",
-                  isFillInTheBlank && "font-medium text-center flex-1",
-                  selectedOption === option.id && "text-sky-500",
-                  selectedOption === option.id && status === "correct" && "text-green-500",
-                  selectedOption === option.id && status === "wrong" && "text-rose-500"
-                )}>
+                <p
+                  className={cn(
+                    "font-semibold text-neutral-600 text-xl",
+                    selectedOption === option.id && "text-sky-500",
+                    selectedOption === option.id &&
+                      status === "correct" &&
+                      "text-green-500",
+                    selectedOption === option.id &&
+                      status === "wrong" &&
+                      "text-rose-500"
+                  )}
+                >
                   {option.text}
                 </p>
               </div>
