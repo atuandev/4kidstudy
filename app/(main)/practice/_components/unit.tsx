@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState } from "react";
 import { LessonButton } from "./lesson-button";
@@ -8,10 +8,9 @@ import { Lesson, Topic } from "@/types";
 type UnitProps = {
   topic: Topic;
   lessons: Lesson[];
-  activeLessonPercentage: number;
 };
 
-export const Unit = ({ topic, lessons, activeLessonPercentage }: UnitProps) => {
+export const Unit = ({ topic, lessons }: UnitProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const toggleExpanded = () => {
@@ -20,25 +19,17 @@ export const Unit = ({ topic, lessons, activeLessonPercentage }: UnitProps) => {
 
   return (
     <div className="bg-green-50 rounded-2xl border-2 border-green-600">
-      <UnitBanner topic={topic} isExpanded={isExpanded} onClick={toggleExpanded} />
+      <UnitBanner
+        topic={topic}
+        isExpanded={isExpanded}
+        onClick={toggleExpanded}
+      />
 
       {isExpanded && (
-        <div className="relative flex flex-col items-center pb-4">
-          {lessons.map((lesson, i) => {
-            // const isCurrent = lesson.id === 1;
-            // const isLocked = !lesson.completed && !isCurrent;
-
+        <div className="space-y-2 p-4">
+          {lessons.map((lesson) => {
             return (
-              <LessonButton
-                key={lesson.id}
-                id={lesson.id}
-                index={i}
-                totalCount={lessons.length - 1}
-                // current={isCurrent}
-                // locked={isLocked}
-                percentage={activeLessonPercentage}
-                lesson={lesson}
-              />
+              <LessonButton key={lesson.id} id={lesson.id} lesson={lesson} />
             );
           })}
         </div>
