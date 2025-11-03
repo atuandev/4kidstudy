@@ -25,11 +25,10 @@ export const LessonButton = ({ id, lesson }: LessonButtonProps) => {
       <div className="bg-background rounded-lg p-4 border-2 border-green-100 hover:bg-gray-50 transition-all flex items-center justify-between">
         <div className="space-y-2">
           <p className="text-2xl font-bold">{lesson.title}</p>
-          <p className="text-sm text-red-500">{lesson.description}</p>
           <div className="flex items-center gap-2 text-sm">
             <Target className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Số bài tập:</span>
-            <Badge>{lesson._count?.exercises}</Badge>
+            <span className="text-muted-foreground text-base font-medium">Số bài tập:</span>
+            <Badge className="text-base">{lesson._count?.exercises}</Badge>
           </div>
         </div>
 
