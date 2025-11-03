@@ -66,9 +66,7 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
   // Stats
   const { totalPoints, correctCount, skippedCount } =
     useExerciseStatsStore();
-  const {
-    updatePronunciation,
-  } = useQuizStore();
+  const { updatePronunciation, getExerciseAttemptCount } = useQuizStore();
 
   const handlePronunciationStateChange = (state: string, score?: any) => {
     updatePronunciation(state, score);
@@ -87,6 +85,8 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
   }
 
   const title = EXERCISE_TITLES[exercise.type] || "Exercise";
+  const attemptCountForExercise = getExerciseAttemptCount(exercise.id);
+  const shouldHideHintsOnFirstWrong = status === "wrong" && attemptCountForExercise === 1;
 
   return (
     <>
@@ -160,8 +160,8 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
           "MULTIPLE_CHOICE",
           "LISTENING",
         ].includes(exercise.type)}
-        hintVi={exercise.hintVi}
-        hintEn={exercise.hintEn}
+        hintVi={shouldHideHintsOnFirstWrong ? undefined : exercise.hintVi}
+        hintEn={shouldHideHintsOnFirstWrong ? undefined : exercise.hintEn}
       />
     </>
   );

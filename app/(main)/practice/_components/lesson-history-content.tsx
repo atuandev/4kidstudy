@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { Lesson, Attempt, ExerciseType } from "@/types";
 import { getUserLessonAttempts, getAttemptById } from "@/actions/attempt";
 import Image from "next/image";
+import { AudioControl } from "@/components/audio-control";
 
 type LessonHistoryContentProps = {
   lesson: Lesson;
@@ -234,7 +235,7 @@ export function LessonHistoryContent({
             </div>
           </div>
         )}
-        
+
         {isLoadingAttempts ? (
           <div className="flex items-center justify-center py-8">
             <p className="text-muted-foreground">Đang tải...</p>
@@ -364,9 +365,30 @@ export function LessonHistoryContent({
                                 )}
                               >
                                 <div className="flex items-center justify-between">
-                                  <span className="font-medium text-md">
-                                    Câu hỏi #{index + 1}
-                                  </span>
+                                  <div className="font-medium text-md">
+                                    Câu hỏi #{index + 1}:{" "}
+                                    <span className="font-bold">
+                                      {detail.exercise?.prompt}
+                                    </span>
+                                    <div>
+                                      {detail.exercise?.imageUrl ? (
+                                        <Image
+                                          width={50}
+                                          height={50}
+                                          src={detail.exercise.imageUrl}
+                                          alt="Exercise image"
+                                          className="w-full h-20 object-contain rounded border-2 border-gray-300 bg-gray-50"
+                                        />
+                                      ) : null}
+                                    </div>
+                                    {detail.exercise?.type === "LISTENING" &&
+                                    detail.exercise?.audioUrl ? (
+                                      <AudioControl
+                                        audioUrl={detail.exercise.audioUrl}
+                                      />
+                                    ) : null}
+                                  </div>
+
                                   <Badge
                                     variant="outline"
                                     className="bg-white text-gray-600"
@@ -451,7 +473,7 @@ export function LessonHistoryContent({
                                                   height={100}
                                                   src={option.imageUrl}
                                                   alt="Selected answer 1"
-                                                  className="w-full h-24 object-contain rounded border-2 border-gray-300 bg-gray-50"
+                                                  className="w-full h-20 object-contain rounded border-2 border-gray-300 bg-gray-50"
                                                 />
                                               ) : (
                                                 <p className="font-bold text-lg">
@@ -472,7 +494,7 @@ export function LessonHistoryContent({
                                                   height={100}
                                                   src={option.imageUrl}
                                                   alt="Selected answer 1"
-                                                  className="w-full h-24 object-contain rounded border-2 border-gray-300 bg-gray-50"
+                                                  className="w-full h-20 object-contain rounded border-2 border-gray-300 bg-gray-50"
                                                 />
                                               ) : (
                                                 <p className="font-bold text-lg">
@@ -500,7 +522,7 @@ export function LessonHistoryContent({
                                                 <img
                                                   src={option.imageUrl}
                                                   alt="Selected answer 2"
-                                                  className="w-full h-24 object-contain rounded border-2 border-gray-300 bg-gray-50"
+                                                  className="w-full h-20 object-contain rounded border-2 border-gray-300 bg-gray-50"
                                                 />
                                               ) : (
                                                 <p className="font-bold text-lg">
@@ -526,7 +548,7 @@ export function LessonHistoryContent({
                                             <img
                                               src={correctOption.imageUrl}
                                               alt="Correct answer"
-                                              className="w-full h-24 object-contain rounded border-2 border-green-500 bg-green-50"
+                                              className="w-full h-20 object-contain rounded border-2 border-green-500 bg-green-50"
                                             />
                                           ) : (
                                             <p className="font-bold text-lg">
@@ -539,7 +561,7 @@ export function LessonHistoryContent({
                                   </div>
                                 ) : null}
 
-                                <div className="grid grid-cols-2 gap-2">
+                                <div className="grid grid-cols-3 gap-2">
                                   <div>
                                     <span className="text-muted-foreground">
                                       Điểm
