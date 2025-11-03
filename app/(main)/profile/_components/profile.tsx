@@ -17,7 +17,7 @@ import {
   Star,
   Target,
   Trophy,
-  User
+  User,
 } from "lucide-react";
 import { redirect } from "next/navigation";
 
@@ -124,11 +124,11 @@ export default function Profile({ profile }: ProfileProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Trophy className="h-5 w-5 text-primary" />
-                Thống kê học tập
+                Thống kê luyện tập
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 gap-6">
                 <div className="text-center p-4 rounded-lg bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900">
                   <div className="flex items-center justify-center w-12 h-12 mx-auto mb-2 bg-yellow-500 rounded-full">
                     <Trophy className="h-6 w-6 text-white" />
@@ -148,30 +148,8 @@ export default function Profile({ profile }: ProfileProps) {
                   <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                     {profile.streakDays}
                   </div>
-                  <div className="text-sm text-muted-foreground">Chuỗi ngày</div>
-                </div>
-
-                <div className="text-center p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
-                  <div className="flex items-center justify-center w-12 h-12 mx-auto mb-2 bg-green-500 rounded-full">
-                    <Target className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    {profile._count.attempts}
-                  </div>
                   <div className="text-sm text-muted-foreground">
-                    Số bài đã luyện
-                  </div>
-                </div>
-
-                <div className="text-center p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
-                  <div className="flex items-center justify-center w-12 h-12 mx-auto mb-2 bg-purple-500 rounded-full">
-                    <Star className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                    {profile._count.xpLogs}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Nhật ký kinh nghiệm
+                    Chuỗi ngày
                   </div>
                 </div>
               </div>
@@ -201,16 +179,6 @@ export default function Profile({ profile }: ProfileProps) {
                     }`}
                   >
                     {profile.isActive ? "Hoạt động" : "Không hoạt động"}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span className="font-medium">Nhật ký chuỗi ngày</span>
-                  </div>
-                  <span className="text-sm font-semibold">
-                    {profile._count.streakLogs} mục
                   </span>
                 </div>
 
@@ -284,26 +252,6 @@ export default function Profile({ profile }: ProfileProps) {
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Hành động nhanh</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button
-                variant="secondaryOutline"
-                className="w-full justify-start"
-              >
-                <Trophy className="h-4 w-4 mr-2" />
-                Xem thành tích
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Target className="h-4 w-4 mr-2" />
-                Lịch sử học tập
-              </Button>
             </CardContent>
           </Card>
         </div>
