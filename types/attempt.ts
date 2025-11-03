@@ -62,3 +62,19 @@ export type CompleteAttemptRequest = {
   durationSec: number;
 };
 
+export interface PracticeStatisticsByType {
+  type: string;
+  correctCount: number;
+  correctOnSecondCount: number;
+  incorrectCount: number;
+}
+
+export interface PracticeStatistics {
+  completeLessonCount: number;
+  totalLessonCount: number;
+  totalDurationSec: number;
+  totalCorrectCount: number;
+  totalIncorrectCount: number;
+  byType: PracticeStatisticsByType[];
+}
+

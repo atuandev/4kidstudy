@@ -148,7 +148,7 @@ export default function Profile({ profile }: ProfileProps) {
                   <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                     {profile.streakDays}
                   </div>
-                  <div className="text-sm text-muted-foreground">Streaks</div>
+                  <div className="text-sm text-muted-foreground">Chuỗi ngày</div>
                 </div>
 
                 <div className="text-center p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
