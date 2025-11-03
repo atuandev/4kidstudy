@@ -4,8 +4,8 @@ import {
   ArrowLeft,
   CheckCircle2,
   Clock,
-  SkipForward,
-  Trophy
+  Trophy,
+  XCircle
 } from "lucide-react";
 import { useState } from "react";
 
@@ -120,7 +120,7 @@ export const Header = ({
 
           {/* Skip Count */}
           <div className="flex items-center gap-x-1 bg-red-50 rounded-lg px-2 py-1">
-            <SkipForward className="h-4 w-4 text-red-500" />
+            <XCircle className="h-4 w-4 text-red-500" />
             <span className="font-medium text-xl text-red-500">
               {skipCount}
             </span>

@@ -15,6 +15,7 @@ export type AttemptDetail = {
   exerciseId: number;
   isCorrect: boolean;
   selectedOptionId?: number;
+  selectedOption2Id?: number;
   timeSec?: number;
   points: number;
   maxPoints: number;
@@ -51,6 +52,7 @@ export type SubmitExerciseRequest = {
   exerciseId: number;
   isCorrect: boolean;
   selectedOptionId?: number;
+  selectedOption2Id?: number;
   timeSec?: number;
   points?: number;
   pronunciation?: PronunciationScore;

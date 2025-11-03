@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Lesson, Attempt, ExerciseType } from "@/types";
 import { getUserLessonAttempts, getAttemptById } from "@/actions/attempt";
+import Image from "next/image";
 
 type LessonHistoryContentProps = {
   lesson: Lesson;
@@ -24,7 +25,7 @@ const EXERCISE_TYPE_LABELS: Record<ExerciseType, string> = {
   SELECT_IMAGE: "Chọn ảnh đúng",
   MULTIPLE_CHOICE: "Trắc nghiệm chữ",
   MATCHING: "Ghép cặp",
-  LISTENING: "Nghe - chọn đáp án",
+  LISTENING: "Nghe",
   PRONUNCIATION: "Luyện phát âm (AI)",
 };
 
@@ -91,10 +92,10 @@ export function LessonHistoryContent({
   }
 
   function formatDuration(seconds?: number): string {
-    if (!seconds) return "N/A";
+    if (!seconds) return "";
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}s`;
   }
 
   function getBestAttempt(): Attempt | null {
@@ -163,77 +164,77 @@ export function LessonHistoryContent({
         </SheetDescription>
       </SheetHeader>
 
-      {!isLoadingAttempts && bestAttempt && (
-        <div className="mt-6 mx-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Trophy className="h-5 w-5 text-yellow-500" />
-            <h3 className="font-semibold text-lg">Kết quả tốt nhất</h3>
-          </div>
-          <div className="border-2 border-yellow-400 rounded-lg bg-gradient-to-br from-yellow-50 to-amber-50 p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">
-                  Lần {bestAttempt.attemptNumber}
-                </span>
-              </div>
-              <Badge className="bg-yellow-500 hover:bg-yellow-600">
-                Xuất sắc
-              </Badge>
-            </div>
-
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-              <div>
-                <span className="text-muted-foreground">Điểm</span>
-                <p className="font-bold text-lg">
-                  {bestAttempt.totalScore}/{bestAttempt.maxScore}
-                </p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Tỷ lệ đúng</span>
-                <p className="font-bold text-lg">
-                  {bestAttempt.accuracyPct.toFixed(1)}%
-                </p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Đúng lần 1</span>
-                <p className="font-bold text-green-600 text-lg">
-                  {bestAttempt.details
-                    ? bestAttempt.details.filter(
-                        (detail) => detail.isCorrect && detail.attempts === 1
-                      ).length
-                    : bestAttempt.correctCount}
-                </p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Đúng lần 2</span>
-                <p className="font-bold text-yellow-600 text-lg">
-                  {bestAttempt.details
-                    ? getCorrectOnSecondAttemptCount(bestAttempt)
-                    : 0}
-                </p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Sai</span>
-                <p className="font-bold text-red-600 text-lg">
-                  {bestAttempt.incorrectCount}
-                </p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Thời gian</span>
-                <p className="font-bold text-lg">
-                  {formatDuration(bestAttempt.durationSec)}s
-                </p>
-              </div>
-            </div>
-
-            <div className="text-sm text-muted-foreground">
-              {formatDate(bestAttempt.createdAt)}
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="mt-6 space-y-4 m-4 overflow-y-auto">
+        {!isLoadingAttempts && bestAttempt && (
+          <div className="mx-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Trophy className="h-5 w-5 text-yellow-500" />
+              <h3 className="font-semibold text-lg">Kết quả tốt nhất</h3>
+            </div>
+            <div className="border-2 border-yellow-400 rounded-lg bg-gradient-to-br from-yellow-50 to-amber-50 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">
+                    Lần {bestAttempt.attemptNumber}
+                  </span>
+                </div>
+                <Badge className="bg-yellow-500 hover:bg-yellow-600">
+                  Xuất sắc
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                <div>
+                  <span className="text-muted-foreground">Điểm</span>
+                  <p className="font-bold text-lg">
+                    {bestAttempt.totalScore}/{bestAttempt.maxScore}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Tỷ lệ đúng</span>
+                  <p className="font-bold text-lg">
+                    {bestAttempt.accuracyPct.toFixed(1)}%
+                  </p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Đúng lần 1</span>
+                  <p className="font-bold text-green-600 text-lg">
+                    {bestAttempt.details
+                      ? bestAttempt.details.filter(
+                          (detail) => detail.isCorrect && detail.attempts === 1
+                        ).length
+                      : bestAttempt.correctCount}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Đúng lần 2</span>
+                  <p className="font-bold text-yellow-600 text-lg">
+                    {bestAttempt.details
+                      ? getCorrectOnSecondAttemptCount(bestAttempt)
+                      : 0}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Sai</span>
+                  <p className="font-bold text-red-600 text-lg">
+                    {bestAttempt.incorrectCount}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Thời gian</span>
+                  <p className="font-bold text-lg">
+                    {formatDuration(bestAttempt.durationSec)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-sm text-muted-foreground">
+                {formatDate(bestAttempt.createdAt)}
+              </div>
+            </div>
+          </div>
+        )}
+        
         {isLoadingAttempts ? (
           <div className="flex items-center justify-center py-8">
             <p className="text-muted-foreground">Đang tải...</p>
@@ -326,7 +327,7 @@ export function LessonHistoryContent({
                       <div>
                         <span className="text-muted-foreground">Thời gian</span>
                         <p className="font-bold text-lg">
-                          {formatDuration(attempt.durationSec)}s
+                          {formatDuration(attempt.durationSec)}
                         </p>
                       </div>
                     </div>
@@ -346,7 +347,7 @@ export function LessonHistoryContent({
                         </div>
                       ) : attemptDetails?.details &&
                         attemptDetails.details.length > 0 ? (
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-1 gap-2">
                           {attemptDetails.details.map((detail, index) => {
                             const isCorrectOnSecondAttempt =
                               detail.isCorrect && detail.attempts === 2;
@@ -378,17 +379,165 @@ export function LessonHistoryContent({
                                   </Badge>
                                 </div>
 
-                                {/* <div>
-                                  <span className="text-muted-foreground">
-                                    Đáp án chọn
-                                  </span>
-                                  <p className="font-bold text-lg">
-                                    {detail.exercise?.options.find(
-                                      (option) =>
-                                        option.id === detail.selectedOptionId
-                                    )?.text ?? "Không có đáp án"}
-                                  </p>
-                                </div> */}
+                                {/* Only show answer details for LISTENING and MULTIPLE_CHOICE */}
+                                {detail.exercise?.type === "LISTENING" ||
+                                detail.exercise?.type === "MULTIPLE_CHOICE" ? (
+                                  <div className="grid grid-cols-3 gap-2">
+                                    <div>
+                                      <span className="text-muted-foreground">
+                                        Đáp án chọn lần 1
+                                      </span>
+                                      <p className="font-bold text-lg">
+                                        {detail.attempts === 2 &&
+                                        detail.selectedOption2Id
+                                          ? detail.exercise?.options.find(
+                                              (option) =>
+                                                option.id ===
+                                                detail.selectedOption2Id
+                                            )?.text ?? ""
+                                          : detail.exercise?.options.find(
+                                              (option) =>
+                                                option.id ===
+                                                detail.selectedOptionId
+                                            )?.text ?? ""}
+                                      </p>
+                                    </div>
+
+                                    <div>
+                                      <span className="text-muted-foreground">
+                                        Đáp án chọn lần 2
+                                      </span>
+                                      <p className="font-bold text-lg">
+                                        {detail.attempts === 2
+                                          ? detail.exercise?.options.find(
+                                              (option) =>
+                                                option.id ===
+                                                detail.selectedOptionId
+                                            )?.text ?? ""
+                                          : ""}
+                                      </p>
+                                    </div>
+
+                                    <div>
+                                      <span className="text-muted-foreground">
+                                        Đáp án đúng
+                                      </span>
+                                      <p className="font-bold text-lg">
+                                        {detail.exercise?.options.find(
+                                          (option) => option.isCorrect
+                                        )?.text ?? ""}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ) : detail.exercise?.type === "SELECT_IMAGE" ? (
+                                  <div className="grid grid-cols-3 gap-2">
+                                    <div>
+                                      <span className="text-muted-foreground">
+                                        Đáp án chọn lần 1
+                                      </span>
+                                      <div className="mt-1">
+                                        {detail.attempts === 2 &&
+                                        detail.selectedOption2Id
+                                          ? (() => {
+                                              const option =
+                                                detail.exercise?.options.find(
+                                                  (option) =>
+                                                    option.id ===
+                                                    detail.selectedOption2Id
+                                                );
+                                              return option?.imageUrl ? (
+                                                <Image
+                                                  width={100}
+                                                  height={100}
+                                                  src={option.imageUrl}
+                                                  alt="Selected answer 1"
+                                                  className="w-full h-24 object-contain rounded border-2 border-gray-300 bg-gray-50"
+                                                />
+                                              ) : (
+                                                <p className="font-bold text-lg">
+                                                  Không có hình ảnh
+                                                </p>
+                                              );
+                                            })()
+                                          : (() => {
+                                              const option =
+                                                detail.exercise?.options.find(
+                                                  (option) =>
+                                                    option.id ===
+                                                    detail.selectedOptionId
+                                                );
+                                              return option?.imageUrl ? (
+                                                <Image
+                                                  width={100}
+                                                  height={100}
+                                                  src={option.imageUrl}
+                                                  alt="Selected answer 1"
+                                                  className="w-full h-24 object-contain rounded border-2 border-gray-300 bg-gray-50"
+                                                />
+                                              ) : (
+                                                <p className="font-bold text-lg">
+                                                  Không có hình ảnh
+                                                </p>
+                                              );
+                                            })()}
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <span className="text-muted-foreground">
+                                        Đáp án chọn lần 2
+                                      </span>
+                                      <div className="mt-1">
+                                        {detail.attempts === 2
+                                          ? (() => {
+                                              const option =
+                                                detail.exercise?.options.find(
+                                                  (option) =>
+                                                    option.id ===
+                                                    detail.selectedOptionId
+                                                );
+                                              return option?.imageUrl ? (
+                                                <img
+                                                  src={option.imageUrl}
+                                                  alt="Selected answer 2"
+                                                  className="w-full h-24 object-contain rounded border-2 border-gray-300 bg-gray-50"
+                                                />
+                                              ) : (
+                                                <p className="font-bold text-lg">
+                                                  Không có hình ảnh
+                                                </p>
+                                              );
+                                            })()
+                                          : null}
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <span className="text-muted-foreground">
+                                        Đáp án đúng
+                                      </span>
+                                      <div className="mt-1">
+                                        {(() => {
+                                          const correctOption =
+                                            detail.exercise?.options.find(
+                                              (option) => option.isCorrect
+                                            );
+                                          return correctOption?.imageUrl ? (
+                                            <img
+                                              src={correctOption.imageUrl}
+                                              alt="Correct answer"
+                                              className="w-full h-24 object-contain rounded border-2 border-green-500 bg-green-50"
+                                            />
+                                          ) : (
+                                            <p className="font-bold text-lg">
+                                              Không có hình ảnh
+                                            </p>
+                                          );
+                                        })()}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : null}
 
                                 <div className="grid grid-cols-2 gap-2">
                                   <div>
