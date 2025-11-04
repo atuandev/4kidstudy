@@ -31,7 +31,7 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     resetPronunciation,
   } = useQuizStore();
 
-  const { completeExercise, skipExercise, startExercise, currentExerciseStartTime } = useExerciseStatsStore();
+  const { completeExercise, skipExercise, startExercise, currentExerciseStartTime, incrementWrongCount } = useExerciseStatsStore();
 
   const exercise = getCurrentExercise();
   const options = getOptions();
@@ -135,8 +135,9 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
       
       const attemptCount = getExerciseAttemptCount(exercise.id);
       
-      // If already attempted twice, move to next exercise
+      // If already attempted twice, increment wrong count and move to next exercise
       if (attemptCount >= 2) {
+        incrementWrongCount();
         nextExercise();
         return;
       }

@@ -28,7 +28,7 @@ type HeaderProps = {
   currentExercise: number;
   totalExercises: number;
   correctCount: number;
-  skipCount: number;
+  wrongCount: number;
   totalPoints: number;
   duration: number;
   unitTitle: string;
@@ -39,7 +39,7 @@ export const Header = ({
   currentExercise,
   totalExercises,
   correctCount,
-  skipCount,
+  wrongCount,
   totalPoints,
   duration,
   unitTitle,
@@ -62,6 +62,7 @@ export const Header = ({
     totalExercises > 0
       ? Math.round((currentExercise / totalExercises) * 100)
       : 0;
+
 
   return (
     <header className="mx-auto flex w-full flex-col gap-y-4 pt-4">
@@ -118,11 +119,12 @@ export const Header = ({
             </span>
           </div>
 
-          {/* Skip Count */}
+
+          {/* Wrong Count */}
           <div className="flex items-center gap-x-1 bg-red-50 rounded-lg px-2 py-1">
             <XCircle className="h-4 w-4 text-red-500" />
             <span className="font-medium text-xl text-red-500">
-              {skipCount}
+              {wrongCount}
             </span>
           </div>
 
