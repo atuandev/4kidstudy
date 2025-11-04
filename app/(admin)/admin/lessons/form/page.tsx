@@ -285,7 +285,7 @@ export default function LessonFormPage() {
             if (lesson.grammarNote) cleaned.grammarNote = lesson.grammarNote;
             if (lesson.audioUrl) cleaned.audioUrl = lesson.audioUrl;
             if (lesson.coverImage) cleaned.coverImage = lesson.coverImage;
-            if (lesson.order !== undefined && lesson.order !== null) cleaned.order = lesson.order;
+            // DO NOT send order for new lessons - let backend auto-assign
             
             return cleaned;
           });
@@ -376,8 +376,6 @@ export default function LessonFormPage() {
   }
 
   function handleAddLesson() {
-    const currentLessons = form.getValues("lessons" as any); // eslint-disable-line @typescript-eslint/no-explicit-any
-    const nextOrder = currentLessons?.length || 0;
     append({
       title: "",
       description: "",
@@ -387,7 +385,7 @@ export default function LessonFormPage() {
       grammarNote: "",
       audioUrl: "",
       coverImage: "",
-      order: nextOrder,
+      // Don't set order here - backend will auto-assign
     });
   }
 
