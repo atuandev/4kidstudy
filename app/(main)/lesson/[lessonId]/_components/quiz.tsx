@@ -64,7 +64,7 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
   } = useQuizLogic({ playCorrect, playIncorrect });
 
   // Stats
-  const { totalPoints, correctCount, skippedCount } =
+  const { totalPoints, correctCount, skippedCount, wrongCount } =
     useExerciseStatsStore();
   const { updatePronunciation, getExerciseAttemptCount } = useQuizStore();
 
@@ -98,7 +98,7 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
         currentExercise={activeIndex + 1}
         totalExercises={exercises.length}
         correctCount={correctCount}
-        skipCount={skippedCount}
+        wrongCount={wrongCount}
         totalPoints={totalPoints}
         duration={currentDuration}
         unitTitle={lesson.topic.title}

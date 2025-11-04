@@ -6,6 +6,7 @@ type ExerciseStats = {
   correctCount: number;
   totalExercises: number;
   skippedCount: number;
+  wrongCount: number;
   startTime: number | null;
   currentExerciseStartTime: number | null;
 };
@@ -19,6 +20,7 @@ type ExerciseStatsActions = {
   startExercise: () => void;
   completeExercise: (isCorrect: boolean, points: number) => void;
   skipExercise: () => void;
+  incrementWrongCount: () => void;
   
   // Getters
   getAccuracy: () => number;
@@ -37,6 +39,7 @@ export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
   correctCount: 0,
   totalExercises: 0,
   skippedCount: 0,
+  wrongCount: 0,
   startTime: null,
   currentExerciseStartTime: null,
 
@@ -49,6 +52,7 @@ export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
       correctCount: 0,
       totalExercises: 0,
       skippedCount: 0,
+      wrongCount: 0,
       currentExerciseStartTime: null,
     });
   },
@@ -121,6 +125,13 @@ export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
     return Math.round(state.duration / state.totalExercises);
   },
 
+  incrementWrongCount: () => {
+    const state = get();
+    set({
+      wrongCount: state.wrongCount + 1,
+    });
+  },
+
   resetStats: () => {
     set({
       duration: 0,
@@ -128,6 +139,7 @@ export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
       correctCount: 0,
       totalExercises: 0,
       skippedCount: 0,
+      wrongCount: 0,
       startTime: null,
       currentExerciseStartTime: null,
     });
