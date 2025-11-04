@@ -26,7 +26,7 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
 
   const [isInitializing, setIsInitializing] = useState(true);
   const attemptCreatedRef = useRef(false);
-  const attemptCompletedRef = useRef(false);
+  const completedAttemptsRef = useRef<Set<number>>(new Set());
   const lastLessonIdRef = useRef<number | null>(null);
 
   // Initialize quiz and session - reset everything on mount ONCE per lesson
@@ -36,7 +36,7 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
     // Reset refs if lesson changed (check BEFORE async function)
     if (isNewLesson) {
       attemptCreatedRef.current = false;
-      attemptCompletedRef.current = false;
+      completedAttemptsRef.current.clear();
       lastLessonIdRef.current = lessonId;
     }
 
@@ -86,35 +86,44 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
   // Complete attempt when quiz is finished
   useEffect(() => {
     async function finishAttempt() {
-      // Prevent double completion
-      if (attemptCompletedRef.current || !attemptId) return;
-
-      // Check if all exercises are complete
+      // Check if all exercises are complete first
       const allExercisesComplete = activeIndex >= exercises.length;
+      
+      if (!allExercisesComplete) return;
+      
+      // Use attemptId from closure - this is the attempt that was active when
+      // activeIndex reached completion. If attemptId is null, we can't complete.
+      if (!attemptId) return;
+      
+      // Prevent double completion for this specific attempt
+      if (completedAttemptsRef.current.has(attemptId)) {
+        return;
+      }
+      
+      // Mark as completed BEFORE async operations to prevent race conditions
+      completedAttemptsRef.current.add(attemptId);
 
-      if (allExercisesComplete) {
-        attemptCompletedRef.current = true;
+      // Calculate duration BEFORE endSession (which sets startTime to null)
+      let finalDuration = 0;
 
-        // Calculate duration BEFORE endSession (which sets startTime to null)
-        let finalDuration = 0;
+      if (startTime) {
+        finalDuration = Math.floor((Date.now() - startTime) / 1000);
+      } else if (duration > 0) {
+        finalDuration = duration;
+      } else {
+        finalDuration = 1;
+      }
 
-        if (startTime) {
-          finalDuration = Math.floor((Date.now() - startTime) / 1000);
-        } else if (duration > 0) {
-          finalDuration = duration;
-        } else {
-          finalDuration = 1;
-        }
+      useExerciseStatsStore.getState().endSession();
 
-        useExerciseStatsStore.getState().endSession();
-
-        // Complete attempt on backend with calculated duration
-        try {
-          await completeAttempt(attemptId, { durationSec: finalDuration });
-        } catch (error) {
-          console.error("Failed to complete attempt:", error);
-          attemptCompletedRef.current = false; // Allow retry on error
-        }
+      // Complete attempt on backend with calculated duration
+      // Use the attemptId from closure to ensure we complete the correct attempt
+      try {
+        await completeAttempt(attemptId, { durationSec: finalDuration });
+      } catch (error) {
+        console.error("Failed to complete attempt:", error);
+        // Remove from completed set to allow retry on error
+        completedAttemptsRef.current.delete(attemptId);
       }
     }
 
