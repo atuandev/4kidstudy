@@ -286,7 +286,7 @@ export default function FlashcardFormPage() {
             if (flashcard.exampleVi) cleaned.exampleVi = flashcard.exampleVi;
             if (flashcard.imageUrl) cleaned.imageUrl = flashcard.imageUrl;
             if (flashcard.audioUrl) cleaned.audioUrl = flashcard.audioUrl;
-            if (flashcard.order !== undefined && flashcard.order !== null) cleaned.order = flashcard.order;
+            // DO NOT send order for new flashcards - let backend auto-assign
             
             return cleaned;
           });
@@ -377,8 +377,6 @@ export default function FlashcardFormPage() {
   }
 
   function handleAddFlashcard() {
-    const currentFlashcards = form.getValues("flashcards" as any); // eslint-disable-line @typescript-eslint/no-explicit-any
-    const nextOrder = currentFlashcards?.length || 0;
     append({
       term: "",
       phonetic: "",
@@ -387,7 +385,7 @@ export default function FlashcardFormPage() {
       exampleVi: "",
       imageUrl: "",
       audioUrl: "",
-      order: nextOrder,
+      // Don't set order here - backend will auto-assign
       isActive: true,
     });
   }

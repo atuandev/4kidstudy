@@ -18,7 +18,7 @@ export const SentenceSchema = z.object({
     .string()
     .nullish()
     .transform((val) => (val && val.trim() !== '' ? val : undefined)),
-  order: z.number().int().min(0),
+  order: z.number().int().min(0).optional(),
   isActive: z.boolean().default(true),
 });
 

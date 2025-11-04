@@ -262,7 +262,8 @@ export default function SentenceFormPage() {
         // Create new sentences if any
         if (newSentences.length > 0) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const cleanedNewSentences = newSentences.map(({ id, ...sentence }) => sentence);
+          const cleanedNewSentences = newSentences.map(({ id, order, ...sentence }) => sentence);
+          // DO NOT send order for new sentences - let backend auto-assign
           
           const sentenceImageData = {
             imageUrl: data.imageUrl,
@@ -345,14 +346,12 @@ export default function SentenceFormPage() {
   }
 
   function handleAddSentence() {
-    const currentSentences = form.getValues("sentences");
-    const nextOrder = currentSentences.length;
     append({
       text: "",
       meaningVi: "",
       hintVi: "",
       audioUrl: "",
-      order: nextOrder,
+      // Don't set order here - backend will auto-assign
       isActive: true,
     });
   }
