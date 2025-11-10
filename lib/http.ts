@@ -108,11 +108,15 @@ const request = async <Response>(
     //   }
     // }
 
-    const payload: Response = await res.json()
-    return {
-      status: res.status,
-      payload,
-    }
+    const responseText = await res.text()
+    const contentType = res.headers.get('content-type') ?? ''
+    const payload: Response =
+      res.status === 204 ||
+      responseText.trim().length === 0 ||
+      !contentType.includes('application/json')
+        ? (null as Response)
+        : (JSON.parse(responseText) as Response)
+    return { status: res.status, payload }
   } catch (error) {
     console.error('Request failed:', error)
     throw error
