@@ -13,7 +13,7 @@ import {
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { SentenceCard } from "./sentence-card";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface SentenceViewerProps {
   sentenceImages: SentenceImage[];
@@ -26,6 +26,7 @@ export function SentenceViewer({
   topicTitle,
   onRecordReview,
 }: SentenceViewerProps) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialIndex = parseInt(searchParams.get('index') || '0', 10);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -80,11 +81,12 @@ export function SentenceViewer({
       <Card className="mb-8 bg-primary">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <Link href={`/learn/units`}>
-              <Button size="sm" variant="default">
-                <ArrowLeft className="size-8" />
-              </Button>
-            </Link>
+            <Button size="sm" variant="default" onClick={() => {
+              router.back();
+              router.refresh();
+            }}>
+              <ArrowLeft className="size-8" />
+            </Button>
 
             <CardTitle className="text-2xl font-bold text-primary-foreground">
               {topicTitle}

@@ -1,33 +1,42 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, RotateCcw, BookOpen, ArrowLeft } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  RotateCcw,
+  BookOpen,
+  ArrowLeft,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FlashcardComponent } from "./flashcard";
 import { Flashcard } from "@/types";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface FlashcardViewerProps {
   flashcards: Flashcard[];
   // server action passed down to record reviews when user plays audio
   onRecordReview?: (body: {
-    contentType: 'FLASHCARD' | 'SENTENCE';
+    contentType: "FLASHCARD" | "SENTENCE";
     flashcardId?: number;
     sentenceId?: number;
     isMastered?: boolean;
   }) => Promise<any>;
 }
 
-export function FlashcardViewer({ flashcards, onRecordReview }: FlashcardViewerProps) {
+export function FlashcardViewer({
+  flashcards,
+  onRecordReview,
+}: FlashcardViewerProps) {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const initialIndex = parseInt(searchParams.get('index') || '0', 10);
+  const initialIndex = parseInt(searchParams.get("index") || "0", 10);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
   // Update index when URL changes
   useEffect(() => {
-    const index = parseInt(searchParams.get('index') || '0', 10);
+    const index = parseInt(searchParams.get("index") || "0", 10);
     if (index >= 0 && index < flashcards.length) {
       setCurrentIndex(index);
     }
@@ -75,11 +84,16 @@ export function FlashcardViewer({ flashcards, onRecordReview }: FlashcardViewerP
       <Card className="mb-8 bg-sky-400">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <Link href={`/learn/units`}>
-              <Button size="sm" variant="default">
-                <ArrowLeft className="size-8" />
-              </Button>
-            </Link>
+            <Button
+              size="sm"
+              variant="default"
+              onClick={() => {
+                router.back();
+                router.refresh();
+              }}
+            >
+              <ArrowLeft className="size-8" />
+            </Button>
             <CardTitle className="text-2xl font-bold text-primary-foreground">
               {currentFlashcard.topic.title}
             </CardTitle>
