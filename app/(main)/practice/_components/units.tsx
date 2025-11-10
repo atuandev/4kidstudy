@@ -17,7 +17,7 @@ export default function Units({ profile, stats }: { profile: User; stats: Practi
       </StickyWrapper>
       <FeedWrapper>
         {topics.map((topic: Topic) => (
-          <div key={topic.id} className="mb-10">
+          <div key={topic.id} className="mb-4">
             <Unit topic={topic} lessons={topic.lessons} />
           </div>
         ))}

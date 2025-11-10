@@ -12,9 +12,9 @@ export const UnitBanner = ({ topic, isExpanded, onClick }: UnitBannerProps) => {
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center justify-between rounded-xl bg-green-500 p-5 text-white hover:bg-green-600 transition-colors cursor-pointer"
+      className="flex w-full items-center justify-between rounded-xl bg-green-500 px-4 py-2 text-white hover:bg-green-600 transition-colors cursor-pointer"
     >
-      <div className="space-y-2.5 text-left">
+      <div className="space-y-2 text-left">
         <h3 className="text-2xl font-bold">{topic.title}</h3>
         <p className="text-lg">{topic.description}</p>
       </div>
