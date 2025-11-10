@@ -75,7 +75,7 @@ export default function FinishPage({ lessonId }: FinishPageProps) {
       <Footer
         lessonId={lessonId}
         status="completed"
-        onCheck={() => router.push("/practice")}
+        onCheck={() => router.push("/practice?grade=GRADE_1")}
       />
     </div>
   );
