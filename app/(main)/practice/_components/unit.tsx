@@ -11,7 +11,7 @@ type UnitProps = {
 };
 
 export const Unit = ({ topic, lessons }: UnitProps) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleExpanded = () => {
     setIsExpanded((prev) => !prev);
