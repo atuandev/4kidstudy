@@ -34,10 +34,7 @@ export const CreateExerciseSchema = z.object({
   lessonId: z.number().int().positive('Lesson ID is required'),
   type: ExerciseType,
   order: z.number().int().min(0).optional(),
-  prompt: z.string().nullish().transform((val) => {
-    if (!val || val.trim() === '') return undefined;
-    return val;
-  }),
+  prompt: z.string().min(1, 'Câu hỏi là bắt buộc'),
   imageUrl: z.string().nullish().transform((val) => {
     if (!val || val.trim() === '') return undefined;
     return val;
@@ -62,17 +59,6 @@ export const CreateExerciseSchema = z.object({
   difficulty: z.number().int().min(1).max(3).default(1),
   options: z.array(ExerciseOptionSchema).default([]),
 }).superRefine((data, ctx) => {
-  // Validate SELECT_IMAGE type requires prompt
-  if (data.type === 'SELECT_IMAGE') {
-    if (!data.prompt) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Câu hỏi là bắt buộc cho bài tập chọn ảnh',
-        path: ['prompt'],
-      });
-    }
-  }
-
   // Validate PRONUNCIATION type requires targetText and audioUrl
   if (data.type === 'PRONUNCIATION') {
     if (!data.targetText) {
