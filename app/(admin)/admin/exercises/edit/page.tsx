@@ -657,7 +657,11 @@ export default function EditExercisePage() {
                       type="number"
                       min="1"
                       max="100"
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      onChange={(e) => {
+                        const parsed = parseInt(e.target.value || "0");
+                        const clamped = Math.max(1, Math.min(100, isNaN(parsed) ? 1 : parsed));
+                        field.onChange(clamped);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
