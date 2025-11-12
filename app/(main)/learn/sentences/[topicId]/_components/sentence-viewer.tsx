@@ -10,7 +10,6 @@ import {
   ChevronRight,
   RotateCcw,
 } from "lucide-react";
-import Link from "next/link";
 import { useState, useEffect } from "react";
 import { SentenceCard } from "./sentence-card";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -18,7 +17,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 interface SentenceViewerProps {
   sentenceImages: SentenceImage[];
   topicTitle: string;
-  onRecordReview?: (body: { contentType: 'FLASHCARD' | 'SENTENCE'; flashcardId?: number; sentenceId?: number; isMastered?: boolean }) => Promise<any>;
+  onRecordReview?: (body: { contentType: 'FLASHCARD' | 'SENTENCE'; flashcardId?: number; sentenceId?: number; isMastered?: boolean }) => Promise<unknown>;
 }
 
 export function SentenceViewer({
@@ -74,6 +73,11 @@ export function SentenceViewer({
   }
 
   const currentSentenceImage = sentenceImages[currentIndex];
+  
+  // Check if all active sentences in the current image are reviewed
+  const currentSentences = currentSentenceImage.sentences.filter(s => s.isActive);
+  const allReviewed = currentSentences.every(s => s.progress && s.progress.length > 0);
+  const hasUnreviewed = currentSentences.some(s => !s.progress || s.progress.length === 0);
 
   return (
     <div className="container mx-auto px-4 py-4">
@@ -113,6 +117,15 @@ export function SentenceViewer({
       {/* Navigation Controls */}
       <Card>
         <CardContent>
+          {/* Warning message if not all reviewed */}
+          {hasUnreviewed && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800 text-center">
+                ⚠️ Vui lòng học hết tất cả các câu trong trang này để tiếp tục
+              </p>
+            </div>
+          )}
+          
           <div className="flex items-center justify-center gap-4">
             <Button
               variant="secondary"
@@ -130,7 +143,7 @@ export function SentenceViewer({
             <Button
               variant="secondary"
               onClick={handleNext}
-              disabled={currentIndex === sentenceImages.length - 1}
+              disabled={currentIndex === sentenceImages.length - 1 || !allReviewed}
             >
               Tiếp tục
               <ChevronRight className="h-4 w-4" />

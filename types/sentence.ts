@@ -1,4 +1,5 @@
 import { Topic } from "./topic";
+import { LearningProgress } from "./learning-progress";
 
 export interface SentenceImage {
   id: number;
@@ -24,4 +25,5 @@ export interface Sentence {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  progress?: LearningProgress[];
 }
