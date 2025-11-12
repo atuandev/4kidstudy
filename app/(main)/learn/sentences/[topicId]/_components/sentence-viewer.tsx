@@ -29,6 +29,7 @@ export function SentenceViewer({
   const searchParams = useSearchParams();
   const initialIndex = parseInt(searchParams.get('index') || '0', 10);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [reviewProgress, setReviewProgress] = useState<Record<number, Set<number>>>({});
 
   // Update index when URL changes
   useEffect(() => {
@@ -37,6 +38,31 @@ export function SentenceViewer({
       setCurrentIndex(index);
     }
   }, [searchParams, sentenceImages.length]);
+  
+  // Initialize review progress from server data
+  useEffect(() => {
+    const initialProgress: Record<number, Set<number>> = {};
+    sentenceImages.forEach(img => {
+      initialProgress[img.id] = new Set(
+        img.sentences
+          .filter(s => s.progress && s.progress.length > 0)
+          .map(s => s.id)
+      );
+    });
+    setReviewProgress(initialProgress);
+  }, [sentenceImages]);
+
+  const handleProgressUpdate = (sentenceId: number) => {
+    // Update local state to reflect the new review
+    const updatedProgress = { ...reviewProgress };
+    const currentReviewed = new Set(updatedProgress[currentSentenceImage.id] || []);
+    currentReviewed.add(sentenceId);
+    updatedProgress[currentSentenceImage.id] = currentReviewed;
+    setReviewProgress(updatedProgress);
+    
+    // Also refresh from server to get accurate data
+    router.refresh();
+  };
 
   const handleNext = () => {
     if (currentIndex < sentenceImages.length - 1) {
@@ -76,8 +102,9 @@ export function SentenceViewer({
   
   // Check if all active sentences in the current image are reviewed
   const currentSentences = currentSentenceImage.sentences.filter(s => s.isActive);
-  const allReviewed = currentSentences.every(s => s.progress && s.progress.length > 0);
-  const hasUnreviewed = currentSentences.some(s => !s.progress || s.progress.length === 0);
+  const currentReviewed = reviewProgress[currentSentenceImage.id] || new Set();
+  const allReviewed = currentSentences.every(s => currentReviewed.has(s.id));
+  const hasUnreviewed = currentSentences.some(s => !currentReviewed.has(s.id));
 
   return (
     <div className="container mx-auto px-4 py-4">
@@ -111,7 +138,11 @@ export function SentenceViewer({
 
       {/* Sentence Card */}
       <div className="mb-8">
-        <SentenceCard sentenceImage={currentSentenceImage} onRecordReview={onRecordReview} />
+        <SentenceCard 
+          sentenceImage={currentSentenceImage} 
+          onRecordReview={onRecordReview}
+          onProgressUpdate={handleProgressUpdate}
+        />
       </div>
 
       {/* Navigation Controls */}
