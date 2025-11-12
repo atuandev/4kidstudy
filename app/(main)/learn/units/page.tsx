@@ -39,7 +39,7 @@ export default async function UnitsPage({ searchParams }: UnitsPageProps) {
   }
   return (
     <div className='flex flex-col gap-6'>
-      <UnitList topics={topics} />
+      <UnitList topics={topics} grade={selectedGrade.value} />
     </div>
   );
 }
