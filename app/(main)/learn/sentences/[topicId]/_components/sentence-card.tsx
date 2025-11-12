@@ -14,16 +14,27 @@ import {
 import { AudioRecord } from "./audio-record";
 import { AudioControl } from "@/components/audio-control";
 import { ReviewContentFormData } from "@/schemas/learning-progress";
+import { useState } from "react";
 
 interface SentenceCardProps {
   sentenceImage: SentenceImage;
   onRecordReview?: (body: ReviewContentFormData) => Promise<unknown>;
+  onProgressUpdate?: (sentenceId: number) => void;
 }
 
 export function SentenceCard({
   sentenceImage,
   onRecordReview,
+  onProgressUpdate,
 }: SentenceCardProps) {
+  // Track which sentences have been reviewed locally
+  const [reviewedSentences, setReviewedSentences] = useState<Set<number>>(
+    new Set(
+      sentenceImage.sentences
+        .filter(s => s.progress && s.progress.length > 0)
+        .map(s => s.id)
+    )
+  );
 
   const handlePlayAudio = (audioUrl: string, sentenceId: number) => {
     const audio = new Audio(audioUrl);
@@ -34,6 +45,11 @@ export function SentenceCard({
           contentType: 'SENTENCE', 
           flashcardId: undefined,
           sentenceId 
+        }).then(() => {
+          // Update local state after successful review
+          setReviewedSentences(prev => new Set([...prev, sentenceId]));
+          // Notify parent component with the sentenceId
+          onProgressUpdate?.(sentenceId);
         }).catch((error: unknown) => {
           console.error('record review failed', error);
         });
@@ -71,8 +87,8 @@ export function SentenceCard({
             .filter((sentence) => sentence.isActive)
             .sort((a, b) => a.order - b.order)
             .map((sentence) => {
-              // Check if sentence is reviewed
-              const isReviewed = sentence.progress && sentence.progress.length > 0;
+              // Check if sentence is reviewed (from server data or local state)
+              const isReviewed = reviewedSentences.has(sentence.id);
               
               return (
                 <div
