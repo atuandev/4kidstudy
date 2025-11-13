@@ -31,6 +31,11 @@ export const Sidebar = ({ className }: SidebarProps) => {
         <SidebarItem label="Học" href="/learn/units" iconSrc="/learn.svg" />
         <SidebarItem label="Luyện tập" href="/practice" iconSrc="/practice.svg" />
         <SidebarItem
+          label="Hội thoại với AI"
+          href="/chat"
+          iconSrc="/chat.svg"
+        />
+        <SidebarItem
           label="Bảng xếp hạng"
           href="/leaderboard"
           iconSrc="/leaderboard.svg"
