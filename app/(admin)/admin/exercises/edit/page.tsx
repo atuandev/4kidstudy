@@ -216,7 +216,6 @@ export default function EditExercisePage() {
       }
 
       toast.success("Cập nhật câu hỏi thành công");
-      router.push("/admin/exercises");
     } catch (error: any) {
       console.error("Failed to save exercise:", error);
 
@@ -462,9 +461,47 @@ export default function EditExercisePage() {
             name="prompt"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Câu hỏi</FormLabel>
+                <FormLabel>
+                  Câu hỏi <RequiredField />
+                </FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="Nhập câu hỏi hoặc hướng dẫn" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Hint English */}
+          <FormField
+            control={formControl}
+            name="hintEn"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Đáp án (Tiếng Anh)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="Nhập đáp án bằng tiếng Anh"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Hint Vietnamese */}
+          <FormField
+            control={formControl}
+            name="hintVi"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Đáp án (Tiếng Việt)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="Nhập đáp án bằng tiếng Việt"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -620,7 +657,11 @@ export default function EditExercisePage() {
                       type="number"
                       min="1"
                       max="100"
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      onChange={(e) => {
+                        const parsed = parseInt(e.target.value || "0");
+                        const clamped = Math.max(1, Math.min(100, isNaN(parsed) ? 1 : parsed));
+                        field.onChange(clamped);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />

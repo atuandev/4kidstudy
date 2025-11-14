@@ -161,7 +161,22 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
       pronunciation.state === 'completed' &&
       pronunciation.score
     ) {
-      const isGoodScore = pronunciation.score.overall >= 70;
+      const overallScore = pronunciation.score.overall ?? 0;
+      
+      // Calculate points based on overall score:
+      // - overall > 50 and < 80: 5 points
+      // - overall >= 80: 10 points
+      // - overall <= 50: 0 points
+      let pointsToAward = 0;
+      let isGoodScore = false;
+      
+      if (overallScore > 50 && overallScore < 80) {
+        pointsToAward = 5;
+        isGoodScore = true;
+      } else if (overallScore >= 80) {
+        pointsToAward = 10;
+        isGoodScore = true;
+      }
       
       // Get attempt count before incrementing for scoring
       const attemptCount = getExerciseAttemptCount(exercise.id);
@@ -170,10 +185,6 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
       if (status === 'none') {
         incrementExerciseAttempt(exercise.id);
       }
-      
-      // First attempt: 10 points, Second attempt: 5 points
-      // attemptCount = 0 means first attempt (before increment), attemptCount = 1 means second attempt
-      const pointsToAward = isGoodScore ? (attemptCount === 0 ? 10 : 5) : 0;
       
       startTransition(() => {
         const timeSec = currentExerciseStartTime 

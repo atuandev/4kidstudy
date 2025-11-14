@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { ExerciseOption } from "@/types";
 import AudioPlayer from "./audio-player";
 import { AudioControl } from "@/components/audio-control";
+import { assessPronunciation } from "@/actions/pronunciation";
 
 type PronunciationExerciseProps = {
   options: ExerciseOption[];
@@ -36,6 +37,7 @@ type PronunciationScore = {
   accuracy: number;
   fluency: number;
   completeness: number;
+  prosody?: number;
   overall: number;
 };
 
@@ -54,6 +56,7 @@ export function PronunciationExercise({
   const [recordedAudioUrl, setRecordedAudioUrl] = useState<string | null>(null);
   const [score, setScore] = useState<PronunciationScore | null>(null);
   const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const chunksRef = useRef<Blob[]>([]);
 
@@ -83,7 +86,9 @@ export function PronunciationExercise({
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/wav" });
+        // Use the actual MediaRecorder mime type (typically "audio/webm" or "audio/webm;codecs=opus")
+        const mimeType = recorder.mimeType || "audio/webm";
+        const blob = new Blob(chunksRef.current, { type: mimeType });
         setRecordedBlob(blob);
 
         // Create URL for AudioPlayer component
@@ -122,49 +127,82 @@ export function PronunciationExercise({
     };
   }, [recordedAudioUrl]);
 
-  const analyzeRecording = useCallback(() => {
-    if (!recordedBlob) return;
+  const analyzeRecording = useCallback(async () => {
+    if (!recordedBlob || !targetText) return;
 
     setRecordingState("analyzing");
     setAnalysisProgress(0);
+    setErrorMessage(null);
 
     // Notify parent component of state change
     onStateChange?.("analyzing", null);
 
-    // Simulate AI analysis with progress
+    // Simulate progress while API call is in progress
     const progressInterval = setInterval(() => {
       setAnalysisProgress((prev) => {
-        if (prev >= 95) {
+        if (prev >= 90) {
           clearInterval(progressInterval);
-
-          // Simulate AI scoring (in real implementation, this would call an API)
-          setTimeout(() => {
-            const mockScore: PronunciationScore = {
-              accuracy: Math.floor(Math.random() * 30) + 70, // 70-100%
-              fluency: Math.floor(Math.random() * 25) + 75, // 75-100%
-              completeness: Math.floor(Math.random() * 20) + 80, // 80-100%
-              overall: 0,
-            };
-
-            // Calculate overall score
-            mockScore.overall = Math.round(
-              mockScore.accuracy * 0.4 +
-                mockScore.fluency * 0.3 +
-                mockScore.completeness * 0.3
-            );
-
-            setScore(mockScore);
-            setRecordingState("completed");
-
-            // Notify parent component of completion with score
-            onStateChange?.("completed", mockScore);
-          }, 500);
-          return 100;
+          return 90;
         }
-        return prev + Math.random() * 15 + 5;
+        return prev + Math.random() * 10 + 5;
       });
-    }, 100);
-  }, [recordedBlob, onSelect, onStateChange]);
+    }, 200);
+
+    try {
+      // Call the backend API to assess pronunciation
+      console.log("Calling assessPronunciation with:", {
+        blobSize: recordedBlob.size,
+        blobType: recordedBlob.type,
+        targetText,
+      });
+      
+      const response = await assessPronunciation(recordedBlob, targetText);
+
+      clearInterval(progressInterval);
+      setAnalysisProgress(100);
+
+      console.log("Pronunciation assessment response:", response);
+
+      if (response.success && response.overall !== undefined) {
+        const assessmentScore: PronunciationScore = {
+          accuracy: response.accuracy ?? 0,
+          fluency: response.fluency ?? 0,
+          completeness: response.completeness ?? 0,
+          prosody: response.prosody,
+          overall: response.overall,
+        };
+
+        setScore(assessmentScore);
+        setRecordingState("completed");
+        setErrorMessage(null);
+
+        // Notify parent component of completion with score
+        onStateChange?.("completed", assessmentScore);
+      } else {
+        // Handle error - log full response for debugging
+        console.error("Pronunciation assessment failed. Full response:", JSON.stringify(response, null, 2));
+        const errorMsg = response?.error || "Không thể phân tích phát âm. Vui lòng thử lại.";
+        console.error("Error message:", errorMsg);
+        setErrorMessage(errorMsg);
+        setRecordingState("recorded");
+        onStateChange?.("recorded", null);
+      }
+    } catch (error) {
+      clearInterval(progressInterval);
+      console.error("Exception during pronunciation assessment:", error);
+      console.error("Error details:", {
+        name: error instanceof Error ? error.name : "Unknown",
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      const errorMsg = error instanceof Error 
+        ? error.message 
+        : "Đã xảy ra lỗi khi phân tích phát âm. Vui lòng thử lại.";
+      setErrorMessage(errorMsg);
+      setRecordingState("recorded");
+      onStateChange?.("recorded", null);
+    }
+  }, [recordedBlob, targetText, onStateChange]);
 
   const resetRecording = useCallback(() => {
     // Clean up previous object URL
@@ -178,6 +216,7 @@ export function PronunciationExercise({
     setScore(null);
     setAnalysisProgress(0);
     setMediaRecorder(null);
+    setErrorMessage(null);
 
     // Notify parent component of state reset
     onStateChange?.("idle", null);
@@ -250,6 +289,11 @@ export function PronunciationExercise({
         {recordingState === "recorded" && (
           <div className="flex flex-col items-center space-y-3">
             <p className="text-green-600 font-bold text-2xl">Đã ghi âm xong!</p>
+            {errorMessage && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md">
+                <p className="text-red-800 text-sm font-medium">{errorMessage}</p>
+              </div>
+            )}
             <div className="space-y-6">
               {recordedAudioUrl && <AudioControl audioUrl={recordedAudioUrl} />}
               <div className="flex gap-2">
