@@ -386,6 +386,17 @@ export function LessonHistoryContent({
                                       <AudioControl
                                         audioUrl={detail.exercise.audioUrl}
                                       />
+                                    ) : detail.exercise?.type ===
+                                        "PRONUNCIATION" &&
+                                      detail.exercise?.audioUrl ? (
+                                      <>
+                                        <p className="">
+                                          {detail.exercise.targetText}
+                                        </p>
+                                        <AudioControl
+                                          audioUrl={detail.exercise.audioUrl}
+                                        />
+                                      </>
                                     ) : null}
                                   </div>
 
@@ -519,7 +530,9 @@ export function LessonHistoryContent({
                                                     detail.selectedOptionId
                                                 );
                                               return option?.imageUrl ? (
-                                                <img
+                                                <Image
+                                                  width={100}
+                                                  height={100}
                                                   src={option.imageUrl}
                                                   alt="Selected answer 2"
                                                   className="w-full h-20 object-contain rounded border-2 border-gray-300 bg-gray-50"
@@ -570,86 +583,80 @@ export function LessonHistoryContent({
                                       {detail.points}/{detail.maxPoints}
                                     </p>
                                   </div>
-                                  {detail.pronunciation && (
-                                    <div>
-                                      <span className="text-muted-foreground">
-                                        Phát âm:
-                                      </span>
-                                      <p className="font-bold text-lg">
-                                        {detail.pronunciation.overall?.toFixed(
-                                          1
-                                        ) ?? "N/A"}
-                                        %
-                                      </p>
-                                    </div>
-                                  )}
+                                  {detail.exercise?.type === "PRONUNCIATION" &&
+                                    detail.pronunciation && (
+                                      <div>
+                                        <span className="text-muted-foreground">
+                                          Điểm phát âm:
+                                        </span>
+                                        <p className="font-bold text-lg">
+                                          {detail.pronunciation.overall?.toFixed(
+                                            1
+                                          ) ?? "N/A"}
+                                        </p>
+                                      </div>
+                                    )}
                                 </div>
 
-                                {/* {detail.pronunciation && (
-                                <div className="pt-2 border-t space-y-1">
-                                  <p className="text-xs font-medium">
-                                    Chi tiết phát âm:
-                                  </p>
-                                  <div className="grid grid-cols-2 gap-1 text-xs">
-                                    {detail.pronunciation.accuracy !==
-                                      undefined && (
-                                      <div>
-                                        <span className="text-muted-foreground">
-                                          Độ chính xác:
-                                        </span>
-                                        <span className="ml-1 font-medium">
-                                          {detail.pronunciation.accuracy.toFixed(
-                                            1
-                                          )}
-                                          %
-                                        </span>
+                                {detail.exercise?.type === "PRONUNCIATION" &&
+                                  detail.pronunciation && (
+                                    <div className="pt-2 border-t space-y-1">
+                                      <div className="grid grid-cols-3 gap-1">
+                                        {detail.pronunciation.accuracy !==
+                                          undefined && (
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              Độ chính xác:
+                                            </span>
+                                            <span className="ml-1 font-medium">
+                                              {detail.pronunciation.accuracy.toFixed(
+                                                1
+                                              )}
+                                            </span>
+                                          </div>
+                                        )}
+                                        {detail.pronunciation.fluency !==
+                                          undefined && (
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              Độ trôi chảy:
+                                            </span>
+                                            <span className="ml-1 font-medium">
+                                              {detail.pronunciation.fluency.toFixed(
+                                                1
+                                              )}
+                                            </span>
+                                          </div>
+                                        )}
+                                        {detail.pronunciation.completeness !==
+                                          undefined && (
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              Độ hoàn thành:
+                                            </span>
+                                            <span className="ml-1 font-medium">
+                                              {detail.pronunciation.completeness.toFixed(
+                                                1
+                                              )}
+                                            </span>
+                                          </div>
+                                        )}
+                                        {detail.pronunciation.prosody !==
+                                          undefined && (
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              Ngữ điệu:
+                                            </span>
+                                            <span className="ml-1 font-medium">
+                                              {detail.pronunciation.prosody.toFixed(
+                                                1
+                                              )}
+                                            </span>
+                                          </div>
+                                        )}
                                       </div>
-                                    )}
-                                    {detail.pronunciation.fluency !==
-                                      undefined && (
-                                      <div>
-                                        <span className="text-muted-foreground">
-                                          Độ trôi chảy:
-                                        </span>
-                                        <span className="ml-1 font-medium">
-                                          {detail.pronunciation.fluency.toFixed(
-                                            1
-                                          )}
-                                          %
-                                        </span>
-                                      </div>
-                                    )}
-                                    {detail.pronunciation.completeness !==
-                                      undefined && (
-                                      <div>
-                                        <span className="text-muted-foreground">
-                                          Độ hoàn thành:
-                                        </span>
-                                        <span className="ml-1 font-medium">
-                                          {detail.pronunciation.completeness.toFixed(
-                                            1
-                                          )}
-                                          %
-                                        </span>
-                                      </div>
-                                    )}
-                                    {detail.pronunciation.prosody !==
-                                      undefined && (
-                                      <div>
-                                        <span className="text-muted-foreground">
-                                          Ngữ điệu:
-                                        </span>
-                                        <span className="ml-1 font-medium">
-                                          {detail.pronunciation.prosody.toFixed(
-                                            1
-                                          )}
-                                          %
-                                        </span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              )} */}
+                                    </div>
+                                  )}
                               </div>
                             );
                           })}
