@@ -44,6 +44,7 @@ export const ExerciseOptionSchema = z.object({
 
 export const CreateExerciseSchema = z
   .object({
+    id: z.number().int().positive().optional(),
     lessonId: z.number().int().positive("Lesson ID is required"),
     type: ExerciseType,
     order: z.number().int().min(0).optional(),
