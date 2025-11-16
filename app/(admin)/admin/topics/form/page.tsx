@@ -48,12 +48,14 @@ import {
   gradeLabels,
 } from '@/schemas/topic';
 import { UPLOAD_PRESET } from '@/lib/constants';
+import { useTopicFormStore } from '@/lib/stores/topic-form-store';
 
 export default function TopicFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { selectedGrade, clearSelectedGrade } = useTopicFormStore();
 
   const topicId = searchParams.get('id');
   const isEditMode = !!topicId;
@@ -90,6 +92,10 @@ export default function TopicFormPage() {
             order: topic.order,
             isActive: topic.isActive,
           });
+        } else if (selectedGrade) {
+          // If creating new topic and grade is selected from filter, pre-fill it
+          form.setValue('grade', selectedGrade as "GRADE_1" | "GRADE_2" | "GRADE_3" | "GRADE_4" | "GRADE_5");
+          toast.success(`Đã chọn lớp: ${gradeLabels[selectedGrade as keyof typeof gradeLabels]}`);
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -100,7 +106,7 @@ export default function TopicFormPage() {
     };
 
     fetchData();
-  }, [topicId, isEditMode]);
+  }, [topicId, isEditMode, selectedGrade, form]);
 
   const onSubmit = async (data: CreateTopicFormData) => {
     setIsSubmitting(true);
@@ -123,6 +129,7 @@ export default function TopicFormPage() {
           toast.error('Tạo unit thất bại');
         }
       }
+      clearSelectedGrade();
       router.push('/admin/topics');
       router.refresh();
     } catch (error) {
@@ -166,6 +173,7 @@ export default function TopicFormPage() {
   };
 
   const handleCancel = () => {
+    clearSelectedGrade();
     router.back();
   };
 

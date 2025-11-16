@@ -63,6 +63,7 @@ import {
 } from "@/schemas/sentence";
 import { Topic } from "@/types";
 import { UPLOAD_PRESET } from "@/lib/constants";
+import { useSentenceFormStore } from "@/lib/stores/sentence-form-store";
 
 const GRADES = [
   { value: "GRADE_1", label: "Lớp 1" },
@@ -71,6 +72,14 @@ const GRADES = [
   { value: "GRADE_4", label: "Lớp 4" },
   { value: "GRADE_5", label: "Lớp 5" },
 ];
+
+const GRADE_LABELS: Record<string, string> = {
+  GRADE_1: "Lớp 1",
+  GRADE_2: "Lớp 2",
+  GRADE_3: "Lớp 3",
+  GRADE_4: "Lớp 4",
+  GRADE_5: "Lớp 5",
+};
 
 export default function SentenceFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -81,6 +90,7 @@ export default function SentenceFormPage() {
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { selectedGrade: storeGrade, selectedTopicId: storeTopicId, clearSelection } = useSentenceFormStore();
 
   const sentenceImageId = searchParams.get("id");
   const topicIdParam = searchParams.get("topicId");
@@ -209,6 +219,20 @@ export default function SentenceFormPage() {
               isActive: s.isActive,
             })),
           });
+        } else {
+          // New sentence mode - check if there are filters from store
+          if (storeGrade) {
+            setSelectedGrade(storeGrade);
+            toast.success(`Đã chọn lớp: ${GRADE_LABELS[storeGrade]}`);
+          }
+          
+          if (storeTopicId) {
+            const topic = fetchedTopics.find((t) => t.id === storeTopicId);
+            if (topic) {
+              form.setValue("topicId", storeTopicId);
+              toast.success(`Đã chọn chủ đề: ${topic.title}`);
+            }
+          }
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
@@ -220,7 +244,7 @@ export default function SentenceFormPage() {
 
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sentenceImageId, isEditMode, topicIdParam]);
+  }, [sentenceImageId, isEditMode, topicIdParam, storeGrade, storeTopicId]);
 
   const onSubmit = async (data: CreateSentenceImageFormData) => {
     setIsSubmitting(true);
@@ -235,6 +259,7 @@ export default function SentenceFormPage() {
         } else {
           toast.error("Cập nhật thất bại");
         }
+        clearSelection();
         router.push("/admin/sentences");
         router.refresh();
       } else if (isTopicLocked) {
@@ -276,6 +301,7 @@ export default function SentenceFormPage() {
         }
         
         toast.success("Cập nhật thành công");
+        clearSelection();
         // Reload the page to fetch updated data
         router.refresh();
         window.location.reload();
@@ -295,6 +321,7 @@ export default function SentenceFormPage() {
         const created = await createSentenceImage(finalData);
         if (created) {
           toast.success("Tạo mới thành công");
+          clearSelection();
           router.push("/admin/sentences");
           router.refresh();
         } else {
@@ -342,6 +369,7 @@ export default function SentenceFormPage() {
   }
 
   function handleCancel() {
+    clearSelection();
     router.back();
   }
 

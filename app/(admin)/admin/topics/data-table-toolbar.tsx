@@ -2,11 +2,13 @@
 
 import { X } from "lucide-react";
 import { Table } from "@tanstack/react-table";
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableViewOptions } from "../_components/data-table-view-options";
 import { DataTableFacetedFilter } from "../_components/data-table-faceted-filter";
+import { useTopicFormStore } from "@/lib/stores/topic-form-store";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -50,6 +52,22 @@ export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
+  const { setSelectedGrade } = useTopicFormStore();
+
+  // Update store when grade filter changes
+  useEffect(() => {
+    const gradeFilter = table.getColumn("grade")?.getFilterValue() as string[] | undefined;
+    if (gradeFilter && gradeFilter.length === 1) {
+      setSelectedGrade(gradeFilter[0]);
+    } else {
+      setSelectedGrade(null);
+    }
+  }, [table.getState().columnFilters, setSelectedGrade]);
+
+  const handleResetFilters = () => {
+    table.resetColumnFilters();
+    setSelectedGrade(null);
+  };
 
   return (
     <div className="flex items-center justify-between">
@@ -87,7 +105,7 @@ export function DataTableToolbar<TData>({
         {isFiltered && (
           <Button
             variant="dangerOutline"
-            onClick={() => table.resetColumnFilters()}
+            onClick={handleResetFilters}
             className="h-8 px-2 lg:px-3"
           >
             Xoá bộ lọc

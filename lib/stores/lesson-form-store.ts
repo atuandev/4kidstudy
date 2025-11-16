@@ -1,23 +1,18 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { Lesson } from '@/types';
 
-interface LessonFormState {
-  selectedLesson: Lesson | null;
-  setSelectedLesson: (lesson: Lesson | null) => void;
-  clearSelectedLesson: () => void;
+interface LessonFormStore {
+  selectedGrade: string | null;
+  selectedTopicId: number | null;
+  setSelectedGrade: (grade: string | null) => void;
+  setSelectedTopicId: (topicId: number | null) => void;
+  clearSelection: () => void;
 }
 
-export const useLessonFormStore = create<LessonFormState>()(
-  persist(
-    (set) => ({
-      selectedLesson: null,
-      setSelectedLesson: (lesson) => set({ selectedLesson: lesson }),
-      clearSelectedLesson: () => set({ selectedLesson: null }),
-    }),
-    {
-      name: 'lesson-form-store',
-    }
-  )
-);
+export const useLessonFormStore = create<LessonFormStore>((set) => ({
+  selectedGrade: null,
+  selectedTopicId: null,
+  setSelectedGrade: (grade) => set({ selectedGrade: grade }),
+  setSelectedTopicId: (topicId) => set({ selectedTopicId: topicId }),
+  clearSelection: () => set({ selectedGrade: null, selectedTopicId: null }),
+}));
 

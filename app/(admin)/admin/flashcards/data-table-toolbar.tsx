@@ -10,6 +10,7 @@ import { DataTableViewOptions } from "../_components/data-table-view-options";
 import { DataTableFacetedFilter } from "../_components/data-table-faceted-filter";
 import { Topic } from "@/types";
 import { getTopicsByGrade } from "@/actions/topic";
+import { useFlashcardFormStore } from "@/lib/stores/flashcard-form-store";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -55,10 +56,32 @@ export function DataTableToolbar<TData>({
   const isFiltered = table.getState().columnFilters.length > 0;
   const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
   const [isLoadingTopics, setIsLoadingTopics] = useState(false);
+  const { setSelectedGrade, setSelectedTopicId } = useFlashcardFormStore();
 
   const gradeColumn = table.getColumn("grade");
   const selectedGrades = (gradeColumn?.getFilterValue() as string[]) ?? [];
   const hasSelectedGrade = selectedGrades.length > 0;
+
+  const topicColumn = table.getColumn("topicId");
+  const selectedTopicIds = (topicColumn?.getFilterValue() as string[]) ?? [];
+
+  // Update store when grade filter changes
+  useEffect(() => {
+    if (selectedGrades.length === 1) {
+      setSelectedGrade(selectedGrades[0]);
+    } else {
+      setSelectedGrade(null);
+    }
+  }, [selectedGrades.join(","), setSelectedGrade]);
+
+  // Update store when topic filter changes
+  useEffect(() => {
+    if (selectedTopicIds.length === 1) {
+      setSelectedTopicId(parseInt(selectedTopicIds[0]));
+    } else {
+      setSelectedTopicId(null);
+    }
+  }, [selectedTopicIds.join(","), setSelectedTopicId]);
 
   useEffect(() => {
     const fetchTopicsByGrade = async () => {
@@ -95,6 +118,12 @@ export function DataTableToolbar<TData>({
     value: String(topic.id),
     label: topic.title,
   }));
+
+  const handleResetFilters = () => {
+    table.resetColumnFilters();
+    setSelectedGrade(null);
+    setSelectedTopicId(null);
+  };
 
   return (
     <div className="flex items-center justify-between">
@@ -140,7 +169,7 @@ export function DataTableToolbar<TData>({
         {isFiltered && (
           <Button
             variant="dangerOutline"
-            onClick={() => table.resetColumnFilters()}
+            onClick={handleResetFilters}
             className="h-8 px-2 lg:px-3"
           >
             Xoá bộ lọc

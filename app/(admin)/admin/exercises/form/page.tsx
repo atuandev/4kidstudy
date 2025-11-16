@@ -52,7 +52,7 @@ import {
 import { Lesson } from "@/types";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UPLOAD_PRESET } from "@/lib/constants";
-import { useLessonFormStore } from "@/lib/stores/lesson-form-store";
+import { useExerciseFormStore } from "@/lib/stores/exercise-form-store";
 
 export default function ExerciseFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,11 +65,11 @@ export default function ExerciseFormPage() {
   const [existingExercisesCount, setExistingExercisesCount] = useState(0);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
   const router = useRouter();
-  const { selectedLesson, clearSelectedLesson } = useLessonFormStore();
+  const { selectedLessonId: storeLessonId, clearSelection } = useExerciseFormStore();
   const hasInitializedFromLesson = useRef(false);
-  const isLessonLocked = !!selectedLesson;
 
   const form = useForm<CreateExerciseFormData>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(CreateExerciseSchema) as any,
     defaultValues: {
       lessonId: 0,
@@ -109,6 +109,7 @@ export default function ExerciseFormPage() {
   });
 
   const exerciseType = form.watch("type");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formControl = form.control as any;
 
   useEffect(() => {
@@ -119,8 +120,8 @@ export default function ExerciseFormPage() {
         setAvailableLessons(fetchedLessons);
 
         // Load existing exercises if lesson is selected
-        if (selectedLesson) {
-          const existingExercises = await getExerciseByLessonId(selectedLesson.id);
+        if (storeLessonId) {
+          const existingExercises = await getExerciseByLessonId(storeLessonId);
           
           if (existingExercises && existingExercises.length > 0) {
             setExistingExercisesCount(existingExercises.length);
@@ -162,16 +163,16 @@ export default function ExerciseFormPage() {
     };
 
     fetchData();
-  }, [selectedLesson]);
+  }, [storeLessonId]);
 
   useEffect(() => {
     if (
-      selectedLesson &&
+      storeLessonId &&
       !hasInitializedFromLesson.current &&
       availableLessons.length > 0 &&
       !isLoading
     ) {
-      const lesson = availableLessons.find((l) => l.id === selectedLesson.id);
+      const lesson = availableLessons.find((l) => l.id === storeLessonId);
 
       if (lesson) {
         hasInitializedFromLesson.current = true;
@@ -179,7 +180,7 @@ export default function ExerciseFormPage() {
         toast.success(`Đã chọn bài luyện tập: ${lesson.title}`);
       }
     }
-  }, [selectedLesson, availableLessons, isLoading, form]);
+  }, [storeLessonId, availableLessons, isLoading, form]);
 
   const validateExercise = (values: CreateExerciseFormData) => {
     if (
@@ -229,6 +230,7 @@ export default function ExerciseFormPage() {
       return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { order, ...createData } = values;
 
     if (editingIndex !== null) {
@@ -314,7 +316,7 @@ export default function ExerciseFormPage() {
         await deleteExercise(exercise.id);
         toast.success("Đã xóa câu hỏi khỏi hệ thống");
         setExistingExercisesCount(prev => prev - 1);
-      } catch (error) {
+      } catch {
         toast.error("Không thể xóa câu hỏi");
         return;
       }
@@ -519,8 +521,9 @@ export default function ExerciseFormPage() {
       toast.success(messages.join(" và "));
       setExerciseForms([]);
       setExistingExercisesCount(0);
-      clearSelectedLesson();
+      clearSelection();
       router.push("/admin/exercises");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Failed to save exercises:", error);
       const errorMessage = error?.payload?.message;
@@ -545,33 +548,37 @@ export default function ExerciseFormPage() {
         )
       ) {
         setExerciseForms([]);
-        clearSelectedLesson();
+        clearSelection();
         router.back();
       }
     } else {
-      clearSelectedLesson();
+      clearSelection();
       router.back();
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleImageUpload = (result: any) => {
     if (result?.info?.secure_url) {
       form.setValue("imageUrl", result.info.secure_url);
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleAudioUpload = (result: any) => {
     if (result?.info?.secure_url) {
       form.setValue("audioUrl", result.info.secure_url);
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleOptionImageUpload = (result: any, index: number) => {
     if (result?.info?.secure_url) {
       form.setValue(`options.${index}.imageUrl`, result.info.secure_url);
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
   const handleOptionAudioUpload = (result: any, index: number) => {
     if (result?.info?.secure_url) {
       form.setValue(`options.${index}.audioUrl`, result.info.secure_url);

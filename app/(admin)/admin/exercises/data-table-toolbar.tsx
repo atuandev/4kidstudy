@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { DataTableViewOptions } from "../_components/data-table-view-options"
 import { DataTableFacetedFilter } from "../_components/data-table-faceted-filter";
 import { Lesson } from "@/types";
+import { useExerciseFormStore } from "@/lib/stores/exercise-form-store";
+import { useEffect } from "react";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -42,6 +44,18 @@ export function DataTableToolbar<TData>({
   lessons,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
+  const { setSelectedLessonId } = useExerciseFormStore();
+
+  // Track lessonId filter
+  const selectedLessonIds = (table.getColumn("lessonId")?.getFilterValue() as string[]) || [];
+  
+  useEffect(() => {
+    if (selectedLessonIds.length === 1) {
+      setSelectedLessonId(parseInt(selectedLessonIds[0]));
+    } else {
+      setSelectedLessonId(null);
+    }
+  }, [selectedLessonIds.join(','), setSelectedLessonId]);
 
   // Create lesson ID options for the faceted filter
   const lessonIdOptions = lessons
@@ -50,6 +64,11 @@ export function DataTableToolbar<TData>({
         label: `${lesson.id} - ${lesson.title}`,
       }))
     : [];
+
+  const handleResetFilters = () => {
+    table.resetColumnFilters();
+    setSelectedLessonId(null);
+  };
 
   return (
     <div className="flex items-center justify-between">
@@ -87,7 +106,7 @@ export function DataTableToolbar<TData>({
         {isFiltered && (
           <Button
             variant="dangerOutline"
-            onClick={() => table.resetColumnFilters()}
+            onClick={handleResetFilters}
             className="h-8 px-2 lg:px-3"
           >
             Xoá bộ lọc
