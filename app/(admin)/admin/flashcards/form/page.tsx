@@ -72,6 +72,7 @@ import {
 } from "@/schemas/flashcard";
 import { Topic } from "@/types";
 import { UPLOAD_PRESET } from "@/lib/constants";
+import { useFlashcardFormStore } from "@/lib/stores/flashcard-form-store";
 
 const GRADES = [
   { value: "GRADE_1", label: "Lớp 1" },
@@ -80,6 +81,14 @@ const GRADES = [
   { value: "GRADE_4", label: "Lớp 4" },
   { value: "GRADE_5", label: "Lớp 5" },
 ];
+
+const GRADE_LABELS: Record<string, string> = {
+  GRADE_1: "Lớp 1",
+  GRADE_2: "Lớp 2",
+  GRADE_3: "Lớp 3",
+  GRADE_4: "Lớp 4",
+  GRADE_5: "Lớp 5",
+};
 
 export default function FlashcardFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -90,6 +99,7 @@ export default function FlashcardFormPage() {
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { selectedGrade: storeGrade, selectedTopicId: storeTopicId, clearSelection } = useFlashcardFormStore();
 
   const flashcardId = searchParams.get("id");
   const topicIdParam = searchParams.get("topicId");
@@ -214,6 +224,20 @@ export default function FlashcardFormPage() {
             order: flashcard.order,
             isActive: flashcard.isActive,
           });
+        } else {
+          // New flashcard mode - check if there are filters from store
+          if (storeGrade) {
+            setSelectedGrade(storeGrade);
+            toast.success(`Đã chọn lớp: ${GRADE_LABELS[storeGrade]}`);
+          }
+          
+          if (storeTopicId) {
+            const topic = fetchedTopics.find((t) => t.id === storeTopicId);
+            if (topic) {
+              form.setValue("topicId", storeTopicId);
+              toast.success(`Đã chọn chủ đề: ${topic.title}`);
+            }
+          }
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
@@ -225,7 +249,7 @@ export default function FlashcardFormPage() {
 
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flashcardId, isEditMode, topicIdParam]);
+  }, [flashcardId, isEditMode, topicIdParam, storeGrade, storeTopicId]);
 
   const onSubmit = async (data: CreateFlashcardFormData | CreateFlashcardsFormData) => {
     setIsSubmitting(true);
@@ -241,6 +265,7 @@ export default function FlashcardFormPage() {
         } else {
           toast.error("Cập nhật flashcard thất bại");
         }
+        clearSelection();
         router.push("/admin/flashcards");
         router.refresh();
       } else if (isTopicLocked) {
@@ -294,6 +319,9 @@ export default function FlashcardFormPage() {
         }
 
         toast.success("Cập nhật thành công");
+        clearSelection();
+        router.push("/admin/flashcards");
+        router.refresh();
       } else {
         // Single create mode
         const singleData = data as CreateFlashcardFormData;
@@ -305,6 +333,7 @@ export default function FlashcardFormPage() {
         } else {
           toast.error("Tạo flashcard thất bại");
         }
+        clearSelection();
         router.push("/admin/flashcards");
         router.refresh();
       }
@@ -373,6 +402,7 @@ export default function FlashcardFormPage() {
   }
 
   function handleCancel() {
+    clearSelection();
     router.back();
   }
 

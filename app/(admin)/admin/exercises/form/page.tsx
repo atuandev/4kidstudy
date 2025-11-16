@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Edit2, ImageIcon, Loader2, Plus, Trash2, Upload } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit2, ImageIcon, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 
-import { createManyExercises } from "@/actions/exercise";
+import { createManyExercises, getExerciseByLessonId, updateExercise, deleteExercise } from "@/actions/exercise";
 import { getLessons } from "@/actions/lesson";
 import { RequiredField } from "@/components/form/required-field";
 import { TypographyH3, TypographyH4 } from "@/components/typography";
@@ -52,7 +52,7 @@ import {
 import { Lesson } from "@/types";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UPLOAD_PRESET } from "@/lib/constants";
-import { useLessonFormStore } from "@/lib/stores/lesson-form-store";
+import { useExerciseFormStore } from "@/lib/stores/exercise-form-store";
 
 export default function ExerciseFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,11 +62,14 @@ export default function ExerciseFormPage() {
     []
   );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [existingExercisesCount, setExistingExercisesCount] = useState(0);
+  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
   const router = useRouter();
-  const { selectedLesson, clearSelectedLesson } = useLessonFormStore();
+  const { selectedLessonId: storeLessonId, clearSelection } = useExerciseFormStore();
   const hasInitializedFromLesson = useRef(false);
 
   const form = useForm<CreateExerciseFormData>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(CreateExerciseSchema) as any,
     defaultValues: {
       lessonId: 0,
@@ -106,6 +109,7 @@ export default function ExerciseFormPage() {
   });
 
   const exerciseType = form.watch("type");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formControl = form.control as any;
 
   useEffect(() => {
@@ -114,6 +118,42 @@ export default function ExerciseFormPage() {
         setIsLoading(true);
         const fetchedLessons = await getLessons();
         setAvailableLessons(fetchedLessons);
+
+        // Load existing exercises if lesson is selected
+        if (storeLessonId) {
+          const existingExercises = await getExerciseByLessonId(storeLessonId);
+          
+          if (existingExercises && existingExercises.length > 0) {
+            setExistingExercisesCount(existingExercises.length);
+            
+            // Convert existing exercises to form format
+            const convertedExercises = existingExercises.map((ex) => ({
+              id: ex.id,
+              lessonId: ex.lessonId,
+              type: ex.type,
+              prompt: ex.prompt,
+              imageUrl: ex.imageUrl || "",
+              audioUrl: ex.audioUrl || "",
+              targetText: ex.targetText || "",
+              hintEn: ex.hintEn || "",
+              hintVi: ex.hintVi || "",
+              points: ex.points,
+              difficulty: ex.difficulty || 1,
+              options: ex.options?.map((opt) => ({
+                id: opt.id,
+                text: opt.text,
+                imageUrl: opt.imageUrl || "",
+                audioUrl: opt.audioUrl || "",
+                isCorrect: opt.isCorrect,
+                order: opt.order,
+                matchKey: opt.matchKey || "",
+              })) || [],
+            })) as CreateExerciseFormData[];
+            
+            setExerciseForms(convertedExercises);
+            toast.success(`Đã tải ${existingExercises.length} câu hỏi có sẵn`);
+          }
+        }
       } catch (error) {
         console.error("Failed to fetch data:", error);
         toast.error("Không thể tải dữ liệu");
@@ -123,16 +163,16 @@ export default function ExerciseFormPage() {
     };
 
     fetchData();
-  }, []);
+  }, [storeLessonId]);
 
   useEffect(() => {
     if (
-      selectedLesson &&
+      storeLessonId &&
       !hasInitializedFromLesson.current &&
       availableLessons.length > 0 &&
       !isLoading
     ) {
-      const lesson = availableLessons.find((l) => l.id === selectedLesson.id);
+      const lesson = availableLessons.find((l) => l.id === storeLessonId);
 
       if (lesson) {
         hasInitializedFromLesson.current = true;
@@ -140,7 +180,7 @@ export default function ExerciseFormPage() {
         toast.success(`Đã chọn bài luyện tập: ${lesson.title}`);
       }
     }
-  }, [selectedLesson, availableLessons, isLoading, form]);
+  }, [storeLessonId, availableLessons, isLoading, form]);
 
   const validateExercise = (values: CreateExerciseFormData) => {
     if (
@@ -190,6 +230,7 @@ export default function ExerciseFormPage() {
       return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { order, ...createData } = values;
 
     if (editingIndex !== null) {
@@ -254,7 +295,34 @@ export default function ExerciseFormPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleDeleteExercise = (index: number) => {
+  const toggleCardExpanded = (index: number) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
+  const handleDeleteExercise = async (index: number) => {
+    const exercise = exerciseForms[index];
+    
+    // If exercise has an id, it's an existing exercise - need to delete from backend
+    if (exercise.id) {
+      try {
+        await deleteExercise(exercise.id);
+        toast.success("Đã xóa câu hỏi khỏi hệ thống");
+        setExistingExercisesCount(prev => prev - 1);
+      } catch {
+        toast.error("Không thể xóa câu hỏi");
+        return;
+      }
+    }
+    
+    // Remove from local array
     const updatedExercises = exerciseForms.filter((_, i) => i !== index);
     setExerciseForms(updatedExercises);
 
@@ -411,19 +479,53 @@ export default function ExerciseFormPage() {
 
     setIsSubmitting(true);
     try {
-      const { payload, status } = await createManyExercises(exerciseForms);
-
-      if ((status !== 201 && status !== 200) || !payload) {
-        toast.error("Tạo hàng loạt câu hỏi thất bại");
-        return;
+      // Separate existing exercises (with id) from new exercises (without id)
+      const existingExercises = exerciseForms.filter(ex => ex.id);
+      const newExercises = exerciseForms.filter(ex => !ex.id);
+      
+      let updatedCount = 0;
+      let createdCount = 0;
+      
+      // Update existing exercises
+      if (existingExercises.length > 0) {
+        const updatePromises = existingExercises.map(async (exercise) => {
+          const { id, ...updateData } = exercise;
+          return updateExercise(id!, updateData);
+        });
+        
+        const updateResults = await Promise.all(updatePromises);
+        updatedCount = updateResults.filter(result => result.status === 200).length;
+        
+        if (updatedCount < existingExercises.length) {
+          toast.warning(`Chỉ cập nhật được ${updatedCount}/${existingExercises.length} câu hỏi`);
+        }
       }
+      
+      // Create new exercises
+      if (newExercises.length > 0) {
+        const { payload, status } = await createManyExercises(newExercises);
 
-      toast.success(`Đã tạo thành công ${payload.length} câu hỏi`);
+        if ((status !== 201 && status !== 200) || !payload) {
+          toast.error("Tạo hàng loạt câu hỏi thất bại");
+          return;
+        }
+        
+        createdCount = payload.length;
+      }
+      
+      // Show success message
+      const messages = [];
+      if (updatedCount > 0) messages.push(`Cập nhật ${updatedCount} câu`);
+      if (createdCount > 0) messages.push(`Tạo mới ${createdCount} câu`);
+      
+      toast.success(messages.join(" và "));
       setExerciseForms([]);
-      clearSelectedLesson();
+      setExistingExercisesCount(0);
+      clearSelection();
       router.push("/admin/exercises");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      console.error("Failed to create many exercises:", error);
+      console.error("Failed to save exercises:", error);
       const errorMessage = error?.payload?.message;
 
       if (typeof errorMessage === "string") {
@@ -431,7 +533,7 @@ export default function ExerciseFormPage() {
       } else if (Array.isArray(errorMessage)) {
         toast.error(errorMessage.join(", "));
       } else {
-        toast.error("Tạo hàng loạt câu hỏi thất bại");
+        toast.error("Lưu câu hỏi thất bại");
       }
     } finally {
       setIsSubmitting(false);
@@ -446,33 +548,37 @@ export default function ExerciseFormPage() {
         )
       ) {
         setExerciseForms([]);
-        clearSelectedLesson();
+        clearSelection();
         router.back();
       }
     } else {
-      clearSelectedLesson();
+      clearSelection();
       router.back();
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleImageUpload = (result: any) => {
     if (result?.info?.secure_url) {
       form.setValue("imageUrl", result.info.secure_url);
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleAudioUpload = (result: any) => {
     if (result?.info?.secure_url) {
       form.setValue("audioUrl", result.info.secure_url);
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleOptionImageUpload = (result: any, index: number) => {
     if (result?.info?.secure_url) {
       form.setValue(`options.${index}.imageUrl`, result.info.secure_url);
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
   const handleOptionAudioUpload = (result: any, index: number) => {
     if (result?.info?.secure_url) {
       form.setValue(`options.${index}.audioUrl`, result.info.secure_url);
@@ -531,63 +637,191 @@ export default function ExerciseFormPage() {
       {/* Display saved exercises */}
       {exerciseForms.length > 0 && (
         <Card className="bg-blue-50 border-blue-200">
-          <CardContent>
+          <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <TypographyH4>Câu hỏi đã thêm</TypographyH4>
                 <p className="text-sm text-muted-foreground">
                   {exerciseForms.length} câu hỏi đang chờ lưu
+                  {existingExercisesCount > 0 && ` (${existingExercisesCount} câu đã có sẵn)`}
                 </p>
               </div>
             </div>
             <div className="space-y-2">
-              {exerciseForms.map((exercise, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center justify-between p-3 bg-white rounded-lg border ${
-                    editingIndex === index
-                      ? "border-blue-500 ring-2 ring-blue-200"
-                      : ""
-                  }`}
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">#{index + 1}</Badge>
-                      <span className="font-medium">
-                        {exercise.prompt || "Không có prompt"}
-                      </span>
-                      {editingIndex === index && (
-                        <Badge variant="default" className="ml-2">
-                          Đang chỉnh sửa
-                        </Badge>
+              {exerciseForms.map((exercise, index) => {
+                const isExpanded = expandedCards.has(index);
+                const isExisting = !!exercise.id;
+                
+                return (
+                  <Card 
+                    key={index}
+                    className={`${
+                      editingIndex === index
+                        ? "border-blue-500 ring-2 ring-blue-200"
+                        : isExisting ? "border-green-300" : ""
+                    }`}
+                  >
+                    <CardContent className="p-4">
+                      {/* Header - Always visible */}
+                      <div className="flex items-center justify-between">
+                        <div 
+                          className="flex-1 cursor-pointer" 
+                          onClick={() => toggleCardExpanded(index)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary">#{index + 1}</Badge>
+                            {isExisting && (
+                              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+                                Đã lưu
+                              </Badge>
+                            )}
+                            <span className="font-medium line-clamp-1">
+                              {exercise.prompt || "Không có prompt"}
+                            </span>
+                            {editingIndex === index && (
+                              <Badge variant="default" className="ml-2">
+                                Đang chỉnh sửa
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                            <span>{exerciseTypeLabels[exercise.type]}</span>
+                            <span>•</span>
+                            <span>{exercise.options?.length || 0} đáp án</span>
+                            <span>•</span>
+                            <span>{exercise.points} điểm</span>
+                            <span>•</span>
+                            <span>Độ khó: {exercise.difficulty}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 ml-4">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditExercise(index)}
+                            disabled={editingIndex === index}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteExercise(index)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleCardExpanded(index)}
+                          >
+                            {isExpanded ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Expanded details */}
+                      {isExpanded && (
+                        <div className="mt-4 pt-4 border-t space-y-3">
+                          {exercise.imageUrl && (
+                            <div>
+                              <p className="text-sm font-medium mb-1">Hình ảnh câu hỏi:</p>
+                              <img 
+                                src={exercise.imageUrl} 
+                                alt="Exercise" 
+                                className="w-32 h-32 object-cover rounded border"
+                              />
+                            </div>
+                          )}
+                          
+                          {exercise.audioUrl && (
+                            <div>
+                              <p className="text-sm font-medium mb-1">Âm thanh:</p>
+                              <audio controls className="w-full max-w-md">
+                                <source src={exercise.audioUrl} type="audio/mpeg" />
+                              </audio>
+                            </div>
+                          )}
+                          
+                          {exercise.targetText && (
+                            <div>
+                              <p className="text-sm font-medium">Văn bản cần đọc:</p>
+                              <p className="text-sm text-muted-foreground">{exercise.targetText}</p>
+                            </div>
+                          )}
+                          
+                          {exercise.hintEn && (
+                            <div>
+                              <p className="text-sm font-medium">Gợi ý (EN):</p>
+                              <p className="text-sm text-muted-foreground">{exercise.hintEn}</p>
+                            </div>
+                          )}
+                          
+                          {exercise.hintVi && (
+                            <div>
+                              <p className="text-sm font-medium">Gợi ý (VI):</p>
+                              <p className="text-sm text-muted-foreground">{exercise.hintVi}</p>
+                            </div>
+                          )}
+                          
+                          {exercise.options && exercise.options.length > 0 && (
+                            <div>
+                              <p className="text-sm font-medium mb-2">Đáp án:</p>
+                              <div className="space-y-2">
+                                {exercise.options.map((option, optIndex) => (
+                                  <div 
+                                    key={optIndex}
+                                    className={`p-2 rounded border ${
+                                      option.isCorrect 
+                                        ? "bg-green-50 border-green-300" 
+                                        : "bg-gray-50"
+                                    }`}
+                                  >
+                                    <div className="flex items-start gap-2">
+                                      <Badge variant={option.isCorrect ? "default" : "secondary"} className="shrink-0">
+                                        {optIndex + 1}
+                                      </Badge>
+                                      <div className="flex-1 space-y-1">
+                                        {option.text && (
+                                          <p className="text-sm">{option.text}</p>
+                                        )}
+                                        {option.imageUrl && (
+                                          <img 
+                                            src={option.imageUrl} 
+                                            alt={`Option ${optIndex + 1}`} 
+                                            className="w-20 h-20 object-cover rounded"
+                                          />
+                                        )}
+                                        {option.matchKey && (
+                                          <p className="text-xs text-muted-foreground">
+                                            Match Key: {option.matchKey}
+                                          </p>
+                                        )}
+                                        {option.isCorrect && (
+                                          <Badge variant="default" className="text-xs">
+                                            ✓ Đáp án đúng
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       )}
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {exerciseTypeLabels[exercise.type]} •{" "}
-                      {exercise.options?.length || 0} đáp án
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditExercise(index)}
-                      disabled={editingIndex === index}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteExercise(index)}
-                    >
-                      <Trash2 className="h-4 w-4 text-red-600" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

@@ -72,6 +72,7 @@ import {
 } from "@/schemas/lesson";
 import { Topic } from "@/types";
 import { UPLOAD_PRESET } from "@/lib/constants";
+import { useLessonFormStore } from "@/lib/stores/lesson-form-store";
 
 const GRADES = [
   { value: "GRADE_1", label: "Lớp 1" },
@@ -80,6 +81,14 @@ const GRADES = [
   { value: "GRADE_4", label: "Lớp 4" },
   { value: "GRADE_5", label: "Lớp 5" },
 ];
+
+const GRADE_LABELS: Record<string, string> = {
+  GRADE_1: "Lớp 1",
+  GRADE_2: "Lớp 2",
+  GRADE_3: "Lớp 3",
+  GRADE_4: "Lớp 4",
+  GRADE_5: "Lớp 5",
+};
 
 export default function LessonFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -90,6 +99,7 @@ export default function LessonFormPage() {
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { selectedGrade: storeGrade, selectedTopicId: storeTopicId, clearSelection } = useLessonFormStore();
 
   const lessonId = searchParams.get("id");
   const topicIdParam = searchParams.get("topicId");
@@ -213,6 +223,19 @@ export default function LessonFormPage() {
             audioUrl: lesson.audioUrl ?? "",
             coverImage: lesson.coverImage ?? "",
           });
+        } else {
+          // Auto-fill from store if filter was used
+          if (storeGrade) {
+            setSelectedGrade(storeGrade);
+            toast.success(`Đã chọn lớp: ${GRADE_LABELS[storeGrade]}`);
+          }
+          if (storeTopicId) {
+            const topic = fetchedTopics.find((t) => t.id === storeTopicId);
+            if (topic) {
+              form.setValue("topicId", storeTopicId);
+              toast.success(`Đã chọn chủ đề: ${topic.title}`);
+            }
+          }
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
@@ -224,7 +247,7 @@ export default function LessonFormPage() {
 
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lessonId, isEditMode, topicIdParam]);
+  }, [lessonId, isEditMode, topicIdParam, storeGrade, storeTopicId]);
 
   const onSubmit = async (data: CreateLessonFormData | CreateLessonsFormData) => {
     setIsSubmitting(true);
@@ -237,6 +260,7 @@ export default function LessonFormPage() {
         );
         if (updatedLesson) {
           toast.success("Cập nhật bài luyện tập thành công");
+          clearSelection();
         } else {
           toast.error("Cập nhật bài luyện tập thất bại");
         }
@@ -293,6 +317,7 @@ export default function LessonFormPage() {
         }
 
         toast.success("Cập nhật thành công");
+        clearSelection();
       } else {
         // Single create mode
         const singleData = data as CreateLessonFormData;
@@ -301,6 +326,7 @@ export default function LessonFormPage() {
         const createdLesson = await createLesson(createData);
         if (createdLesson) {
           toast.success("Tạo bài luyện tập thành công");
+          clearSelection();
         } else {
           toast.error("Tạo bài luyện tập thất bại");
         }
@@ -372,6 +398,7 @@ export default function LessonFormPage() {
   }
 
   function handleCancel() {
+    clearSelection();
     router.back();
   }
 
