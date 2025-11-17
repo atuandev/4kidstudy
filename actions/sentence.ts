@@ -28,6 +28,12 @@ export async function getSentenceImage(id: number) {
   return payload;
 }
 
+export async function deleteSentenceImage(id: number) {
+  const { payload } = await http.delete<SentenceImage>(`/sentences/images/${id}`);
+  revalidatePath('/admin/sentences');
+  return payload;
+}
+
 function cleanSentenceImageData(data: CreateSentenceImageFormData) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cleaned: any = {};

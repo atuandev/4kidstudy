@@ -1,10 +1,19 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ImageIcon, Loader2, Upload, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  ImageIcon,
+  Loader2,
+  Upload,
+  Plus,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import type { ChangeEvent } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -90,7 +99,11 @@ export default function SentenceFormPage() {
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { selectedGrade: storeGrade, selectedTopicId: storeTopicId, clearSelection } = useSentenceFormStore();
+  const {
+    selectedGrade: storeGrade,
+    selectedTopicId: storeTopicId,
+    clearSelection,
+  } = useSentenceFormStore();
 
   const sentenceImageId = searchParams.get("id");
   const topicIdParam = searchParams.get("topicId");
@@ -225,7 +238,7 @@ export default function SentenceFormPage() {
             setSelectedGrade(storeGrade);
             toast.success(`Đã chọn lớp: ${GRADE_LABELS[storeGrade]}`);
           }
-          
+
           if (storeTopicId) {
             const topic = fetchedTopics.find((t) => t.id === storeTopicId);
             if (topic) {
@@ -265,13 +278,13 @@ export default function SentenceFormPage() {
       } else if (isTopicLocked) {
         // Bulk create/update mode
         // Split sentences into existing (with id) and new (without id)
-        const existingSentences = data.sentences.filter(s => s.id);
-        const newSentences = data.sentences.filter(s => !s.id);
+        const existingSentences = data.sentences.filter((s) => s.id);
+        const newSentences = data.sentences.filter((s) => !s.id);
 
         // Update existing sentences individually
         if (existingSentences.length > 0) {
           await Promise.all(
-            existingSentences.map(sentence => 
+            existingSentences.map((sentence) =>
               updateSentence(sentence.id!, {
                 text: sentence.text,
                 meaningVi: sentence.meaningVi,
@@ -287,9 +300,11 @@ export default function SentenceFormPage() {
         // Create new sentences if any
         if (newSentences.length > 0) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const cleanedNewSentences = newSentences.map(({ id, order, ...sentence }) => sentence);
+          const cleanedNewSentences = newSentences.map(
+            ({ id, order, ...sentence }) => sentence
+          );
           // DO NOT send order for new sentences - let backend auto-assign
-          
+
           const sentenceImageData = {
             imageUrl: data.imageUrl,
             audioUrl: data.audioUrl,
@@ -299,7 +314,7 @@ export default function SentenceFormPage() {
 
           await bulkCreateSentences(data.topicId, [sentenceImageData]);
         }
-        
+
         toast.success("Cập nhật thành công");
         clearSelection();
         // Reload the page to fetch updated data
@@ -309,10 +324,12 @@ export default function SentenceFormPage() {
         // Normal create mode (single sentence image)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { order, ...createData } = data;
-        
+
         // Remove 'id' field from all sentences
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const cleanedSentences = createData.sentences.map(({ id, ...sentence }) => sentence);
+        const cleanedSentences = createData.sentences.map(
+          ({ id, ...sentence }) => sentence
+        );
         const finalData = {
           ...createData,
           sentences: cleanedSentences,
@@ -386,7 +403,7 @@ export default function SentenceFormPage() {
 
   async function handleRemoveSentence(index: number) {
     const sentence = form.getValues(`sentences.${index}`);
-    
+
     // If sentence has an id, it exists in the database and needs to be deleted
     if (sentence.id) {
       try {
@@ -616,21 +633,31 @@ export default function SentenceFormPage() {
               <FormField
                 control={formControl}
                 name="order"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Thứ tự</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="number"
-                        onChange={(e) =>
-                          field.onChange(parseInt(e.target.value))
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const { value, ...restField } = field;
+                  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+                    if (event.target.value === "") {
+                      field.onChange(undefined);
+                      return;
+                    }
+                    field.onChange(parseInt(event.target.value, 10));
+                  };
+                  return (
+                    <FormItem>
+                      <FormLabel>Thứ tự</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...restField}
+                          value={value ?? ""}
+                          type="number"
+                          min="1"
+                          onChange={handleChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             )}
 
@@ -683,179 +710,202 @@ export default function SentenceFormPage() {
               const isExpanded = expandedCards.has(field.id);
               const sentenceText = form.watch(`sentences.${index}.text`);
               const previewText = sentenceText || `Câu ${index + 1}`;
-              
+
               return (
-              <Card key={field.id}>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between text-base">
-                    <button
-                      type="button"
-                      onClick={() => toggleCardExpanded(field.id)}
-                      className="flex items-center gap-2 hover:text-primary transition-colors"
-                    >
-                      {isExpanded ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
-                      <span className="truncate max-w-md">{previewText}</span>
-                    </button>
-                    {fields.length > 1 && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button type="button" variant="dangerOutline" size="sm">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Hành động này sẽ xóa câu vĩnh viễn.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Hủy</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleRemoveSentence(index)}>Xóa</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                {isExpanded && (
-                <CardContent className="space-y-4">
-                  {/* Sentence Text */}
-                  <FormField
-                    control={formControl}
-                    name={`sentences.${index}.text`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Câu tiếng Anh <RequiredField />
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="Nhập câu tiếng Anh"
-                            rows={2}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Meaning in Vietnamese */}
-                  <FormField
-                    control={formControl}
-                    name={`sentences.${index}.meaningVi`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nghĩa tiếng Việt</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="Nhập nghĩa tiếng Việt"
-                            rows={2}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Hint in Vietnamese */}
-                  <FormField
-                    control={formControl}
-                    name={`sentences.${index}.hintVi`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Gợi ý tiếng Việt</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Nhập gợi ý" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Audio URL */}
-                  <FormField
-                    control={formControl}
-                    name={`sentences.${index}.audioUrl`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>File âm thanh</FormLabel>
-                        <FormControl>
-                          <div className="flex gap-2">
-                            <Input {...field} placeholder="URL âm thanh" />
-                            <CldUploadWidget
-                              uploadPreset={UPLOAD_PRESET}
-                              onSuccess={(result) =>
-                                handleSentenceAudioUpload(index, result)
-                              }
+                <Card key={field.id}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between text-base">
+                      <button
+                        type="button"
+                        onClick={() => toggleCardExpanded(field.id)}
+                        className="flex items-center gap-2 hover:text-primary transition-colors"
+                      >
+                        {isExpanded ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                        <span className="truncate max-w-md">{previewText}</span>
+                      </button>
+                      {fields.length > 1 && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="dangerOutline"
+                              size="sm"
                             >
-                              {({ open }) => (
-                                <Button
-                                  type="button"
-                                  size="icon"
-                                  onClick={() => open()}
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Bạn có chắc chắn muốn xóa?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Hành động này sẽ xóa câu vĩnh viễn.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Hủy</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleRemoveSentence(index)}
+                              >
+                                Xóa
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  {isExpanded && (
+                    <CardContent className="space-y-4">
+                      {/* Sentence Text */}
+                      <FormField
+                        control={formControl}
+                        name={`sentences.${index}.text`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Câu tiếng Anh <RequiredField />
+                            </FormLabel>
+                            <FormControl>
+                              <Textarea
+                                {...field}
+                                placeholder="Nhập câu tiếng Anh"
+                                rows={2}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Meaning in Vietnamese */}
+                      <FormField
+                        control={formControl}
+                        name={`sentences.${index}.meaningVi`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Nghĩa tiếng Việt <RequiredField />
+                            </FormLabel>
+                            <FormControl>
+                              <Textarea
+                                {...field}
+                                placeholder="Nhập nghĩa tiếng Việt"
+                                rows={2}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Audio URL */}
+                      <FormField
+                        control={formControl}
+                        name={`sentences.${index}.audioUrl`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              File âm thanh <RequiredField />
+                            </FormLabel>
+                            <FormControl>
+                              <div className="flex gap-2">
+                                <Input {...field} placeholder="URL âm thanh" />
+                                <CldUploadWidget
+                                  uploadPreset={UPLOAD_PRESET}
+                                  onSuccess={(result) =>
+                                    handleSentenceAudioUpload(index, result)
+                                  }
                                 >
-                                  <Upload className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </CldUploadWidget>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                                  {({ open }) => (
+                                    <Button
+                                      type="button"
+                                      size="icon"
+                                      onClick={() => open()}
+                                    >
+                                      <Upload className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                </CldUploadWidget>
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                  {/* Order and Active Status for each sentence */}
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <FormField
-                      control={formControl}
-                      name={`sentences.${index}.order`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Thứ tự</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="number"
-                              onChange={(e) =>
-                                field.onChange(parseInt(e.target.value))
+                      {/* Hint in Vietnamese */}
+                      <FormField
+                        control={formControl}
+                        name={`sentences.${index}.hintVi`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Gợi ý</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Nhập gợi ý" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Order and Active Status for each sentence */}
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FormField
+                          control={formControl}
+                          name={`sentences.${index}.order`}
+                          render={({ field }) => {
+                            const { value, ...restField } = field;
+                            const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+                              if (event.target.value === "") {
+                                field.onChange(undefined);
+                                return;
                               }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                              field.onChange(parseInt(event.target.value, 10));
+                            };
+                            return (
+                              <FormItem>
+                                <FormLabel>Thứ tự</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...restField}
+                                    value={value ?? ""}
+                                    type="number"
+                                    onChange={handleChange}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            );
+                          }}
+                        />
 
-                    <FormField
-                      control={formControl}
-                      name={`sentences.${index}.isActive`}
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>Trạng thái hoạt động</FormLabel>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
-                )}
-              </Card>
+                        <FormField
+                          control={formControl}
+                          name={`sentences.${index}.isActive`}
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel>Trạng thái hoạt động</FormLabel>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
               );
             })}
           </div>
@@ -875,7 +925,7 @@ export default function SentenceFormPage() {
               )}
               {/* {isEditMode ? "Cập nhật" : "Tạo mới"}
                */}
-               Cập nhật
+              Cập nhật
             </Button>
           </div>
         </form>

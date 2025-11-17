@@ -1,31 +1,82 @@
-'use client';
+"use client";
 
-import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Pencil } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
+import { ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal, Pencil, Trash } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
 
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
-import { SentenceImage } from '@/types';
-import { DataTableColumnHeader } from '../_components/data-table-column-header';
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { deleteSentenceImage } from "@/actions/sentence";
+import { SentenceImage } from "@/types";
+import { DataTableColumnHeader } from "../_components/data-table-column-header";
+
+function DeleteSentenceImageDialog({
+  sentenceImage,
+}: {
+  sentenceImage: SentenceImage;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  async function handleDelete() {
+    await deleteSentenceImage(sentenceImage.id);
+    setIsOpen(false);
+  }
+  return (
+    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuItem
+        className="text-red-600"
+        onSelect={(event) => {
+          event.preventDefault();
+          setIsOpen(true);
+        }}
+      >
+        <Trash className="mr-2 h-4 w-4" />
+        Xóa
+      </DropdownMenuItem>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Hành động này không thể hoàn tác. Thẻ câu và toàn bộ câu liên quan
+            sẽ bị xóa vĩnh viễn khỏi hệ thống.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Hủy</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDelete}>Xóa</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
 
 export const columns: ColumnDef<SentenceImage>[] = [
   {
-    id: 'select',
+    id: "select",
     header: ({ table }) => (
       <Checkbox
         checked={
           table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && 'indeterminate')
+          (table.getIsSomePageRowsSelected() && "indeterminate")
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
@@ -42,23 +93,23 @@ export const columns: ColumnDef<SentenceImage>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: 'id',
+    accessorKey: "id",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="ID" />
     ),
-    cell: ({ row }) => <div className="w-[60px]">{row.getValue('id')}</div>,
+    cell: ({ row }) => <div className="w-[60px]">{row.getValue("id")}</div>,
     filterFn: (row, id, value) => {
       const rowId = String(row.getValue(id));
       return rowId.includes(value);
     },
   },
   {
-    accessorKey: 'imageUrl',
+    accessorKey: "imageUrl",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Hình ảnh" />
     ),
     cell: ({ row }) => {
-      const imageUrl = row.getValue('imageUrl') as string;
+      const imageUrl = row.getValue("imageUrl") as string;
       return (
         <div className="h-12 w-16 overflow-hidden rounded border bg-muted">
           {imageUrl ? (
@@ -73,8 +124,8 @@ export const columns: ColumnDef<SentenceImage>[] = [
     },
   },
   {
-    accessorKey: 'topic.grade',
-    id: 'grade',
+    accessorKey: "topic.grade",
+    id: "grade",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Lớp" />
     ),
@@ -82,11 +133,11 @@ export const columns: ColumnDef<SentenceImage>[] = [
       const grade = row.original.topic?.grade;
       if (!grade) return <div>-</div>;
       const labelMap: Record<string, string> = {
-        GRADE_1: 'Lớp 1',
-        GRADE_2: 'Lớp 2',
-        GRADE_3: 'Lớp 3',
-        GRADE_4: 'Lớp 4',
-        GRADE_5: 'Lớp 5',
+        GRADE_1: "Lớp 1",
+        GRADE_2: "Lớp 2",
+        GRADE_3: "Lớp 3",
+        GRADE_4: "Lớp 4",
+        GRADE_5: "Lớp 5",
       };
       const label = labelMap[grade] || grade;
       return <Badge variant="outline">{label}</Badge>;
@@ -96,13 +147,13 @@ export const columns: ColumnDef<SentenceImage>[] = [
     },
   },
   {
-    accessorKey: 'topicId',
-    id: 'topicId',
+    accessorKey: "topicId",
+    id: "topicId",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Chủ đề" />
     ),
     cell: ({ row }) => {
-      const topicTitle = row.original.topic?.title || '-';
+      const topicTitle = row.original.topic?.title || "-";
       return (
         <div className="max-w-[200px] truncate" title={topicTitle}>
           {topicTitle}
@@ -114,22 +165,15 @@ export const columns: ColumnDef<SentenceImage>[] = [
     },
   },
   {
-    accessorKey: 'order',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Thứ tự" />
-    ),
-    cell: ({ row }) => <div className="text-center">{row.getValue('order')}</div>,
-  },
-  {
-    accessorKey: 'isActive',
+    accessorKey: "isActive",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Trạng thái" />
     ),
     cell: ({ row }) => {
-      const isActive = row.getValue('isActive') as boolean;
+      const isActive = row.getValue("isActive") as boolean;
       return (
-        <Badge variant={isActive ? 'default' : 'outline'}>
-          {isActive ? 'Hoạt động' : 'Không hoạt động'}
+        <Badge variant={isActive ? "default" : "outline"}>
+          {isActive ? "Hoạt động" : "Không hoạt động"}
         </Badge>
       );
     },
@@ -138,17 +182,17 @@ export const columns: ColumnDef<SentenceImage>[] = [
     },
   },
   {
-    accessorKey: 'createdAt',
+    accessorKey: "createdAt",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Ngày tạo" />
     ),
     cell: ({ row }) => {
-      const date = new Date(row.getValue('createdAt'));
-      return <div>{date.toLocaleDateString('vi-VN')}</div>;
+      const date = new Date(row.getValue("createdAt"));
+      return <div>{date.toLocaleDateString("vi-VN")}</div>;
     },
   },
   {
-    id: 'actions',
+    id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
       const image = row.original;
@@ -174,10 +218,10 @@ export const columns: ColumnDef<SentenceImage>[] = [
                 Chỉnh sửa
               </Link>
             </DropdownMenuItem>
+            <DeleteSentenceImageDialog sentenceImage={image} />
           </DropdownMenuContent>
         </DropdownMenu>
       );
     },
   },
 ];
-
