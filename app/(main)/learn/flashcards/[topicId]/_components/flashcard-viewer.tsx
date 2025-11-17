@@ -13,16 +13,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FlashcardComponent } from "./flashcard";
 import { Flashcard } from "@/types";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ReviewContentFormData } from '@/schemas/learning-progress';
 
 interface FlashcardViewerProps {
   flashcards: Flashcard[];
   // server action passed down to record reviews when user plays audio
-  onRecordReview?: (body: {
-    contentType: "FLASHCARD" | "SENTENCE";
-    flashcardId?: number;
-    sentenceId?: number;
-    isMastered?: boolean;
-  }) => Promise<any>;
+  onRecordReview?: (body: ReviewContentFormData) => Promise<unknown>;
 }
 
 export function FlashcardViewer({
