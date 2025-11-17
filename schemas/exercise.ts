@@ -202,7 +202,7 @@ export type ExerciseTypeEnum = z.infer<typeof ExerciseType>;
 // Exercise type labels for UI
 export const exerciseTypeLabels: Record<ExerciseTypeEnum, string> = {
   SELECT_IMAGE: "Chọn ảnh đúng",
-  MULTIPLE_CHOICE: "Trắc nghiệm chữ",
+  MULTIPLE_CHOICE: "Chọn đáp án đúng",
   MATCHING: "Ghép cặp",
   LISTENING: "Nghe - chọn đáp án",
   PRONUNCIATION: "Luyện phát âm (AI)",

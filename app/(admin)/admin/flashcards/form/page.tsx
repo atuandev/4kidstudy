@@ -1,7 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ImageIcon, Loader2, Upload, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  ImageIcon,
+  Loader2,
+  Upload,
+  Plus,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -99,7 +107,11 @@ export default function FlashcardFormPage() {
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { selectedGrade: storeGrade, selectedTopicId: storeTopicId, clearSelection } = useFlashcardFormStore();
+  const {
+    selectedGrade: storeGrade,
+    selectedTopicId: storeTopicId,
+    clearSelection,
+  } = useFlashcardFormStore();
 
   const flashcardId = searchParams.get("id");
   const topicIdParam = searchParams.get("topicId");
@@ -166,7 +178,9 @@ export default function FlashcardFormPage() {
           }
 
           // Load existing flashcards for this topic
-          const existingFlashcardsResponse = await getFlashcardsByTopic(parsedTopicId);
+          const existingFlashcardsResponse = await getFlashcardsByTopic(
+            parsedTopicId
+          );
           const existingFlashcards = existingFlashcardsResponse.payload || [];
 
           if (existingFlashcards.length > 0) {
@@ -182,7 +196,7 @@ export default function FlashcardFormPage() {
               order: fc.order,
               isActive: fc.isActive,
             }));
-            
+
             setExistingFlashcardsCount(allFlashcards.length);
 
             form.reset({
@@ -230,7 +244,7 @@ export default function FlashcardFormPage() {
             setSelectedGrade(storeGrade);
             toast.success(`Đã chọn lớp: ${GRADE_LABELS[storeGrade]}`);
           }
-          
+
           if (storeTopicId) {
             const topic = fetchedTopics.find((t) => t.id === storeTopicId);
             if (topic) {
@@ -251,7 +265,9 @@ export default function FlashcardFormPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flashcardId, isEditMode, topicIdParam, storeGrade, storeTopicId]);
 
-  const onSubmit = async (data: CreateFlashcardFormData | CreateFlashcardsFormData) => {
+  const onSubmit = async (
+    data: CreateFlashcardFormData | CreateFlashcardsFormData
+  ) => {
     setIsSubmitting(true);
     try {
       if (isEditMode) {
@@ -271,15 +287,15 @@ export default function FlashcardFormPage() {
       } else if (isTopicLocked) {
         // Bulk create/update mode
         const bulkData = data as CreateFlashcardsFormData;
-        
+
         // Split flashcards into existing (with id) and new (without id)
-        const existingFlashcards = bulkData.flashcards.filter(fc => fc.id);
-        const newFlashcards = bulkData.flashcards.filter(fc => !fc.id);
+        const existingFlashcards = bulkData.flashcards.filter((fc) => fc.id);
+        const newFlashcards = bulkData.flashcards.filter((fc) => !fc.id);
 
         // Update existing flashcards individually
         if (existingFlashcards.length > 0) {
           await Promise.all(
-            existingFlashcards.map(flashcard =>
+            existingFlashcards.map((flashcard) =>
               updateFlashcard(flashcard.id!, {
                 topicId: bulkData.topicId,
                 term: flashcard.term,
@@ -299,23 +315,27 @@ export default function FlashcardFormPage() {
         // Create new flashcards if any
         if (newFlashcards.length > 0) {
           const cleanedNewFlashcards = newFlashcards.map((flashcard) => {
-            const cleaned: Record<string, any> = { // eslint-disable-line @typescript-eslint/no-explicit-any
+            const cleaned: Record<string, any> = {
+              // eslint-disable-line @typescript-eslint/no-explicit-any
               term: flashcard.term,
               phonetic: flashcard.phonetic,
               meaningVi: flashcard.meaningVi,
               isActive: flashcard.isActive ?? true,
             };
-            
+
             // Only include optional fields if they have values
             if (flashcard.exampleEn) cleaned.exampleEn = flashcard.exampleEn;
             if (flashcard.exampleVi) cleaned.exampleVi = flashcard.exampleVi;
             if (flashcard.imageUrl) cleaned.imageUrl = flashcard.imageUrl;
             if (flashcard.audioUrl) cleaned.audioUrl = flashcard.audioUrl;
             // DO NOT send order for new flashcards - let backend auto-assign
-            
+
             return cleaned;
           });
-          await bulkCreateFlashcards(bulkData.topicId, cleanedNewFlashcards as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+          await bulkCreateFlashcards(
+            bulkData.topicId,
+            cleanedNewFlashcards as any
+          ); // eslint-disable-line @typescript-eslint/no-explicit-any
         }
 
         toast.success("Cập nhật thành công");
@@ -422,7 +442,7 @@ export default function FlashcardFormPage() {
 
   async function handleRemoveFlashcard(index: number) {
     const flashcard = form.getValues(`flashcards.${index}` as any); // eslint-disable-line @typescript-eslint/no-explicit-any
-    
+
     // If flashcard has an id, it exists in the database and needs to be deleted
     if (flashcard.id) {
       try {
@@ -486,7 +506,11 @@ export default function FlashcardFormPage() {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbPage>
-                {isEditMode ? "Chỉnh sửa" : isTopicLocked ? "Tạo/sửa nhiều flashcard" : "Thêm mới"}
+                {isEditMode
+                  ? "Chỉnh sửa"
+                  : isTopicLocked
+                  ? "Tạo/sửa nhiều flashcard"
+                  : "Thêm mới"}
               </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
@@ -494,7 +518,11 @@ export default function FlashcardFormPage() {
       </div>
 
       <TypographyH3>
-        {isEditMode ? "Chỉnh sửa flashcard" : isTopicLocked ? "Tạo/sửa nhiều flashcard" : "Thêm flashcard mới"}
+        {isEditMode
+          ? "Chỉnh sửa flashcard"
+          : isTopicLocked
+          ? "Tạo/sửa nhiều flashcard"
+          : "Thêm flashcard mới"}
       </TypographyH3>
 
       {/* Form */}
@@ -581,10 +609,13 @@ export default function FlashcardFormPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold">Danh sách flashcard</h3>
+                    <h3 className="text-lg font-semibold">
+                      Danh sách flashcard
+                    </h3>
                     {existingFlashcardsCount > 0 && (
                       <p className="text-sm text-muted-foreground">
-                        Đang có {existingFlashcardsCount} flashcard từ trước. Bạn có thể sửa hoặc thêm mới.
+                        Đang có {existingFlashcardsCount} flashcard từ trước.
+                        Bạn có thể sửa hoặc thêm mới.
                       </p>
                     )}
                   </div>
@@ -596,7 +627,9 @@ export default function FlashcardFormPage() {
 
                 {fields.map((field, index) => {
                   const isExpanded = expandedCards.has(field.id);
-                  const flashcard = form.getValues(`flashcards.${index}` as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+                  const flashcard = form.getValues(
+                    `flashcards.${index}` as any
+                  ); // eslint-disable-line @typescript-eslint/no-explicit-any
                   const hasContent = flashcard?.term || flashcard?.meaningVi;
 
                   return (
@@ -635,14 +668,20 @@ export default function FlashcardFormPage() {
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
+                                <AlertDialogTitle>
+                                  Bạn có chắc chắn muốn xóa?
+                                </AlertDialogTitle>
                                 <AlertDialogDescription>
                                   Hành động này sẽ xóa flashcard vĩnh viễn.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleRemoveFlashcard(index)}>Xóa</AlertDialogAction>
+                                <AlertDialogAction
+                                  onClick={() => handleRemoveFlashcard(index)}
+                                >
+                                  Xóa
+                                </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
@@ -661,7 +700,10 @@ export default function FlashcardFormPage() {
                                     Từ vựng <RequiredField />
                                   </FormLabel>
                                   <FormControl>
-                                    <Input {...field} placeholder="Nhập từ vựng" />
+                                    <Input
+                                      {...field}
+                                      placeholder="Nhập từ vựng"
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -677,7 +719,10 @@ export default function FlashcardFormPage() {
                                     Phiên âm <RequiredField />
                                   </FormLabel>
                                   <FormControl>
-                                    <Input {...field} placeholder="Ví dụ: /həˈloʊ/" />
+                                    <Input
+                                      {...field}
+                                      placeholder="Ví dụ: /həˈloʊ/"
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -694,13 +739,90 @@ export default function FlashcardFormPage() {
                                   Nghĩa tiếng Việt <RequiredField />
                                 </FormLabel>
                                 <FormControl>
-                                  <Input {...field} placeholder="Nhập nghĩa tiếng Việt" />
+                                  <Input
+                                    {...field}
+                                    placeholder="Nhập nghĩa tiếng Việt"
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
 
+                          <FormField
+                            control={formControl}
+                            name={`flashcards.${index}.imageUrl`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>
+                                  Hình ảnh minh họa <RequiredField />
+                                </FormLabel>
+                                <FormControl>
+                                  <div className="flex gap-2">
+                                    <Input
+                                      {...field}
+                                      placeholder="URL hình ảnh"
+                                    />
+                                    <CldUploadWidget
+                                      uploadPreset={UPLOAD_PRESET}
+                                      onSuccess={(result) =>
+                                        handleImageUpload(index, result)
+                                      }
+                                    >
+                                      {({ open }) => (
+                                        <Button
+                                          type="button"
+                                          size="icon"
+                                          onClick={() => open()}
+                                        >
+                                          <ImageIcon className="h-4 w-4" />
+                                        </Button>
+                                      )}
+                                    </CldUploadWidget>
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={formControl}
+                            name={`flashcards.${index}.audioUrl`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>
+                                  File âm thanh phát âm <RequiredField />
+                                </FormLabel>
+                                <FormControl>
+                                  <div className="flex gap-2">
+                                    <Input
+                                      {...field}
+                                      placeholder="URL âm thanh"
+                                    />
+                                    <CldUploadWidget
+                                      uploadPreset={UPLOAD_PRESET}
+                                      onSuccess={(result) =>
+                                        handleAudioUpload(index, result)
+                                      }
+                                    >
+                                      {({ open }) => (
+                                        <Button
+                                          type="button"
+                                          size="icon"
+                                          onClick={() => open()}
+                                        >
+                                          <Upload className="h-4 w-4" />
+                                        </Button>
+                                      )}
+                                    </CldUploadWidget>
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
                           <FormField
                             control={formControl}
                             name={`flashcards.${index}.exampleEn`}
@@ -739,66 +861,6 @@ export default function FlashcardFormPage() {
 
                           <FormField
                             control={formControl}
-                            name={`flashcards.${index}.imageUrl`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Hình ảnh minh họa</FormLabel>
-                                <FormControl>
-                                  <div className="flex gap-2">
-                                    <Input {...field} placeholder="URL hình ảnh" />
-                                    <CldUploadWidget
-                                      uploadPreset={UPLOAD_PRESET}
-                                      onSuccess={(result) => handleImageUpload(index, result)}
-                                    >
-                                      {({ open }) => (
-                                        <Button
-                                          type="button"
-                                          size="icon"
-                                          onClick={() => open()}
-                                        >
-                                          <ImageIcon className="h-4 w-4" />
-                                        </Button>
-                                      )}
-                                    </CldUploadWidget>
-                                  </div>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={formControl}
-                            name={`flashcards.${index}.audioUrl`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>File âm thanh phát âm</FormLabel>
-                                <FormControl>
-                                  <div className="flex gap-2">
-                                    <Input {...field} placeholder="URL âm thanh" />
-                                    <CldUploadWidget
-                                      uploadPreset={UPLOAD_PRESET}
-                                      onSuccess={(result) => handleAudioUpload(index, result)}
-                                    >
-                                      {({ open }) => (
-                                        <Button
-                                          type="button"
-                                          size="icon"
-                                          onClick={() => open()}
-                                        >
-                                          <Upload className="h-4 w-4" />
-                                        </Button>
-                                      )}
-                                    </CldUploadWidget>
-                                  </div>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={formControl}
                             name={`flashcards.${index}.isActive`}
                             render={({ field }) => (
                               <FormItem>
@@ -806,7 +868,9 @@ export default function FlashcardFormPage() {
                                   Trạng thái <RequiredField />
                                 </FormLabel>
                                 <Select
-                                  onValueChange={(value) => field.onChange(value === "true")}
+                                  onValueChange={(value) =>
+                                    field.onChange(value === "true")
+                                  }
                                   value={field.value ? "true" : "false"}
                                 >
                                   <FormControl>
@@ -945,7 +1009,9 @@ export default function FlashcardFormPage() {
                         <Input {...field} placeholder="URL hình ảnh" />
                         <CldUploadWidget
                           uploadPreset={UPLOAD_PRESET}
-                          onSuccess={(result) => handleImageUpload(undefined, result)}
+                          onSuccess={(result) =>
+                            handleImageUpload(undefined, result)
+                          }
                         >
                           {({ open }) => (
                             <Button
@@ -978,7 +1044,9 @@ export default function FlashcardFormPage() {
                         <Input {...field} placeholder="URL âm thanh" />
                         <CldUploadWidget
                           uploadPreset={UPLOAD_PRESET}
-                          onSuccess={(result) => handleAudioUpload(undefined, result)}
+                          onSuccess={(result) =>
+                            handleAudioUpload(undefined, result)
+                          }
                         >
                           {({ open }) => (
                             <Button
@@ -1038,7 +1106,9 @@ export default function FlashcardFormPage() {
                         Trạng thái <RequiredField />
                       </FormLabel>
                       <Select
-                        onValueChange={(value) => field.onChange(value === "true")}
+                        onValueChange={(value) =>
+                          field.onChange(value === "true")
+                        }
                         value={field.value ? "true" : "false"}
                       >
                         <FormControl>
@@ -1077,7 +1147,11 @@ export default function FlashcardFormPage() {
               {isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {isEditMode ? "Cập nhật" : isTopicLocked ? "Lưu tất cả" : "Tạo mới"}
+              {isEditMode
+                ? "Cập nhật"
+                : isTopicLocked
+                ? "Lưu tất cả"
+                : "Tạo mới"}
             </Button>
           </div>
         </form>

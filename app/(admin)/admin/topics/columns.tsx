@@ -276,14 +276,6 @@ export const columns: ColumnDef<Topic>[] = [
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() =>
-                router.push(`/admin/lessons/form?topicId=${topic.id}`)
-              }
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Tạo nhiều bài luyện tập
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
                 router.push(`/admin/flashcards/form?topicId=${topic.id}`)
               }
             >
@@ -297,6 +289,14 @@ export const columns: ColumnDef<Topic>[] = [
             >
               <Plus className="mr-2 h-4 w-4" />
               Tạo nhiều thẻ câu
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                router.push(`/admin/lessons/form?topicId=${topic.id}`)
+              }
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Tạo nhiều bài luyện tập
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleEdit}>
