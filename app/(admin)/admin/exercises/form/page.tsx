@@ -200,16 +200,54 @@ export default function ExerciseFormPage() {
       }
     }
 
-    // Check for duplicate option texts
+    // Check for duplicate options
     if (values.options && values.options.length > 0) {
-      const optionTexts = values.options
-        .map((opt) => opt.text?.trim())
-        .filter((text) => text && text.length > 0);
+      const optionIdentifiers = values.options
+        .map((opt) => {
+          if (values.type === "SELECT_IMAGE") {
+            return opt.imageUrl?.trim();
+          }
+          return opt.text?.trim();
+        })
+        .filter((identifier) => identifier && identifier.length > 0);
 
-      const uniqueTexts = new Set(optionTexts);
+      const uniqueIdentifiers = new Set(optionIdentifiers);
 
-      if (optionTexts.length !== uniqueTexts.size) {
+      if (optionIdentifiers.length !== uniqueIdentifiers.size) {
         toast.error("Các đáp án không được trùng nhau");
+        return false;
+      }
+    }
+
+    if (values.type === "MATCHING" && values.options && values.options.length > 0) {
+      const matchKeyCounts = values.options.reduce<Map<string, number>>(
+        (counts, option) => {
+          const key = option.matchKey?.trim();
+          if (!key) {
+            return counts;
+          }
+          const currentCount = counts.get(key) ?? 0;
+          counts.set(key, currentCount + 1);
+          return counts;
+        },
+        new Map<string, number>()
+      );
+
+      const invalidMatchKey = Array.from(matchKeyCounts.entries()).find(
+        ([, count]) => count < 2
+      );
+
+      if (invalidMatchKey) {
+        toast.error(`Match Key "${invalidMatchKey[0]}" cần hai đáp án`);
+        return false;
+      }
+
+      const excessiveMatchKey = Array.from(matchKeyCounts.entries()).find(
+        ([, count]) => count > 2
+      );
+
+      if (excessiveMatchKey) {
+        toast.error(`Match Key "${excessiveMatchKey[0]}" chỉ được tối đa hai đáp án`);
         return false;
       }
     }
