@@ -7,7 +7,7 @@ export const CreateTopicSchema = z.object({
     return val;
   }),
   grade: z.enum(['GRADE_1', 'GRADE_2', 'GRADE_3', 'GRADE_4', 'GRADE_5'], {
-    required_error: 'Lớp là bắt buộc',
+    message: 'Lớp là bắt buộc',
   }),
   coverImage: z.string().nullish().transform((val) => {
     if (!val || val.trim() === '') return undefined;

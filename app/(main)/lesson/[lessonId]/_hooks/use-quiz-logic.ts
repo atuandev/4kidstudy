@@ -208,11 +208,11 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
           timeSec,
           points: pointsToAward,
           pronunciation: {
-            accuracy: pronunciation.score.accuracy,
-            fluency: pronunciation.score.fluency,
-            completeness: pronunciation.score.completeness,
-            prosody: pronunciation.score.prosody,
-            overall: pronunciation.score.overall,
+            accuracy: pronunciation.score?.accuracy,
+            fluency: pronunciation.score?.fluency,
+            completeness: pronunciation.score?.completeness,
+            prosody: pronunciation.score?.prosody,
+            overall: pronunciation.score?.overall,
           },
         });
       });

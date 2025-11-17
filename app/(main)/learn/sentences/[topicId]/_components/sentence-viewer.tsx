@@ -13,11 +13,12 @@ import {
 import { useState, useEffect } from "react";
 import { SentenceCard } from "./sentence-card";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ReviewContentFormData } from '@/schemas/learning-progress';
 
 interface SentenceViewerProps {
   sentenceImages: SentenceImage[];
   topicTitle: string;
-  onRecordReview?: (body: { contentType: 'FLASHCARD' | 'SENTENCE'; flashcardId?: number; sentenceId?: number; isMastered?: boolean }) => Promise<unknown>;
+  onRecordReview?: (body: ReviewContentFormData) => Promise<unknown>;
 }
 
 export function SentenceViewer({

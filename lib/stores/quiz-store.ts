@@ -1,11 +1,19 @@
 import { create } from 'zustand';
-import { Exercise } from '@/types';
+import { Exercise, ExerciseOption } from '@/types';
 
 type QuizStatus = 'none' | 'wrong' | 'correct';
 
+interface PronunciationScore {
+  accuracy?: number;
+  fluency?: number;
+  completeness?: number;
+  prosody?: number;
+  overall?: number;
+}
+
 type PronunciationState = {
   state: string;
-  score: any | null;
+  score: PronunciationScore | null;
 };
 
 type QuizState = {
@@ -52,7 +60,7 @@ type QuizActions = {
   setStatus: (status: QuizStatus) => void;
   
   // Pronunciation
-  updatePronunciation: (state: string, score?: any) => void;
+  updatePronunciation: (state: string, score?: PronunciationScore) => void;
   resetPronunciation: () => void;
   
   // Pending state
@@ -64,7 +72,7 @@ type QuizActions = {
   
   // Getters
   getCurrentExercise: () => Exercise | undefined;
-  getOptions: () => any[];
+  getOptions: () => ExerciseOption[];
   isQuizComplete: () => boolean;
 };
 
@@ -161,7 +169,7 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
   },
 
   // Pronunciation
-  updatePronunciation: (state: string, score?: any) => {
+  updatePronunciation: (state: string, score?: PronunciationScore) => {
     set({
       pronunciation: {
         state,

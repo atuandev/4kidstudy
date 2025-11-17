@@ -18,9 +18,9 @@ export async function sendChatMessage(text: string): Promise<string> {
       throw new Error("Not authenticated");
     }
 
-    const response = await http.post<ChatResponse, ChatRequest>(
+    const response = await http.post<ChatResponse>(
       "/chat",
-      { text },
+      JSON.stringify({ text }),
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
