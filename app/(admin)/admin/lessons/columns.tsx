@@ -200,15 +200,6 @@ export const columns: ColumnDef<Lesson>[] = [
     },
   },
   {
-    accessorKey: 'order',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Thứ tự" />
-    ),
-    cell: ({ row }) => (
-      <div className="text-center">{row.getValue('order')}</div>
-    ),
-  },
-  {
     accessorKey: 'status',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Trạng thái" />

@@ -148,6 +148,66 @@ export const CreateExerciseSchema = z
 
     // Validate option content based on exercise type
     if (data.options && data.options.length > 0) {
+      if (["MULTIPLE_CHOICE", "SELECT_IMAGE", "LISTENING"].includes(data.type)) {
+        const identifiers = data.options
+          .map((option) => {
+            if (data.type === "SELECT_IMAGE") {
+              return option.imageUrl?.trim();
+            }
+            return option.text?.trim();
+          })
+          .filter((value) => value && value.length > 0);
+
+        const uniqueIdentifiers = new Set(identifiers);
+
+        if (identifiers.length !== uniqueIdentifiers.size) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Các đáp án không được trùng nhau",
+            path: ["options"],
+          });
+        }
+      }
+
+      if (data.type === "MATCHING") {
+        const matchKeyCounts = data.options.reduce<Map<string, number>>(
+          (counts, option) => {
+            const key = option.matchKey?.trim();
+            if (!key) {
+              return counts;
+            }
+            const currentCount = counts.get(key) ?? 0;
+            counts.set(key, currentCount + 1);
+            return counts;
+          },
+          new Map<string, number>()
+        );
+
+        const invalidMatchKey = Array.from(matchKeyCounts.entries()).find(
+          ([, count]) => count < 2
+        );
+
+        if (invalidMatchKey) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Mỗi Match Key cần hai đáp án",
+            path: ["options"],
+          });
+        }
+
+        const excessiveMatchKey = Array.from(matchKeyCounts.entries()).find(
+          ([, count]) => count > 2
+        );
+
+        if (excessiveMatchKey) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Mỗi Match Key chỉ được tối đa hai đáp án",
+            path: ["options"],
+          });
+        }
+      }
+
       data.options.forEach((option, index) => {
         // SELECT_IMAGE requires imageUrl
         if (data.type === "SELECT_IMAGE") {
