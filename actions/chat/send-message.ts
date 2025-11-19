@@ -1,36 +1,27 @@
 "use server";
 
 import http from "@/lib/http";
-import { getAccessToken } from "@/lib/get-token";
+import { ChatRequestDto, ChatResponseDto } from "@/schemas/chat";
 
-interface ChatRequest {
-  text: string;
+export async function sendChatMessage(
+  message: string,
+  isTranslation?: boolean
+): Promise<ChatResponseDto> {
+  const res = await http.post<ChatResponseDto>("/chat", {
+    message,
+    isTranslation,
+  });
+
+  return res.payload;
 }
 
-interface ChatResponse {
-  text: string;
+export async function getChatHistory() {
+  const res = await http.get<{ role: string; content: string; createdAt: string }[]>(
+    "/chat/history"
+  );
+  return res.payload;
 }
 
-export async function sendChatMessage(text: string): Promise<string> {
-  try {
-    const accessToken = await getAccessToken();
-    if (!accessToken) {
-      throw new Error("Not authenticated");
-    }
-
-    const response = await http.post<ChatResponse>(
-      "/chat",
-      JSON.stringify({ text }),
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-
-    return response.payload.text;
-  } catch (error) {
-    console.error("Error sending chat message:", error);
-    throw new Error("Không thể gửi tin nhắn. Vui lòng thử lại!");
-  }
+export async function clearChatHistory() {
+  await http.delete("/chat/history");
 }

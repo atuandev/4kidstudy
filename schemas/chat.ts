@@ -22,3 +22,24 @@ export interface Message {
   type: 'user' | 'ai';
   timestamp: Date;
 }
+
+export const ChatRequestSchema = z.object({
+  message: z.string(),
+  isTranslation: z.boolean().optional(),
+});
+
+export const TranslationSchema = z.object({
+  word: z.string(),
+  meaning: z.string(),
+  phonetic: z.string().optional(),
+  examples: z.array(z.string()).optional(),
+});
+
+export const ChatResponseSchema = z.object({
+  response: z.string(),
+  translation: TranslationSchema.optional(),
+});
+
+export type ChatRequestDto = z.infer<typeof ChatRequestSchema>;
+export type ChatResponseDto = z.infer<typeof ChatResponseSchema>;
+export type Translation = z.infer<typeof TranslationSchema>;
