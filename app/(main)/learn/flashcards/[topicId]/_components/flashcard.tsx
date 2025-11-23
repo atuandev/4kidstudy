@@ -14,17 +14,22 @@ interface FlashcardComponentProps {
   flashcard: Flashcard;
   className?: string;
   onRecordReview?: (body: ReviewContentFormData) => Promise<unknown>;
+  onPronunciationAssessed?: (passed: boolean) => void;
+  isReviewed?: boolean; // Whether this flashcard has been reviewed before
 }
 
 export function FlashcardComponent({
   flashcard,
   className,
   onRecordReview,
+  onPronunciationAssessed,
+  isReviewed = false,
 }: FlashcardComponentProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [autoplayFailed, setAutoplayFailed] = useState(false);
+  const [pronunciationPassed, setPronunciationPassed] = useState(isReviewed);
   
   const audioRef = useRef<HTMLAudioElement>(null);
   const currentPlayPromiseRef = useRef<Promise<void> | null>(null);
@@ -57,22 +62,6 @@ export function FlashcardComponent({
         currentPlayPromiseRef.current = playPromise;
 
         await playPromise;
-
-        // Record review whenever audio plays successfully (both manual and autoplay)
-        try {
-          if (typeof onRecordReview === 'function') {
-            // fire-and-forget
-            onRecordReview({ 
-              contentType: 'FLASHCARD', 
-              flashcardId: flashcard.id,
-              sentenceId: undefined 
-            }).catch((error: unknown) => {
-              console.error('record review failed', error);
-            });
-          }
-        } catch (err) {
-          console.error('record review error', err);
-        }
 
         // If manual play succeeds, mark user as having interacted and clear autoplay failure
         if (isManualPlay) {
@@ -136,6 +125,10 @@ export function FlashcardComponent({
 
     // Reset flip state when flashcard changes
     setIsFlipped(false);
+    // Only reset pronunciation status if not already reviewed
+    if (!isReviewed) {
+      setPronunciationPassed(false);
+    }
 
     // Always try auto-play (will fail gracefully if user hasn't interacted)
     autoPlayAudio();
@@ -165,6 +158,22 @@ export function FlashcardComponent({
   const handleFlip = () => {
     setIsFlipped(!isFlipped);
   };
+
+  const handleAssessmentComplete = useCallback((score: number, passed: boolean) => {
+    setPronunciationPassed(passed);
+    onPronunciationAssessed?.(passed);
+    
+    // Record review only when assessment is passed
+    if (passed && typeof onRecordReview === 'function') {
+      onRecordReview({ 
+        contentType: 'FLASHCARD', 
+        flashcardId: flashcard.id,
+        sentenceId: undefined 
+      }).catch((error: unknown) => {
+        console.error('record review failed', error);
+      });
+    }
+  }, [flashcard.id, onRecordReview, onPronunciationAssessed]);
 
   return (
     <>
@@ -235,6 +244,8 @@ export function FlashcardComponent({
                   <AudioRecord 
                     onStopPropagation={(e) => e.stopPropagation()}
                     resetTrigger={flashcard.id}
+                    targetText={flashcard.term}
+                    onAssessmentComplete={handleAssessmentComplete}
                   />
                 </div>
               </div>

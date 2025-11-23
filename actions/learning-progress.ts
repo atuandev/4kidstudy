@@ -56,6 +56,18 @@ export async function getTopicProgress(
 }
 
 /**
+ * Get reviewed flashcard IDs for a topic
+ */
+export async function getReviewedFlashcardIds(
+  topicId: number,
+): Promise<number[]> {
+  const { payload } = await http.get<{ flashcardIds: number[] }>(
+    `/learning-progress/topic/${topicId}/reviewed-flashcards`,
+  );
+  return payload.flashcardIds;
+}
+
+/**
  * Get last reviewed topic ID
  */
 export async function getLastReviewedTopic(): Promise<number | null> {
