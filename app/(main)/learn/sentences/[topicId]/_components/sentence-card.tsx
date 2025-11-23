@@ -20,14 +20,14 @@ interface SentenceCardProps {
   sentenceImage: SentenceImage;
   onRecordReview?: (body: ReviewContentFormData) => Promise<unknown>;
   onPronunciationAssessed?: (sentenceId: number, passed: boolean) => void;
-  reviewedSentenceIds: Set<number>;
+  masteredSentenceIds: Set<number>; // Sentences with isMastered = true from backend
 }
 
 export function SentenceCard({
   sentenceImage,
   onRecordReview,
   onPronunciationAssessed,
-  reviewedSentenceIds,
+  masteredSentenceIds,
 }: SentenceCardProps) {
   const handlePlayAudio = (audioUrl: string) => {
     const audio = new Audio(audioUrl);
@@ -37,17 +37,26 @@ export function SentenceCard({
   };
 
   const handleAssessmentComplete = (sentenceId: number) => (score: number, passed: boolean) => {
+    console.log(`[Sentence ${sentenceId}] Assessment complete:`, { score, passed });
     onPronunciationAssessed?.(sentenceId, passed);
     
-    // Record review only when assessment is passed
-    if (passed && typeof onRecordReview === 'function') {
+    // Record review and set isMastered = true if passed (>= 50%)
+    if (typeof onRecordReview === 'function') {
+      console.log(`[Sentence ${sentenceId}] Calling reviewContent API with isMastered=${passed}...`);
       onRecordReview({ 
         contentType: 'SENTENCE', 
         flashcardId: undefined,
-        sentenceId 
-      }).catch((error: unknown) => {
-        console.error('record review failed', error);
+        sentenceId,
+        isMastered: passed // Set mastered if passed pronunciation check
+      })
+      .then((result) => {
+        console.log(`[Sentence ${sentenceId}] reviewContent success:`, result);
+      })
+      .catch((error: unknown) => {
+        console.error(`[Sentence ${sentenceId}] record review failed:`, error);
       });
+    } else {
+      console.warn(`[Sentence ${sentenceId}] onRecordReview is not a function`);
     }
   };
 
@@ -79,8 +88,8 @@ export function SentenceCard({
             .filter((sentence) => sentence.isActive)
             .sort((a, b) => a.order - b.order)
             .map((sentence) => {
-              // Check if sentence is reviewed
-              const isReviewed = reviewedSentenceIds.has(sentence.id);
+              // Check if sentence is mastered (isMastered = true from backend)
+              const isMastered = masteredSentenceIds.has(sentence.id);
               
               return (
                 <div
@@ -89,19 +98,19 @@ export function SentenceCard({
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 space-y-2">
-                      {/* English sentence with reviewed indicator */}
+                      {/* English sentence with mastered indicator */}
                       <div className="flex items-center gap-2">
                         <p className="text-xl sm:text-2xl font-bold leading-relaxed text-gray-900">
                           {sentence.text}
                         </p>
-                        {isReviewed && (
+                        {isMastered && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <CheckCircle2 className="h-6 w-6 text-green-500 shrink-0" />
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>Đã học</p>
+                                <p>Đã hoàn thành</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>

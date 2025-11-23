@@ -68,9 +68,22 @@ export async function getReviewedFlashcardIds(
 }
 
 /**
- * Get reviewed sentence IDs for a topic
+ * Get reviewed sentence IDs for a topic (alias for getMasteredSentenceIds)
+ * @deprecated Use getMasteredSentenceIds instead
  */
 export async function getReviewedSentenceIds(
+  topicId: number,
+): Promise<number[]> {
+  const { payload } = await http.get<{ sentenceIds: number[] }>(
+    `/learning-progress/topic/${topicId}/reviewed-sentences`,
+  );
+  return payload.sentenceIds;
+}
+
+/**
+ * Get mastered sentence IDs for a topic (sentences with isMastered = true)
+ */
+export async function getMasteredSentenceIds(
   topicId: number,
 ): Promise<number[]> {
   const { payload } = await http.get<{ sentenceIds: number[] }>(

@@ -107,11 +107,14 @@ export async function getLearningStatsByGrade(
       return false;
     });
 
-    // Group by unique flashcard/sentence IDs and get max reviewCount for each
+    // Group by unique flashcard/sentence IDs with isMastered = true only
     const uniqueFlashcards = new Map<number, number>(); // flashcardId -> max reviewCount
     const uniqueSentences = new Map<number, number>(); // sentenceId -> max reviewCount
 
     gradeProgress.forEach((item: LearningProgressItem) => {
+      // Only count items with isMastered = true
+      if (!item.isMastered) return;
+      
       if (item.contentType === "FLASHCARD" && item.flashcard) {
         const id = item.flashcard.id;
         const currentMax = uniqueFlashcards.get(id) || 0;

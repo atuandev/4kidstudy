@@ -10,7 +10,7 @@ import {
   ChevronRight,
   RotateCcw,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { SentenceCard } from "./sentence-card";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReviewContentFormData } from '@/schemas/learning-progress';
@@ -21,7 +21,7 @@ interface SentenceViewerProps {
   topicGrade: string;
   topicId: number;
   onRecordReview?: (body: ReviewContentFormData) => Promise<unknown>;
-  initialReviewedIds?: number[];
+  initialMasteredIds?: number[]; // Sentence IDs with isMastered = true
 }
 
 export function SentenceViewer({
@@ -30,15 +30,14 @@ export function SentenceViewer({
   topicGrade,
   topicId,
   onRecordReview,
-  initialReviewedIds = [],
+  initialMasteredIds = [],
 }: SentenceViewerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialIndex = parseInt(searchParams.get('index') || '0', 10);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const [reviewedSentenceIds, setReviewedSentenceIds] = useState<Set<number>>(
-    new Set(initialReviewedIds)
-  );
+  const [pronunciationPassedIds, setPronunciationPassedIds] = useState<Set<number>>(new Set());
+  const [masteredSentenceIds, setMasteredSentenceIds] = useState<Set<number>>(new Set(initialMasteredIds));
 
   // Update index when URL changes
   useEffect(() => {
@@ -49,9 +48,11 @@ export function SentenceViewer({
   }, [searchParams, sentenceImages.length]);
 
   const handlePronunciationAssessed = (sentenceId: number, passed: boolean) => {
-    // Add to reviewed set when passed
+    // Track pronunciation passed in current session
     if (passed) {
-      setReviewedSentenceIds((prev) => new Set(prev).add(sentenceId));
+      setPronunciationPassedIds((prev) => new Set(prev).add(sentenceId));
+      // Also add to mastered list immediately for UI update (backend will confirm)
+      setMasteredSentenceIds((prev) => new Set(prev).add(sentenceId));
     }
   };
 
@@ -95,10 +96,14 @@ export function SentenceViewer({
 
   const currentSentenceImage = sentenceImages[currentIndex];
   
-  // Check if all active sentences in the current image are reviewed
+  // Check if all active sentences in the current image are mastered or passed in current session
   const currentSentences = currentSentenceImage.sentences.filter(s => s.isActive);
-  const allReviewed = currentSentences.every(s => reviewedSentenceIds.has(s.id));
-  const hasUnreviewed = currentSentences.some(s => !reviewedSentenceIds.has(s.id));
+  const allCompleted = currentSentences.every(s => 
+    masteredSentenceIds.has(s.id) || pronunciationPassedIds.has(s.id)
+  );
+  const hasIncomplete = currentSentences.some(s => 
+    !masteredSentenceIds.has(s.id) && !pronunciationPassedIds.has(s.id)
+  );
 
   return (
     <div className="container mx-auto px-4 py-4">
@@ -131,22 +136,29 @@ export function SentenceViewer({
 
       {/* Sentence Card */}
       <div className="mb-8">
-        <SentenceCard 
-          sentenceImage={currentSentenceImage} 
+        <SentenceCard
+          sentenceImage={currentSentenceImage}
           onRecordReview={onRecordReview}
           onPronunciationAssessed={handlePronunciationAssessed}
-          reviewedSentenceIds={reviewedSentenceIds}
+          masteredSentenceIds={masteredSentenceIds}
         />
       </div>
 
       {/* Navigation Controls */}
       <Card>
         <CardContent>
-          {/* Warning message if not all reviewed */}
-          {hasUnreviewed && (
+          {/* Warning message if not all completed */}
+          {hasIncomplete && (
             <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-sm text-yellow-800 text-center">
-                ⚠️ Vui lòng học hết tất cả các câu trong trang này để tiếp tục
+                ⚠️ Bấm &quot;Kiểm tra&quot; cho tất cả các câu để tiếp tục (cần ≥ 50% để tiếp tục)
+              </p>
+            </div>
+          )}
+          {allCompleted && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800 text-center">
+                ✓ Tất cả câu trong hình này đã hoàn thành
               </p>
             </div>
           )}
@@ -168,7 +180,7 @@ export function SentenceViewer({
             <Button
               variant="secondary"
               onClick={handleNext}
-              disabled={currentIndex === sentenceImages.length - 1 || !allReviewed}
+              disabled={currentIndex === sentenceImages.length - 1 || !allCompleted}
             >
               Tiếp tục
               <ChevronRight className="h-4 w-4" />

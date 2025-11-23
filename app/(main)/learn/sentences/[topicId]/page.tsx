@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { getSentenceImagesByTopicId } from "@/actions/sentence";
 import { SentenceViewer } from "./_components/sentence-viewer";
 import { getTopicById } from "@/actions/topic";
-import { reviewContent, getReviewedSentenceIds } from '@/actions/learning-progress';
+import { reviewContent, getMasteredSentenceIds } from '@/actions/learning-progress';
 
 interface SentencesTopicPageProps {
   params: Promise<{
@@ -19,13 +19,13 @@ export default async function SentencesTopicPage({
   const sentenceImages = await getSentenceImagesByTopicId(topicIdNum);
   const topic = await getTopicById(topicIdNum);
   
-  // Get reviewed sentence IDs from backend
-  let reviewedSentenceIds: number[] = [];
+  // Get mastered sentence IDs from backend (sentences with isMastered = true)
+  let masteredSentenceIds: number[] = [];
   try {
-    reviewedSentenceIds = await getReviewedSentenceIds(topicIdNum);
+    masteredSentenceIds = await getMasteredSentenceIds(topicIdNum);
   } catch (error) {
-    console.error('Failed to fetch reviewed sentences:', error);
-    // Continue without reviewed IDs - user will need to complete assessment
+    console.error('Failed to fetch mastered sentences:', error);
+    // Continue without mastered IDs - user will need to complete assessment
   }
 
   return (
@@ -36,7 +36,7 @@ export default async function SentencesTopicPage({
         topicGrade={topic.grade}
         topicId={topicIdNum}
         onRecordReview={reviewContent}
-        initialReviewedIds={reviewedSentenceIds}
+        initialMasteredIds={masteredSentenceIds}
       />
     </Suspense>
   );

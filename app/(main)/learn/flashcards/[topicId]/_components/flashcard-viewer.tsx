@@ -33,7 +33,7 @@ export function FlashcardViewer({
   const initialIndex = parseInt(searchParams.get("index") || "0", 10);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [pronunciationPassed, setPronunciationPassed] = useState(false);
-  const masteredFlashcardIds = useMemo(() => new Set(initialMasteredIds), [initialMasteredIds]);
+  const [masteredFlashcardIds, setMasteredFlashcardIds] = useState<Set<number>>(new Set(initialMasteredIds));
 
   // Update index when URL changes and check if flashcard is mastered
   useEffect(() => {
@@ -80,14 +80,12 @@ export function FlashcardViewer({
   };
 
   const handlePronunciationAssessed = (passed: boolean) => {
-    // Only set pronunciation passed for current session
-    // Do NOT optimistically add to masteredFlashcardIds
-    // Actual mastery status (isMastered) comes from backend after reviewCount >= 3
     setPronunciationPassed(passed);
     
-    // If passed, the onRecordReview will be called by FlashcardComponent
-    // Backend will increment reviewCount and set isMastered = true if threshold reached
-    // User needs to reload page to see updated mastery status from backend
+    // Update mastered status immediately if passed (for UI feedback)
+    if (passed && flashcards[currentIndex]) {
+      setMasteredFlashcardIds((prev) => new Set(prev).add(flashcards[currentIndex].id));
+    }
   };
 
   if (flashcards.length === 0) {

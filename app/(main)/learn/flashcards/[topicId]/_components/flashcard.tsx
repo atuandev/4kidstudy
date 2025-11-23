@@ -164,13 +164,14 @@ export function FlashcardComponent({
     setPronunciationPassed(passed);
     onPronunciationAssessed?.(passed);
     
-    // Always record review when user completes pronunciation check (creates or updates progress)
+    // Record review and set isMastered = true if passed (>= 50%)
     if (typeof onRecordReview === 'function') {
-      console.log(`[Flashcard ${flashcard.id}] Calling reviewContent API...`);
+      console.log(`[Flashcard ${flashcard.id}] Calling reviewContent API with isMastered=${passed}...`);
       onRecordReview({ 
         contentType: 'FLASHCARD', 
         flashcardId: flashcard.id,
-        sentenceId: undefined 
+        sentenceId: undefined,
+        isMastered: passed // Set mastered if passed pronunciation check
       })
       .then((result) => {
         console.log(`[Flashcard ${flashcard.id}] reviewContent success:`, result);
