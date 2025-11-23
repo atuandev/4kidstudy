@@ -19,44 +19,36 @@ import { useState } from "react";
 interface SentenceCardProps {
   sentenceImage: SentenceImage;
   onRecordReview?: (body: ReviewContentFormData) => Promise<unknown>;
-  onProgressUpdate?: (sentenceId: number) => void;
+  onPronunciationAssessed?: (sentenceId: number, passed: boolean) => void;
+  reviewedSentenceIds: Set<number>;
 }
 
 export function SentenceCard({
   sentenceImage,
   onRecordReview,
-  onProgressUpdate,
+  onPronunciationAssessed,
+  reviewedSentenceIds,
 }: SentenceCardProps) {
-  // Track which sentences have been reviewed locally
-  const [reviewedSentences, setReviewedSentences] = useState<Set<number>>(
-    new Set(
-      sentenceImage.sentences
-        .filter(s => s.progress && s.progress.length > 0)
-        .map(s => s.id)
-    )
-  );
-
-  const handlePlayAudio = (audioUrl: string, sentenceId: number) => {
+  const handlePlayAudio = (audioUrl: string) => {
     const audio = new Audio(audioUrl);
-    audio.play().then(() => {
-      // record review if handler provided
-      if (typeof onRecordReview === 'function') {
-        onRecordReview({ 
-          contentType: 'SENTENCE', 
-          flashcardId: undefined,
-          sentenceId 
-        }).then(() => {
-          // Update local state after successful review
-          setReviewedSentences(prev => new Set([...prev, sentenceId]));
-          // Notify parent component with the sentenceId
-          onProgressUpdate?.(sentenceId);
-        }).catch((error: unknown) => {
-          console.error('record review failed', error);
-        });
-      }
-    }).catch((error) => {
+    audio.play().catch((error) => {
       console.error("Error playing audio:", error);
     });
+  };
+
+  const handleAssessmentComplete = (sentenceId: number) => (score: number, passed: boolean) => {
+    onPronunciationAssessed?.(sentenceId, passed);
+    
+    // Record review only when assessment is passed
+    if (passed && typeof onRecordReview === 'function') {
+      onRecordReview({ 
+        contentType: 'SENTENCE', 
+        flashcardId: undefined,
+        sentenceId 
+      }).catch((error: unknown) => {
+        console.error('record review failed', error);
+      });
+    }
   };
 
   return (
@@ -87,8 +79,8 @@ export function SentenceCard({
             .filter((sentence) => sentence.isActive)
             .sort((a, b) => a.order - b.order)
             .map((sentence) => {
-              // Check if sentence is reviewed (from server data or local state)
-              const isReviewed = reviewedSentences.has(sentence.id);
+              // Check if sentence is reviewed
+              const isReviewed = reviewedSentenceIds.has(sentence.id);
               
               return (
                 <div
@@ -130,7 +122,7 @@ export function SentenceCard({
                         variant="ghost"
                         size="icon"
                         className="h-10 w-10 shrink-0 bg-blue-50 hover:bg-blue-100 rounded-full"
-                        onClick={() => handlePlayAudio(sentence.audioUrl!, sentence.id)}
+                        onClick={() => handlePlayAudio(sentence.audioUrl!)}
                       >
                         <Volume2 className="h-5 w-5 text-blue-600" />
                       </Button>
@@ -139,6 +131,8 @@ export function SentenceCard({
                     <AudioRecord
                       onStopPropagation={(e) => e.stopPropagation()}
                       resetTrigger={sentence.id}
+                      targetText={sentence.text}
+                      onAssessmentComplete={handleAssessmentComplete(sentence.id)}
                     />
 
                     {/* Hint button */}

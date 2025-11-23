@@ -68,6 +68,18 @@ export async function getReviewedFlashcardIds(
 }
 
 /**
+ * Get reviewed sentence IDs for a topic
+ */
+export async function getReviewedSentenceIds(
+  topicId: number,
+): Promise<number[]> {
+  const { payload } = await http.get<{ sentenceIds: number[] }>(
+    `/learning-progress/topic/${topicId}/reviewed-sentences`,
+  );
+  return payload.sentenceIds;
+}
+
+/**
  * Get last reviewed topic ID
  */
 export async function getLastReviewedTopic(): Promise<number | null> {

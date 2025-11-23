@@ -18,19 +18,27 @@ import { ReviewContentFormData } from '@/schemas/learning-progress';
 interface SentenceViewerProps {
   sentenceImages: SentenceImage[];
   topicTitle: string;
+  topicGrade: string;
+  topicId: number;
   onRecordReview?: (body: ReviewContentFormData) => Promise<unknown>;
+  initialReviewedIds?: number[];
 }
 
 export function SentenceViewer({
   sentenceImages,
   topicTitle,
+  topicGrade,
+  topicId,
   onRecordReview,
+  initialReviewedIds = [],
 }: SentenceViewerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialIndex = parseInt(searchParams.get('index') || '0', 10);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const [reviewProgress, setReviewProgress] = useState<Record<number, Set<number>>>({});
+  const [reviewedSentenceIds, setReviewedSentenceIds] = useState<Set<number>>(
+    new Set(initialReviewedIds)
+  );
 
   // Update index when URL changes
   useEffect(() => {
@@ -39,41 +47,27 @@ export function SentenceViewer({
       setCurrentIndex(index);
     }
   }, [searchParams, sentenceImages.length]);
-  
-  // Initialize review progress from server data
-  useEffect(() => {
-    const initialProgress: Record<number, Set<number>> = {};
-    sentenceImages.forEach(img => {
-      initialProgress[img.id] = new Set(
-        img.sentences
-          .filter(s => s.progress && s.progress.length > 0)
-          .map(s => s.id)
-      );
-    });
-    setReviewProgress(initialProgress);
-  }, [sentenceImages]);
 
-  const handleProgressUpdate = (sentenceId: number) => {
-    // Update local state to reflect the new review
-    const updatedProgress = { ...reviewProgress };
-    const currentReviewed = new Set(updatedProgress[currentSentenceImage.id] || []);
-    currentReviewed.add(sentenceId);
-    updatedProgress[currentSentenceImage.id] = currentReviewed;
-    setReviewProgress(updatedProgress);
-    
-    // Also refresh from server to get accurate data
-    router.refresh();
+  const handlePronunciationAssessed = (sentenceId: number, passed: boolean) => {
+    // Add to reviewed set when passed
+    if (passed) {
+      setReviewedSentenceIds((prev) => new Set(prev).add(sentenceId));
+    }
   };
 
   const handleNext = () => {
     if (currentIndex < sentenceImages.length - 1) {
-      setCurrentIndex(currentIndex + 1);
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
+      router.replace(`/learn/sentences/${topicId}?index=${nextIndex}`, { scroll: false });
     }
   };
 
   const handlePrevious = () => {
     if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
+      const prevIndex = currentIndex - 1;
+      setCurrentIndex(prevIndex);
+      router.replace(`/learn/sentences/${topicId}?index=${prevIndex}`, { scroll: false });
     }
   };
 
@@ -103,9 +97,8 @@ export function SentenceViewer({
   
   // Check if all active sentences in the current image are reviewed
   const currentSentences = currentSentenceImage.sentences.filter(s => s.isActive);
-  const currentReviewed = reviewProgress[currentSentenceImage.id] || new Set();
-  const allReviewed = currentSentences.every(s => currentReviewed.has(s.id));
-  const hasUnreviewed = currentSentences.some(s => !currentReviewed.has(s.id));
+  const allReviewed = currentSentences.every(s => reviewedSentenceIds.has(s.id));
+  const hasUnreviewed = currentSentences.some(s => !reviewedSentenceIds.has(s.id));
 
   return (
     <div className="container mx-auto px-4 py-4">
@@ -114,8 +107,7 @@ export function SentenceViewer({
         <CardHeader>
           <div className="flex items-center justify-between">
             <Button size="sm" variant="default" onClick={() => {
-              router.back();
-              router.refresh();
+              router.push(`/learn/units?grade=${topicGrade}#topic-${topicId}`);
             }}>
               <ArrowLeft className="size-8" />
             </Button>
@@ -142,7 +134,8 @@ export function SentenceViewer({
         <SentenceCard 
           sentenceImage={currentSentenceImage} 
           onRecordReview={onRecordReview}
-          onProgressUpdate={handleProgressUpdate}
+          onPronunciationAssessed={handlePronunciationAssessed}
+          reviewedSentenceIds={reviewedSentenceIds}
         />
       </div>
 
