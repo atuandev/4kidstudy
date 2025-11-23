@@ -13,22 +13,36 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { History, BookOpen, MessageSquare, Target, TrendingUp } from "lucide-react";
 import { GradeValue } from "@/types/grade";
+import { FlashcardDetailDialog } from "./flashcard-detail-dialog";
+import { SentenceDetailDialog } from "./sentence-detail-dialog";
+import { TopicDetailDialog } from "./topic-detail-dialog";
+
+interface TopItem {
+  id: number;
+  name: string;
+  reviewCount: number;
+  topicName?: string;
+}
 
 interface LearningHistoryStats {
   totalReviewed: number;
-  totalMastered: number;
-  masteryRate: number;
   flashcardStats: {
+    reviewed: number;
     total: number;
-    mastered: number;
-    masteryRate: number;
+    percentage: number;
+    topItems: TopItem[];
+    allItems: TopItem[];
   };
   sentenceStats: {
+    reviewed: number;
     total: number;
-    mastered: number;
-    masteryRate: number;
+    percentage: number;
+    topItems: TopItem[];
+    allItems: TopItem[];
   };
   topicCount: number;
+  topTopics: { id: number; name: string; reviewCount: number }[];
+  topics: { id: number; name: string }[];
 }
 
 interface LearningHistoryDialogProps {
@@ -72,7 +86,7 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
       <DialogTrigger asChild>
         <Button variant="secondary" onClick={handleOpen}>
           <History className="h-4 w-4 mr-2" />
-          Lịch sử học
+          Tiến trình học
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -106,23 +120,13 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
                   </div>
                   <h3 className="text-lg font-semibold">Tổng quan</h3>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <p className="text-3xl font-bold text-blue-600">
-                      {stats.totalReviewed}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Tổng số đã học
-                    </p>
-                  </div>
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <p className="text-3xl font-bold text-purple-600">
-                      {stats.masteryRate.toFixed(1)}%
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Tỷ lệ hoàn thành
-                    </p>
-                  </div>
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <p className="text-3xl font-bold text-blue-600">
+                    {stats.totalReviewed}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Tổng số đã học
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -136,23 +140,19 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
                   </div>
                   <h3 className="text-lg font-semibold">Flashcard</h3>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-orange-600">
-                      {stats.flashcardStats.total}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Đã học
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-purple-600">
-                      {stats.flashcardStats.masteryRate.toFixed(1)}%
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Tỷ lệ
-                    </p>
-                  </div>
+                <div className="text-center p-4 bg-orange-50 rounded-lg">
+                  <p className="text-3xl font-bold text-orange-600">
+                    {stats.flashcardStats.reviewed} / {stats.flashcardStats.total}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Đã học ({stats.flashcardStats.percentage.toFixed(1)}%)
+                  </p>
+                </div>
+                <div className="mt-3 flex justify-center">
+                  <FlashcardDetailDialog 
+                    topItems={stats.flashcardStats.allItems} 
+                    topics={stats.topics} 
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -166,23 +166,19 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
                   </div>
                   <h3 className="text-lg font-semibold">Câu học</h3>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-blue-600">
-                      {stats.sentenceStats.total}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Đã học
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-purple-600">
-                      {stats.sentenceStats.masteryRate.toFixed(1)}%
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Tỷ lệ
-                    </p>
-                  </div>
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <p className="text-3xl font-bold text-blue-600">
+                    {stats.sentenceStats.reviewed} / {stats.sentenceStats.total}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Đã học ({stats.sentenceStats.percentage.toFixed(1)}%)
+                  </p>
+                </div>
+                <div className="mt-3 flex justify-center">
+                  <SentenceDetailDialog 
+                    topItems={stats.sentenceStats.allItems} 
+                    topics={stats.topics} 
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -190,21 +186,22 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
             {/* Topic Count */}
             <Card>
               <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-indigo-100 rounded-lg">
-                      <BookOpen className="h-5 w-5 text-indigo-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold">Chủ đề đã học</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Số chủ đề bạn đã tương tác
-                      </p>
-                    </div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-indigo-100 rounded-lg">
+                    <BookOpen className="h-5 w-5 text-indigo-600" />
                   </div>
+                  <h3 className="text-lg font-semibold">Chủ đề</h3>
+                </div>
+                <div className="text-center p-4 bg-indigo-50 rounded-lg">
                   <p className="text-3xl font-bold text-indigo-600">
                     {stats.topicCount}
                   </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Chủ đề đã học
+                  </p>
+                </div>
+                <div className="mt-3 flex justify-center">
+                  <TopicDetailDialog topTopics={stats.topTopics} />
                 </div>
               </CardContent>
             </Card>

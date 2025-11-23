@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -17,44 +17,42 @@ import { ReviewContentFormData } from '@/schemas/learning-progress';
 
 interface FlashcardViewerProps {
   flashcards: Flashcard[];
-  // server action passed down to record reviews when user plays audio
+  // server action passed down to record reviews when user completes pronunciation check
   onRecordReview?: (body: ReviewContentFormData) => Promise<unknown>;
-  // flashcard IDs that have been reviewed (from backend)
-  initialReviewedIds?: number[];
+  // flashcard IDs that have been mastered (isMastered = true, reviewCount >= 50)
+  initialMasteredIds?: number[];
 }
 
 export function FlashcardViewer({
   flashcards,
   onRecordReview,
-  initialReviewedIds = [],
+  initialMasteredIds = [],
 }: FlashcardViewerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialIndex = parseInt(searchParams.get("index") || "0", 10);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [pronunciationPassed, setPronunciationPassed] = useState(false);
-  const [reviewedFlashcardIds, setReviewedFlashcardIds] = useState<Set<number>>(
-    new Set(initialReviewedIds)
-  );
+  const masteredFlashcardIds = useMemo(() => new Set(initialMasteredIds), [initialMasteredIds]);
 
-  // Update index when URL changes and check if flashcard is reviewed
+  // Update index when URL changes and check if flashcard is mastered
   useEffect(() => {
     const index = parseInt(searchParams.get("index") || "0", 10);
     if (index >= 0 && index < flashcards.length) {
       setCurrentIndex(index);
-      // Check if this flashcard is already reviewed
+      // Check if this flashcard is already mastered
       const currentFlashcard = flashcards[index];
-      const isReviewed = reviewedFlashcardIds.has(currentFlashcard?.id);
-      setPronunciationPassed(isReviewed);
+      const isMastered = masteredFlashcardIds.has(currentFlashcard?.id);
+      setPronunciationPassed(isMastered);
     }
-  }, [searchParams, flashcards, reviewedFlashcardIds]);
+  }, [searchParams, flashcards, masteredFlashcardIds]);
 
-  // Check if current flashcard is reviewed when index changes
+  // Check if current flashcard is mastered when index changes
   useEffect(() => {
     const currentFlashcard = flashcards[currentIndex];
-    const isReviewed = reviewedFlashcardIds.has(currentFlashcard?.id);
-    setPronunciationPassed(isReviewed);
-  }, [currentIndex, flashcards, reviewedFlashcardIds]);
+    const isMastered = masteredFlashcardIds.has(currentFlashcard?.id);
+    setPronunciationPassed(isMastered);
+  }, [currentIndex, flashcards, masteredFlashcardIds]);
 
   const handleNext = () => {
     if (currentIndex < flashcards.length - 1) {
@@ -76,18 +74,20 @@ export function FlashcardViewer({
 
   const handleReset = () => {
     setCurrentIndex(0);
-    // Check if first flashcard is already reviewed
+    // Check if first flashcard is already mastered
     const firstFlashcard = flashcards[0];
-    setPronunciationPassed(reviewedFlashcardIds.has(firstFlashcard?.id));
+    setPronunciationPassed(masteredFlashcardIds.has(firstFlashcard?.id));
   };
 
   const handlePronunciationAssessed = (passed: boolean) => {
+    // Only set pronunciation passed for current session
+    // Do NOT optimistically add to masteredFlashcardIds
+    // Actual mastery status (isMastered) comes from backend after reviewCount >= 3
     setPronunciationPassed(passed);
-    // Add to reviewed set when passed (for current session)
-    if (passed) {
-      const currentFlashcard = flashcards[currentIndex];
-      setReviewedFlashcardIds((prev) => new Set(prev).add(currentFlashcard.id));
-    }
+    
+    // If passed, the onRecordReview will be called by FlashcardComponent
+    // Backend will increment reviewCount and set isMastered = true if threshold reached
+    // User needs to reload page to see updated mastery status from backend
   };
 
   if (flashcards.length === 0) {
@@ -152,7 +152,7 @@ export function FlashcardViewer({
           className="mb-8"
           onRecordReview={onRecordReview}
           onPronunciationAssessed={handlePronunciationAssessed}
-          isReviewed={reviewedFlashcardIds.has(currentFlashcard.id)}
+          isReviewed={masteredFlashcardIds.has(currentFlashcard.id)}
         />
       </div>
 
@@ -177,17 +177,22 @@ export function FlashcardViewer({
               <Button
                 variant="primary"
                 onClick={handleNext}
-                disabled={currentIndex === flashcards.length - 1 || !pronunciationPassed}
-                title={!pronunciationPassed ? "Vui lòng ghi âm và đạt điểm > 50% để tiếp tục" : ""}
+                disabled={currentIndex === flashcards.length - 1 || (!pronunciationPassed && !masteredFlashcardIds.has(currentFlashcard.id))}
+                title={!pronunciationPassed && !masteredFlashcardIds.has(currentFlashcard.id) ? "Vui lòng bấm Kiểm tra và đạt ≥ 50% để tiếp tục" : ""}
               >
                 Tiếp tục
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
             <div className="min-h-[24px] flex items-center justify-center">
-              {!pronunciationPassed && (
+              {!pronunciationPassed && !masteredFlashcardIds.has(currentFlashcard.id) && (
                 <p className="text-sm text-orange-600 font-medium text-center">
-                  ⚠️ Ghi âm giọng nói và đạt ≥ 50% để tiếp tục
+                  ⚠️ Bấm &quot;Kiểm tra&quot; để đánh giá phát âm (cần ≥ 50% để tiếp tục)
+                </p>
+              )}
+              {masteredFlashcardIds.has(currentFlashcard.id) && (
+                <p className="text-sm text-green-600 font-medium text-center">
+                  ✓ Flashcard này đã hoàn thành
                 </p>
               )}
             </div>

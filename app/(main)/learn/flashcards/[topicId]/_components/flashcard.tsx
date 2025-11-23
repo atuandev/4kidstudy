@@ -160,18 +160,26 @@ export function FlashcardComponent({
   };
 
   const handleAssessmentComplete = useCallback((score: number, passed: boolean) => {
+    console.log(`[Flashcard ${flashcard.id}] Assessment complete:`, { score, passed });
     setPronunciationPassed(passed);
     onPronunciationAssessed?.(passed);
     
-    // Record review only when assessment is passed
-    if (passed && typeof onRecordReview === 'function') {
+    // Always record review when user completes pronunciation check (creates or updates progress)
+    if (typeof onRecordReview === 'function') {
+      console.log(`[Flashcard ${flashcard.id}] Calling reviewContent API...`);
       onRecordReview({ 
         contentType: 'FLASHCARD', 
         flashcardId: flashcard.id,
         sentenceId: undefined 
-      }).catch((error: unknown) => {
-        console.error('record review failed', error);
+      })
+      .then((result) => {
+        console.log(`[Flashcard ${flashcard.id}] reviewContent success:`, result);
+      })
+      .catch((error: unknown) => {
+        console.error(`[Flashcard ${flashcard.id}] record review failed:`, error);
       });
+    } else {
+      console.warn(`[Flashcard ${flashcard.id}] onRecordReview is not a function`);
     }
   }, [flashcard.id, onRecordReview, onPronunciationAssessed]);
 

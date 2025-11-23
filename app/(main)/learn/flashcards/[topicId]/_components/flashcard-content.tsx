@@ -17,16 +17,16 @@ export async function FlashcardsContent({ data }: { data: Flashcard[] }) {
     (a: Flashcard, b: Flashcard) => a.order - b.order
   );
 
-  // Get reviewed flashcard IDs from backend
+  // Get mastered flashcard IDs from backend (isMastered = true, reviewCount >= 50)
   const topicId = sortedFlashcards[0]?.topicId;
-  let reviewedFlashcardIds: number[] = [];
+  let masteredFlashcardIds: number[] = [];
   
   if (topicId) {
     try {
-      reviewedFlashcardIds = await getReviewedFlashcardIds(topicId);
+      masteredFlashcardIds = await getReviewedFlashcardIds(topicId);
     } catch (error) {
-      console.error('Failed to fetch reviewed flashcards:', error);
-      // Continue without reviewed IDs - user will need to complete assessment
+      console.error('Failed to fetch mastered flashcards:', error);
+      // Continue without mastered IDs - user will need to complete reviews
     }
   }
 
@@ -34,7 +34,7 @@ export async function FlashcardsContent({ data }: { data: Flashcard[] }) {
     <FlashcardViewer 
       flashcards={sortedFlashcards} 
       onRecordReview={reviewContent}
-      initialReviewedIds={reviewedFlashcardIds}
+      initialMasteredIds={masteredFlashcardIds}
     />
   );
 }

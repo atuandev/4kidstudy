@@ -440,6 +440,74 @@ export default function FlashcardFormPage() {
     });
   }
 
+  async function handleImportExcel() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".xlsx,.xls";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      const topicId = form.getValues("topicId");
+      if (!topicId) {
+        toast.error("Vui lòng chọn chủ đề trước");
+        return;
+      }
+
+      try {
+        setIsSubmitting(true);
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_ENDPOINT}/flashcards/import/${topicId}`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Import thất bại");
+        }
+
+        const importedFlashcards = await response.json();
+        toast.success(`Đã import ${importedFlashcards.length} flashcard`);
+
+        // Reload existing flashcards
+        const existingFlashcardsResponse = await getFlashcardsByTopic(topicId);
+        const existingFlashcards = existingFlashcardsResponse.payload || [];
+
+        if (existingFlashcards.length > 0) {
+          const allFlashcards = existingFlashcards.map((fc) => ({
+            id: fc.id,
+            term: fc.term,
+            phonetic: fc.phonetic,
+            meaningVi: fc.meaningVi,
+            exampleEn: fc.exampleEn ?? "",
+            exampleVi: fc.exampleVi ?? "",
+            imageUrl: fc.imageUrl ?? "",
+            audioUrl: fc.audioUrl ?? "",
+            order: fc.order,
+            isActive: fc.isActive,
+          }));
+
+          setExistingFlashcardsCount(allFlashcards.length);
+          form.setValue("flashcards", allFlashcards as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+        }
+      } catch (error) {
+        console.error("Import failed:", error);
+        toast.error(
+          error instanceof Error ? error.message : "Import Excel thất bại"
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+    input.click();
+  }
+
   async function handleRemoveFlashcard(index: number) {
     const flashcard = form.getValues(`flashcards.${index}` as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -619,10 +687,16 @@ export default function FlashcardFormPage() {
                       </p>
                     )}
                   </div>
-                  <Button type="button" onClick={handleAddFlashcard} size="sm">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Thêm flashcard
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button type="button" onClick={handleImportExcel} size="sm" variant="outline">
+                      <Upload className="mr-2 h-4 w-4" />
+                      Import Excel
+                    </Button>
+                    <Button type="button" onClick={handleAddFlashcard} size="sm">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Thêm flashcard
+                    </Button>
+                  </div>
                 </div>
 
                 {fields.map((field, index) => {
