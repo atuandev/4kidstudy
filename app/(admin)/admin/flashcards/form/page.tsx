@@ -15,6 +15,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 import {
   Breadcrumb,
@@ -441,71 +442,151 @@ export default function FlashcardFormPage() {
   }
 
   async function handleImportExcel() {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".xlsx,.xls";
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
+    const topicId = form.getValues("topicId");
+    if (!topicId) {
+      toast.error("Vui lòng chọn chủ đề trước");
+      return;
+    }
 
-      const topicId = form.getValues("topicId");
-      if (!topicId) {
-        toast.error("Vui lòng chọn chủ đề trước");
-        return;
-      }
+    // Step 1: Choose Excel file
+    const excelInput = document.createElement("input");
+    excelInput.type = "file";
+    excelInput.accept = ".xlsx,.xls";
+    
+    excelInput.onchange = async (e) => {
+      const excelFile = (e.target as HTMLInputElement).files?.[0];
+      if (!excelFile) return;
 
       try {
-        setIsSubmitting(true);
-        const formData = new FormData();
-        formData.append("file", file);
+        // Step 2: Read Excel to get list of needed filenames
+        const reader = new FileReader();
+        reader.onload = async (evt) => {
+          const bstr = evt.target?.result;
+          const wb = XLSX.read(bstr, { type: "binary" });
+          const wsname = wb.SheetNames[0];
+          const ws = wb.Sheets[wsname];
+          const data: any[] = XLSX.utils.sheet_to_json(ws);
 
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_ENDPOINT}/flashcards/import/${topicId}`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
+          // Extract filenames from Excel (img and audio columns)
+          const extractFileName = (path: string): string | null => {
+            if (!path || typeof path !== "string") return null;
+            const normalized = path.trim();
+            if (normalized === "\\n" || normalized === "\n") return null;
+            return normalized.split("\\").pop()?.split("/").pop() || null;
+          };
 
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message || "Import thất bại");
-        }
+          const neededFileNames = new Set<string>();
+          data.forEach((row) => {
+            // Check img and audio columns
+            ["img", "audio"].forEach((col) => {
+              if (row[col]) {
+                const fileName = extractFileName(row[col].toString());
+                if (fileName && fileName.match(/\.(png|jpg|jpeg|mp3|mp4|wav)$/i)) {
+                  neededFileNames.add(fileName);
+                }
+              }
+            });
+          });
 
-        const importedFlashcards = await response.json();
-        toast.success(`Đã import ${importedFlashcards.length} flashcard`);
+          toast.info(
+            `📋 Đã đọc Excel: Cần ${neededFileNames.size} file (ảnh/audio)`
+          );
 
-        // Reload existing flashcards
-        const existingFlashcardsResponse = await getFlashcardsByTopic(topicId);
-        const existingFlashcards = existingFlashcardsResponse.payload || [];
+          // Step 3: Prompt user to select folder
+          const folderInput = document.createElement("input");
+          folderInput.type = "file";
+          // @ts-ignore - webkitdirectory is not in TypeScript types but works in browsers
+          folderInput.webkitdirectory = true;
+          folderInput.multiple = true;
 
-        if (existingFlashcards.length > 0) {
-          const allFlashcards = existingFlashcards.map((fc) => ({
-            id: fc.id,
-            term: fc.term,
-            phonetic: fc.phonetic,
-            meaningVi: fc.meaningVi,
-            exampleEn: fc.exampleEn ?? "",
-            exampleVi: fc.exampleVi ?? "",
-            imageUrl: fc.imageUrl ?? "",
-            audioUrl: fc.audioUrl ?? "",
-            order: fc.order,
-            isActive: fc.isActive,
-          }));
+          folderInput.onchange = async (folderEvent) => {
+            const folderFiles = (folderEvent.target as HTMLInputElement).files;
+            if (!folderFiles || folderFiles.length === 0) return;
 
-          setExistingFlashcardsCount(allFlashcards.length);
-          form.setValue("flashcards", allFlashcards as any); // eslint-disable-line @typescript-eslint/no-explicit-any
-        }
+            try {
+              setIsSubmitting(true);
+              const formData = new FormData();
+
+              // Add Excel file
+              formData.append("excelFile", excelFile);
+
+              // Filter and add only needed asset files
+              let matchedCount = 0;
+              Array.from(folderFiles).forEach((file) => {
+                if (neededFileNames.has(file.name)) {
+                  formData.append("assets", file);
+                  matchedCount++;
+                }
+              });
+
+              toast.info(
+                `📦 Đang upload: 1 Excel + ${matchedCount} file assets...`
+              );
+
+              // Upload to backend
+              const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_ENDPOINT}/flashcards/import/${topicId}`,
+                {
+                  method: "POST",
+                  body: formData,
+                }
+              );
+
+              if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || "Import thất bại");
+              }
+
+              const importedFlashcards = await response.json();
+              toast.success(
+                `🎉 Đã import ${importedFlashcards.length} flashcard thành công!`
+              );
+
+              // Reload existing flashcards
+              const existingFlashcardsResponse = await getFlashcardsByTopic(
+                topicId
+              );
+              const existingFlashcards =
+                existingFlashcardsResponse.payload || [];
+
+              if (existingFlashcards.length > 0) {
+                const allFlashcards = existingFlashcards.map((fc) => ({
+                  id: fc.id,
+                  term: fc.term,
+                  phonetic: fc.phonetic,
+                  meaningVi: fc.meaningVi,
+                  exampleEn: fc.exampleEn ?? "",
+                  exampleVi: fc.exampleVi ?? "",
+                  imageUrl: fc.imageUrl ?? "",
+                  audioUrl: fc.audioUrl ?? "",
+                  order: fc.order,
+                  isActive: fc.isActive,
+                }));
+
+                setExistingFlashcardsCount(allFlashcards.length);
+                form.setValue("flashcards", allFlashcards as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+              }
+            } catch (error) {
+              console.error("Import failed:", error);
+              toast.error(
+                error instanceof Error ? error.message : "Import Excel thất bại"
+              );
+            } finally {
+              setIsSubmitting(false);
+            }
+          };
+
+          folderInput.click();
+        };
+
+        reader.readAsBinaryString(excelFile);
       } catch (error) {
-        console.error("Import failed:", error);
-        toast.error(
-          error instanceof Error ? error.message : "Import Excel thất bại"
-        );
-      } finally {
-        setIsSubmitting(false);
+        console.error("Failed to read Excel:", error);
+        toast.error("Không thể đọc file Excel");
       }
     };
-    input.click();
+
+    excelInput.click();
   }
 
   async function handleRemoveFlashcard(index: number) {
