@@ -9,7 +9,9 @@ import {
   Trash2,
   ChevronDown,
   ChevronRight,
+  FileUp,
 } from "lucide-react";
+import * as XLSX from "xlsx";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -115,6 +117,14 @@ export default function SentenceFormPage() {
   const [sentenceImageGroups, setSentenceImageGroups] = useState<SentenceImageGroup[]>([]);
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [selectedExcelFile, setSelectedExcelFile] = useState<File | null>(null);
+  const [selectedFolderFiles, setSelectedFolderFiles] = useState<FileList | null>(null);
+  const [importPreview, setImportPreview] = useState<{
+    neededFiles: string[];
+    matchedFiles: string[];
+  } | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const {
@@ -567,6 +577,160 @@ export default function SentenceFormPage() {
     ? availableTopics.filter((topic) => topic.grade === selectedGrade)
     : [];
 
+  const handleExcelFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSelectedExcelFile(file);
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const worksheet = workbook.Sheets[sheetName as any];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" }) as any[];
+
+      const neededFiles = new Set<string>();
+
+      jsonData.forEach((row) => {
+        const extractFilename = (path: string | undefined) => {
+          if (!path || typeof path !== "string") return null;
+          const trimmed = path.trim();
+          if (trimmed === "\\n" || trimmed === "\n" || !trimmed) return null;
+          return trimmed.split("\\").pop()?.split("/").pop() || null;
+        };
+
+        ["imgSentence", "audioImg", "sen01audio", "sen02audio", "sen03audio", "sen04audio"].forEach((key) => {
+          const filename = extractFilename(row[key]);
+          if (filename) neededFiles.add(filename);
+        });
+      });
+
+      setImportPreview({
+        neededFiles: Array.from(neededFiles),
+        matchedFiles: [],
+      });
+    } catch (error) {
+      console.error("Failed to read Excel:", error);
+      toast.error("Không thể đọc file Excel");
+    }
+  };
+
+  const handleFolderSelect = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    setSelectedFolderFiles(files);
+
+    if (files && importPreview) {
+      const matchedFiles = Array.from(files)
+        .map((f) => f.name)
+        .filter((name) => importPreview.neededFiles.includes(name));
+
+      setImportPreview({
+        ...importPreview,
+        matchedFiles,
+      });
+    }
+  };
+
+  const handleConfirmImport = async () => {
+    const topicId = topicIdParam ? parseInt(topicIdParam) : storeTopicId;
+    if (!topicId) {
+      toast.error("Vui lòng chọn chủ đề");
+      return;
+    }
+
+    if (!selectedExcelFile) {
+      toast.error("Vui lòng chọn file Excel");
+      return;
+    }
+
+    setIsImporting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("excel", selectedExcelFile);
+
+      if (selectedFolderFiles && importPreview) {
+        const matchedFileNames = new Set(importPreview.matchedFiles);
+        Array.from(selectedFolderFiles).forEach((file) => {
+          if (matchedFileNames.has(file.name)) {
+            formData.append("assets", file);
+          }
+        });
+      }
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_ENDPOINT || "http://localhost:3001/api";
+      const response = await fetch(`${apiUrl}/sentences/import-excel/${topicId}`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const contentType = response.headers.get("content-type");
+
+      if (!response.ok) {
+        let errorMessage = `Server returned ${response.status}: ${response.statusText}`;
+
+        if (contentType?.includes("application/json")) {
+          try {
+            const error = await response.json();
+            errorMessage = error.message || errorMessage;
+          } catch {
+            // Failed to parse JSON error
+          }
+        } else {
+          const text = await response.text();
+          console.error("Server error response:", text.substring(0, 500));
+          errorMessage = `Server error: ${response.statusText}`;
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      if (!contentType?.includes("application/json")) {
+        const text = await response.text();
+        console.error("Unexpected response type:", contentType, text.substring(0, 500));
+        throw new Error("Server returned unexpected response format");
+      }
+
+      const result = await response.json();
+      toast.success(`Đã import thành công ${result.created} thẻ câu`);
+
+      setShowImportDialog(false);
+      setSelectedExcelFile(null);
+      setSelectedFolderFiles(null);
+      setImportPreview(null);
+
+      // Reload sentence images for this topic
+      if (topicId) {
+        const existingSentenceImages = await getSentenceImagesByTopicId(topicId);
+        const groups: SentenceImageGroup[] = existingSentenceImages.map((img) => ({
+          id: img.id,
+          imageUrl: img.imageUrl,
+          audioUrl: img.audioUrl ?? "",
+          order: img.order,
+          isActive: img.isActive,
+          sentences: img.sentences.map((s) => ({
+            id: s.id,
+            text: s.text,
+            meaningVi: s.meaningVi ?? "",
+            hintVi: s.hintVi ?? "",
+            audioUrl: s.audioUrl ?? "",
+            order: s.order,
+            isActive: s.isActive,
+          })),
+        }));
+        setSentenceImageGroups(groups);
+      }
+    } catch (error) {
+      console.error("Import error:", error);
+      toast.error(error instanceof Error ? error.message : "Import thất bại");
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -643,14 +807,29 @@ export default function SentenceFormPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-lg font-semibold">Danh sách thẻ câu</h4>
-              <Button
-                type="button"
-                onClick={handleAddSentenceImageGroup}
-                variant="outline"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Thêm thẻ mới
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setShowImportDialog(true);
+                    setSelectedExcelFile(null);
+                    setSelectedFolderFiles(null);
+                    setImportPreview(null);
+                  }}
+                  variant="secondary"
+                >
+                  <FileUp className="mr-2 h-4 w-4" />
+                  Import Excel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleAddSentenceImageGroup}
+                  variant="outline"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Thêm thẻ mới
+                </Button>
+              </div>
             </div>
 
             {sentenceImageGroups.length === 0 && (
@@ -1048,6 +1227,93 @@ export default function SentenceFormPage() {
               )}
             </Button>
           </div>
+
+          {/* Import Dialog */}
+          <AlertDialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+            <AlertDialogContent className="max-w-3xl">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Import câu từ Excel</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Chọn file Excel và thư mục chứa ảnh/audio để import
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <div className="space-y-4">
+                {/* Excel File Input */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    File Excel <RequiredField />
+                  </label>
+                  <Input
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handleExcelFileSelect}
+                  />
+                  {selectedExcelFile && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Đã chọn: {selectedExcelFile.name}
+                    </p>
+                  )}
+                </div>
+
+                {/* Folder Input */}
+                {importPreview && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Thư mục ảnh/audio (tùy chọn)
+                    </label>
+                    <Input
+                      type="file"
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      {...({ webkitdirectory: "", directory: "" } as any)}
+                      multiple
+                      onChange={handleFolderSelect}
+                    />
+                    {selectedFolderFiles && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Đã chọn {selectedFolderFiles.length} files
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Preview */}
+                {importPreview && (
+                  <div className="rounded-md border p-4 space-y-2">
+                    <div>
+                      <p className="text-sm font-medium">
+                        Files cần thiết: {importPreview.neededFiles.length}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {importPreview.neededFiles.join(", ")}
+                      </p>
+                    </div>
+                    {selectedFolderFiles && (
+                      <div>
+                        <p className="text-sm font-medium text-green-600">
+                          Files tìm thấy: {importPreview.matchedFiles.length}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {importPreview.matchedFiles.join(", ")}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isImporting}>Hủy</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleConfirmImport}
+                  disabled={!selectedExcelFile || isImporting}
+                >
+                  {isImporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Import
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       ) : (
         /* Single Mode Form */
