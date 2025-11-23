@@ -60,7 +60,6 @@ import {
   getSentenceImagesByTopicId,
   updateSentenceImage,
   bulkCreateSentences,
-  updateSentence,
   deleteSentence,
 } from "@/actions/sentence";
 import { getTopics } from "@/actions/topic";
@@ -90,12 +89,31 @@ const GRADE_LABELS: Record<string, string> = {
   GRADE_5: "Lớp 5",
 };
 
+// Type for SentenceImage with sentences (for bulk mode)
+type SentenceImageGroup = {
+  id?: number;
+  imageUrl: string;
+  audioUrl: string;
+  order: number;
+  isActive: boolean;
+  sentences: Array<{
+    id?: number;
+    text: string;
+    meaningVi: string;
+    hintVi: string;
+    audioUrl: string;
+    order: number;
+    isActive: boolean;
+  }>;
+};
+
 export default function SentenceFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableTopics, setAvailableTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedGrade, setSelectedGrade] = useState<string>("");
-  const [existingSentencesCount, setExistingSentencesCount] = useState(0);
+  const [sentenceImageGroups, setSentenceImageGroups] = useState<SentenceImageGroup[]>([]);
+  const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -161,9 +179,14 @@ export default function SentenceFormPage() {
             parsedTopicId
           );
 
-          // Flatten all sentences from all sentence images
-          const allSentences = existingSentenceImages.flatMap((img) =>
-            img.sentences.map((s) => ({
+          // Map to SentenceImageGroup structure
+          const groups: SentenceImageGroup[] = existingSentenceImages.map((img) => ({
+            id: img.id,
+            imageUrl: img.imageUrl,
+            audioUrl: img.audioUrl ?? "",
+            order: img.order,
+            isActive: img.isActive,
+            sentences: img.sentences.map((s) => ({
               id: s.id,
               text: s.text,
               meaningVi: s.meaningVi ?? "",
@@ -171,41 +194,13 @@ export default function SentenceFormPage() {
               audioUrl: s.audioUrl ?? "",
               order: s.order,
               isActive: s.isActive,
-            }))
-          );
+            })),
+          }));
 
-          setExistingSentencesCount(allSentences.length);
-
-          // If there are existing sentences, show them for editing/adding more
-          if (allSentences.length > 0) {
-            form.reset({
-              topicId: parsedTopicId,
-              imageUrl: existingSentenceImages[0]?.imageUrl || "",
-              audioUrl: existingSentenceImages[0]?.audioUrl ?? "",
-              order: 0,
-              isActive: true,
-              sentences: allSentences,
-            });
-          } else {
-            // No existing sentences, start with empty form
-            form.reset({
-              topicId: parsedTopicId,
-              imageUrl: "",
-              audioUrl: "",
-              order: 0,
-              isActive: true,
-              sentences: [
-                {
-                  text: "",
-                  meaningVi: "",
-                  hintVi: "",
-                  audioUrl: "",
-                  order: 0,
-                  isActive: true,
-                },
-              ],
-            });
-          }
+          setSentenceImageGroups(groups);
+          
+          // Set topic in form for submission
+          form.setValue("topicId", parsedTopicId);
         } else if (isEditMode) {
           const sentenceImage = await getSentenceImage(
             parseInt(sentenceImageId)
@@ -259,6 +254,59 @@ export default function SentenceFormPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sentenceImageId, isEditMode, topicIdParam, storeGrade, storeTopicId]);
 
+  // Bulk mode submit handler
+  const handleBulkSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const topicId = form.getValues("topicId");
+      
+      // Process each SentenceImageGroup
+      for (const group of sentenceImageGroups) {
+        if (group.id) {
+          // Update existing SentenceImage
+          await updateSentenceImage(group.id, {
+            topicId,
+            imageUrl: group.imageUrl,
+            audioUrl: group.audioUrl,
+            order: group.order,
+            isActive: group.isActive,
+            sentences: group.sentences.map((s) => ({
+              id: s.id,
+              text: s.text,
+              meaningVi: s.meaningVi,
+              hintVi: s.hintVi,
+              audioUrl: s.audioUrl,
+              order: s.order,
+              isActive: s.isActive,
+            })),
+          });
+        } else if (group.sentences.length > 0) {
+          // Create new SentenceImage with sentences
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const cleanedSentences = group.sentences.map(({ id, ...s }) => s);
+          await bulkCreateSentences(topicId, [
+            {
+              imageUrl: group.imageUrl,
+              audioUrl: group.audioUrl,
+              isActive: group.isActive,
+              sentences: cleanedSentences,
+            },
+          ]);
+        }
+      }
+
+      toast.success("Lưu thành công");
+      clearSelection();
+      router.refresh();
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to save:", error);
+      toast.error("Lưu thất bại");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const onSubmit = async (data: CreateSentenceImageFormData) => {
     setIsSubmitting(true);
     try {
@@ -275,60 +323,13 @@ export default function SentenceFormPage() {
         clearSelection();
         router.push("/admin/sentences");
         router.refresh();
-      } else if (isTopicLocked) {
-        // Bulk create/update mode
-        // Split sentences into existing (with id) and new (without id)
-        const existingSentences = data.sentences.filter((s) => s.id);
-        const newSentences = data.sentences.filter((s) => !s.id);
-
-        // Update existing sentences individually
-        if (existingSentences.length > 0) {
-          await Promise.all(
-            existingSentences.map((sentence) =>
-              updateSentence(sentence.id!, {
-                text: sentence.text,
-                meaningVi: sentence.meaningVi,
-                hintVi: sentence.hintVi,
-                audioUrl: sentence.audioUrl,
-                order: sentence.order,
-                isActive: sentence.isActive,
-              })
-            )
-          );
-        }
-
-        // Create new sentences if any
-        if (newSentences.length > 0) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const cleanedNewSentences = newSentences.map(
-            ({ id, order, ...sentence }) => sentence
-          );
-          // DO NOT send order for new sentences - let backend auto-assign
-
-          const sentenceImageData = {
-            imageUrl: data.imageUrl,
-            audioUrl: data.audioUrl,
-            isActive: data.isActive,
-            sentences: cleanedNewSentences,
-          };
-
-          await bulkCreateSentences(data.topicId, [sentenceImageData]);
-        }
-
-        toast.success("Cập nhật thành công");
-        clearSelection();
-        // Reload the page to fetch updated data
-        router.refresh();
-        window.location.reload();
       } else {
         // Normal create mode (single sentence image)
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { order, ...createData } = data;
+        const { order: _order, ...createData } = data;
 
         // Remove 'id' field from all sentences
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const cleanedSentences = createData.sentences.map(
-          ({ id, ...sentence }) => sentence
+          ({ id: _id, ...sentence }) => sentence
         );
         const finalData = {
           ...createData,
@@ -432,6 +433,136 @@ export default function SentenceFormPage() {
     });
   }
 
+  // === Bulk Mode Handlers ===
+  function toggleGroupExpanded(groupIndex: number) {
+    setExpandedGroups((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupIndex)) {
+        newSet.delete(groupIndex);
+      } else {
+        newSet.add(groupIndex);
+      }
+      return newSet;
+    });
+  }
+
+  function handleAddSentenceImageGroup() {
+    setSentenceImageGroups((prev) => [
+      ...prev,
+      {
+        imageUrl: "",
+        audioUrl: "",
+        order: prev.length,
+        isActive: true,
+        sentences: [
+          {
+            text: "",
+            meaningVi: "",
+            hintVi: "",
+            audioUrl: "",
+            order: 0,
+            isActive: true,
+          },
+        ],
+      },
+    ]);
+  }
+
+  function handleAddSentenceToGroup(groupIndex: number) {
+    setSentenceImageGroups((prev) => {
+      const updated = [...prev];
+      updated[groupIndex] = {
+        ...updated[groupIndex],
+        sentences: [
+          ...updated[groupIndex].sentences,
+          {
+            text: "",
+            meaningVi: "",
+            hintVi: "",
+            audioUrl: "",
+            order: updated[groupIndex].sentences.length,
+            isActive: true,
+          },
+        ],
+      };
+      return updated;
+    });
+  }
+
+  async function handleRemoveSentenceFromGroup(
+    groupIndex: number,
+    sentenceIndex: number
+  ) {
+    const sentence = sentenceImageGroups[groupIndex].sentences[sentenceIndex];
+
+    if (sentence.id) {
+      try {
+        await deleteSentence(sentence.id);
+        toast.success("Đã xóa câu thành công");
+        setSentenceImageGroups((prev) => {
+          const updated = [...prev];
+          updated[groupIndex] = {
+            ...updated[groupIndex],
+            sentences: updated[groupIndex].sentences.filter(
+              (_, i) => i !== sentenceIndex
+            ),
+          };
+          return updated;
+        });
+      } catch (error) {
+        console.error("Failed to delete sentence:", error);
+        toast.error("Xóa câu thất bại");
+      }
+    } else {
+      setSentenceImageGroups((prev) => {
+        const updated = [...prev];
+        updated[groupIndex] = {
+          ...updated[groupIndex],
+          sentences: updated[groupIndex].sentences.filter(
+            (_, i) => i !== sentenceIndex
+          ),
+        };
+        return updated;
+      });
+    }
+  }
+
+  function handleUpdateSentenceImageGroup(
+    groupIndex: number,
+    field: keyof Pick<SentenceImageGroup, "imageUrl" | "audioUrl" | "isActive">,
+    value: string | boolean
+  ) {
+    setSentenceImageGroups((prev) => {
+      const updated = [...prev];
+      updated[groupIndex] = {
+        ...updated[groupIndex],
+        [field]: value,
+      };
+      return updated;
+    });
+  }
+
+  function handleUpdateSentenceInGroup(
+    groupIndex: number,
+    sentenceIndex: number,
+    field: keyof SentenceImageGroup["sentences"][0],
+    value: string | boolean | number
+  ) {
+    setSentenceImageGroups((prev) => {
+      const updated = [...prev];
+      const sentences = [...updated[groupIndex].sentences];
+      sentences[sentenceIndex] = {
+        ...sentences[sentenceIndex],
+        [field]: value,
+      };
+      updated[groupIndex] = {
+        ...updated[groupIndex],
+        sentences,
+      };
+      return updated;
+    });
+  }
+
   const filteredTopics = selectedGrade
     ? availableTopics.filter((topic) => topic.grade === selectedGrade)
     : [];
@@ -477,11 +608,450 @@ export default function SentenceFormPage() {
       <TypographyH3>
         {isEditMode
           ? "Chỉnh sửa câu với hình ảnh"
+          : isTopicLocked
+          ? "Quản lý nhiều thẻ câu"
           : "Thêm câu với hình ảnh mới"}
       </TypographyH3>
 
-      {/* Form */}
-      <Form {...form}>
+      {/* Bulk Mode - Manage Multiple SentenceImage Groups */}
+      {isTopicLocked ? (
+        <div className="space-y-6">
+          {/* Topic Display */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Thông tin chủ đề</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="text-sm">
+                  <span className="font-medium">Lớp: </span>
+                  <span>{GRADE_LABELS[selectedGrade] || selectedGrade}</span>
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">Chủ đề: </span>
+                  <span>
+                    {availableTopics.find(
+                      (t) => t.id === form.getValues("topicId")
+                    )?.title || "Chưa chọn"}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* SentenceImage Groups */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-lg font-semibold">Danh sách thẻ câu</h4>
+              <Button
+                type="button"
+                onClick={handleAddSentenceImageGroup}
+                variant="outline"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Thêm thẻ mới
+              </Button>
+            </div>
+
+            {sentenceImageGroups.length === 0 && (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <ImageIcon className="h-12 w-12 text-muted-foreground/50" />
+                    <p className="text-muted-foreground">
+                      Chưa có thẻ câu nào trong chủ đề này.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Nhấn &quot;Thêm thẻ mới&quot; để bắt đầu tạo.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {sentenceImageGroups.map((group, groupIndex) => (
+              <Card 
+                key={groupIndex} 
+                className={`overflow-hidden ${
+                  group.id ? "border-green-300" : ""
+                }`}
+              >
+                <CardHeader className={`${group.id ? "bg-green-50" : "bg-muted/50"}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleGroupExpanded(groupIndex)}
+                        className="h-8 w-8 p-0"
+                      >
+                        {expandedGroups.has(groupIndex) ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                          {groupIndex + 1}
+                        </span>
+                        <CardTitle className="text-base">
+                          Thẻ câu với hình ảnh
+                          {group.id && (
+                            <span className="ml-2 text-xs text-green-600 font-normal">
+                              (Đã lưu - ID: {group.id})
+                            </span>
+                          )}
+                          {!group.id && (
+                            <span className="ml-2 text-xs text-amber-600 font-normal">
+                              (Mới)
+                            </span>
+                          )}
+                        </CardTitle>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-muted-foreground">
+                        {group.sentences.length} câu
+                      </span>
+                    </div>
+                  </div>
+                </CardHeader>
+
+                {expandedGroups.has(groupIndex) && (
+                  <CardContent className="space-y-4 pt-6">
+                    {/* SentenceImage Fields */}
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {/* Image URL */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          Hình ảnh <RequiredField />
+                        </label>
+                        <div className="flex gap-2">
+                          <Input
+                            value={group.imageUrl}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                              handleUpdateSentenceImageGroup(
+                                groupIndex,
+                                "imageUrl",
+                                e.target.value
+                              )
+                            }
+                            placeholder="URL hình ảnh"
+                          />
+                          <CldUploadWidget
+                            uploadPreset={UPLOAD_PRESET}
+                            onSuccess={(result) => {
+                              if (
+                                result?.info &&
+                                typeof result.info === "object" &&
+                                "secure_url" in result.info
+                              ) {
+                                handleUpdateSentenceImageGroup(
+                                  groupIndex,
+                                  "imageUrl",
+                                  result.info.secure_url as string
+                                );
+                              }
+                            }}
+                          >
+                            {({ open }) => (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => open()}
+                              >
+                                <Upload className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </CldUploadWidget>
+                        </div>
+                        {/* image preview removed per request */}
+                      </div>
+
+                      {/* Audio URL */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          Audio (không bắt buộc)
+                        </label>
+                        <div className="flex gap-2">
+                          <Input
+                            value={group.audioUrl}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                              handleUpdateSentenceImageGroup(
+                                groupIndex,
+                                "audioUrl",
+                                e.target.value
+                              )
+                            }
+                            placeholder="URL audio"
+                          />
+                          <CldUploadWidget
+                            uploadPreset={UPLOAD_PRESET}
+                            onSuccess={(result) => {
+                              if (
+                                result?.info &&
+                                typeof result.info === "object" &&
+                                "secure_url" in result.info
+                              ) {
+                                handleUpdateSentenceImageGroup(
+                                  groupIndex,
+                                  "audioUrl",
+                                  result.info.secure_url as string
+                                );
+                              }
+                            }}
+                          >
+                            {({ open }) => (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => open()}
+                              >
+                                <Upload className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </CldUploadWidget>
+                        </div>
+                        {/* audio preview removed per request */}
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Sentences in this group */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h5 className="font-medium">Các câu</h5>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleAddSentenceToGroup(groupIndex)}
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Thêm câu
+                        </Button>
+                      </div>
+
+                      {group.sentences.map((sentence, sentenceIndex) => (
+                        <Card 
+                          key={sentenceIndex} 
+                          className={`border-dashed ${
+                            sentence.id ? "border-green-200 bg-green-50/30" : ""
+                          }`}
+                        >
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                                  {sentenceIndex + 1}
+                                </span>
+                                {sentence.text ? (
+                                  <span className="truncate max-w-[300px]">
+                                    {sentence.text}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted-foreground italic">
+                                    Câu mới chưa có nội dung
+                                  </span>
+                                )}
+                                {sentence.id && (
+                                  <span className="text-xs text-muted-foreground font-normal">
+                                    (ID: {sentence.id})
+                                  </span>
+                                )}
+                              </CardTitle>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 text-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                      Xác nhận xóa
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Bạn có chắc chắn muốn xóa câu này?
+                                      {sentence.id &&
+                                        " Câu này sẽ bị xóa vĩnh viễn khỏi cơ sở dữ liệu."}
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() =>
+                                        handleRemoveSentenceFromGroup(
+                                          groupIndex,
+                                          sentenceIndex
+                                        )
+                                      }
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Xóa
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="grid gap-4 md:grid-cols-2">
+                              <div className="space-y-2">
+                                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                  Câu tiếng Anh <RequiredField />
+                                </label>
+                                <Textarea
+                                  value={sentence.text}
+                                  onChange={(e) =>
+                                    handleUpdateSentenceInGroup(
+                                      groupIndex,
+                                      sentenceIndex,
+                                      "text",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Nhập câu tiếng Anh"
+                                  rows={2}
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                  Nghĩa tiếng Việt <RequiredField />
+                                </label>
+                                <Textarea
+                                  value={sentence.meaningVi}
+                                  onChange={(e) =>
+                                    handleUpdateSentenceInGroup(
+                                      groupIndex,
+                                      sentenceIndex,
+                                      "meaningVi",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Nhập nghĩa tiếng Việt"
+                                  rows={2}
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                  Gợi ý tiếng Việt
+                                </label>
+                                <Input
+                                  value={sentence.hintVi}
+                                  onChange={(e) =>
+                                    handleUpdateSentenceInGroup(
+                                      groupIndex,
+                                      sentenceIndex,
+                                      "hintVi",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Nhập gợi ý"
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                  Audio câu
+                                </label>
+                                <div className="flex gap-2">
+                                  <Input
+                                    value={sentence.audioUrl}
+                                    onChange={(e) =>
+                                      handleUpdateSentenceInGroup(
+                                        groupIndex,
+                                        sentenceIndex,
+                                        "audioUrl",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="URL audio"
+                                  />
+                                  <CldUploadWidget
+                                    uploadPreset={UPLOAD_PRESET}
+                                    onSuccess={(result) => {
+                                      if (
+                                        result?.info &&
+                                        typeof result.info === "object" &&
+                                        "secure_url" in result.info
+                                      ) {
+                                        handleUpdateSentenceInGroup(
+                                          groupIndex,
+                                          sentenceIndex,
+                                          "audioUrl",
+                                          result.info.secure_url as string
+                                        );
+                                      }
+                                    }}
+                                  >
+                                    {({ open }) => (
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => open()}
+                                      >
+                                        <Upload className="h-4 w-4" />
+                                      </Button>
+                                    )}
+                                  </CldUploadWidget>
+                                </div>
+                                {/* sentence audio preview removed per request */}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </CardContent>
+                )}
+              </Card>
+            ))}
+          </div>
+
+          {/* Bulk Mode Actions */}
+          <div className="flex justify-between items-center sticky bottom-0 bg-background pt-4 pb-2 border-t">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              disabled={isSubmitting}
+            >
+              Hủy
+            </Button>
+            <Button
+              type="button"
+              onClick={handleBulkSubmit}
+              disabled={isSubmitting || sentenceImageGroups.length === 0}
+              variant="primary"
+              size="lg"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang lưu...
+                </>
+              ) : (
+                <>
+                  Lưu tất cả ({sentenceImageGroups.length} thẻ)
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        /* Single Mode Form */
+        <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
           className="space-y-6"
@@ -923,13 +1493,12 @@ export default function SentenceFormPage() {
               {isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {/* {isEditMode ? "Cập nhật" : "Tạo mới"}
-               */}
-              Cập nhật
+              {isEditMode ? "Cập nhật" : "Tạo mới"}
             </Button>
           </div>
         </form>
       </Form>
+      )}
     </div>
   );
 }
