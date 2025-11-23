@@ -160,13 +160,13 @@ export function FlashcardComponent({
   };
 
   const handleAssessmentComplete = useCallback((score: number, passed: boolean) => {
-    console.log(`[Flashcard ${flashcard.id}] Assessment complete:`, { score, passed });
+    // console.log(`[Flashcard ${flashcard.id}] Assessment complete:`, { score, passed });
     setPronunciationPassed(passed);
     onPronunciationAssessed?.(passed);
     
     // Record review and set isMastered = true if passed (>= 50%)
     if (typeof onRecordReview === 'function') {
-      console.log(`[Flashcard ${flashcard.id}] Calling reviewContent API with isMastered=${passed}...`);
+      // console.log(`[Flashcard ${flashcard.id}] Calling reviewContent API with isMastered=${passed}...`);
       onRecordReview({ 
         contentType: 'FLASHCARD', 
         flashcardId: flashcard.id,
@@ -174,7 +174,7 @@ export function FlashcardComponent({
         isMastered: passed // Set mastered if passed pronunciation check
       })
       .then((result) => {
-        console.log(`[Flashcard ${flashcard.id}] reviewContent success:`, result);
+        // console.log(`[Flashcard ${flashcard.id}] reviewContent success:`, result);
       })
       .catch((error: unknown) => {
         console.error(`[Flashcard ${flashcard.id}] record review failed:`, error);
@@ -282,7 +282,7 @@ export function FlashcardComponent({
                 {flashcard.exampleEn && (
                   <div className="p-2 bg-white rounded-lg shadow-sm">
                     <p className="text-gray-600 italic">
-                      "{flashcard.exampleEn}"
+                      &quot;{flashcard.exampleEn}&quot;
                     </p>
                   </div>
                 )}
@@ -290,7 +290,7 @@ export function FlashcardComponent({
                 {flashcard.exampleVi && (
                   <div className="p-2 bg-white rounded-lg shadow-sm">
                     <p className="text-gray-600 italic">
-                      "{flashcard.exampleVi}"
+                      &quot;{flashcard.exampleVi}&quot;
                     </p>
                   </div>
                 )}

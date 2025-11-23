@@ -37,12 +37,12 @@ export function SentenceCard({
   };
 
   const handleAssessmentComplete = (sentenceId: number) => (score: number, passed: boolean) => {
-    console.log(`[Sentence ${sentenceId}] Assessment complete:`, { score, passed });
+    // console.log(`[Sentence ${sentenceId}] Assessment complete:`, { score, passed });
     onPronunciationAssessed?.(sentenceId, passed);
     
     // Record review and set isMastered = true if passed (>= 50%)
     if (typeof onRecordReview === 'function') {
-      console.log(`[Sentence ${sentenceId}] Calling reviewContent API with isMastered=${passed}...`);
+      // console.log(`[Sentence ${sentenceId}] Calling reviewContent API with isMastered=${passed}...`);
       onRecordReview({ 
         contentType: 'SENTENCE', 
         flashcardId: undefined,

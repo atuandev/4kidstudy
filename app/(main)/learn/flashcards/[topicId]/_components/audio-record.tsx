@@ -52,7 +52,7 @@ export function AudioRecord({ className, onStopPropagation, resetTrigger, target
         setRecordedAudioUrl(url);
 
         setRecordingState("recorded");
-        console.log("Recording completed, state set to 'recorded'");
+        // console.log("Recording completed, state set to 'recorded'");
 
         // Stop all tracks to release microphone
         stream.getTracks().forEach((track) => track.stop());
@@ -61,22 +61,22 @@ export function AudioRecord({ className, onStopPropagation, resetTrigger, target
       recorder.start();
       setMediaRecorder(recorder);
       setRecordingState("recording");
-      console.log("Recording started, state set to 'recording'");
+      // console.log("Recording started, state set to 'recording'");
     } catch (error) {
       console.error("Error accessing microphone:", error);
     }
   }, []);
 
   const stopRecording = useCallback(() => {
-    console.log("stopRecording called, mediaRecorder state:", mediaRecorder?.state);
+    // console.log("stopRecording called, mediaRecorder state:", mediaRecorder?.state);
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop();
-      console.log("MediaRecorder.stop() called");
+      // console.log("MediaRecorder.stop() called");
     }
   }, [mediaRecorder]);
 
   const resetRecording = useCallback(() => {
-    console.log("resetRecording called, current state:", recordingState);
+    // console.log("resetRecording called, current state:", recordingState);
     // Clean up previous object URL
     if (recordedAudioUrl) {
       URL.revokeObjectURL(recordedAudioUrl);
@@ -136,7 +136,7 @@ export function AudioRecord({ className, onStopPropagation, resetTrigger, target
       clearInterval(progressInterval);
       setAnalysisProgress(100);
 
-      console.log("Pronunciation assessment response:", response);
+      // console.log("Pronunciation assessment response:", response);
 
       if (response.success && response.overall !== undefined) {
         const score = response.overall;

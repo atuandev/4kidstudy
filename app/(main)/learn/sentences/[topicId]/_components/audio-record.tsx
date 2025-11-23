@@ -58,7 +58,7 @@ export function AudioRecord({
         setRecordedAudioUrl(url);
 
         setRecordingState("recorded");
-        console.log("Recording completed, state set to 'recorded'");
+        // console.log("Recording completed, state set to 'recorded'");
 
         // Stop all tracks to release microphone
         stream.getTracks().forEach((track) => track.stop());
@@ -155,7 +155,7 @@ export function AudioRecord({
     if (prevResetTriggerRef.current !== undefined && 
         prevResetTriggerRef.current !== resetTrigger && 
         resetTrigger !== undefined) {
-      console.log("Resetting recording due to resetTrigger change:", prevResetTriggerRef.current, "->", resetTrigger);
+      // console.log("Resetting recording due to resetTrigger change:", prevResetTriggerRef.current, "->", resetTrigger);
       resetRecording();
     }
     
@@ -177,7 +177,7 @@ export function AudioRecord({
     action();
   };
 
-  console.log("AudioRecord render, recordingState:", recordingState, "recordedAudioUrl:", !!recordedAudioUrl);
+  // console.log("AudioRecord render, recordingState:", recordingState, "recordedAudioUrl:", !!recordedAudioUrl);
   
   return (
     <div className={cn("flex items-center justify-center gap-2 min-h-[44px]", className)}>

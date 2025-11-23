@@ -7,7 +7,18 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
@@ -64,6 +75,14 @@ export default function ExerciseFormPage() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [existingExercisesCount, setExistingExercisesCount] = useState(0);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [selectedExcelFile, setSelectedExcelFile] = useState<File | null>(null);
+  const [selectedFolderFiles, setSelectedFolderFiles] = useState<FileList | null>(null);
+  const [importPreview, setImportPreview] = useState<{
+    neededFiles: string[];
+    matchedFiles: string[];
+  } | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   const router = useRouter();
   const { selectedLessonId: storeLessonId, clearSelection } = useExerciseFormStore();
   const hasInitializedFromLesson = useRef(false);
@@ -595,6 +614,179 @@ export default function ExerciseFormPage() {
     }
   };
 
+  const handleImportExcel = () => {
+    setShowImportDialog(true);
+    setSelectedExcelFile(null);
+    setSelectedFolderFiles(null);
+    setImportPreview(null);
+  };
+
+  const handleExcelFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSelectedExcelFile(file);
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      // @ts-expect-error XLSX type
+      const worksheet = workbook.Sheets[sheetName];
+      // @ts-expect-error XLSX type
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+      const neededFiles = new Set<string>();
+
+      // @ts-expect-error jsonData type
+      jsonData.forEach((row) => {
+        const extractFilename = (path: string | undefined) => {
+          if (!path || typeof path !== 'string') return null;
+          const trimmed = path.trim();
+          if (trimmed === '\\n' || trimmed === '\n' || !trimmed) return null;
+          return trimmed.split('\\').pop()?.split('/').pop() || null;
+        };
+
+        ['img', 'audio', 'optT', 'optF1', 'optF2', 'optF3', 'opt1', 'opt2', 'opt3', 'opt4', 'opt5', 'opt6'].forEach((key) => {
+          const filename = extractFilename(row[key]);
+          if (filename) neededFiles.add(filename);
+        });
+      });
+
+      setImportPreview({
+        neededFiles: Array.from(neededFiles),
+        matchedFiles: [],
+      });
+    } catch (error) {
+      console.error('Failed to read Excel:', error);
+      toast.error('Không thể đọc file Excel');
+    }
+  };
+
+  const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    setSelectedFolderFiles(files);
+
+    if (files && importPreview) {
+      const matchedFiles = Array.from(files)
+        .map((f) => f.name)
+        .filter((name) => importPreview.neededFiles.includes(name));
+
+      setImportPreview({
+        ...importPreview,
+        matchedFiles,
+      });
+    }
+  };
+
+  const handleConfirmImport = async () => {
+    const lessonId = form.getValues('lessonId') || storeLessonId;
+    if (!lessonId) {
+      toast.error('Vui lòng chọn bài luyện tập');
+      return;
+    }
+
+    if (!selectedExcelFile) {
+      toast.error('Vui lòng chọn file Excel');
+      return;
+    }
+
+    setIsImporting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('excelFile', selectedExcelFile);
+
+      if (selectedFolderFiles && importPreview) {
+        const matchedFileNames = new Set(importPreview.matchedFiles);
+        Array.from(selectedFolderFiles).forEach((file) => {
+          if (matchedFileNames.has(file.name)) {
+            formData.append('assets', file);
+          }
+        });
+      }
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_ENDPOINT || 'http://localhost:3001/api';
+      const response = await fetch(
+        `${apiUrl}/exercises/import-excel/${lessonId}`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      const contentType = response.headers.get('content-type');
+      
+      if (!response.ok) {
+        let errorMessage = `Server returned ${response.status}: ${response.statusText}`;
+        
+        if (contentType?.includes('application/json')) {
+          try {
+            const error = await response.json();
+            errorMessage = error.message || errorMessage;
+          } catch {
+            // Failed to parse JSON error
+          }
+        } else {
+          // Get text response for debugging
+          const text = await response.text();
+          console.error('Server error response:', text.substring(0, 500));
+          errorMessage = `Server error: ${response.statusText}`;
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      if (!contentType?.includes('application/json')) {
+        const text = await response.text();
+        console.error('Unexpected response type:', contentType, text.substring(0, 500));
+        throw new Error('Server returned unexpected response format');
+      }
+
+      const result = await response.json();
+      toast.success(`Đã import thành công ${result.length} câu hỏi`);
+      
+      setShowImportDialog(false);
+      setSelectedExcelFile(null);
+      setSelectedFolderFiles(null);
+      setImportPreview(null);
+
+      // Reload exercises
+      const existingExercises = await getExerciseByLessonId(lessonId);
+      if (existingExercises && existingExercises.length > 0) {
+        setExistingExercisesCount(existingExercises.length);
+        const convertedExercises = existingExercises.map((ex) => ({
+          id: ex.id,
+          lessonId: ex.lessonId,
+          type: ex.type,
+          prompt: ex.prompt,
+          imageUrl: ex.imageUrl || "",
+          audioUrl: ex.audioUrl || "",
+          targetText: ex.targetText || "",
+          hintEn: ex.hintEn || "",
+          hintVi: ex.hintVi || "",
+          points: ex.points,
+          difficulty: ex.difficulty || 1,
+          options: ex.options?.map((opt) => ({
+            id: opt.id,
+            text: opt.text,
+            imageUrl: opt.imageUrl || "",
+            audioUrl: opt.audioUrl || "",
+            isCorrect: opt.isCorrect,
+            order: opt.order,
+            matchKey: opt.matchKey || "",
+          })) || [],
+        })) as CreateExerciseFormData[];
+        setExerciseForms(convertedExercises);
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      toast.error(`Import thất bại: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleImageUpload = (result: any) => {
     if (result?.info?.secure_url) {
@@ -670,6 +862,15 @@ export default function ExerciseFormPage() {
 
       <div className="flex items-center justify-between">
         <TypographyH3>Thêm câu hỏi mới</TypographyH3>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleImportExcel}
+          className="gap-2"
+        >
+          <Upload className="h-4 w-4" />
+          Import từ Excel
+        </Button>
       </div>
 
       {/* Display saved exercises */}
@@ -1610,6 +1811,105 @@ export default function ExerciseFormPage() {
           </div>
         </form>
       </Form>
+
+      {/* Import Dialog */}
+      <AlertDialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <AlertDialogContent className="max-w-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Import câu hỏi từ Excel</AlertDialogTitle>
+            <AlertDialogDescription>
+              Chọn file Excel và thư mục chứa hình ảnh/âm thanh để import.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="space-y-4">
+            {/* Excel File Input */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Chọn file Excel <RequiredField />
+              </label>
+              <Input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleExcelFileSelect}
+                disabled={isImporting}
+              />
+              {selectedExcelFile && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Đã chọn: {selectedExcelFile.name}
+                </p>
+              )}
+            </div>
+
+            {/* Folder Input */}
+            {importPreview && (
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Chọn thư mục chứa assets (tùy chọn)
+                </label>
+                <Input
+                  type="file"
+                  // @ts-expect-error webkitdirectory attribute
+                  webkitdirectory=""
+                  directory=""
+                  multiple
+                  onChange={handleFolderSelect}
+                  disabled={isImporting}
+                />
+                {selectedFolderFiles && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Đã chọn {selectedFolderFiles.length} files
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Preview */}
+            {importPreview && (
+              <div className="border rounded-lg p-4 bg-muted/50">
+                <h4 className="font-medium mb-2">Tổng quan Import</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Files cần thiết từ Excel:</span>
+                    <Badge variant="secondary">
+                      {importPreview.neededFiles.length}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Files đã khớp trong thư mục:</span>
+                    <Badge
+                      variant={
+                        importPreview.matchedFiles.length ===
+                        importPreview.neededFiles.length
+                          ? "default"
+                          : "outline"
+                      }
+                    >
+                      {importPreview.matchedFiles.length}
+                    </Badge>
+                  </div>
+                  {importPreview.matchedFiles.length < importPreview.neededFiles.length && (
+                    <p className="text-xs text-amber-600 mt-2">
+                      ⚠️ Một số files chưa được tìm thấy. Các trường tương ứng sẽ để trống.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isImporting}>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmImport}
+              disabled={!selectedExcelFile || isImporting}
+            >
+              {isImporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Bắt đầu Import
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
