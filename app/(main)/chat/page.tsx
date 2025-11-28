@@ -40,7 +40,7 @@ interface SpeechRecognition extends EventTarget {
 }
 
 interface SpeechRecognitionConstructor {
-  new (): SpeechRecognition;
+  new(): SpeechRecognition;
 }
 
 declare global {
@@ -56,7 +56,7 @@ export default function ChatPage() {
   const [isListening, setIsListening] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  
+
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -75,7 +75,7 @@ export default function ChatPage() {
         recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
           const results = event.results;
           const lastResult = results[results.length - 1];
-          
+
           // Chỉ lấy kết quả final
           if (lastResult.isFinal) {
             const transcript = lastResult[0].transcript;
@@ -112,11 +112,11 @@ export default function ChatPage() {
     try {
       const history = await getChatHistory();
       const loadedMessages: Message[] = [];
-      
+
       for (let i = 0; i < history.length; i += 2) {
         const userMsg = history[i];
         const aiMsg = history[i + 1];
-        
+
         if (userMsg) {
           loadedMessages.push({
             id: `${i}`,
@@ -125,7 +125,7 @@ export default function ChatPage() {
             timestamp: new Date(userMsg.createdAt),
           });
         }
-        
+
         if (aiMsg) {
           loadedMessages.push({
             id: `${i + 1}`,
@@ -135,7 +135,7 @@ export default function ChatPage() {
           });
         }
       }
-      
+
       setMessages(loadedMessages);
     } catch (error) {
       console.error("Error loading history:", error);
@@ -175,7 +175,7 @@ export default function ChatPage() {
 
   const handleSendMessage = async (text?: string) => {
     const messageText = text || inputText.trim();
-    
+
     if (!messageText) {
       toast.error("Vui lòng nhập tin nhắn!");
       return;
@@ -216,13 +216,18 @@ export default function ChatPage() {
       // Stop any ongoing speech
       window.speechSynthesis.cancel();
 
-      // Tách phần tiếng Anh và CHỈ ĐỌC phần tiếng Anh
-      // Format: "English text (Tiếng Việt)" -> Chỉ đọc "English text"
-      const englishMatch = text.match(/^([^(]+)/);
+      // Clean text: remove emojis, Vietnamese in parentheses, and special chars
+      let cleanText = text
+        // Remove emoji and special unicode chars
+        .replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu, '')
+        // Remove Vietnamese in parentheses
+        .replace(/\([^)]*\)/g, '')
+        // Remove colons used in translation format "word: translation"
+        .replace(/^[^:]+:\s*/, '')
+        .trim();
 
-      if (englishMatch) {
-        const englishText = englishMatch[1].trim();
-        const utterance = new SpeechSynthesisUtterance(englishText);
+      if (cleanText && cleanText.length > 0) {
+        const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = "en-US";
         utterance.rate = 0.85; // Chậm hơn để dễ nghe
         utterance.pitch = 1;
@@ -254,7 +259,7 @@ export default function ChatPage() {
                 Hội thoại với AI
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Hỏi bất cứ điều gì bằng tiếng Việt hoặc tiếng Anh
+                Hỏi nghĩa từ, hỏi đáp, hoặc hỏi về tiến độ học tập
               </p>
             </div>
             <Button variant="dangerOutline" size="sm" onClick={handleClearHistory}>
@@ -269,25 +274,23 @@ export default function ChatPage() {
           <div className="flex-1 overflow-y-auto space-y-4 mb-4 p-4 bg-gray-50 rounded-lg">
             {messages.length === 0 ? (
               <div className="flex items-center justify-center h-full text-muted-foreground">
-                <p>Bắt đầu cuộc trò chuyện hoặc hỏi nghĩa từ!</p>
+                <p>Bắt đầu trò chuyện, hỏi nghĩa từ, hoặc hỏi về tiến độ học!</p>
               </div>
             ) : (
               messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${
-                    message.type === "user" ? "justify-end" : "justify-start"
-                  }`}
+                  className={`flex ${message.type === "user" ? "justify-end" : "justify-start"
+                    }`}
                 >
                   <div
-                    className={`max-w-[70%] rounded-lg p-3 ${
-                      message.type === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-white border"
-                    }`}
+                    className={`max-w-[70%] rounded-lg p-3 ${message.type === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-white border"
+                      }`}
                   >
                     <p className="whitespace-pre-wrap">{message.text}</p>
-                    
+
                     {message.translation && (
                       <div className="mt-2 pt-2 border-t">
                         <p className="font-semibold">{message.translation.word}</p>
@@ -304,7 +307,7 @@ export default function ChatPage() {
                         )}
                       </div>
                     )}
-                    
+
                     <p className="text-xs opacity-70 mt-1">
                       {message.timestamp.toLocaleTimeString("vi-VN", {
                         hour: "2-digit",
@@ -324,12 +327,12 @@ export default function ChatPage() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Hỏi gì cũng được: chat, hỏi nghĩa từ, học từ vựng..."
+              placeholder="Hỏi gì cũng được: nghĩa từ, hỏi đáp, học được bao nhiêu bài, unit về gì..."
               className="resize-none"
               rows={2}
               disabled={isSending || isListening}
             />
-            
+
             <div className="flex flex-col gap-2">
               <Button
                 onClick={handleListen}
