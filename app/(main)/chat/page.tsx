@@ -212,25 +212,36 @@ export default function ChatPage() {
   };
 
   const speakText = (text: string) => {
-    if (typeof window !== "undefined" && window.speechSynthesis) {
-      // Stop any ongoing speech
-      window.speechSynthesis.cancel();
+    if (!text) return;
 
-      // Clean text: remove emojis, Vietnamese in parentheses, and special chars
+    // Stop any current speech
+    window.speechSynthesis?.cancel();
+
+    try {
+      // Clean text aggressively - remove ALL Vietnamese and special chars
       let cleanText = text
         // Remove emoji and special unicode chars
         .replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu, '')
-        // Remove Vietnamese in parentheses
-        .replace(/\([^)]*\)/g, '')
-        // Remove colons used in translation format "word: translation"
+        // Remove Vietnamese text in parentheses (including the parentheses)
+        .replace(/\([^)]*[\u00C0-\u1EF9][^)]*\)/g, '')
+        // Remove any standalone Vietnamese words/phrases
+        .replace(/[\u00C0-\u1EF9]+[\w\s]*/g, '')
+        // Remove translation format "word: vietnamese"
+        .replace(/:\s*[\u00C0-\u1EF9][\w\s]*/g, '')
+        // Remove colon prefix for translations
         .replace(/^[^:]+:\s*/, '')
+        // Remove quotation marks
+        .replace(/["""]/g, '')
+        // Remove extra whitespace
+        .replace(/\s+/g, ' ')
         .trim();
 
-      if (cleanText && cleanText.length > 0) {
+      // Only speak if we have clean English text left
+      if (cleanText && cleanText.length > 0 && /[a-zA-Z]/.test(cleanText)) {
         const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = "en-US";
-        utterance.rate = 0.85; // Chậm hơn để dễ nghe
-        utterance.pitch = 1;
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
 
         utterance.onstart = () => setIsSpeaking(true);
         utterance.onend = () => setIsSpeaking(false);
@@ -238,8 +249,11 @@ export default function ChatPage() {
 
         window.speechSynthesis.speak(utterance);
       }
+    } catch (error) {
+      console.error('Text-to-speech error:', error);
     }
   };
+
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {

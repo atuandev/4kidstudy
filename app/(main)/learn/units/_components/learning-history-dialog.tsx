@@ -149,9 +149,9 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
                   </p>
                 </div>
                 <div className="mt-3 flex justify-center">
-                  <FlashcardDetailDialog 
-                    topItems={stats.flashcardStats.allItems} 
-                    topics={stats.topics} 
+                  <FlashcardDetailDialog
+                    topItems={stats.flashcardStats.allItems}
+                    topics={stats.topics}
                   />
                 </div>
               </CardContent>
@@ -175,9 +175,9 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
                   </p>
                 </div>
                 <div className="mt-3 flex justify-center">
-                  <SentenceDetailDialog 
-                    topItems={stats.sentenceStats.allItems} 
-                    topics={stats.topics} 
+                  <SentenceDetailDialog
+                    topItems={stats.sentenceStats.allItems}
+                    topics={stats.topics}
                   />
                 </div>
               </CardContent>
@@ -197,7 +197,7 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
                     {stats.topicCount}
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Chủ đề đã học
+                    Chủ đề đã hoàn thành
                   </p>
                 </div>
                 <div className="mt-3 flex justify-center">

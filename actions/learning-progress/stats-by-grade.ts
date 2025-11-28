@@ -114,7 +114,7 @@ export async function getLearningStatsByGrade(
     gradeProgress.forEach((item: LearningProgressItem) => {
       // Only count items with isMastered = true
       if (!item.isMastered) return;
-      
+
       if (item.contentType === "FLASHCARD" && item.flashcard) {
         const id = item.flashcard.id;
         const currentMax = uniqueFlashcards.get(id) || 0;
@@ -129,15 +129,15 @@ export async function getLearningStatsByGrade(
     // Fetch total flashcards and sentences for this grade
     const topicsResponse = await http.get<any[]>(`/topics?grade=${grade}`);
     const topics = topicsResponse.payload || [];
-    
+
     let totalFlashcards = 0;
     let totalSentences = 0;
-    
+
     await Promise.all(topics.map(async (topic: any) => {
       // Get flashcards count
       const flashcardRes = await http.get<any>(`/flashcards?topicId=${topic.id}`);
       totalFlashcards += flashcardRes.payload?.length || 0;
-      
+
       // Get sentences count (need to fetch SentenceImages first, then count their sentences)
       const sentenceImagesRes = await http.get<any>(`/sentences/images/topic/${topic.id}`);
       const sentenceImages = sentenceImagesRes.payload || [];
@@ -193,7 +193,7 @@ export async function getLearningStatsByGrade(
     gradeProgress.forEach((item: LearningProgressItem) => {
       let topicId: number | undefined;
       let topicName: string | undefined;
-      
+
       if (item.contentType === "FLASHCARD" && item.flashcard) {
         topicId = item.flashcard.topicId;
         topicName = topics.find((t: any) => t.id === topicId)?.title;
@@ -201,7 +201,7 @@ export async function getLearningStatsByGrade(
         topicId = item.sentence.sentenceImage.topicId;
         topicName = topics.find((t: any) => t.id === topicId)?.title;
       }
-      
+
       if (topicId && topicName) {
         const current = topicReviewCounts.get(topicId) || { name: topicName, count: 0 };
         topicReviewCounts.set(topicId, { name: topicName, count: current.count + 1 });
@@ -216,6 +216,37 @@ export async function getLearningStatsByGrade(
         name: data.name,
         reviewCount: data.count
       }));
+
+    // Calculate which topics are fully completed
+    // A topic is completed when ALL its flashcards AND ALL its sentences are mastered
+    const completedTopics = new Set<number>();
+
+    for (const topic of topics) {
+      // Get flashcards for this topic
+      const flashcardRes = await http.get<any>(`/flashcards?topicId=${topic.id}`);
+      const topicFlashcards = flashcardRes.payload || [];
+
+      // Get sentences for this topic
+      const sentenceImagesRes = await http.get<any>(`/sentences/images/topic/${topic.id}`);
+      const sentenceImages = sentenceImagesRes.payload || [];
+      const topicSentences = sentenceImages.flatMap((img: any) => img.sentences || []);
+
+      // Check if all flashcards are mastered
+      const allFlashcardsMastered = topicFlashcards.every((fc: any) =>
+        uniqueFlashcards.has(fc.id)
+      );
+
+      // Check if all sentences are mastered
+      const allSentencesMastered = topicSentences.every((s: any) =>
+        uniqueSentences.has(s.id)
+      );
+
+      // Topic is completed only if BOTH conditions are met
+      if (topicFlashcards.length > 0 && topicSentences.length > 0 &&
+        allFlashcardsMastered && allSentencesMastered) {
+        completedTopics.add(topic.id);
+      }
+    }
 
     return {
       totalReviewed,
@@ -233,7 +264,7 @@ export async function getLearningStatsByGrade(
         topItems: topSentences,
         allItems: allSentences,
       },
-      topicCount: topics.length,
+      topicCount: completedTopics.size, // ✅ FIXED - only count fully completed topics
       topTopics,
       topics: topics.map((t: any) => ({ id: t.id, name: t.title })),
     };
