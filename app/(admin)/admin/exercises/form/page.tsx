@@ -141,10 +141,10 @@ export default function ExerciseFormPage() {
         // Load existing exercises if lesson is selected
         if (storeLessonId) {
           const existingExercises = await getExerciseByLessonId(storeLessonId);
-          
+
           if (existingExercises && existingExercises.length > 0) {
             setExistingExercisesCount(existingExercises.length);
-            
+
             // Convert existing exercises to form format
             const convertedExercises = existingExercises.map((ex) => ({
               id: ex.id,
@@ -168,7 +168,7 @@ export default function ExerciseFormPage() {
                 matchKey: opt.matchKey || "",
               })) || [],
             })) as CreateExerciseFormData[];
-            
+
             setExerciseForms(convertedExercises);
             toast.success(`Đã tải ${existingExercises.length} câu hỏi có sẵn`);
           }
@@ -366,7 +366,7 @@ export default function ExerciseFormPage() {
 
   const handleDeleteExercise = async (index: number) => {
     const exercise = exerciseForms[index];
-    
+
     // If exercise has an id, it's an existing exercise - need to delete from backend
     if (exercise.id) {
       try {
@@ -378,7 +378,7 @@ export default function ExerciseFormPage() {
         return;
       }
     }
-    
+
     // Remove from local array
     const updatedExercises = exerciseForms.filter((_, i) => i !== index);
     setExerciseForms(updatedExercises);
@@ -539,25 +539,25 @@ export default function ExerciseFormPage() {
       // Separate existing exercises (with id) from new exercises (without id)
       const existingExercises = exerciseForms.filter(ex => ex.id);
       const newExercises = exerciseForms.filter(ex => !ex.id);
-      
+
       let updatedCount = 0;
       let createdCount = 0;
-      
+
       // Update existing exercises
       if (existingExercises.length > 0) {
         const updatePromises = existingExercises.map(async (exercise) => {
           const { id, ...updateData } = exercise;
           return updateExercise(id!, updateData);
         });
-        
+
         const updateResults = await Promise.all(updatePromises);
         updatedCount = updateResults.filter(result => result.status === 200).length;
-        
+
         if (updatedCount < existingExercises.length) {
           toast.warning(`Chỉ cập nhật được ${updatedCount}/${existingExercises.length} câu hỏi`);
         }
       }
-      
+
       // Create new exercises
       if (newExercises.length > 0) {
         const { payload, status } = await createManyExercises(newExercises);
@@ -566,21 +566,21 @@ export default function ExerciseFormPage() {
           toast.error("Tạo hàng loạt câu hỏi thất bại");
           return;
         }
-        
+
         createdCount = payload.length;
       }
-      
+
       // Show success message
       const messages = [];
       if (updatedCount > 0) messages.push(`Cập nhật ${updatedCount} câu`);
       if (createdCount > 0) messages.push(`Tạo mới ${createdCount} câu`);
-      
+
       toast.success(messages.join(" và "));
       setExerciseForms([]);
       setExistingExercisesCount(0);
       clearSelection();
       router.push("/admin/exercises");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Failed to save exercises:", error);
       const errorMessage = error?.payload?.message;
@@ -716,10 +716,10 @@ export default function ExerciseFormPage() {
       );
 
       const contentType = response.headers.get('content-type');
-      
+
       if (!response.ok) {
         let errorMessage = `Server returned ${response.status}: ${response.statusText}`;
-        
+
         if (contentType?.includes('application/json')) {
           try {
             const error = await response.json();
@@ -733,7 +733,7 @@ export default function ExerciseFormPage() {
           console.error('Server error response:', text.substring(0, 500));
           errorMessage = `Server error: ${response.statusText}`;
         }
-        
+
         throw new Error(errorMessage);
       }
 
@@ -745,7 +745,7 @@ export default function ExerciseFormPage() {
 
       const result = await response.json();
       toast.success(`Đã import thành công ${result.length} câu hỏi`);
-      
+
       setShowImportDialog(false);
       setSelectedExcelFile(null);
       setSelectedFolderFiles(null);
@@ -890,21 +890,20 @@ export default function ExerciseFormPage() {
               {exerciseForms.map((exercise, index) => {
                 const isExpanded = expandedCards.has(index);
                 const isExisting = !!exercise.id;
-                
+
                 return (
-                  <Card 
+                  <Card
                     key={index}
-                    className={`${
-                      editingIndex === index
-                        ? "border-blue-500 ring-2 ring-blue-200"
-                        : isExisting ? "border-green-300" : ""
-                    }`}
+                    className={`${editingIndex === index
+                      ? "border-blue-500 ring-2 ring-blue-200"
+                      : isExisting ? "border-green-300" : ""
+                      }`}
                   >
                     <CardContent className="p-4">
                       {/* Header - Always visible */}
                       <div className="flex items-center justify-between">
-                        <div 
-                          className="flex-1 cursor-pointer" 
+                        <div
+                          className="flex-1 cursor-pointer"
                           onClick={() => toggleCardExpanded(index)}
                         >
                           <div className="flex items-center gap-2">
@@ -972,14 +971,14 @@ export default function ExerciseFormPage() {
                           {exercise.imageUrl && (
                             <div>
                               <p className="text-sm font-medium mb-1">Hình ảnh câu hỏi:</p>
-                              <img 
-                                src={exercise.imageUrl} 
-                                alt="Exercise" 
+                              <img
+                                src={exercise.imageUrl}
+                                alt="Exercise"
                                 className="w-32 h-32 object-cover rounded border"
                               />
                             </div>
                           )}
-                          
+
                           {exercise.audioUrl && (
                             <div>
                               <p className="text-sm font-medium mb-1">Âm thanh:</p>
@@ -988,40 +987,39 @@ export default function ExerciseFormPage() {
                               </audio>
                             </div>
                           )}
-                          
+
                           {exercise.targetText && (
                             <div>
                               <p className="text-sm font-medium">Văn bản cần đọc:</p>
                               <p className="text-sm text-muted-foreground">{exercise.targetText}</p>
                             </div>
                           )}
-                          
+
                           {exercise.hintEn && (
                             <div>
                               <p className="text-sm font-medium">Gợi ý (EN):</p>
                               <p className="text-sm text-muted-foreground">{exercise.hintEn}</p>
                             </div>
                           )}
-                          
+
                           {exercise.hintVi && (
                             <div>
                               <p className="text-sm font-medium">Gợi ý (VI):</p>
                               <p className="text-sm text-muted-foreground">{exercise.hintVi}</p>
                             </div>
                           )}
-                          
+
                           {exercise.options && exercise.options.length > 0 && (
                             <div>
                               <p className="text-sm font-medium mb-2">Đáp án:</p>
                               <div className="space-y-2">
                                 {exercise.options.map((option, optIndex) => (
-                                  <div 
+                                  <div
                                     key={optIndex}
-                                    className={`p-2 rounded border ${
-                                      option.isCorrect 
-                                        ? "bg-green-50 border-green-300" 
-                                        : "bg-gray-50"
-                                    }`}
+                                    className={`p-2 rounded border ${option.isCorrect
+                                      ? "bg-green-50 border-green-300"
+                                      : "bg-gray-50"
+                                      }`}
                                   >
                                     <div className="flex items-start gap-2">
                                       <Badge variant={option.isCorrect ? "default" : "secondary"} className="shrink-0">
@@ -1032,9 +1030,9 @@ export default function ExerciseFormPage() {
                                           <p className="text-sm">{option.text}</p>
                                         )}
                                         {option.imageUrl && (
-                                          <img 
-                                            src={option.imageUrl} 
-                                            alt={`Option ${optIndex + 1}`} 
+                                          <img
+                                            src={option.imageUrl}
+                                            alt={`Option ${optIndex + 1}`}
                                             className="w-20 h-20 object-cover rounded"
                                           />
                                         )}
@@ -1880,7 +1878,7 @@ export default function ExerciseFormPage() {
                     <Badge
                       variant={
                         importPreview.matchedFiles.length ===
-                        importPreview.neededFiles.length
+                          importPreview.neededFiles.length
                           ? "default"
                           : "outline"
                       }
