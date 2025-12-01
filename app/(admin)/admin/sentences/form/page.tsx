@@ -115,6 +115,10 @@ export default function SentenceFormPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedGrade, setSelectedGrade] = useState<string>("");
   const [sentenceImageGroups, setSentenceImageGroups] = useState<SentenceImageGroup[]>([]);
+  const existingSentencesCount: number = sentenceImageGroups.reduce(
+    (total: number, group: SentenceImageGroup) => total + group.sentences.length,
+    0
+  );
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [showImportDialog, setShowImportDialog] = useState(false);
@@ -824,7 +828,7 @@ export default function SentenceFormPage() {
                 <Button
                   type="button"
                   onClick={handleAddSentenceImageGroup}
-                  variant="outline"
+                  variant="secondaryOutline"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Thêm thẻ mới
@@ -938,7 +942,7 @@ export default function SentenceFormPage() {
                             {({ open }) => (
                               <Button
                                 type="button"
-                                variant="outline"
+                                variant="secondaryOutline"
                                 onClick={() => open()}
                               >
                                 <Upload className="h-4 w-4" />
@@ -985,7 +989,7 @@ export default function SentenceFormPage() {
                             {({ open }) => (
                               <Button
                                 type="button"
-                                variant="outline"
+                                variant="secondaryOutline"
                                 onClick={() => open()}
                               >
                                 <Upload className="h-4 w-4" />
@@ -1177,7 +1181,7 @@ export default function SentenceFormPage() {
                                     {({ open }) => (
                                       <Button
                                         type="button"
-                                        variant="outline"
+                                        variant="secondaryOutline"
                                         onClick={() => open()}
                                       >
                                         <Upload className="h-4 w-4" />
@@ -1202,7 +1206,7 @@ export default function SentenceFormPage() {
           <div className="flex justify-between items-center sticky bottom-0 bg-background pt-4 pb-2 border-t">
             <Button
               type="button"
-              variant="outline"
+              variant="secondaryOutline"
               onClick={handleCancel}
               disabled={isSubmitting}
             >

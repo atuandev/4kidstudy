@@ -631,15 +631,14 @@ export default function ExerciseFormPage() {
       const arrayBuffer = await file.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer, { type: 'array' });
       const sheetName = workbook.SheetNames[0];
-      // @ts-expect-error XLSX type
       const worksheet = workbook.Sheets[sheetName];
-      // @ts-expect-error XLSX type
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+      const jsonData = XLSX.utils.sheet_to_json<Record<string, string>>(worksheet, {
+        defval: '',
+      });
 
       const neededFiles = new Set<string>();
 
-      // @ts-expect-error jsonData type
-      jsonData.forEach((row) => {
+      jsonData.forEach((row: Record<string, string>) => {
         const extractFilename = (path: string | undefined) => {
           if (!path || typeof path !== 'string') return null;
           const trimmed = path.trim();
@@ -864,7 +863,7 @@ export default function ExerciseFormPage() {
         <TypographyH3>Thêm câu hỏi mới</TypographyH3>
         <Button
           type="button"
-          variant="outline"
+          variant="secondaryOutline"
           onClick={handleImportExcel}
           className="gap-2"
         >

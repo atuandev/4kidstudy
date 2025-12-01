@@ -7,10 +7,11 @@ export async function sendChatMessage(
   message: string,
   isTranslation?: boolean
 ): Promise<ChatResponseDto> {
-  const res = await http.post<ChatResponseDto>("/chat", {
+  const body: ChatRequestDto = {
     message,
     isTranslation,
-  });
+  };
+  const res = await http.post<ChatResponseDto>('/chat', JSON.stringify(body));
 
   return res.payload;
 }

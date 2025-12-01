@@ -30,10 +30,10 @@ export default async function SentencesTopicPage({
 
   return (
     <Suspense fallback={<p>Loading...</p>}>
-      <SentenceViewer 
-        sentenceImages={sentenceImages} 
+      <SentenceViewer
+        sentenceImages={sentenceImages}
         topicTitle={topic.title}
-        topicGrade={topic.grade}
+        topicGrade={topic.grade ?? "GRADE_1"}
         topicId={topicIdNum}
         onRecordReview={reviewContent}
         initialMasteredIds={masteredSentenceIds}
