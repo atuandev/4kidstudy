@@ -1,11 +1,13 @@
-'use client';
+"use client";
 
 import {
   ArrowLeft,
   CheckCircle2,
   Clock,
+  FlameIcon,
   Trophy,
-  XCircle
+  TrophyIcon,
+  XCircle,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -23,6 +25,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useRouter } from "next/navigation";
+import { User } from "@/types";
+import { Separator } from "@/components/ui/separator";
 
 type HeaderProps = {
   currentExercise: number;
@@ -33,6 +37,7 @@ type HeaderProps = {
   duration: number;
   unitTitle: string;
   lessonTitle: string;
+  profile: User;
 };
 
 export const Header = ({
@@ -44,6 +49,7 @@ export const Header = ({
   duration,
   unitTitle,
   lessonTitle,
+  profile,
 }: HeaderProps) => {
   const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -63,10 +69,27 @@ export const Header = ({
       ? Math.round((currentExercise / totalExercises) * 100)
       : 0;
 
-
   return (
-    <header className="mx-auto flex w-full flex-col gap-y-4 pt-4">
+    <header className="mx-auto flex w-full flex-col gap-y-4">
       {/* Top row with close button and stats */}
+      <div className="flex items-center gap-4 justify-end">
+        <div className="flex items-center gap-1">
+          <TrophyIcon className="size-5 text-yellow-600" />
+          <span className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+            {profile?.xp.toLocaleString()}
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          <FlameIcon className="size-5 text-orange-600" />
+          <span className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+            {profile?.streakDays}
+          </span>
+        </div>
+        <span className="text-lg font-bold">Hello, {profile?.name}</span>
+      </div>
+
+      <Separator />
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-x-4">
           <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -79,7 +102,8 @@ export const Header = ({
               <AlertDialogHeader>
                 <AlertDialogTitle>Bạn có chắc muốn thoát?</AlertDialogTitle>
                 <AlertDialogDescription className="text-base">
-                  Tiến trình của bạn sẽ không được lưu. Bạn sẽ phải bắt đầu lại bài học này từ đầu.
+                  Tiến trình của bạn sẽ không được lưu. Bạn sẽ phải bắt đầu lại
+                  bài học này từ đầu.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -118,7 +142,6 @@ export const Header = ({
               {correctCount}
             </span>
           </div>
-
 
           {/* Wrong Count */}
           <div className="flex items-center gap-x-1 bg-red-50 rounded-lg px-2 py-1">

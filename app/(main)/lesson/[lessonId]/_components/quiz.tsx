@@ -14,11 +14,12 @@ import {
 } from "../_hooks";
 import { useQuizStore } from "@/lib/stores/quiz-store";
 import { useExerciseStatsStore } from "@/lib/stores/exercise-stats-store";
-import { Exercise as ExerciseType, Lesson } from "@/types";
+import { Exercise as ExerciseType, Lesson, User } from "@/types";
 
 type QuizProps = {
   lesson: Lesson;
   lessonExercises: ExerciseType[];
+  profile: User;
 };
 
 const EXERCISE_TITLES = {
@@ -29,7 +30,7 @@ const EXERCISE_TITLES = {
   PRONUNCIATION: "Luyện phát âm",
 } as const;
 
-export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
+export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
   // Audio hooks - must be called first to render audio elements
   const {
     correctAudio,
@@ -87,6 +88,7 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
   const title = EXERCISE_TITLES[exercise.type] || "Exercise";
   const attemptCountForExercise = getExerciseAttemptCount(exercise.id);
   const shouldHideHintsOnFirstWrong = status === "wrong" && attemptCountForExercise === 1;
+  const isFirstWrongAttempt = status === "wrong" && attemptCountForExercise === 1;
 
   return (
     <>
@@ -103,13 +105,14 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
         duration={currentDuration}
         unitTitle={lesson.topic.title}
         lessonTitle={lesson.title}
+        profile={profile}
       />
 
-      <div className="h-[calc(100vh-260px)]">
+      <div className="h-[calc(100vh-310px)]">
         <div className="flex h-full items-center justify-center">
           <div className="flex w-full flex-col gap-4 px-6 lg:min-h-[350px] lg:w-[600px] lg:px-0">
             <h1 className="text-center text-lg font-bold text-neutral-700 lg:text-start lg:text-2xl">
-              {title}
+              Câu {activeIndex + 1}: {title}
             </h1>
 
             <div>
@@ -160,6 +163,7 @@ export const Quiz = ({ lesson, lessonExercises }: QuizProps) => {
           "MULTIPLE_CHOICE",
           "LISTENING",
         ].includes(exercise.type)}
+        isFirstWrongAttempt={isFirstWrongAttempt}
         hintVi={shouldHideHintsOnFirstWrong ? undefined : exercise.hintVi}
         hintEn={shouldHideHintsOnFirstWrong ? undefined : exercise.hintEn}
       />
