@@ -2,6 +2,8 @@ export type UserRole = 'ADMIN' | 'LEARNER';
 
 export type Gender = 'MALE' | 'FEMALE' | 'UNSET';
 
+export type GradeLevel = 'GRADE_1' | 'GRADE_2' | 'GRADE_3' | 'GRADE_4' | 'GRADE_5';
+
 export interface User {
   id: number;
   email: string;
@@ -13,6 +15,8 @@ export interface User {
   xp: number;
   streakDays: number;
   isActive: boolean;
+  grade: GradeLevel;
+  isVerified: boolean;
   createdAt: string;
   updatedAt: string;
   _count: {

@@ -8,7 +8,15 @@ import { FlameIcon, GraduationCap, TrophyIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useProfile } from "@/hooks/use-profile";
-import { GRADES, Grade } from "@/types/grade";
+import { GRADE_VALUES, GRADES, Grade, GradeValue } from "@/types/grade";
+
+const gradeOrderMap: Record<GradeValue, number> = {
+  [GRADE_VALUES.GRADE_1]: 1,
+  [GRADE_VALUES.GRADE_2]: 2,
+  [GRADE_VALUES.GRADE_3]: 3,
+  [GRADE_VALUES.GRADE_4]: 4,
+  [GRADE_VALUES.GRADE_5]: 5,
+};
 
 const buildRouteWithGrade = (basePath: string, grade: string) => {
   const searchParams = new URLSearchParams();
@@ -36,12 +44,20 @@ export function GradeSelectorButton() {
       router.refresh();
     });
   };
+
+  const userGradeValue = profile?.grade as GradeValue | undefined;
+  const availableGrades = userGradeValue
+    ? GRADES.filter(
+        (grade) => gradeOrderMap[grade.value] <= gradeOrderMap[userGradeValue]
+      )
+    : GRADES;
+
   return (
     <div className="mx-6 flex items-center justify-between gap-2 pb-4">
       <div className="flex items-center gap-2">
         <GraduationCap className="size-8 text-muted-foreground" />
         <div className="flex gap-1">
-          {GRADES.map((grade) => {
+          {availableGrades.map((grade) => {
             const isActive = selectedGrade === grade.value;
             return (
               <Button
