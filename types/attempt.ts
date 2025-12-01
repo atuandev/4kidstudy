@@ -78,3 +78,13 @@ export interface PracticeStatistics {
   byType: PracticeStatisticsByType[];
 }
 
+export interface MostWrongExerciseStats {
+  exerciseId: number;
+  exerciseOrder: number;
+  exercisePrompt?: string;
+  firstWrongCount: number;
+  secondWrongCount: number;
+  totalWrongCount: number;
+}
+
+

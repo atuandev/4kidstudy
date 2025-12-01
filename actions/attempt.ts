@@ -1,12 +1,13 @@
 'use server';
 
 import http from '@/lib/http';
-import { 
-  Attempt, 
-  CreateAttemptRequest, 
-  SubmitExerciseRequest, 
+import {
+  Attempt,
+  CreateAttemptRequest,
+  SubmitExerciseRequest,
   CompleteAttemptRequest,
-  AttemptDetail 
+  AttemptDetail,
+  MostWrongExerciseStats,
 } from '@/types';
 
 /**
@@ -89,4 +90,17 @@ export async function getPracticeStatistics() {
   }>(`/attempts/statistics`);
   return payload;
 }
+
+/**
+ * Get most wrong exercises for a lesson
+ */
+export async function getMostWrongExercisesByLesson(
+  lessonId: number,
+): Promise<MostWrongExerciseStats[]> {
+  const { payload } = await http.get<MostWrongExerciseStats[]>(
+    `/attempts/statistics/most-wrong-exercises?lessonId=${lessonId}`,
+  );
+  return payload;
+}
+
 

@@ -50,7 +50,7 @@ export const LessonButton = ({ id, lesson }: LessonButtonProps) => {
           </div>
           <div className="flex items-center gap-2 text-sm">
             <Target className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground text-base font-medium">Số bài tập:</span>
+            <span className="text-muted-foreground text-base font-medium">Số câu hỏi:</span>
             <Badge className="text-base">{lesson._count?.exercises}</Badge>
           </div>
         </div>
