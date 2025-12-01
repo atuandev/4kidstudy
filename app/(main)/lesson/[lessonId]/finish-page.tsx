@@ -8,20 +8,23 @@ import Image from "next/image";
 import { useWindowSize } from "react-use";
 import { useRouter } from "next/navigation";
 import { useExerciseStatsStore } from "@/lib/stores/exercise-stats-store";
+import { useProfile } from "@/hooks/use-profile";
 
-type FinishPageProps = {
+interface FinishPageProps {
   lessonId: number;
-};
+}
 
 export default function FinishPage({ lessonId }: FinishPageProps) {
   const { width, height } = useWindowSize();
   const router = useRouter();
   const { getAccuracy } = useExerciseStatsStore();
+  const { fetchProfile } = useProfile();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    void fetchProfile();
+  }, [fetchProfile]);
 
   const accuracy = getAccuracy();
   const completionMessage =

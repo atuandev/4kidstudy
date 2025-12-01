@@ -20,10 +20,15 @@ import {
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Lesson, Attempt, ExerciseType } from "@/types";
-import { getUserLessonAttempts, getAttemptById } from "@/actions/attempt";
+import { Lesson, Attempt, ExerciseType, MostWrongExerciseStats } from "@/types";
+import {
+  getUserLessonAttempts,
+  getAttemptById,
+  getMostWrongExercisesByLesson,
+} from "@/actions/attempt";
 import Image from "next/image";
 import { AudioControl } from "@/components/audio-control";
+import { LessonWrongSection } from "./lesson-wrong-section";
 
 type LessonHistoryContentProps = {
   lesson: Lesson;
@@ -51,10 +56,16 @@ export function LessonHistoryContent({
   );
   const [attemptDetails, setAttemptDetails] = useState<Attempt | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [mostWrongExercises, setMostWrongExercises] = useState<
+    MostWrongExerciseStats[]
+  >([]);
+  const [isLoadingMostWrong, setIsLoadingMostWrong] = useState(false);
+  const [isWrongSectionOpen, setIsWrongSectionOpen] = useState(true);
 
   useEffect(() => {
     if (isOpen) {
       loadAttempts();
+      loadMostWrongExercises();
     }
   }, [isOpen, lessonId]);
 
@@ -69,6 +80,19 @@ export function LessonHistoryContent({
       console.error("Failed to load attempts:", error);
     } finally {
       setIsLoadingAttempts(false);
+    }
+  }
+
+  async function loadMostWrongExercises() {
+    setIsLoadingMostWrong(true);
+    try {
+      const data = await getMostWrongExercisesByLesson(lessonId);
+      setMostWrongExercises(data);
+    } catch (error) {
+      console.error("Failed to load most wrong exercises:", error);
+      setMostWrongExercises([]);
+    } finally {
+      setIsLoadingMostWrong(false);
     }
   }
 
@@ -335,6 +359,32 @@ export function LessonHistoryContent({
           </div>
         )}
 
+        {/* Most wrong exercises */}
+        <div className="mx-4">
+          <div
+            className="flex w-full items-center justify-between gap-2 mb-3 cursor-pointer hover:bg-gray-50 py-2"
+            onClick={() => setIsWrongSectionOpen((prev) => !prev)}
+          >
+            <div className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-red-500" />
+              <h3 className="font-semibold text-lg">
+                Các câu hỏi sai nhiều nhất
+              </h3>
+            </div>
+            {isWrongSectionOpen ? (
+              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            )}
+          </div>
+          {isWrongSectionOpen && (
+            <LessonWrongSection
+              isLoadingMostWrong={isLoadingMostWrong}
+              mostWrongExercises={mostWrongExercises}
+            />
+          )}
+        </div>
+
         {!isLoadingAttempts && bestAttempt && (
           <div className="mx-4">
             <div className="flex items-center gap-2 mb-3">
@@ -520,7 +570,7 @@ export function LessonHistoryContent({
                         <div className="grid grid-cols-1 gap-2">
                           {attemptDetails.details.map((detail, index) => {
                             const isCorrectOnSecondAttempt =
-                              detail.isCorrect && detail.attempts === 2;
+                              detail.isCorrect && detail.points === 5;
                             return (
                               <div
                                 key={detail.id}

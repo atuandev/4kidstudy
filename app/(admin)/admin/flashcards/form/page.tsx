@@ -15,6 +15,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 import {
   Breadcrumb,
@@ -105,6 +106,13 @@ export default function FlashcardFormPage() {
   const [selectedGrade, setSelectedGrade] = useState<string>("");
   const [existingFlashcardsCount, setExistingFlashcardsCount] = useState(0);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [selectedExcelFile, setSelectedExcelFile] = useState<File | null>(null);
+  const [selectedFolderFiles, setSelectedFolderFiles] = useState<FileList | null>(null);
+  const [importPreview, setImportPreview] = useState<{
+    neededFiles: Set<string>;
+    matchedFiles: number;
+  } | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const {
@@ -440,6 +448,157 @@ export default function FlashcardFormPage() {
     });
   }
 
+  function handleImportExcel() {
+    const topicId = form.getValues("topicId");
+    if (!topicId) {
+      toast.error("Vui lòng chọn chủ đề trước");
+      return;
+    }
+    setShowImportDialog(true);
+  }
+
+  async function handleExcelFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSelectedExcelFile(file);
+
+    // Read Excel to get needed files
+    try {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: "binary" });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data: any[] = XLSX.utils.sheet_to_json(ws);
+
+        const extractFileName = (path: string): string | null => {
+          if (!path || typeof path !== "string") return null;
+          const normalized = path.trim();
+          if (normalized === "\\n" || normalized === "\n") return null;
+          return normalized.split("\\").pop()?.split("/").pop() || null;
+        };
+
+        const neededFileNames = new Set<string>();
+        data.forEach((row) => {
+          ["img", "audio"].forEach((col) => {
+            if (row[col]) {
+              const fileName = extractFileName(row[col].toString());
+              if (fileName && fileName.match(/\.(png|jpg|jpeg|mp3|mp4|wav)$/i)) {
+                neededFileNames.add(fileName);
+              }
+            }
+          });
+        });
+
+        // Update preview if folder already selected
+        if (selectedFolderFiles) {
+          const matchedCount = Array.from(selectedFolderFiles).filter((f) =>
+            neededFileNames.has(f.name)
+          ).length;
+          setImportPreview({ neededFiles: neededFileNames, matchedFiles: matchedCount });
+        } else {
+          setImportPreview({ neededFiles: neededFileNames, matchedFiles: 0 });
+        }
+      };
+      reader.readAsBinaryString(file);
+    } catch (error) {
+      console.error("Failed to read Excel:", error);
+      toast.error("Không thể đọc file Excel");
+    }
+  }
+
+  function handleFolderSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setSelectedFolderFiles(files);
+
+    // Update preview if Excel already selected
+    if (importPreview) {
+      const matchedCount = Array.from(files).filter((f) =>
+        importPreview.neededFiles.has(f.name)
+      ).length;
+      setImportPreview({ ...importPreview, matchedFiles: matchedCount });
+    }
+  }
+
+  async function handleConfirmImport() {
+    if (!selectedExcelFile || !selectedFolderFiles) {
+      toast.error("Vui lòng chọn đủ file Excel và thư mục tài nguyên");
+      return;
+    }
+
+    const topicId = form.getValues("topicId");
+    if (!topicId) return;
+
+    try {
+      setIsSubmitting(true);
+      const formData = new FormData();
+      formData.append("excelFile", selectedExcelFile);
+
+      // Filter and add only needed files
+      let matchedCount = 0;
+      if (importPreview) {
+        Array.from(selectedFolderFiles).forEach((file) => {
+          if (importPreview.neededFiles.has(file.name)) {
+            formData.append("assets", file);
+            matchedCount++;
+          }
+        });
+      }
+
+      toast.info(`📦 Đang upload: 1 Excel + ${matchedCount} file assets...`);
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_ENDPOINT}/flashcards/import/${topicId}`,
+        { method: "POST", body: formData }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Import thất bại");
+      }
+
+      const importedFlashcards = await response.json();
+      toast.success(`🎉 Đã import ${importedFlashcards.length} flashcard thành công!`);
+
+      // Reload flashcards
+      const existingFlashcardsResponse = await getFlashcardsByTopic(topicId);
+      const existingFlashcards = existingFlashcardsResponse.payload || [];
+
+      if (existingFlashcards.length > 0) {
+        const allFlashcards = existingFlashcards.map((fc) => ({
+          id: fc.id,
+          term: fc.term,
+          phonetic: fc.phonetic,
+          meaningVi: fc.meaningVi,
+          exampleEn: fc.exampleEn ?? "",
+          exampleVi: fc.exampleVi ?? "",
+          imageUrl: fc.imageUrl ?? "",
+          audioUrl: fc.audioUrl ?? "",
+          order: fc.order,
+          isActive: fc.isActive,
+        }));
+
+        setExistingFlashcardsCount(allFlashcards.length);
+        form.setValue("flashcards", allFlashcards as any);
+      }
+
+      // Close dialog and reset
+      setShowImportDialog(false);
+      setSelectedExcelFile(null);
+      setSelectedFolderFiles(null);
+      setImportPreview(null);
+    } catch (error) {
+      console.error("Import failed:", error);
+      toast.error(error instanceof Error ? error.message : "Import Excel thất bại");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   async function handleRemoveFlashcard(index: number) {
     const flashcard = form.getValues(`flashcards.${index}` as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -619,10 +778,16 @@ export default function FlashcardFormPage() {
                       </p>
                     )}
                   </div>
-                  <Button type="button" onClick={handleAddFlashcard} size="sm">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Thêm flashcard
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button type="button" onClick={handleImportExcel} size="sm" variant="secondary">
+                      <Upload className="mr-2 h-4 w-4" />
+                      Import Excel
+                    </Button>
+                    <Button type="button" onClick={handleAddFlashcard} size="sm">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Thêm flashcard
+                    </Button>
+                  </div>
                 </div>
 
                 {fields.map((field, index) => {
@@ -1156,6 +1321,88 @@ export default function FlashcardFormPage() {
           </div>
         </form>
       </Form>
+
+      {/* Import Dialog */}
+      <AlertDialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <AlertDialogContent className="max-w-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              Import Flashcards từ Excel
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Chọn file Excel và thư mục chứa hình ảnh/âm thanh để import flashcard
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Excel File Selection */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">1. File Excel (.xlsx, .xls)</label>
+              <div className="flex gap-2">
+                <Input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleExcelFileSelect}
+                  className="cursor-pointer"
+                />
+              </div>
+              {selectedExcelFile && (
+                <p className="text-sm text-green-600 flex items-center gap-1">
+                  ✓ Đã chọn: {selectedExcelFile.name}
+                </p>
+              )}
+            </div>
+
+            {/* Folder Selection */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">2. Thư mục chứa tài nguyên (ảnh/audio)</label>
+              <div className="flex gap-2">
+                <Input
+                  type="file"
+                  // @ts-expect-error - webkitdirectory is not in TypeScript types but works in browsers
+                  webkitdirectory=""
+                  directory=""
+                  multiple
+                  onChange={handleFolderSelect}
+                  className="cursor-pointer"
+                />
+              </div>
+              {selectedFolderFiles && (
+                <p className="text-sm text-green-600 flex items-center gap-1">
+                  ✓ Đã chọn thư mục với {selectedFolderFiles.length} file
+                </p>
+              )}
+            </div>
+
+            {/* Preview */}
+            {importPreview && (
+              <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
+                <h4 className="font-medium text-sm">Thông tin import:</h4>
+                <div className="space-y-1 text-sm">
+                  <p>📋 File cần thiết: <strong>{importPreview.neededFiles.size}</strong> file</p>
+                  <p>✅ File khớp: <strong className="text-green-600">{importPreview.matchedFiles}</strong> file</p>
+                  {importPreview.matchedFiles < importPreview.neededFiles.size && (
+                    <p className="text-amber-600">⚠️ Thiếu {importPreview.neededFiles.size - importPreview.matchedFiles} file</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSubmitting}>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmImport}
+              disabled={!selectedExcelFile || !selectedFolderFiles || isSubmitting}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Bắt đầu Import
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

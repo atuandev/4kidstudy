@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { User as UserType } from "@/types";
+import { GRADE_LABELS, GradeValue, User as UserType } from "@/types";
 import {
   Calendar,
   Crown,
@@ -35,7 +35,7 @@ export default function Profile({ profile }: ProfileProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
-      month: "long",
+      month: "numeric",
       day: "numeric",
     });
   };
@@ -49,6 +49,13 @@ export default function Profile({ profile }: ProfileProps) {
       .toUpperCase()
       .slice(0, 2);
   };
+
+  const genderLabel =
+    profile.gender === "MALE"
+      ? "Nam"
+      : profile.gender === "FEMALE"
+      ? "Nữ"
+      : "Chưa xác định";
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
@@ -209,11 +216,11 @@ export default function Profile({ profile }: ProfileProps) {
               <div className="space-y-3">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">
-                    Vai trò
+                    Khối học
                   </label>
                   <div className="mt-1">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary capitalize">
-                      {profile.role}
+                    <span className="">
+                      {GRADE_LABELS[profile.grade as GradeValue]}
                     </span>
                   </div>
                 </div>
@@ -237,7 +244,7 @@ export default function Profile({ profile }: ProfileProps) {
                     Giới tính
                   </label>
                   <div className="mt-1 text-sm font-medium capitalize">
-                    {profile.gender || "Chưa xác định"}
+                    {genderLabel}
                   </div>
                 </div>
 

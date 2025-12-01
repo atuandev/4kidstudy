@@ -7,7 +7,18 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
@@ -64,6 +75,14 @@ export default function ExerciseFormPage() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [existingExercisesCount, setExistingExercisesCount] = useState(0);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [selectedExcelFile, setSelectedExcelFile] = useState<File | null>(null);
+  const [selectedFolderFiles, setSelectedFolderFiles] = useState<FileList | null>(null);
+  const [importPreview, setImportPreview] = useState<{
+    neededFiles: string[];
+    matchedFiles: string[];
+  } | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   const router = useRouter();
   const { selectedLessonId: storeLessonId, clearSelection } = useExerciseFormStore();
   const hasInitializedFromLesson = useRef(false);
@@ -122,10 +141,10 @@ export default function ExerciseFormPage() {
         // Load existing exercises if lesson is selected
         if (storeLessonId) {
           const existingExercises = await getExerciseByLessonId(storeLessonId);
-          
+
           if (existingExercises && existingExercises.length > 0) {
             setExistingExercisesCount(existingExercises.length);
-            
+
             // Convert existing exercises to form format
             const convertedExercises = existingExercises.map((ex) => ({
               id: ex.id,
@@ -149,7 +168,7 @@ export default function ExerciseFormPage() {
                 matchKey: opt.matchKey || "",
               })) || [],
             })) as CreateExerciseFormData[];
-            
+
             setExerciseForms(convertedExercises);
             toast.success(`Đã tải ${existingExercises.length} câu hỏi có sẵn`);
           }
@@ -347,7 +366,7 @@ export default function ExerciseFormPage() {
 
   const handleDeleteExercise = async (index: number) => {
     const exercise = exerciseForms[index];
-    
+
     // If exercise has an id, it's an existing exercise - need to delete from backend
     if (exercise.id) {
       try {
@@ -359,7 +378,7 @@ export default function ExerciseFormPage() {
         return;
       }
     }
-    
+
     // Remove from local array
     const updatedExercises = exerciseForms.filter((_, i) => i !== index);
     setExerciseForms(updatedExercises);
@@ -520,25 +539,25 @@ export default function ExerciseFormPage() {
       // Separate existing exercises (with id) from new exercises (without id)
       const existingExercises = exerciseForms.filter(ex => ex.id);
       const newExercises = exerciseForms.filter(ex => !ex.id);
-      
+
       let updatedCount = 0;
       let createdCount = 0;
-      
+
       // Update existing exercises
       if (existingExercises.length > 0) {
         const updatePromises = existingExercises.map(async (exercise) => {
           const { id, ...updateData } = exercise;
           return updateExercise(id!, updateData);
         });
-        
+
         const updateResults = await Promise.all(updatePromises);
         updatedCount = updateResults.filter(result => result.status === 200).length;
-        
+
         if (updatedCount < existingExercises.length) {
           toast.warning(`Chỉ cập nhật được ${updatedCount}/${existingExercises.length} câu hỏi`);
         }
       }
-      
+
       // Create new exercises
       if (newExercises.length > 0) {
         const { payload, status } = await createManyExercises(newExercises);
@@ -547,21 +566,21 @@ export default function ExerciseFormPage() {
           toast.error("Tạo hàng loạt câu hỏi thất bại");
           return;
         }
-        
+
         createdCount = payload.length;
       }
-      
+
       // Show success message
       const messages = [];
       if (updatedCount > 0) messages.push(`Cập nhật ${updatedCount} câu`);
       if (createdCount > 0) messages.push(`Tạo mới ${createdCount} câu`);
-      
+
       toast.success(messages.join(" và "));
       setExerciseForms([]);
       setExistingExercisesCount(0);
       clearSelection();
       router.push("/admin/exercises");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Failed to save exercises:", error);
       const errorMessage = error?.payload?.message;
@@ -592,6 +611,179 @@ export default function ExerciseFormPage() {
     } else {
       clearSelection();
       router.back();
+    }
+  };
+
+  const handleImportExcel = () => {
+    setShowImportDialog(true);
+    setSelectedExcelFile(null);
+    setSelectedFolderFiles(null);
+    setImportPreview(null);
+  };
+
+  const handleExcelFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSelectedExcelFile(file);
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      // @ts-expect-error XLSX type
+      const worksheet = workbook.Sheets[sheetName];
+      // @ts-expect-error XLSX type
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+      const neededFiles = new Set<string>();
+
+      // @ts-expect-error jsonData type
+      jsonData.forEach((row) => {
+        const extractFilename = (path: string | undefined) => {
+          if (!path || typeof path !== 'string') return null;
+          const trimmed = path.trim();
+          if (trimmed === '\\n' || trimmed === '\n' || !trimmed) return null;
+          return trimmed.split('\\').pop()?.split('/').pop() || null;
+        };
+
+        ['img', 'audio', 'optT', 'optF1', 'optF2', 'optF3', 'opt1', 'opt2', 'opt3', 'opt4', 'opt5', 'opt6'].forEach((key) => {
+          const filename = extractFilename(row[key]);
+          if (filename) neededFiles.add(filename);
+        });
+      });
+
+      setImportPreview({
+        neededFiles: Array.from(neededFiles),
+        matchedFiles: [],
+      });
+    } catch (error) {
+      console.error('Failed to read Excel:', error);
+      toast.error('Không thể đọc file Excel');
+    }
+  };
+
+  const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    setSelectedFolderFiles(files);
+
+    if (files && importPreview) {
+      const matchedFiles = Array.from(files)
+        .map((f) => f.name)
+        .filter((name) => importPreview.neededFiles.includes(name));
+
+      setImportPreview({
+        ...importPreview,
+        matchedFiles,
+      });
+    }
+  };
+
+  const handleConfirmImport = async () => {
+    const lessonId = form.getValues('lessonId') || storeLessonId;
+    if (!lessonId) {
+      toast.error('Vui lòng chọn bài luyện tập');
+      return;
+    }
+
+    if (!selectedExcelFile) {
+      toast.error('Vui lòng chọn file Excel');
+      return;
+    }
+
+    setIsImporting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('excelFile', selectedExcelFile);
+
+      if (selectedFolderFiles && importPreview) {
+        const matchedFileNames = new Set(importPreview.matchedFiles);
+        Array.from(selectedFolderFiles).forEach((file) => {
+          if (matchedFileNames.has(file.name)) {
+            formData.append('assets', file);
+          }
+        });
+      }
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_ENDPOINT || 'http://localhost:3001/api';
+      const response = await fetch(
+        `${apiUrl}/exercises/import-excel/${lessonId}`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      const contentType = response.headers.get('content-type');
+
+      if (!response.ok) {
+        let errorMessage = `Server returned ${response.status}: ${response.statusText}`;
+
+        if (contentType?.includes('application/json')) {
+          try {
+            const error = await response.json();
+            errorMessage = error.message || errorMessage;
+          } catch {
+            // Failed to parse JSON error
+          }
+        } else {
+          // Get text response for debugging
+          const text = await response.text();
+          console.error('Server error response:', text.substring(0, 500));
+          errorMessage = `Server error: ${response.statusText}`;
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      if (!contentType?.includes('application/json')) {
+        const text = await response.text();
+        console.error('Unexpected response type:', contentType, text.substring(0, 500));
+        throw new Error('Server returned unexpected response format');
+      }
+
+      const result = await response.json();
+      toast.success(`Đã import thành công ${result.length} câu hỏi`);
+
+      setShowImportDialog(false);
+      setSelectedExcelFile(null);
+      setSelectedFolderFiles(null);
+      setImportPreview(null);
+
+      // Reload exercises
+      const existingExercises = await getExerciseByLessonId(lessonId);
+      if (existingExercises && existingExercises.length > 0) {
+        setExistingExercisesCount(existingExercises.length);
+        const convertedExercises = existingExercises.map((ex) => ({
+          id: ex.id,
+          lessonId: ex.lessonId,
+          type: ex.type,
+          prompt: ex.prompt,
+          imageUrl: ex.imageUrl || "",
+          audioUrl: ex.audioUrl || "",
+          targetText: ex.targetText || "",
+          hintEn: ex.hintEn || "",
+          hintVi: ex.hintVi || "",
+          points: ex.points,
+          difficulty: ex.difficulty || 1,
+          options: ex.options?.map((opt) => ({
+            id: opt.id,
+            text: opt.text,
+            imageUrl: opt.imageUrl || "",
+            audioUrl: opt.audioUrl || "",
+            isCorrect: opt.isCorrect,
+            order: opt.order,
+            matchKey: opt.matchKey || "",
+          })) || [],
+        })) as CreateExerciseFormData[];
+        setExerciseForms(convertedExercises);
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      toast.error(`Import thất bại: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -670,6 +862,15 @@ export default function ExerciseFormPage() {
 
       <div className="flex items-center justify-between">
         <TypographyH3>Thêm câu hỏi mới</TypographyH3>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleImportExcel}
+          className="gap-2"
+        >
+          <Upload className="h-4 w-4" />
+          Import từ Excel
+        </Button>
       </div>
 
       {/* Display saved exercises */}
@@ -689,21 +890,20 @@ export default function ExerciseFormPage() {
               {exerciseForms.map((exercise, index) => {
                 const isExpanded = expandedCards.has(index);
                 const isExisting = !!exercise.id;
-                
+
                 return (
-                  <Card 
+                  <Card
                     key={index}
-                    className={`${
-                      editingIndex === index
-                        ? "border-blue-500 ring-2 ring-blue-200"
-                        : isExisting ? "border-green-300" : ""
-                    }`}
+                    className={`${editingIndex === index
+                      ? "border-blue-500 ring-2 ring-blue-200"
+                      : isExisting ? "border-green-300" : ""
+                      }`}
                   >
                     <CardContent className="p-4">
                       {/* Header - Always visible */}
                       <div className="flex items-center justify-between">
-                        <div 
-                          className="flex-1 cursor-pointer" 
+                        <div
+                          className="flex-1 cursor-pointer"
                           onClick={() => toggleCardExpanded(index)}
                         >
                           <div className="flex items-center gap-2">
@@ -771,14 +971,14 @@ export default function ExerciseFormPage() {
                           {exercise.imageUrl && (
                             <div>
                               <p className="text-sm font-medium mb-1">Hình ảnh câu hỏi:</p>
-                              <img 
-                                src={exercise.imageUrl} 
-                                alt="Exercise" 
+                              <img
+                                src={exercise.imageUrl}
+                                alt="Exercise"
                                 className="w-32 h-32 object-cover rounded border"
                               />
                             </div>
                           )}
-                          
+
                           {exercise.audioUrl && (
                             <div>
                               <p className="text-sm font-medium mb-1">Âm thanh:</p>
@@ -787,40 +987,39 @@ export default function ExerciseFormPage() {
                               </audio>
                             </div>
                           )}
-                          
+
                           {exercise.targetText && (
                             <div>
                               <p className="text-sm font-medium">Văn bản cần đọc:</p>
                               <p className="text-sm text-muted-foreground">{exercise.targetText}</p>
                             </div>
                           )}
-                          
+
                           {exercise.hintEn && (
                             <div>
                               <p className="text-sm font-medium">Gợi ý (EN):</p>
                               <p className="text-sm text-muted-foreground">{exercise.hintEn}</p>
                             </div>
                           )}
-                          
+
                           {exercise.hintVi && (
                             <div>
                               <p className="text-sm font-medium">Gợi ý (VI):</p>
                               <p className="text-sm text-muted-foreground">{exercise.hintVi}</p>
                             </div>
                           )}
-                          
+
                           {exercise.options && exercise.options.length > 0 && (
                             <div>
                               <p className="text-sm font-medium mb-2">Đáp án:</p>
                               <div className="space-y-2">
                                 {exercise.options.map((option, optIndex) => (
-                                  <div 
+                                  <div
                                     key={optIndex}
-                                    className={`p-2 rounded border ${
-                                      option.isCorrect 
-                                        ? "bg-green-50 border-green-300" 
-                                        : "bg-gray-50"
-                                    }`}
+                                    className={`p-2 rounded border ${option.isCorrect
+                                      ? "bg-green-50 border-green-300"
+                                      : "bg-gray-50"
+                                      }`}
                                   >
                                     <div className="flex items-start gap-2">
                                       <Badge variant={option.isCorrect ? "default" : "secondary"} className="shrink-0">
@@ -831,9 +1030,9 @@ export default function ExerciseFormPage() {
                                           <p className="text-sm">{option.text}</p>
                                         )}
                                         {option.imageUrl && (
-                                          <img 
-                                            src={option.imageUrl} 
-                                            alt={`Option ${optIndex + 1}`} 
+                                          <img
+                                            src={option.imageUrl}
+                                            alt={`Option ${optIndex + 1}`}
                                             className="w-20 h-20 object-cover rounded"
                                           />
                                         )}
@@ -1610,6 +1809,105 @@ export default function ExerciseFormPage() {
           </div>
         </form>
       </Form>
+
+      {/* Import Dialog */}
+      <AlertDialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <AlertDialogContent className="max-w-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Import câu hỏi từ Excel</AlertDialogTitle>
+            <AlertDialogDescription>
+              Chọn file Excel và thư mục chứa hình ảnh/âm thanh để import.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="space-y-4">
+            {/* Excel File Input */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Chọn file Excel <RequiredField />
+              </label>
+              <Input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleExcelFileSelect}
+                disabled={isImporting}
+              />
+              {selectedExcelFile && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Đã chọn: {selectedExcelFile.name}
+                </p>
+              )}
+            </div>
+
+            {/* Folder Input */}
+            {importPreview && (
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Chọn thư mục chứa assets (tùy chọn)
+                </label>
+                <Input
+                  type="file"
+                  // @ts-expect-error webkitdirectory attribute
+                  webkitdirectory=""
+                  directory=""
+                  multiple
+                  onChange={handleFolderSelect}
+                  disabled={isImporting}
+                />
+                {selectedFolderFiles && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Đã chọn {selectedFolderFiles.length} files
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Preview */}
+            {importPreview && (
+              <div className="border rounded-lg p-4 bg-muted/50">
+                <h4 className="font-medium mb-2">Tổng quan Import</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Files cần thiết từ Excel:</span>
+                    <Badge variant="secondary">
+                      {importPreview.neededFiles.length}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Files đã khớp trong thư mục:</span>
+                    <Badge
+                      variant={
+                        importPreview.matchedFiles.length ===
+                          importPreview.neededFiles.length
+                          ? "default"
+                          : "outline"
+                      }
+                    >
+                      {importPreview.matchedFiles.length}
+                    </Badge>
+                  </div>
+                  {importPreview.matchedFiles.length < importPreview.neededFiles.length && (
+                    <p className="text-xs text-amber-600 mt-2">
+                      ⚠️ Một số files chưa được tìm thấy. Các trường tương ứng sẽ để trống.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isImporting}>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmImport}
+              disabled={!selectedExcelFile || isImporting}
+            >
+              {isImporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Bắt đầu Import
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

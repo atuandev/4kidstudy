@@ -20,10 +20,11 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { getXPStats } from "@/actions/leaderboard";
+import { getTopicXPStats } from "@/actions/leaderboard";
 
-interface XPDataPoint {
-  date: string;
+interface TopicXPDataPoint {
+  topicId: number;
+  topicTitle: string;
   xpEarned: number;
 }
 
@@ -37,14 +38,14 @@ const TIME_RANGES = [
 
 export function XPChart() {
   const [days, setDays] = useState<number>(7);
-  const [data, setData] = useState<XPDataPoint[]>([]);
+  const [data, setData] = useState<TopicXPDataPoint[]>([]);
   const [totalXP, setTotalXP] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const result = await getXPStats(days);
+      const result = await getTopicXPStats(days);
       setData(result.data);
       setTotalXP(result.totalXP);
       setLoading(false);
@@ -59,7 +60,7 @@ export function XPChart() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <BarChartIcon className="h-5 w-5 text-primary" />
-            <CardTitle>Điểm kiếm được</CardTitle>
+            <CardTitle>Điểm XP theo chủ đề</CardTitle>
           </div>
           <Select
             value={days.toString()}
@@ -80,7 +81,7 @@ export function XPChart() {
         <div className="mt-2">
           <p className="text-2xl font-bold text-primary">{totalXP} XP</p>
           <p className="text-sm text-muted-foreground">
-            Tổng điểm kiếm được
+            Tổng điểm kiếm được từ bài học
           </p>
         </div>
       </CardHeader>
@@ -98,25 +99,21 @@ export function XPChart() {
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
-                dataKey="date"
+                dataKey="topicTitle"
                 tick={{ fontSize: 12 }}
-                tickFormatter={(value) => {
-                  const date = new Date(value);
-                  return `${date.getDate()}/${date.getMonth() + 1}`;
-                }}
+                angle={-45}
+                textAnchor="end"
+                height={100}
               />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip
-                labelFormatter={(value) => {
-                  const date = new Date(value as string);
-                  return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
-                }}
                 formatter={(value: number) => [`${value} XP`, "Điểm"]}
+                labelFormatter={(label) => `Chủ đề: ${label}`}
               />
               <Legend />
               <Bar
                 dataKey="xpEarned"
-                fill="#82ca9d"
+                fill="#8b5cf6"
                 name="XP kiếm được"
                 radius={[8, 8, 0, 0]}
               />

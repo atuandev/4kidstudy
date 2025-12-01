@@ -54,13 +54,13 @@ export async function assessPronunciation(
     );
 
     // Debug logging - always log to help diagnose issues
-    console.log("[Pronunciation API] Status:", status);
-    console.log("[Pronunciation API] Payload:", payload);
-    console.log("[Pronunciation API] Payload type:", typeof payload);
+    // console.log("[Pronunciation API] Status:", status);
+    // console.log("[Pronunciation API] Payload:", payload);
+    // console.log("[Pronunciation API] Payload type:", typeof payload);
     if (payload && typeof payload === 'object') {
-      console.log("[Pronunciation API] Payload keys:", Object.keys(payload));
-      console.log("[Pronunciation API] Payload.success:", (payload as any).success);
-      console.log("[Pronunciation API] Payload.error:", (payload as any).error);
+      // console.log("[Pronunciation API] Payload keys:", Object.keys(payload));
+      // console.log("[Pronunciation API] Payload.success:", (payload as any).success);
+      // console.log("[Pronunciation API] Payload.error:", (payload as any).error);
     }
     
     // Check if HTTP request failed

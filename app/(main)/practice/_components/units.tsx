@@ -1,12 +1,11 @@
 import { Unit } from './unit';
 import { TopicWithProgress } from '@/types/topic-with-progress';
-import { User, PracticeStatistics } from '@/types';
+import { PracticeStatistics } from '@/types';
 import { FeedWrapper } from '@/components/feed-wrapper';
 import { StickyWrapper } from '@/components/sticky-wrapper';
 import { AttemptStatistics } from './attempt-statistics';
 
 interface UnitsProps {
-  readonly profile: User;
   readonly stats: PracticeStatistics;
   readonly topics: TopicWithProgress[];
 }
@@ -17,11 +16,11 @@ const renderEmptyTopics = () => (
   </div>
 );
 
-export default function Units({ profile, stats, topics }: UnitsProps) {
+export default function Units({ stats, topics }: UnitsProps) {
   return (
     <div className='flex flex-row-reverse gap-[48px] px-6'>
       <StickyWrapper>
-        <AttemptStatistics profile={profile} stats={stats} />
+        <AttemptStatistics stats={stats} />
       </StickyWrapper>
       <FeedWrapper>
         {topics.length === 0 ? (
