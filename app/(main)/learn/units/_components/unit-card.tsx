@@ -80,7 +80,7 @@ export function UnitCard({ topic }: UnitCardProps) {
     setShowDialog(false);
   };
   return (
-    <Card className="transition-all hover:bg-muted/50 hover:shadow-md">
+    <Card id={`topic-${topic.id}`} className="transition-all hover:bg-muted/50 hover:shadow-md scroll-mt-4">
       <CardHeader>
         {topic.coverImage ? (
           <div className="relative h-48 w-full overflow-hidden rounded-lg">

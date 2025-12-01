@@ -58,7 +58,7 @@ function DeleteUserDialog({ user }: { user: User }) {
 
   function handleDelete() {
     // TODO: Implement delete user action
-    console.log('Delete user:', user.id);
+    // console.log('Delete user:', user.id);
     setIsOpen(false);
   }
 

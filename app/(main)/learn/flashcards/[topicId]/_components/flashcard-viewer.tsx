@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -17,41 +17,75 @@ import { ReviewContentFormData } from '@/schemas/learning-progress';
 
 interface FlashcardViewerProps {
   flashcards: Flashcard[];
-  // server action passed down to record reviews when user plays audio
+  // server action passed down to record reviews when user completes pronunciation check
   onRecordReview?: (body: ReviewContentFormData) => Promise<unknown>;
+  // flashcard IDs that have been mastered (isMastered = true, reviewCount >= 50)
+  initialMasteredIds?: number[];
 }
 
 export function FlashcardViewer({
   flashcards,
   onRecordReview,
+  initialMasteredIds = [],
 }: FlashcardViewerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialIndex = parseInt(searchParams.get("index") || "0", 10);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [pronunciationPassed, setPronunciationPassed] = useState(false);
+  const [masteredFlashcardIds, setMasteredFlashcardIds] = useState<Set<number>>(new Set(initialMasteredIds));
 
-  // Update index when URL changes
+  // Update index when URL changes and check if flashcard is mastered
   useEffect(() => {
     const index = parseInt(searchParams.get("index") || "0", 10);
     if (index >= 0 && index < flashcards.length) {
       setCurrentIndex(index);
+      // Check if this flashcard is already mastered
+      const currentFlashcard = flashcards[index];
+      const isMastered = masteredFlashcardIds.has(currentFlashcard?.id);
+      setPronunciationPassed(isMastered);
     }
-  }, [searchParams, flashcards.length]);
+  }, [searchParams, flashcards, masteredFlashcardIds]);
+
+  // Check if current flashcard is mastered when index changes
+  useEffect(() => {
+    const currentFlashcard = flashcards[currentIndex];
+    const isMastered = masteredFlashcardIds.has(currentFlashcard?.id);
+    setPronunciationPassed(isMastered);
+  }, [currentIndex, flashcards, masteredFlashcardIds]);
 
   const handleNext = () => {
     if (currentIndex < flashcards.length - 1) {
-      setCurrentIndex(currentIndex + 1);
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
+      // Update URL to persist navigation state
+      router.replace(`/learn/flashcards/${flashcards[0].topicId}?index=${nextIndex}`, { scroll: false });
     }
   };
 
   const handlePrevious = () => {
     if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
+      const prevIndex = currentIndex - 1;
+      setCurrentIndex(prevIndex);
+      // Update URL to persist navigation state
+      router.replace(`/learn/flashcards/${flashcards[0].topicId}?index=${prevIndex}`, { scroll: false });
     }
   };
 
   const handleReset = () => {
     setCurrentIndex(0);
+    // Check if first flashcard is already mastered
+    const firstFlashcard = flashcards[0];
+    setPronunciationPassed(masteredFlashcardIds.has(firstFlashcard?.id));
+  };
+
+  const handlePronunciationAssessed = (passed: boolean) => {
+    setPronunciationPassed(passed);
+    
+    // Update mastered status immediately if passed (for UI feedback)
+    if (passed && flashcards[currentIndex]) {
+      setMasteredFlashcardIds((prev) => new Set(prev).add(flashcards[currentIndex].id));
+    }
   };
 
   if (flashcards.length === 0) {
@@ -84,8 +118,10 @@ export function FlashcardViewer({
               size="sm"
               variant="default"
               onClick={() => {
-                router.back();
-                router.refresh();
+                // Navigate back to the correct grade/unit page and scroll to topic
+                const grade = currentFlashcard.topic.grade;
+                const topicId = currentFlashcard.topicId;
+                router.push(`/learn/units?grade=${grade}#topic-${topicId}`);
               }}
             >
               <ArrowLeft className="size-8" />
@@ -113,34 +149,51 @@ export function FlashcardViewer({
           flashcard={currentFlashcard}
           className="mb-8"
           onRecordReview={onRecordReview}
+          onPronunciationAssessed={handlePronunciationAssessed}
+          isReviewed={masteredFlashcardIds.has(currentFlashcard.id)}
         />
       </div>
 
       {/* Navigation Controls */}
       <Card>
-        <CardContent>
-          <div className="flex items-center justify-center gap-4">
-            <Button
-              variant="primary"
-              onClick={handlePrevious}
-              disabled={currentIndex === 0}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Quay lại
-            </Button>
+        <CardContent className="py-6">
+          <div className="flex flex-col items-center gap-3 min-h-[80px]">
+            <div className="flex items-center justify-center gap-4">
+              <Button
+                variant="primary"
+                onClick={handlePrevious}
+                disabled={currentIndex === 0}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Quay lại
+              </Button>
 
-            <p className="text-xl font-semibold">
-              {currentIndex + 1} / {flashcards.length}
-            </p>
+              <p className="text-xl font-semibold min-w-[80px] text-center">
+                {currentIndex + 1} / {flashcards.length}
+              </p>
 
-            <Button
-              variant="primary"
-              onClick={handleNext}
-              disabled={currentIndex === flashcards.length - 1}
-            >
-              Tiếp tục
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+              <Button
+                variant="primary"
+                onClick={handleNext}
+                disabled={currentIndex === flashcards.length - 1 || (!pronunciationPassed && !masteredFlashcardIds.has(currentFlashcard.id))}
+                title={!pronunciationPassed && !masteredFlashcardIds.has(currentFlashcard.id) ? "Vui lòng bấm Kiểm tra và đạt ≥ 50% để tiếp tục" : ""}
+              >
+                Tiếp tục
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="min-h-[24px] flex items-center justify-center">
+              {!pronunciationPassed && !masteredFlashcardIds.has(currentFlashcard.id) && (
+                <p className="text-sm text-orange-600 font-medium text-center">
+                  ⚠️ Bấm &quot;Kiểm tra&quot; để đánh giá phát âm (cần ≥ 50% để tiếp tục)
+                </p>
+              )}
+              {masteredFlashcardIds.has(currentFlashcard.id) && (
+                <p className="text-sm text-green-600 font-medium text-center">
+                  ✓ Flashcard này đã hoàn thành
+                </p>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

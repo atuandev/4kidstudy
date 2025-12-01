@@ -4,10 +4,18 @@ import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Mic, MicOff, Send, Volume2, Loader2 } from "lucide-react";
-import { sendChatMessage } from "@/actions/chat";
+import { Mic, MicOff, Send, Volume2, Loader2, Trash2 } from "lucide-react";
+import { sendChatMessage, getChatHistory, clearChatHistory } from "@/actions/chat";
 import { toast } from "sonner";
-import { Message } from "@/schemas";
+import { ChatResponseDto } from "@/schemas/chat";
+
+interface Message {
+  id: string;
+  text: string;
+  type: "user" | "ai";
+  timestamp: Date;
+  translation?: ChatResponseDto["translation"];
+}
 
 // Declare types for Web Speech API
 interface SpeechRecognitionEvent extends Event {
@@ -32,7 +40,7 @@ interface SpeechRecognition extends EventTarget {
 }
 
 interface SpeechRecognitionConstructor {
-  new (): SpeechRecognition;
+  new(): SpeechRecognition;
 }
 
 declare global {
@@ -48,7 +56,7 @@ export default function ChatPage() {
   const [isListening, setIsListening] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  
+
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -67,7 +75,7 @@ export default function ChatPage() {
         recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
           const results = event.results;
           const lastResult = results[results.length - 1];
-          
+
           // Chỉ lấy kết quả final
           if (lastResult.isFinal) {
             const transcript = lastResult[0].transcript;
@@ -90,10 +98,59 @@ export default function ChatPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Load chat history on mount
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
   // Auto scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const loadHistory = async () => {
+    try {
+      const history = await getChatHistory();
+      const loadedMessages: Message[] = [];
+
+      for (let i = 0; i < history.length; i += 2) {
+        const userMsg = history[i];
+        const aiMsg = history[i + 1];
+
+        if (userMsg) {
+          loadedMessages.push({
+            id: `${i}`,
+            text: userMsg.content,
+            type: "user",
+            timestamp: new Date(userMsg.createdAt),
+          });
+        }
+
+        if (aiMsg) {
+          loadedMessages.push({
+            id: `${i + 1}`,
+            text: aiMsg.content,
+            type: "ai",
+            timestamp: new Date(aiMsg.createdAt),
+          });
+        }
+      }
+
+      setMessages(loadedMessages);
+    } catch (error) {
+      console.error("Error loading history:", error);
+    }
+  };
+
+  const handleClearHistory = async () => {
+    try {
+      await clearChatHistory();
+      setMessages([]);
+      toast.success("Đã xóa lịch sử chat!");
+    } catch {
+      toast.error("Không thể xóa lịch sử!");
+    }
+  };
 
   const handleListen = () => {
     if (!recognitionRef.current) {
@@ -118,13 +175,12 @@ export default function ChatPage() {
 
   const handleSendMessage = async (text?: string) => {
     const messageText = text || inputText.trim();
-    
+
     if (!messageText) {
       toast.error("Vui lòng nhập tin nhắn!");
       return;
     }
 
-    // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       text: messageText,
@@ -136,20 +192,18 @@ export default function ChatPage() {
     setIsSending(true);
 
     try {
-      // Send to AI
-      const aiResponse = await sendChatMessage(messageText);
+      const response = await sendChatMessage(messageText);
 
-      // Add AI message
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: aiResponse,
+        text: response.response,
         type: "ai",
         timestamp: new Date(),
+        translation: response.translation,
       };
       setMessages((prev) => [...prev, aiMessage]);
 
-      // Speak AI response
-      speakText(aiResponse);
+      speakText(response.response);
     } catch {
       toast.error("Không thể nhận phản hồi từ AI!");
     } finally {
@@ -158,20 +212,36 @@ export default function ChatPage() {
   };
 
   const speakText = (text: string) => {
-    if (typeof window !== "undefined" && window.speechSynthesis) {
-      // Stop any ongoing speech
-      window.speechSynthesis.cancel();
+    if (!text) return;
 
-      // Tách phần tiếng Anh và CHỈ ĐỌC phần tiếng Anh
-      // Format: "English text (Tiếng Việt)" -> Chỉ đọc "English text"
-      const englishMatch = text.match(/^([^(]+)/);
+    // Stop any current speech
+    window.speechSynthesis?.cancel();
 
-      if (englishMatch) {
-        const englishText = englishMatch[1].trim();
-        const utterance = new SpeechSynthesisUtterance(englishText);
-        utterance.lang = "en-US";
-        utterance.rate = 0.85; // Chậm hơn để dễ nghe
-        utterance.pitch = 1;
+    try {
+      // Clean text aggressively - remove ALL Vietnamese and special chars
+      let cleanText = text
+        // Remove emoji and special unicode chars
+        .replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu, '')
+        // Remove Vietnamese text in parentheses (including the parentheses)
+        .replace(/\([^)]*[\u00C0-\u1EF9][^)]*\)/g, '')
+        // Remove any standalone Vietnamese words/phrases
+        .replace(/[\u00C0-\u1EF9]+[\w\s]*/g, '')
+        // Remove translation format "word: vietnamese"
+        .replace(/:\s*[\u00C0-\u1EF9][\w\s]*/g, '')
+        // Remove colon prefix for translations
+        .replace(/^[^:]+:\s*/, '')
+        // Remove quotation marks
+        .replace(/["""]/g, '')
+        // Remove extra whitespace
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      // Only speak if we have clean English text left
+      if (cleanText && cleanText.length > 0 && /[a-zA-Z]/.test(cleanText)) {
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
 
         utterance.onstart = () => setIsSpeaking(true);
         utterance.onend = () => setIsSpeaking(false);
@@ -179,8 +249,11 @@ export default function ChatPage() {
 
         window.speechSynthesis.speak(utterance);
       }
+    } catch (error) {
+      console.error('Text-to-speech error:', error);
     }
   };
+
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -193,13 +266,21 @@ export default function ChatPage() {
     <div className="container mx-auto p-6 max-w-4xl">
       <Card className="h-[calc(100vh-12rem)]">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Volume2 className="h-6 w-6 text-primary" />
-            Hội thoại với AI
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Nói chuyện với trợ lý AI thông minh để học tiếng Anh
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Volume2 className="h-6 w-6 text-primary" />
+                Hội thoại với AI
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Hỏi nghĩa từ, hỏi đáp, hoặc hỏi về tiến độ học tập
+              </p>
+            </div>
+            <Button variant="dangerOutline" size="sm" onClick={handleClearHistory}>
+              <Trash2 className="h-4 w-4 mr-2" />
+              Xóa lịch sử
+            </Button>
+          </div>
         </CardHeader>
 
         <CardContent className="flex flex-col h-[calc(100%-8rem)]">
@@ -207,24 +288,40 @@ export default function ChatPage() {
           <div className="flex-1 overflow-y-auto space-y-4 mb-4 p-4 bg-gray-50 rounded-lg">
             {messages.length === 0 ? (
               <div className="flex items-center justify-center h-full text-muted-foreground">
-                <p>Bắt đầu cuộc trò chuyện bằng cách nhập tin nhắn hoặc nói!</p>
+                <p>Bắt đầu trò chuyện, hỏi nghĩa từ, hoặc hỏi về tiến độ học!</p>
               </div>
             ) : (
               messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${
-                    message.type === "user" ? "justify-end" : "justify-start"
-                  }`}
+                  className={`flex ${message.type === "user" ? "justify-end" : "justify-start"
+                    }`}
                 >
                   <div
-                    className={`max-w-[70%] rounded-lg p-3 ${
-                      message.type === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-white border"
-                    }`}
+                    className={`max-w-[70%] rounded-lg p-3 ${message.type === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-white border"
+                      }`}
                   >
                     <p className="whitespace-pre-wrap">{message.text}</p>
+
+                    {message.translation && (
+                      <div className="mt-2 pt-2 border-t">
+                        <p className="font-semibold">{message.translation.word}</p>
+                        {message.translation.phonetic && (
+                          <p className="text-sm opacity-70">/{message.translation.phonetic}/</p>
+                        )}
+                        <p className="mt-1">{message.translation.meaning}</p>
+                        {message.translation.examples && (
+                          <ul className="mt-2 text-sm space-y-1">
+                            {message.translation.examples.map((ex, i) => (
+                              <li key={i}>• {ex}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )}
+
                     <p className="text-xs opacity-70 mt-1">
                       {message.timestamp.toLocaleTimeString("vi-VN", {
                         hour: "2-digit",
@@ -244,12 +341,12 @@ export default function ChatPage() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Nhập tin nhắn hoặc nhấn nút mic để nói..."
+              placeholder="Hỏi gì cũng được: nghĩa từ, hỏi đáp, học được bao nhiêu bài, unit về gì..."
               className="resize-none"
               rows={2}
               disabled={isSending || isListening}
             />
-            
+
             <div className="flex flex-col gap-2">
               <Button
                 onClick={handleListen}

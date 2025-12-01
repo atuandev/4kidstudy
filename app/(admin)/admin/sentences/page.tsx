@@ -45,12 +45,12 @@ export default async function SentencesPage() {
       <div className="space-y-6 px-4">
         <div className="flex items-center justify-between">
           <TypographyH3>Danh sách thẻ câu</TypographyH3>
-          {/* <Link href="/admin/sentences/form">
+          <Link href="/admin/sentences/form">
             <Button variant="primary">
               <PlusIcon className="h-4 w-4" />
               Thêm thẻ câu
             </Button>
-          </Link> */}
+          </Link>
         </div>
         <DataTable columns={columns} data={sentenceImages} />
       </div>
