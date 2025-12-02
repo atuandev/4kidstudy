@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useTransition } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { login } from "@/actions/auth/login";
 import { LoginSchema, LoginSchemaType } from "@/schemas/auth";
@@ -24,14 +24,15 @@ import {
 import { TypographyH3 } from "@/components/typography";
 import Image from "next/image";
 
-export function FormLogin() {
+interface FormLoginProps {
+  redirect: string;
+}
+
+export function FormLogin({ redirect }: FormLoginProps) {
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  // TODO: change to /learn
-  const redirect = searchParams.get("redirect") || "/learn/units";
 
   const form = useForm<LoginSchemaType>({
     resolver: zodResolver(LoginSchema),
@@ -45,23 +46,20 @@ export function FormLogin() {
     setError("");
     setSuccess("");
     startTransition(async () => {
-      try {
-        const { user, tokens } = await login(values);
+      const result = await login(values);
 
-        if (!user) {
-          setError("Tên đăng nhập hoặc mật khẩu không chính xác");
-          return;
-        }
-
-        setSuccess("Đăng nhập thành công");
-        router.push(redirect);
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("Tên đăng nhập hoặc mật khẩu không chính xác");
-        }
+      if (!result.success) {
+        setError(result.error || "Đăng nhập thất bại");
+        return;
       }
+
+      if (!result.data?.user) {
+        setError("Tên đăng nhập hoặc mật khẩu không chính xác");
+        return;
+      }
+
+      setSuccess("Đăng nhập thành công");
+      router.push(redirect);
     });
   };
 

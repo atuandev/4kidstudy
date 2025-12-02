@@ -116,9 +116,18 @@ const request = async <Response>(
       !contentType.includes('application/json')
         ? (null as Response)
         : (JSON.parse(responseText) as Response)
+    
+    // Log error responses for debugging (only in development)
+    if (!res.ok && process.env.NODE_ENV === 'development') {
+      console.error(`HTTP ${res.status} error for ${url}:`, payload)
+    }
+    
     return { status: res.status, payload }
   } catch (error) {
-    console.error('Request failed:', error)
+    // Log errors only in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`Request failed for ${url}:`, error)
+    }
     throw error
   }
 }

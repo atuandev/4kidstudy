@@ -1,16 +1,12 @@
-import { Suspense } from 'react';
 import { FormLogin } from '@/app/(auth)/_components/form-login';
 
-const LoginFallback = () => (
-  <div className="flex min-h-[400px] items-center justify-center">
-    <div className="size-12 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-  </div>
-);
+interface LoginPageProps {
+  searchParams: Promise<{ redirect?: string }>;
+}
 
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<LoginFallback />}>
-      <FormLogin />
-    </Suspense>
-  );
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = await searchParams;
+  const redirect = params.redirect || '/learn/units';
+
+  return <FormLogin redirect={redirect} />;
 }

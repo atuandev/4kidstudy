@@ -41,7 +41,7 @@ export function GradeSelectorButton() {
     startTransition(() => {
       const targetUrl = buildRouteWithGrade(pathname, grade.value);
       router.replace(targetUrl);
-      router.refresh();
+      // Removed router.refresh() - Next.js handles this automatically on search param changes
     });
   };
 

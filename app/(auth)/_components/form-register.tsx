@@ -57,27 +57,25 @@ export function FormRegister() {
       setError("");
       setSuccess("");
       
-      try {
-        const { user } = await register(values);
-        if (!user) {
-          setError("Đăng ký thất bại");
-          return;
-        }
-
-        await sendEmailOTP(values.email);
-        setEmail(values.email);
-        
-        setSuccess(
-          "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản"
-        );
-        router.push("/verify-email");
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("Đăng ký thất bại");
-        }
+      const result = await register(values);
+      
+      if (!result.success) {
+        setError(result.error || "Đăng ký thất bại");
+        return;
       }
+
+      if (!result.data?.user) {
+        setError("Đăng ký thất bại");
+        return;
+      }
+
+      await sendEmailOTP(values.email);
+      setEmail(values.email);
+      
+      setSuccess(
+        "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản"
+      );
+      router.push("/verify-email");
     });
   };
 

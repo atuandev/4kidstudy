@@ -26,12 +26,18 @@ interface ErrorResponse {
   statusCode: number;
 }
 
+interface LoginResult {
+  success: boolean;
+  data?: LoginResponse;
+  error?: string;
+}
+
 /**
  * Login action that calls the backend authentication endpoint
  * @param values - Login form data (email, password)
- * @returns Promise with success status and message
+ * @returns Promise with success status and data or error message
  */
-export async function login(values: LoginSchemaType): Promise<LoginResponse> {
+export async function login(values: LoginSchemaType): Promise<LoginResult> {
   try {
     const { status, payload } = await http.post<LoginResponse | ErrorResponse>(
       "/auth/login",
@@ -48,27 +54,57 @@ export async function login(values: LoginSchemaType): Promise<LoginResponse> {
       
       // Check if it's an email verification error
       if (errorMessage.includes("Email not verified") || errorMessage.includes("verify your email")) {
-        throw new Error("Email chưa được xác thực. Vui lòng kiểm tra email để xác thực tài khoản.");
+        return {
+          success: false,
+          error: "Email chưa được xác thực. Vui lòng kiểm tra email để xác thực tài khoản."
+        };
       }
       
       // Otherwise it's wrong credentials
-      throw new Error("Email hoặc mật khẩu không chính xác");
+      return {
+        success: false,
+        error: "Email hoặc mật khẩu không chính xác"
+      };
+    }
+
+    // Handle non-200 status codes
+    if (status !== 200 && status !== 201) {
+      const errorPayload = payload as ErrorResponse;
+      return {
+        success: false,
+        error: errorPayload.message || "Đăng nhập thất bại"
+      };
     }
 
     const loginPayload = payload as LoginResponse;
 
-    if (loginPayload.user) {
-      await setTokenToCookies(
-        loginPayload.tokens.accessToken,
-        loginPayload.tokens.refreshToken
-      );
+    // Validate response structure
+    if (!loginPayload.user || !loginPayload.tokens) {
+      return {
+        success: false,
+        error: "Phản hồi từ máy chủ không hợp lệ"
+      };
     }
 
-    return loginPayload;
+    // Set tokens to cookies
+    await setTokenToCookies(
+      loginPayload.tokens.accessToken,
+      loginPayload.tokens.refreshToken
+    );
+
+    return {
+      success: true,
+      data: loginPayload
+    };
   } catch (error) {
-    if (error instanceof Error) {
-      throw error;
+    // Log error only in development
+    if (process.env.NODE_ENV === "development") {
+      console.error("Login error:", error);
     }
-    throw new Error("Đăng nhập thất bại");
+    
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Đăng nhập thất bại"
+    };
   }
 }
