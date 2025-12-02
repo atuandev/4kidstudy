@@ -23,7 +23,15 @@ export default function FinishPage({ lessonId }: FinishPageProps) {
 
   useEffect(() => {
     setIsMounted(true);
-    void fetchProfile();
+    
+    async function refreshProfile() {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      await fetchProfile();
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await fetchProfile();
+    }
+    
+    void refreshProfile();
   }, [fetchProfile]);
 
   const accuracy = getAccuracy();
