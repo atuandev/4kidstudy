@@ -7,6 +7,7 @@ import { parseAsString, useQueryState } from "nuqs";
 import { Button } from "@/components/ui/button";
 import { useProfile } from "@/hooks/use-profile";
 import { Grade, GRADE_VALUES, GRADES, GradeValue } from "@/types/grade";
+import { useRouter } from "next/navigation";
 
 const gradeOrderMap: Record<GradeValue, number> = {
   [GRADE_VALUES.GRADE_1]: 1,
@@ -20,17 +21,19 @@ const gradeOrderMap: Record<GradeValue, number> = {
  * Renders grade selector buttons and displays the active user name.
  */
 export function GradeSelectorButton() {
+  const router = useRouter();
   const { profile } = useProfile();
   const [selectedGrade, setSelectedGrade] = useQueryState(
     "grade",
     parseAsString.withDefault("")
   );
 
-  const handleGradeClick = (grade: Grade) => {
+  const handleGradeClick = async (grade: Grade) => {
     if (selectedGrade === grade.value) {
       return;
     }
-    setSelectedGrade(grade.value);
+    await setSelectedGrade(grade.value);
+    router.refresh();
   };
 
   const userGradeValue = profile?.grade as GradeValue | undefined;
