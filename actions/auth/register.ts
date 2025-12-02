@@ -1,6 +1,5 @@
 'use server'
 
-import { setTokenToCookies } from '@/lib/cookies';
 import http from '@/lib/http'
 import { RegisterSchemaType } from '@/schemas/auth'
 
@@ -10,31 +9,32 @@ interface RegisterResponse {
     email: string;
     name: string;
     role: string;
-    dob: string;
+    dob?: string;
     gender: string;
-    avatarUrl: string;
-  };
-  tokens: {
-    accessToken: string;
-    refreshToken: string;
+    avatarUrl?: string;
+    isVerified: boolean;
   };
 }
 
 export const register = async (data: RegisterSchemaType) => {
-  const { payload } = await http.post<RegisterResponse>(`/auth/register`, JSON.stringify({
-    email: data.email,
-    name: data.name,
-    password: data.password,
-  }), {
-    noAuth: true,
-  })
+  try {
+    const { status, payload } = await http.post<RegisterResponse>(`/auth/register`, JSON.stringify({
+      email: data.email,
+      name: data.name,
+      password: data.password,
+    }), {
+      noAuth: true,
+    })
 
-  if (payload.user) {
-    await setTokenToCookies(
-      payload.tokens.accessToken,
-      payload.tokens.refreshToken
-    );
+    if (status === 409) {
+      throw new Error('Email đã được sử dụng. Vui lòng sử dụng email khác.')
+    }
+
+    return payload
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error
+    }
+    throw new Error('Đăng ký thất bại')
   }
-
-  return payload
 }

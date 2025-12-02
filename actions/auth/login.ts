@@ -26,20 +26,31 @@ interface LoginResponse {
  * @returns Promise with success status and message
  */
 export async function login(values: LoginSchemaType): Promise<LoginResponse> {
-  const { payload } = await http.post<LoginResponse>(
-    "/auth/login",
-    JSON.stringify(values),
-    {
-      noAuth: true,
-    }
-  );
-
-  if (payload.user) {
-    await setTokenToCookies(
-      payload.tokens.accessToken,
-      payload.tokens.refreshToken
+  try {
+    const { status, payload } = await http.post<LoginResponse>(
+      "/auth/login",
+      JSON.stringify(values),
+      {
+        noAuth: true,
+      }
     );
-  }
 
-  return payload;
+    if (status === 403) {
+      throw new Error("Email chưa được xác thực. Vui lòng kiểm tra email để xác thực tài khoản.");
+    }
+
+    if (payload.user) {
+      await setTokenToCookies(
+        payload.tokens.accessToken,
+        payload.tokens.refreshToken
+      );
+    }
+
+    return payload;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("Đăng nhập thất bại");
+  }
 }

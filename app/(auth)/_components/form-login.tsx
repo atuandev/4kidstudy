@@ -45,15 +45,23 @@ export function FormLogin() {
     setError("");
     setSuccess("");
     startTransition(async () => {
-      const { user, tokens } = await login(values);
+      try {
+        const { user, tokens } = await login(values);
 
-      if (!user) {
-        setError("Tên đăng nhập hoặc mật khẩu không chính xác");
-        return;
+        if (!user) {
+          setError("Tên đăng nhập hoặc mật khẩu không chính xác");
+          return;
+        }
+
+        setSuccess("Đăng nhập thành công");
+        router.push(redirect);
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Tên đăng nhập hoặc mật khẩu không chính xác");
+        }
       }
-
-      setSuccess("Đăng nhập thành công");
-      router.push(redirect);
     });
   };
 

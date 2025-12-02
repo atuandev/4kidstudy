@@ -43,3 +43,16 @@ export const RegisterSchema = z.object({
 })
 
 export type RegisterSchemaType = z.infer<typeof RegisterSchema>
+
+export const VerifyEmailSchema = z.object({
+  email: z
+    .string('Email là bắt buộc')
+    .min(1, 'Email không được để trống')
+    .email('Email không hợp lệ'),
+  otp: z
+    .string('OTP là bắt buộc')
+    .min(1, 'OTP không được để trống')
+    .length(6, 'OTP phải có 6 ký tự'),
+})
+
+export type VerifyEmailSchemaType = z.infer<typeof VerifyEmailSchema>
