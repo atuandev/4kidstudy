@@ -20,6 +20,12 @@ interface LoginResponse {
   };
 }
 
+interface ErrorResponse {
+  message: string;
+  error?: string;
+  statusCode: number;
+}
+
 /**
  * Login action that calls the backend authentication endpoint
  * @param values - Login form data (email, password)
@@ -27,7 +33,7 @@ interface LoginResponse {
  */
 export async function login(values: LoginSchemaType): Promise<LoginResponse> {
   try {
-    const { status, payload } = await http.post<LoginResponse>(
+    const { status, payload } = await http.post<LoginResponse | ErrorResponse>(
       "/auth/login",
       JSON.stringify(values),
       {
@@ -35,18 +41,30 @@ export async function login(values: LoginSchemaType): Promise<LoginResponse> {
       }
     );
 
+    // Handle error responses
     if (status === 403) {
-      throw new Error("Email chưa được xác thực. Vui lòng kiểm tra email để xác thực tài khoản.");
+      const errorPayload = payload as ErrorResponse;
+      const errorMessage = errorPayload.message || "Access Denied";
+      
+      // Check if it's an email verification error
+      if (errorMessage.includes("Email not verified") || errorMessage.includes("verify your email")) {
+        throw new Error("Email chưa được xác thực. Vui lòng kiểm tra email để xác thực tài khoản.");
+      }
+      
+      // Otherwise it's wrong credentials
+      throw new Error("Email hoặc mật khẩu không chính xác");
     }
 
-    if (payload.user) {
+    const loginPayload = payload as LoginResponse;
+
+    if (loginPayload.user) {
       await setTokenToCookies(
-        payload.tokens.accessToken,
-        payload.tokens.refreshToken
+        loginPayload.tokens.accessToken,
+        loginPayload.tokens.refreshToken
       );
     }
 
-    return payload;
+    return loginPayload;
   } catch (error) {
     if (error instanceof Error) {
       throw error;

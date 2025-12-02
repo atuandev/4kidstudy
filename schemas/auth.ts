@@ -56,3 +56,31 @@ export const VerifyEmailSchema = z.object({
 })
 
 export type VerifyEmailSchemaType = z.infer<typeof VerifyEmailSchema>
+
+/**
+ * Forget password schema
+ */
+export const ForgetPasswordSchema = z.object({
+  email: z
+    .string('Email là bắt buộc')
+    .min(1, 'Email không được để trống')
+    .email('Email không hợp lệ'),
+})
+
+export type ForgetPasswordSchemaType = z.infer<typeof ForgetPasswordSchema>
+
+/**
+ * Reset password schema
+ */
+export const ResetPasswordSchema = z.object({
+  email: z
+    .string('Email là bắt buộc')
+    .min(1, 'Email không được để trống')
+    .email('Email không hợp lệ'),
+  newPassword: z
+    .string('Mật khẩu mới là bắt buộc')
+    .min(1, 'Mật khẩu mới không được để trống')
+    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
+})
+
+export type ResetPasswordSchemaType = z.infer<typeof ResetPasswordSchema>

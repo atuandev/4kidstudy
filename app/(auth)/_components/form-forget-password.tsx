@@ -39,6 +39,9 @@ export function FormForgetPassword() {
 
   const onSubmit = (values: ForgetPasswordSchemaType) => {
     startTransition(async () => {
+      setError('')
+      setSuccess('')
+      
       try {
         await sendEmailOTP(values.email)
         setEmail(values.email)
@@ -48,8 +51,12 @@ export function FormForgetPassword() {
 
         setSuccess('Gửi mã xác thực thành công. Vui lòng kiểm tra email của bạn.')
         router.push('/verify-email')
-      } catch {
-        setError('Đăng ký thất bại')
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message)
+        } else {
+          setError('Không thể gửi mã xác thực. Vui lòng thử lại.')
+        }
       }
     })
   }
@@ -57,7 +64,7 @@ export function FormForgetPassword() {
   return (
     <div className='p-6 rounded-lg min-w-[480px] max-w-[600px] bg-background space-y-4 shadow border'>
       <div className='w-fit'>
-        <Logo size={20} />
+        <Logo />
       </div>
 
       <TypographyH3>Quên mật khẩu</TypographyH3>

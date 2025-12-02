@@ -2,7 +2,7 @@
 
 import { useForm } from 'react-hook-form'
 import { useRouter } from 'next/navigation'
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -28,7 +28,8 @@ export function FormNewPassword() {
   const [error, setError] = useState<string | undefined>('')
   const [success, setSuccess] = useState<string | undefined>('')
   const [isSpending, startTransition] = useTransition()
-  const { email } = useOtpStore()
+  const [isRedirecting, setIsRedirecting] = useState(false)
+  const { email, clearEmail } = useOtpStore()
 
   const form = useForm<ResetPasswordSchemaType>({
     resolver: zodResolver(ResetPasswordSchema),
@@ -38,15 +39,40 @@ export function FormNewPassword() {
     },
   })
 
+  useEffect(() => {
+    // Don't redirect if we're in the middle of a successful password reset
+    if (!email && !isRedirecting) {
+      router.push('/forget-password')
+      return
+    }
+  }, [email, router, isRedirecting])
+
   const onSubmit = (values: ResetPasswordSchemaType) => {
     startTransition(async () => {
+      setError('')
+      setSuccess('')
+      
       try {
         await resetPassword(values)
         setSuccess('Thay đổi mật khẩu thành công.')
-
-        router.push('/login')
-      } catch {
-        setError('Thay đổi mật khẩu thất bại')
+        
+        // Set redirecting flag before clearing email
+        setIsRedirecting(true)
+        
+        // Clear password reset flow flag
+        sessionStorage.removeItem('flowType')
+        
+        // Clear email and redirect after a short delay
+        setTimeout(() => {
+          clearEmail()
+          router.push('/login')
+        }, 1500)
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message)
+        } else {
+          setError('Thay đổi mật khẩu thất bại. Vui lòng thử lại.')
+        }
       }
     })
   }
@@ -54,7 +80,7 @@ export function FormNewPassword() {
   return (
     <div className='p-6 rounded-lg min-w-[480px] max-w-[600px] bg-background space-y-4 shadow border'>
       <div className='w-fit'>
-        <Logo size={20} />
+        <Logo />
       </div>
 
       <TypographyH3>Quên mật khẩu</TypographyH3>

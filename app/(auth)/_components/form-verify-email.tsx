@@ -70,14 +70,15 @@ export function FormVerifyEmail() {
         }
 
         setSuccess('Xác thực thành công.')
-        clearEmail()
 
         // Redirect based on the flow type
         if (isPasswordReset) {
-          // Clear the flow type from session storage
-          sessionStorage.removeItem('flowType')
+          // DON'T clear email yet - needed for new-password form
+          // DON'T clear flowType yet - needed for new-password form
           router.push('/new-password')
         } else {
+          // For registration flow, clear email and redirect to login
+          clearEmail()
           router.push('/login')
         }
       } catch {
