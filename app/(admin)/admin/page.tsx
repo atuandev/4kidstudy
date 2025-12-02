@@ -11,6 +11,8 @@ import { DashboardOverview } from '../_components/dashboard-overview';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
+export const dynamic = 'force-dynamic';
+
 function DashboardSkeleton() {
   return (
     <div className="space-y-6">
