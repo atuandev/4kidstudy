@@ -1,14 +1,13 @@
 "use client";
 
-import { useTransition } from "react";
-
-import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FlameIcon, GraduationCap, TrophyIcon } from "lucide-react";
+import Link from "next/link";
+import { parseAsString, useQueryState } from "nuqs";
 
 import { Button } from "@/components/ui/button";
 import { useProfile } from "@/hooks/use-profile";
-import { GRADE_VALUES, GRADES, Grade, GradeValue } from "@/types/grade";
+import { Grade, GRADE_VALUES, GRADES, GradeValue } from "@/types/grade";
+import { useRouter } from "next/navigation";
 
 const gradeOrderMap: Record<GradeValue, number> = {
   [GRADE_VALUES.GRADE_1]: 1,
@@ -18,31 +17,23 @@ const gradeOrderMap: Record<GradeValue, number> = {
   [GRADE_VALUES.GRADE_5]: 5,
 };
 
-const buildRouteWithGrade = (basePath: string, grade: string) => {
-  const searchParams = new URLSearchParams();
-  searchParams.set("grade", grade);
-  return `${basePath}?${searchParams.toString()}`;
-};
-
 /**
  * Renders grade selector buttons and displays the active user name.
  */
 export function GradeSelectorButton() {
-  const { profile } = useProfile();
-  const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const selectedGrade = searchParams.get("grade");
-  const [isPending, startTransition] = useTransition();
-  const handleGradeClick = (grade: Grade) => {
-    if (isPending || selectedGrade === grade.value) {
+  const { profile } = useProfile();
+  const [selectedGrade, setSelectedGrade] = useQueryState(
+    "grade",
+    parseAsString.withDefault("")
+  );
+
+  const handleGradeClick = async (grade: Grade) => {
+    if (selectedGrade === grade.value) {
       return;
     }
-    startTransition(() => {
-      const targetUrl = buildRouteWithGrade(pathname, grade.value);
-      router.replace(targetUrl);
-      router.refresh();
-    });
+    await setSelectedGrade(grade.value);
+    router.refresh();
   };
 
   const userGradeValue = profile?.grade as GradeValue | undefined;
@@ -63,10 +54,9 @@ export function GradeSelectorButton() {
               <Button
                 key={grade.id}
                 variant={isActive ? "default" : "ghost"}
-                disabled={isPending}
                 onClick={() => handleGradeClick(grade)}
               >
-                {isPending && isActive ? "..." : grade.label}
+                {grade.label}
               </Button>
             );
           })}

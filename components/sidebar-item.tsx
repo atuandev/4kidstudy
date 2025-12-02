@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { parseAsString, useQueryState } from "nuqs";
 
 import { Button } from "@/components/ui/button";
 
@@ -24,8 +25,7 @@ const shouldAppendGrade = (href: string) => {
 
 export const SidebarItem = ({ label, iconSrc, href }: SidebarItemProps) => {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const selectedGrade = searchParams.get("grade");
+  const [selectedGrade] = useQueryState("grade", parseAsString.withDefault(""));
   const targetHref =
     selectedGrade && shouldAppendGrade(href)
       ? buildRouteWithGrade(href, selectedGrade)
