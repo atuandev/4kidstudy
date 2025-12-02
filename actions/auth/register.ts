@@ -22,6 +22,7 @@ export const register = async (data: RegisterSchemaType) => {
       email: data.email,
       name: data.name,
       password: data.password,
+      grade: data.grade,
     }), {
       noAuth: true,
     })

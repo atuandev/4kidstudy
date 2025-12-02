@@ -20,11 +20,19 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { RegisterSchema, RegisterSchemaType } from "@/schemas/auth";
 import { TypographyH3 } from "@/components/typography";
 import Image from "next/image";
 import { useOtpStore } from "@/stores/otpStore";
 import { sendEmailOTP } from "@/actions/auth/verify-otp";
+import { GRADES } from "@/types/grade";
 
 export function FormRegister() {
   const router = useRouter();
@@ -40,6 +48,7 @@ export function FormRegister() {
       email: "",
       password: "",
       confirmPassword: "",
+      grade: "GRADE_1",
     },
   });
 
@@ -97,6 +106,34 @@ export function FormRegister() {
                       placeholder="Nhập tên"
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="grade"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Khối lớp</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={isSpending}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn khối lớp" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {GRADES.map((grade) => (
+                        <SelectItem key={grade.id} value={grade.value}>
+                          {grade.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
