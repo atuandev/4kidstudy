@@ -564,8 +564,8 @@ export default function FlashcardFormPage() {
         throw new Error(error.message || "Import thất bại");
       }
 
-      const importedFlashcards = await response.json();
-      toast.success(`🎉 Đã import ${importedFlashcards.length} flashcard thành công!`);
+      const result = await response.json();
+      toast.success(`🎉 Đã import ${result.imported} flashcard thành công!`);
 
       // Reload flashcards
       const existingFlashcardsResponse = await getFlashcardsByTopic(topicId);
