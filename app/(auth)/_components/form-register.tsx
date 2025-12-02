@@ -20,15 +20,26 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { RegisterSchema, RegisterSchemaType } from "@/schemas/auth";
 import { TypographyH3 } from "@/components/typography";
 import Image from "next/image";
+import { useOtpStore } from "@/stores/otpStore";
+import { sendEmailOTP } from "@/actions/auth/verify-otp";
+import { GRADES } from "@/types/grade";
 
 export function FormRegister() {
   const router = useRouter();
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
   const [isSpending, startTransition] = useTransition();
+  const { setEmail } = useOtpStore();
 
   const form = useForm<RegisterSchemaType>({
     resolver: zodResolver(RegisterSchema),
@@ -37,11 +48,15 @@ export function FormRegister() {
       email: "",
       password: "",
       confirmPassword: "",
+      grade: "GRADE_1",
     },
   });
 
   const onSubmit = (values: RegisterSchemaType) => {
     startTransition(async () => {
+      setError("");
+      setSuccess("");
+      
       try {
         const { user } = await register(values);
         if (!user) {
@@ -49,13 +64,19 @@ export function FormRegister() {
           return;
         }
 
+        await sendEmailOTP(values.email);
+        setEmail(values.email);
+        
         setSuccess(
           "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản"
         );
-        // TODO: change to /learn
-        router.push("/learn/units");
-      } catch {
-        setError("Đăng ký thất bại");
+        router.push("/verify-email");
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Đăng ký thất bại");
+        }
       }
     });
   };
@@ -85,6 +106,34 @@ export function FormRegister() {
                       placeholder="Nhập tên"
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="grade"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Khối lớp</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={isSpending}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn khối lớp" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {GRADES.map((grade) => (
+                        <SelectItem key={grade.id} value={grade.value}>
+                          {grade.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

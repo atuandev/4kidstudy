@@ -11,21 +11,26 @@ import {
   Calendar,
   Crown,
   Flame,
+  KeyRoundIcon,
   LogOutIcon,
   Mail,
-  Settings,
-  Star,
   Target,
   Trophy,
   User,
+  UserIcon
 } from "lucide-react";
 import { redirect } from "next/navigation";
+import { useState } from "react";
+import { UpdateProfileDialog } from "./update-profile";
+import { ChangePasswordDialog } from "./change-password";
 
 interface ProfileProps {
   profile: UserType;
 }
 
 export default function Profile({ profile }: ProfileProps) {
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+  const [isChangePasswordDialogOpen, setIsChangePasswordDialogOpen] = useState(false);
   // Calculate level from XP (assuming 100 XP per level)
   const level = Math.floor(profile.xp / 100) + 1;
   const currentLevelXP = profile.xp % 100;
@@ -92,8 +97,17 @@ export default function Profile({ profile }: ProfileProps) {
                     variant="primary"
                     size="icon"
                     className="self-start sm:self-center"
+                    onClick={() => setIsUpdateDialogOpen(true)}
                   >
-                    <Settings className="h-4 w-4" />
+                    <UserIcon className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="icon"
+                    className="self-start sm:self-center"
+                    onClick={() => setIsChangePasswordDialogOpen(true)}
+                  >
+                    <KeyRoundIcon className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
@@ -263,6 +277,17 @@ export default function Profile({ profile }: ProfileProps) {
           </Card>
         </div>
       </div>
+
+      <UpdateProfileDialog
+        open={isUpdateDialogOpen}
+        onOpenChange={setIsUpdateDialogOpen}
+        profile={profile}
+      />
+
+      <ChangePasswordDialog
+        open={isChangePasswordDialogOpen}
+        onOpenChange={setIsChangePasswordDialogOpen}
+      />
     </div>
   );
 }
