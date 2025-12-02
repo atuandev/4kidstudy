@@ -89,3 +89,31 @@ export const ResetPasswordSchema = z.object({
 });
 
 export type ResetPasswordSchemaType = z.infer<typeof ResetPasswordSchema>;
+
+/**
+ * Change password schema
+ */
+export const ChangePasswordSchema = z
+  .object({
+    currentPassword: z
+      .string("Mật khẩu hiện tại là bắt buộc")
+      .min(1, "Mật khẩu hiện tại không được để trống")
+      .min(8, "Mật khẩu phải có ít nhất 8 ký tự"),
+    newPassword: z
+      .string("Mật khẩu mới là bắt buộc")
+      .min(1, "Mật khẩu mới không được để trống")
+      .min(8, "Mật khẩu phải có ít nhất 8 ký tự"),
+    confirmPassword: z
+      .string("Xác nhận mật khẩu là bắt buộc")
+      .min(1, "Xác nhận mật khẩu không được để trống"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Mật khẩu xác nhận không khớp",
+    path: ["confirmPassword"],
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    message: "Mật khẩu mới không được trùng với mật khẩu hiện tại",
+    path: ["newPassword"],
+  });
+
+export type ChangePasswordSchemaType = z.infer<typeof ChangePasswordSchema>;
