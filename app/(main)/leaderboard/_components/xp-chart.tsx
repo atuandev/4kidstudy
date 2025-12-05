@@ -11,8 +11,9 @@ import {
 } from "@/components/ui/select";
 import { BarChart as BarChartIcon } from "lucide-react";
 import {
-  BarChart,
+  ComposedChart,
   Bar,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -26,6 +27,7 @@ interface TopicXPDataPoint {
   topicId: number;
   topicTitle: string;
   xpEarned: number;
+  gradeXpEarned: number;
 }
 
 const TIME_RANGES = [
@@ -46,6 +48,7 @@ export function XPChart() {
     const fetchData = async () => {
       setLoading(true);
       const result = await getTopicXPStats(days);
+
       setData(result.data);
       setTotalXP(result.totalXP);
       setLoading(false);
@@ -96,7 +99,7 @@ export function XPChart() {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data}>
+            <ComposedChart data={data}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="topicTitle"
@@ -107,17 +110,30 @@ export function XPChart() {
               />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip
-                formatter={(value: number) => [`${value} XP`, "Điểm"]}
+                formatter={(value: number, name: string) => {
+                  if (name === "XP cá nhân") return [`${value} XP`, "Cá nhân"];
+                  if (name === "Tổng XP khối") return [`${value} XP`, "Khối"];
+                  return [value, name];
+                }}
                 labelFormatter={(label) => `Chủ đề: ${label}`}
               />
               <Legend />
               <Bar
                 dataKey="xpEarned"
                 fill="#8b5cf6"
-                name="XP kiếm được"
+                name="XP cá nhân"
                 radius={[8, 8, 0, 0]}
               />
-            </BarChart>
+              <Line
+                type="monotone"
+                dataKey="gradeXpEarned"
+                stroke="#f59e0b"
+                strokeWidth={3}
+                name="Tổng XP khối"
+                dot={{ r: 4, fill: "#f59e0b" }}
+                activeDot={{ r: 6 }}
+              />
+            </ComposedChart>
           </ResponsiveContainer>
         )}
       </CardContent>

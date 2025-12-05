@@ -7,6 +7,7 @@ interface TopicXPDataPoint {
     topicId: number;
     topicTitle: string;
     xpEarned: number;
+    gradeXpEarned: number;
 }
 
 interface TopicXPStatsResponse {
