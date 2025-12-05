@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,9 +14,22 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { History, BookOpen, MessageSquare, Target, TrendingUp } from "lucide-react";
 import { GradeValue } from "@/types/grade";
-import { FlashcardDetailDialog } from "./flashcard-detail-dialog";
-import { SentenceDetailDialog } from "./sentence-detail-dialog";
-import { TopicDetailDialog } from "./topic-detail-dialog";
+
+// Lazy load detail dialogs
+const FlashcardDetailDialog = dynamic(
+  () => import("./flashcard-detail-dialog").then((mod) => ({ default: mod.FlashcardDetailDialog })),
+  { ssr: false }
+);
+
+const SentenceDetailDialog = dynamic(
+  () => import("./sentence-detail-dialog").then((mod) => ({ default: mod.SentenceDetailDialog })),
+  { ssr: false }
+);
+
+const TopicDetailDialog = dynamic(
+  () => import("./topic-detail-dialog").then((mod) => ({ default: mod.TopicDetailDialog })),
+  { ssr: false }
+);
 
 interface TopItem {
   id: number;
