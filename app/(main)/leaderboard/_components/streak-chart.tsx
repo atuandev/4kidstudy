@@ -25,6 +25,7 @@ import { getStreakStats } from "@/actions/leaderboard";
 interface StreakDataPoint {
   date: string;
   xpEarned: number;
+  gradeXpEarned?: number;
 }
 
 const TIME_RANGES = [
@@ -45,7 +46,32 @@ export function StreakChart() {
     const fetchData = async () => {
       setLoading(true);
       const result = await getStreakStats(days);
-      setData(result.data);
+
+      // Merge user data with grade data
+      const mergedData = result.data.map((userPoint) => {
+        const gradePoint = result.gradeData.find((g) => g.date === userPoint.date);
+        return {
+          date: userPoint.date,
+          xpEarned: userPoint.xpEarned,
+          gradeXpEarned: gradePoint?.xpEarned || 0,
+        };
+      });
+
+      // Add any grade data points that don't exist in user data
+      result.gradeData.forEach((gradePoint) => {
+        if (!mergedData.find((d) => d.date === gradePoint.date)) {
+          mergedData.push({
+            date: gradePoint.date,
+            xpEarned: 0,
+            gradeXpEarned: gradePoint.xpEarned,
+          });
+        }
+      });
+
+      // Sort by date
+      mergedData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      setData(mergedData);
       setTotalXP(result.totalXP);
       setLoading(false);
     };
@@ -119,7 +145,16 @@ export function StreakChart() {
                 dataKey="xpEarned"
                 stroke="#8884d8"
                 strokeWidth={2}
-                name="XP kiếm được"
+                name="XP cá nhân"
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="gradeXpEarned"
+                stroke="#82ca9d"
+                strokeWidth={2}
+                name="Tổng XP khối"
                 dot={{ r: 4 }}
                 activeDot={{ r: 6 }}
               />

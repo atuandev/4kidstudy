@@ -10,6 +10,7 @@ interface StreakDataPoint {
 
 interface StreakStatsResponse {
   data: StreakDataPoint[];
+  gradeData: StreakDataPoint[];
   totalXP: number;
   days: number;
 }
@@ -37,6 +38,7 @@ export async function getStreakStats(
     console.error("Error fetching streak stats:", error);
     return {
       data: [],
+      gradeData: [],
       totalXP: 0,
       days,
     };
