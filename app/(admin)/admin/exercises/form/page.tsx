@@ -4,7 +4,7 @@
 
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronDown, ChevronUp, Edit2, ImageIcon, Loader2, Plus, Trash2, Upload } from "lucide-react";
+import { AlertCircle, ChevronDown, ChevronUp, Edit2, ImageIcon, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -85,6 +85,7 @@ export default function ExerciseFormPage() {
     neededFiles: string[];
     matchedFiles: string[];
   } | null>(null);
+  const [exerciseErrors, setExerciseErrors] = useState<Map<number, string[]>>(new Map());
   const [isImporting, setIsImporting] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -308,19 +309,26 @@ export default function ExerciseFormPage() {
 
     if (editingIndex !== null) {
       // Update existing exercise
-      setExerciseForms((prev) =>
-        prev.map((ex, idx) =>
-          idx === editingIndex ? (createData as CreateExerciseFormData) : ex
-        )
+      const updatedExercises = exerciseForms.map((ex, idx) =>
+        idx === editingIndex ? (createData as CreateExerciseFormData) : ex
       );
+      setExerciseForms(updatedExercises);
+
+      // Re-validate after update
+      const validationErrors = validateExercises(updatedExercises);
+      setExerciseErrors(validationErrors);
+
       toast.success("Đã cập nhật câu hỏi");
       setEditingIndex(null);
     } else {
       // Add new exercise
-      setExerciseForms((prev) => [
-        ...prev,
-        createData as CreateExerciseFormData,
-      ]);
+      const newExercises = [...exerciseForms, createData as CreateExerciseFormData];
+      setExerciseForms(newExercises);
+
+      // Re-validate after add
+      const validationErrors = validateExercises(newExercises);
+      setExerciseErrors(validationErrors);
+
       toast.success(
         `Đã thêm câu hỏi ${exerciseForms.length + 1}. Tiếp tục tạo câu hỏi mới.`
       );
@@ -398,6 +406,10 @@ export default function ExerciseFormPage() {
     // Remove from local array
     const updatedExercises = exerciseForms.filter((_, i) => i !== index);
     setExerciseForms(updatedExercises);
+
+    // Re-validate after deletion
+    const validationErrors = validateExercises(updatedExercises);
+    setExerciseErrors(validationErrors);
 
     if (editingIndex === index) {
       setEditingIndex(null);
@@ -915,7 +927,15 @@ export default function ExerciseFormPage() {
       const allExercises = [...exerciseForms, ...parsedExercises];
       setExerciseForms(allExercises);
 
-      toast.success(`📋 Đã load ${parsedExercises.length} câu hỏi. Kiểm tra và bấm 'Lưu tất cả' để lưu!`);
+      // Validate exercises
+      const validationErrors = validateExercises(allExercises);
+      setExerciseErrors(validationErrors);
+
+      if (validationErrors.size > 0) {
+        toast.warning(`⚠️ Đã load ${parsedExercises.length} câu hỏi nhưng có ${validationErrors.size} câu có lỗi. Vui lòng kiểm tra!`);
+      } else {
+        toast.success(`📋 Đã load ${parsedExercises.length} câu hỏi. Kiểm tra và bấm 'Lưu tất cả' để lưu!`);
+      }
 
       // Close dialog
       setShowImportDialog(false);
@@ -929,6 +949,63 @@ export default function ExerciseFormPage() {
       setIsImporting(false);
     }
   };
+
+  // Validation function
+  const validateExercises = (exercises: CreateExerciseFormData[]) => {
+    const errors = new Map<number, string[]>();
+    const seenPrompts = new Map<string, number>();
+
+    exercises.forEach((exercise, idx) => {
+      const exerciseErrors: string[] = [];
+
+      // Required field: type
+      if (!exercise.type) {
+        exerciseErrors.push('Thiếu loại bài tập (type)');
+      }
+
+      // Required field: prompt (for most types)
+      if (!exercise.prompt && !['FILL_BLANK', 'PRONUNCIATION'].includes(exercise.type)) {
+        exerciseErrors.push('Thiếu câu hỏi (prompt)');
+      }
+
+      // Duplicate detection
+      if (exercise.prompt) {
+        const key = exercise.prompt.toLowerCase().trim();
+        if (seenPrompts.has(key)) {
+          exerciseErrors.push(`Trùng với câu #${seenPrompts.get(key)! + 1}`);
+        } else {
+          seenPrompts.set(key, idx);
+        }
+      }
+
+      // Option validation
+      if (['MULTIPLE_CHOICE', 'SELECT_IMAGE', 'LISTENING'].includes(exercise.type)) {
+        if (exercise.options.length === 0) {
+          exerciseErrors.push('Thiếu đáp án');
+        } else if (exercise.options.length < 2) {
+          exerciseErrors.push('Cần ít nhất 2 đáp án');
+        }
+
+        const hasCorrect = exercise.options.some(opt => opt.isCorrect);
+        if (!hasCorrect && exercise.options.length > 0) {
+          exerciseErrors.push('Thiếu đáp án đúng (optT)');
+        }
+      }
+
+      if (exercise.type === 'MATCHING') {
+        if (exercise.options.length < 4) {
+          exerciseErrors.push('MATCHING cần ít nhất 2 cặp (4 options)');
+        }
+      }
+
+      if (exerciseErrors.length > 0) {
+        errors.set(idx, exerciseErrors);
+      }
+    });
+
+    return errors;
+  };
+
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleImageUpload = (result: any) => {
@@ -1062,6 +1139,12 @@ export default function ExerciseFormPage() {
                             {editingIndex === index && (
                               <Badge variant="default" className="ml-2">
                                 Đang chỉnh sửa
+                              </Badge>
+                            )}
+                            {exerciseErrors.has(index) && (
+                              <Badge variant="destructive" className="gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {exerciseErrors.get(index)!.length} lỗi
                               </Badge>
                             )}
                           </div>
@@ -1229,6 +1312,24 @@ export default function ExerciseFormPage() {
                   </Button>
                 )}
               </div>
+
+              {/* ERROR ALERTS when editing */}
+              {editingIndex !== null && exerciseErrors.has(editingIndex) && (
+                <div className="rounded-lg border border-destructive bg-destructive/10 p-4">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
+                    <div className="flex-1">
+                      <p className="font-medium text-destructive">Lỗi validation:</p>
+                      <ul className="mt-2 list-disc list-inside space-y-1 text-sm">
+                        {exerciseErrors.get(editingIndex)!.map((error, i) => (
+                          <li key={i}>{error}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <Card>
                 <CardContent className="space-y-4">
                   {/* Lesson Selection */}
