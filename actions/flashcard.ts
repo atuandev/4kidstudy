@@ -16,6 +16,12 @@ export async function getFlashcard(id: number) {
 }
 
 export async function getFlashcardsByTopic(topicId: number) {
+  const response = await http.get<Flashcard[]>(`/flashcards/topic/${topicId}?isActive=true`);
+  return response;
+}
+
+// Admin version - fetches ALL flashcards including inactive
+export async function getFlashcardsByTopicForAdmin(topicId: number) {
   const response = await http.get<Flashcard[]>(`/flashcards/topic/${topicId}`);
   return response;
 }
@@ -51,7 +57,7 @@ export async function updateFlashcard(
 }
 
 export async function deleteFlashcard(id: number) {
-  const { payload } = await http.delete<Flashcard>(`/flashcards/${id}`);
+  const { payload } = await http.delete<{ flashcard: Flashcard; hasProgress: boolean; deleted: boolean }>(`/flashcards/${id}`);
   revalidatePath('/admin/flashcards');
   return payload;
 }

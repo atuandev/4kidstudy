@@ -70,7 +70,7 @@ import {
   createFlashcard,
   getFlashcard,
   updateFlashcard,
-  getFlashcardsByTopic,
+  getFlashcardsByTopicForAdmin,
   bulkCreateFlashcards,
   deleteFlashcard,
 } from "@/actions/flashcard";
@@ -192,7 +192,7 @@ export default function FlashcardFormPage() {
           }
 
           // Load existing flashcards for this topic
-          const existingFlashcardsResponse = await getFlashcardsByTopic(
+          const existingFlashcardsResponse = await getFlashcardsByTopicForAdmin(
             parsedTopicId
           );
           const existingFlashcards = existingFlashcardsResponse.payload || [];
@@ -765,8 +765,14 @@ export default function FlashcardFormPage() {
     // If flashcard has an id, it exists in the database and needs to be deleted
     if (flashcard.id) {
       try {
-        await deleteFlashcard(flashcard.id);
-        toast.success("Đã xóa flashcard thành công");
+        const result = await deleteFlashcard(flashcard.id);
+
+        if (result.hasProgress) {
+          toast.info("⚠️ Flashcard có lịch sử học → Đã ẩn thay vì xóa để giữ dữ liệu học tập");
+        } else {
+          toast.success("Đã xóa flashcard thành công");
+        }
+
         remove(index);
       } catch (error) {
         console.error("Failed to delete flashcard:", error);

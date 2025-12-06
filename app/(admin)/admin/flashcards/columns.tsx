@@ -28,6 +28,8 @@ import { Badge } from "@/components/ui/badge";
 import { Flashcard } from "@/types";
 import { DataTableColumnHeader } from "../_components/data-table-column-header";
 import { deleteFlashcard } from "@/actions/flashcard";
+import { toast } from "sonner";
+import { AlertCircle } from "lucide-react";
 import Image from "next/image";
 
 const gradeMap: Record<
@@ -35,16 +37,16 @@ const gradeMap: Record<
   {
     label: string;
     variant:
-      | "default"
-      | "secondary"
-      | "destructive"
-      | "outline"
-      | "warning"
-      | "danger"
-      | "purple"
-      | "sky"
-      | "yellow"
-      | "orange";
+    | "default"
+    | "secondary"
+    | "destructive"
+    | "outline"
+    | "warning"
+    | "danger"
+    | "purple"
+    | "sky"
+    | "yellow"
+    | "orange";
   }
 > = {
   GRADE_1: { label: "Lớp 1", variant: "default" },
@@ -57,9 +59,22 @@ const gradeMap: Record<
 function DeleteFlashcardDialog({ flashcard }: { flashcard: Flashcard }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  function handleDelete() {
-    deleteFlashcard(flashcard.id);
-    setIsOpen(false);
+  async function handleDelete() {
+    try {
+      const result = await deleteFlashcard(flashcard.id);
+
+      if (result.hasProgress) {
+        toast.info("⚠️ Flashcard có lịch sử học → Đã ẩn thay vì xóa để giữ dữ liệu học tập");
+      } else {
+        toast.success("Đã xóa flashcard thành công");
+      }
+
+      setIsOpen(false);
+      window.location.reload(); // Reload to update table
+    } catch (error) {
+      console.error("Failed to delete:", error);
+      toast.error("Xóa flashcard thất bại");
+    }
   }
 
   return (
@@ -76,10 +91,19 @@ function DeleteFlashcardDialog({ flashcard }: { flashcard: Flashcard }) {
       </DropdownMenuItem>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Hành động này không thể hoàn tác. Flashcard này sẽ bị xóa vĩnh viễn
-            khỏi hệ thống.
+          <AlertDialogTitle>Xác nhận xóa flashcard "{flashcard.term}"?</AlertDialogTitle>
+          <AlertDialogDescription className="space-y-2">
+            <div>
+              Bạn có chắc chắn muốn xóa flashcard này?
+            </div>
+            <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                <div className="text-sm text-amber-800">
+                  <strong>Lưu ý:</strong> Nếu flashcard này đã được học, hệ thống sẽ <strong>ẩn</strong> thay vì xóa để giữ lại dữ liệu học tập của người dùng.
+                </div>
+              </div>
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
