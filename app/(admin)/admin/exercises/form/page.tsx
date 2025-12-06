@@ -6,7 +6,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, ChevronUp, Edit2, ImageIcon, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import { CldUploadWidget } from "next-cloudinary";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -87,8 +87,16 @@ export default function ExerciseFormPage() {
   } | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { selectedLessonId: storeLessonId, clearSelection } = useExerciseFormStore();
   const hasInitializedFromLesson = useRef(false);
+
+  // Get lessonId from URL if available, otherwise use store
+  const lessonIdParam = searchParams.get("lessonId");
+  const lessonId = lessonIdParam ? parseInt(lessonIdParam) : storeLessonId;
+
+  // Check if in import mode
+  const importMode = searchParams.get("importMode");
 
   const form = useForm<CreateExerciseFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -142,8 +150,8 @@ export default function ExerciseFormPage() {
         setAvailableLessons(fetchedLessons);
 
         // Load existing exercises if lesson is selected
-        if (storeLessonId) {
-          const existingExercises = await getExerciseByLessonId(storeLessonId);
+        if (lessonId) {
+          const existingExercises = await getExerciseByLessonId(lessonId);
 
           if (existingExercises && existingExercises.length > 0) {
             setExistingExercisesCount(existingExercises.length);
@@ -185,24 +193,29 @@ export default function ExerciseFormPage() {
     };
 
     fetchData();
-  }, [storeLessonId]);
+  }, [lessonId]);
 
   useEffect(() => {
     if (
-      storeLessonId &&
+      lessonId &&
       !hasInitializedFromLesson.current &&
       availableLessons.length > 0 &&
       !isLoading
     ) {
-      const lesson = availableLessons.find((l) => l.id === storeLessonId);
+      const lesson = availableLessons.find((l) => l.id === lessonId);
 
       if (lesson) {
         hasInitializedFromLesson.current = true;
         form.setValue("lessonId", lesson.id);
         toast.success(`Đã chọn bài luyện tập: ${lesson.title}`);
+
+        // Update URL to preserve lessonId on refresh (if not already there)
+        if (!lessonIdParam) {
+          router.push(`/admin/exercises/form?lessonId=${lesson.id}`);
+        }
       }
     }
-  }, [storeLessonId, availableLessons, isLoading, form]);
+  }, [lessonId, availableLessons, isLoading, form, lessonIdParam, router]);
 
   const validateExercise = (values: CreateExerciseFormData) => {
     if (
@@ -649,7 +662,14 @@ export default function ExerciseFormPage() {
           return trimmed.split('\\').pop()?.split('/').pop() || null;
         };
 
-        ['img', 'audio', 'optT', 'optF1', 'optF2', 'optF3', 'opt1', 'opt2', 'opt3', 'opt4', 'opt5', 'opt6'].forEach((key) => {
+        // Scan for main exercise assets
+        ['img', 'audio'].forEach((key) => {
+          const filename = extractFilename(row[key]);
+          if (filename) neededFiles.add(filename);
+        });
+
+        // Scan for SELECT_IMAGE options (optT, optF1-3 contain image paths)
+        ['optT', 'optF1', 'optF2', 'optF3'].forEach((key) => {
           const filename = extractFilename(row[key]);
           if (filename) neededFiles.add(filename);
         });
@@ -682,108 +702,229 @@ export default function ExerciseFormPage() {
   };
 
   const handleConfirmImport = async () => {
-    const lessonId = form.getValues('lessonId') || storeLessonId;
-    if (!lessonId) {
-      toast.error('Vui lòng chọn bài luyện tập');
+    if (!selectedExcelFile) {
+      toast.error('Vui lòng chọn file Excel');
       return;
     }
 
-    if (!selectedExcelFile) {
-      toast.error('Vui lòng chọn file Excel');
+    const currentLessonId = lessonId;
+    if (!currentLessonId) {
+      toast.error('Vui lòng chọn bài luyện tập');
       return;
     }
 
     setIsImporting(true);
 
     try {
-      const formData = new FormData();
-      formData.append('excelFile', selectedExcelFile);
+      // Step 1: Upload assets to Cloudinary first
+      const assetMap = new Map<string, string>();
 
       if (selectedFolderFiles && importPreview) {
-        const matchedFileNames = new Set(importPreview.matchedFiles);
-        Array.from(selectedFolderFiles).forEach((file) => {
-          if (matchedFileNames.has(file.name)) {
-            formData.append('assets', file);
+        const matchedFiles = Array.from(selectedFolderFiles).filter((f) =>
+          importPreview.matchedFiles.includes(f.name)
+        );
+
+        if (matchedFiles.length > 0) {
+          const uploadPromises: Promise<void>[] = [];
+
+          matchedFiles.forEach((file) => {
+            const uploadPromise = new Promise<void>((resolve) => {
+              const formData = new FormData();
+              formData.append('file', file);
+              formData.append('upload_preset', UPLOAD_PRESET);
+
+              fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/auto/upload`, {
+                method: 'POST',
+                body: formData,
+              })
+                .then(res => res.json())
+                .then(data => {
+                  if (data.secure_url) {
+                    assetMap.set(file.name, data.secure_url);
+                  }
+                  resolve();
+                })
+                .catch(() => resolve());
+            });
+
+            uploadPromises.push(uploadPromise);
+          });
+
+          await Promise.all(uploadPromises);
+          console.log('✅ Asset upload complete:', {
+            uploaded: assetMap.size,
+            total: uploadPromises.length,
+            assetMapKeys: Array.from(assetMap.keys()),
+            assetMapEntries: Array.from(assetMap.entries()),
+          });
+          toast.success(`✅ Đã upload ${assetMap.size}/${uploadPromises.length} file assets`);
+        }
+      }
+
+      // Step 2: Parse Excel client-side with duplicate column renaming
+      const arrayBuffer = await selectedExcelFile.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+
+      // Parse with header array to handle duplicate column names
+      const rawData = XLSX.utils.sheet_to_json(worksheet, {
+        header: 1,
+        defval: '',
+      }) as unknown[][];
+
+      if (!rawData || rawData.length < 2) {
+        throw new Error('No data found in Excel file');
+      }
+
+      // Rename duplicate "optF" columns to optF1, optF2, optF3 (like backend)
+      const headerRow = rawData[0] as string[];
+      const columnCounts = new Map<string, number>();
+      const renamedHeaders = headerRow.map((col) => {
+        const colStr = String(col || '').trim();
+        if (!colStr) return colStr;
+        if (colStr === 'optF') {
+          const count = columnCounts.get(colStr) || 0;
+          columnCounts.set(colStr, count + 1);
+          return `optF${count + 1}`;
+        }
+        return colStr;
+      });
+
+      // Convert to JSON with renamed headers
+      const data: any[] = [];
+      for (let i = 1; i < rawData.length; i++) {
+        const row = rawData[i] as unknown[];
+        const obj: any = {};
+        renamedHeaders.forEach((header, index) => {
+          if (header) {
+            obj[header] = row[index];
           }
         });
+        data.push(obj);
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_ENDPOINT || 'http://localhost:3001/api';
-      const response = await fetch(
-        `${apiUrl}/exercises/import-excel/${lessonId}`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
+      // Helpers
+      const normalizeValue = (val: string | number | null | undefined): string => {
+        if (val === null || val === undefined) return '';
+        const str = String(val).trim();
+        if (str === '\\n' || str === '\n') return '';
+        return str;
+      };
 
-      const contentType = response.headers.get('content-type');
+      const extractFileName = (path: string | undefined) => {
+        if (!path) return null;
+        const trimmed = path.trim();
+        if (!trimmed || trimmed === "\\n" || trimmed === "\n") return null;
+        return trimmed.split("\\").pop()?.split("/").pop() || null;
+      };
 
-      if (!response.ok) {
-        let errorMessage = `Server returned ${response.status}: ${response.statusText}`;
+      // Map asset filenames to URLs
+      const mapAssetUrl = (filename: string | null): string => {
+        if (!filename) return '';
+        const url = assetMap.get(filename);
+        if (url) return url;
 
-        if (contentType?.includes('application/json')) {
-          try {
-            const error = await response.json();
-            errorMessage = error.message || errorMessage;
-          } catch {
-            // Failed to parse JSON error
+        // Try case-insensitive
+        for (const [key, value] of assetMap.entries()) {
+          if (key.toLowerCase() === filename.toLowerCase()) {
+            return value;
           }
-        } else {
-          // Get text response for debugging
-          const text = await response.text();
-          console.error('Server error response:', text.substring(0, 500));
-          errorMessage = `Server error: ${response.statusText}`;
+        }
+        return '';
+      };
+
+      // Parse exercises
+      const parsedExercises: CreateExerciseFormData[] = data.map((row) => {
+        const type = (normalizeValue(row.Type || row.type)) as CreateExerciseFormData['type'];
+        const imgFileName = extractFileName(normalizeValue(row.img));
+        const audioFileName = extractFileName(normalizeValue(row.audio));
+
+        const exercise: CreateExerciseFormData = {
+          lessonId: currentLessonId,
+          type: type || 'MULTIPLE_CHOICE',
+          prompt: normalizeValue(row.prompt),
+          imageUrl: mapAssetUrl(imgFileName),
+          audioUrl: mapAssetUrl(audioFileName),
+          targetText: normalizeValue(row.targetText),
+          hintEn: normalizeValue(row.hintEn),
+          hintVi: normalizeValue(row.hintVi),
+          points: parseInt(normalizeValue(row.points)) || 10,
+          difficulty: parseInt(normalizeValue(row.difficulty)) || 1,
+          options: [],
+        };
+
+        // Parse options based on exercise type (matching backend)
+        if (type === 'SELECT_IMAGE') {
+          const correctImg = mapAssetUrl(extractFileName(normalizeValue(row.optT)));
+          const incorrectImgs = [
+            mapAssetUrl(extractFileName(normalizeValue(row.optF1))),
+            mapAssetUrl(extractFileName(normalizeValue(row.optF2))),
+            mapAssetUrl(extractFileName(normalizeValue(row.optF3))),
+          ];
+
+          console.log('SELECT_IMAGE debug:', {
+            optT: normalizeValue(row.optT),
+            optF1: normalizeValue(row.optF1),
+            optF2: normalizeValue(row.optF2),
+            optF3: normalizeValue(row.optF3),
+            correctImg,
+            incorrectImgs,
+          });
+
+          if (correctImg) {
+            exercise.options.push({ text: '', imageUrl: correctImg, audioUrl: '', isCorrect: true, order: 0, matchKey: '' });
+          }
+          incorrectImgs.forEach((imgUrl, idx) => {
+            if (imgUrl) {
+              console.log(`Adding incorrect option ${idx + 1}:`, imgUrl);
+              exercise.options.push({ text: '', imageUrl: imgUrl, audioUrl: '', isCorrect: false, order: idx + 1, matchKey: '' });
+            } else {
+              console.warn(`optF${idx + 1} is empty, skipping`);
+            }
+          });
+        } else if (type === 'MULTIPLE_CHOICE' || type === 'LISTENING') {
+          const correctText = normalizeValue(row.optT);
+          const incorrectTexts = [normalizeValue(row.optF1), normalizeValue(row.optF2), normalizeValue(row.optF3)];
+          if (correctText) {
+            exercise.options.push({ text: correctText, imageUrl: '', audioUrl: '', isCorrect: true, order: 0, matchKey: '' });
+          }
+          incorrectTexts.forEach((text, idx) => {
+            if (text) exercise.options.push({ text: text, imageUrl: '', audioUrl: '', isCorrect: false, order: idx + 1, matchKey: '' });
+          });
+        } else if (type === 'MATCHING') {
+          const pairs = [normalizeValue(row.optT), normalizeValue(row.optF1), normalizeValue(row.optF2), normalizeValue(row.optF3)];
+          let optionOrder = 0;
+          pairs.forEach((pairStr, pairIdx) => {
+            if (pairStr && pairStr.includes('|')) {
+              const [left, right] = pairStr.split('|').map(s => s.trim());
+              const matchKey = `pair_${pairIdx + 1}`;
+              const isImagePath = (val: string) => val.match(/\.(jpg|jpeg|png|gif|webp|mp3|mp4)$/i) !== null || val.includes('g1-') || val.includes('/');
+              const leftIsImage = isImagePath(left);
+              const rightIsImage = isImagePath(right);
+              exercise.options.push({ text: leftIsImage ? '' : left, imageUrl: leftIsImage ? mapAssetUrl(extractFileName(left)) : '', audioUrl: '', isCorrect: false, order: optionOrder++, matchKey });
+              exercise.options.push({ text: rightIsImage ? '' : right, imageUrl: rightIsImage ? mapAssetUrl(extractFileName(right)) : '', audioUrl: '', isCorrect: false, order: optionOrder++, matchKey });
+            }
+          });
         }
 
-        throw new Error(errorMessage);
-      }
+        return exercise;
+      });
 
-      if (!contentType?.includes('application/json')) {
-        const text = await response.text();
-        console.error('Unexpected response type:', contentType, text.substring(0, 500));
-        throw new Error('Server returned unexpected response format');
-      }
+      // Add to state for PREVIEW
+      const allExercises = [...exerciseForms, ...parsedExercises];
+      setExerciseForms(allExercises);
 
-      const result = await response.json();
-      toast.success(`Đã import thành công ${result.length} câu hỏi`);
+      toast.success(`📋 Đã load ${parsedExercises.length} câu hỏi. Kiểm tra và bấm 'Lưu tất cả' để lưu!`);
 
+      // Close dialog
       setShowImportDialog(false);
       setSelectedExcelFile(null);
       setSelectedFolderFiles(null);
       setImportPreview(null);
-
-      // Reload exercises
-      const existingExercises = await getExerciseByLessonId(lessonId);
-      if (existingExercises && existingExercises.length > 0) {
-        setExistingExercisesCount(existingExercises.length);
-        const convertedExercises = existingExercises.map((ex) => ({
-          id: ex.id,
-          lessonId: ex.lessonId,
-          type: ex.type,
-          prompt: ex.prompt,
-          imageUrl: ex.imageUrl || "",
-          audioUrl: ex.audioUrl || "",
-          targetText: ex.targetText || "",
-          hintEn: ex.hintEn || "",
-          hintVi: ex.hintVi || "",
-          points: ex.points,
-          difficulty: ex.difficulty || 1,
-          options: ex.options?.map((opt) => ({
-            id: opt.id,
-            text: opt.text,
-            imageUrl: opt.imageUrl || "",
-            audioUrl: opt.audioUrl || "",
-            isCorrect: opt.isCorrect,
-            order: opt.order,
-            matchKey: opt.matchKey || "",
-          })) || [],
-        })) as CreateExerciseFormData[];
-        setExerciseForms(convertedExercises);
-      }
     } catch (error) {
-      console.error('Import error:', error);
-      toast.error(`Import thất bại: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Import error:", error);
+      toast.error(error instanceof Error ? error.message : "Import thất bại");
     } finally {
       setIsImporting(false);
     }

@@ -260,6 +260,9 @@ export default function SentenceFormPage() {
             if (topic) {
               form.setValue("topicId", storeTopicId);
               toast.success(`Đã chọn chủ đề: ${topic.title}`);
+
+              // Update URL to preserve topicId on refresh
+              router.push(`/admin/sentences/form?topicId=${storeTopicId}`);
             }
           }
         }
@@ -297,21 +300,74 @@ export default function SentenceFormPage() {
   function validateSentenceGroup(group: any, allGroups: any[] = [], currentIndex: number = -1): string[] { // eslint-disable-line @typescript-eslint/no-explicit-any
     const errors: string[] = [];
 
-    if (!group.imageUrl || !group.imageUrl.trim()) {
+    // Helper to normalize and check if value is empty (including \n)
+    const isEmpty = (value: string | null | undefined): boolean => {
+      if (value === null || value === undefined) return true;
+      const trimmed = value.trim();
+      if (trimmed === '' || trimmed === '\\n' || trimmed === '\n') return true;
+      return false;
+    };
+
+    // Check for required imageUrl
+    if (isEmpty(group.imageUrl)) {
       errors.push("Thiếu hình ảnh");
     }
 
+    // Check for duplicate imageUrl (same Cloudinary URL)
+    if (group.imageUrl && !isEmpty(group.imageUrl)) {
+      const duplicates = allGroups.filter((g, idx) =>
+        idx !== currentIndex &&
+        g.imageUrl === group.imageUrl &&
+        !isEmpty(g.imageUrl)
+      );
+      if (duplicates.length > 0) {
+        errors.push("Trùng hình ảnh với thẻ câu khác");
+      }
+    }
+
+    // Check for duplicate sentence text within this topic
+    if (group.sentences && group.sentences.length > 0) {
+      const allSentenceTexts = new Map<string, number[]>(); // text -> [group indices]
+
+      allGroups.forEach((g, groupIdx) => {
+        if (g.sentences) {
+          g.sentences.forEach((s: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+            if (s.text && !isEmpty(s.text)) {
+              const normalized = s.text.trim().toLowerCase();
+              if (!allSentenceTexts.has(normalized)) {
+                allSentenceTexts.set(normalized, []);
+              }
+              allSentenceTexts.get(normalized)!.push(groupIdx);
+            }
+          });
+        }
+      });
+
+      // Check if any sentences in current group are duplicated
+      group.sentences.forEach((sentence: any, idx: number) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+        if (sentence.text && !isEmpty(sentence.text)) {
+          const normalized = sentence.text.trim().toLowerCase();
+          const duplicateGroups = allSentenceTexts.get(normalized) || [];
+          if (duplicateGroups.length > 1 || (duplicateGroups.length === 1 && duplicateGroups[0] !== currentIndex)) {
+            errors.push(`Câu ${idx + 1}: Trùng nội dung với câu khác`);
+          }
+        }
+      });
+    }
+
+    // Check for at least 1 sentence
     if (!group.sentences || group.sentences.length === 0) {
       errors.push("Cần ít nhất 1 câu");
     } else {
+      // Validate each sentence
       group.sentences.forEach((sentence: any, idx: number) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-        if (!sentence.text || !sentence.text.trim()) {
+        if (isEmpty(sentence.text)) {
           errors.push(`Câu ${idx + 1}: Thiếu nội dung`);
         }
-        if (!sentence.meaningVi || !sentence.meaningVi.trim()) {
+        if (isEmpty(sentence.meaningVi)) {
           errors.push(`Câu ${idx + 1}: Thiếu nghĩa`);
         }
-        if (!sentence.audioUrl || !sentence.audioUrl.trim()) {
+        if (isEmpty(sentence.audioUrl)) {
           errors.push(`Câu ${idx + 1}: Thiếu audio`);
         }
       });

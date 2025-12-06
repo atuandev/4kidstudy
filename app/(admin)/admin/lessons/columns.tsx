@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { CopyIcon, MoreHorizontal, Pencil, Trash, List, Plus } from 'lucide-react';
+import { CopyIcon, MoreHorizontal, Pencil, Trash, List, Plus, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -28,7 +28,6 @@ import { Badge } from '@/components/ui/badge';
 import { Lesson } from '@/types';
 import { DataTableColumnHeader } from '../_components/data-table-column-header';
 import { deleteLesson } from '@/actions/lesson';
-import { ImportCsvDialog } from './import-csv-dialog';
 import { useExerciseFormStore } from '@/lib/stores/exercise-form-store';
 
 const statusMap: Record<
@@ -36,16 +35,16 @@ const statusMap: Record<
   {
     label: string;
     variant:
-      | 'default'
-      | 'secondary'
-      | 'destructive'
-      | 'outline'
-      | 'warning'
-      | 'danger'
-      | 'purple'
-      | 'sky'
-      | 'yellow'
-      | 'orange';
+    | 'default'
+    | 'secondary'
+    | 'destructive'
+    | 'outline'
+    | 'warning'
+    | 'danger'
+    | 'purple'
+    | 'sky'
+    | 'yellow'
+    | 'orange';
   }
 > = {
   PUBLISHED: { label: 'Hoạt động', variant: 'default' },
@@ -58,16 +57,16 @@ const gradeMap: Record<
   {
     label: string;
     variant:
-      | 'default'
-      | 'secondary'
-      | 'destructive'
-      | 'outline'
-      | 'warning'
-      | 'danger'
-      | 'purple'
-      | 'sky'
-      | 'yellow'
-      | 'orange';
+    | 'default'
+    | 'secondary'
+    | 'destructive'
+    | 'outline'
+    | 'warning'
+    | 'danger'
+    | 'purple'
+    | 'sky'
+    | 'yellow'
+    | 'orange';
   }
 > = {
   GRADE_1: { label: 'Lớp 1', variant: 'default' },
@@ -251,7 +250,11 @@ export const columns: ColumnDef<Lesson>[] = [
 
       function handleAddExercises() {
         setSelectedLessonId(lesson.id);
-        router.push('/admin/exercises/form');
+        router.push(`/admin/exercises/form?lessonId=${lesson.id}`);
+      }
+
+      function handleImportCsv() {
+        router.push(`/admin/exercises/form?lessonId=${lesson.id}&importMode=csv`);
       }
 
       return (
@@ -282,10 +285,10 @@ export const columns: ColumnDef<Lesson>[] = [
               <Plus className="mr-2 h-4 w-4" />
               Thêm câu hỏi
             </DropdownMenuItem>
-            <ImportCsvDialog
-              lessonId={lesson.id}
-              lessonTitle={lesson.title}
-            />
+            <DropdownMenuItem onClick={handleImportCsv}>
+              <Upload className="mr-2 h-4 w-4" />
+              Import CSV
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleEdit}>
               <Pencil className="mr-2 h-4 w-4" />
