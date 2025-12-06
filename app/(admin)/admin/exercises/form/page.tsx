@@ -968,13 +968,28 @@ export default function ExerciseFormPage() {
         exerciseErrors.push('Thiếu câu hỏi (prompt)');
       }
 
-      // Duplicate detection
+      // Duplicate detection - check both prompt and options
       if (exercise.prompt) {
-        const key = exercise.prompt.toLowerCase().trim();
-        if (seenPrompts.has(key)) {
-          exerciseErrors.push(`Trùng với câu #${seenPrompts.get(key)! + 1}`);
+        // Create composite key: prompt + sorted options content
+        const optionsKey = exercise.options
+          .map(opt => {
+            if (exercise.type === 'SELECT_IMAGE') {
+              return opt.imageUrl || '';
+            } else if (exercise.type === 'MATCHING') {
+              return `${opt.text}:${opt.matchKey}`;
+            } else {
+              return opt.text || '';
+            }
+          })
+          .sort()
+          .join('|');
+
+        const compositeKey = `${exercise.prompt.toLowerCase().trim()}::${optionsKey}`;
+
+        if (seenPrompts.has(compositeKey)) {
+          exerciseErrors.push(`Trùng với câu #${seenPrompts.get(compositeKey)! + 1}`);
         } else {
-          seenPrompts.set(key, idx);
+          seenPrompts.set(compositeKey, idx);
         }
       }
 
@@ -995,6 +1010,43 @@ export default function ExerciseFormPage() {
       if (exercise.type === 'MATCHING') {
         if (exercise.options.length < 4) {
           exerciseErrors.push('MATCHING cần ít nhất 2 cặp (4 options)');
+        }
+
+        // Check each option has either text or imageUrl
+        const emptyOptions = exercise.options.filter(
+          (opt) => !opt.text?.trim() && !opt.imageUrl?.trim()
+        );
+
+        if (emptyOptions.length > 0) {
+          exerciseErrors.push('Mỗi đáp án MATCHING phải có văn bản hoặc hình ảnh');
+        }
+
+        // Check for missing or incomplete matchKey pairs
+        const matchKeyCounts = new Map<string, number>();
+        let hasEmptyMatchKey = false;
+
+        exercise.options.forEach((option) => {
+          const key = option.matchKey?.trim();
+          if (!key) {
+            hasEmptyMatchKey = true;
+          } else {
+            matchKeyCounts.set(key, (matchKeyCounts.get(key) || 0) + 1);
+          }
+        });
+
+        if (hasEmptyMatchKey) {
+          exerciseErrors.push('Có option thiếu matchKey');
+        }
+
+        // Check if any matchKey has less than 2 options
+        const incompletePairs = Array.from(matchKeyCounts.entries()).filter(
+          ([, count]) => count < 2
+        );
+
+        if (incompletePairs.length > 0) {
+          incompletePairs.forEach(([key]) => {
+            exerciseErrors.push(`Cặp "${key}" thiếu đáp án (cần 2 đáp án)`);
+          });
         }
       }
 
