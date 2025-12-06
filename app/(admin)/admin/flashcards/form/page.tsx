@@ -290,7 +290,7 @@ export default function FlashcardFormPage() {
         if (flashcards.length > 0) {
           const errorMap = new Map<number, string[]>();
           flashcards.forEach((fc: any, index: number) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-            const errors = validateFlashcard(fc);
+            const errors = validateFlashcard(fc, flashcards, index);
             if (errors.length > 0) {
               errorMap.set(index, errors);
             }
@@ -455,7 +455,7 @@ export default function FlashcardFormPage() {
   }
 
   // Validation helper
-  function validateFlashcard(flashcard: any): string[] { // eslint-disable-line @typescript-eslint/no-explicit-any
+  function validateFlashcard(flashcard: any, allFlashcards: any[] = [], currentIndex: number = -1): string[] { // eslint-disable-line @typescript-eslint/no-explicit-any
     const errors: string[] = [];
 
     if (!flashcard.term || !flashcard.term.trim()) {
@@ -476,6 +476,32 @@ export default function FlashcardFormPage() {
 
     if (!flashcard.audioUrl || !flashcard.audioUrl.trim()) {
       errors.push("Thiếu file âm thanh");
+    }
+
+    // Check for duplicates
+    // Rule 1: Same term + same phonetic → DUPLICATE
+    // Rule 2: Same term + different phonetic + same meaningVi → DUPLICATE
+    if (currentIndex >= 0 && flashcard.term && flashcard.phonetic) {
+      const term = flashcard.term.trim().toLowerCase();
+      const phonetic = flashcard.phonetic.trim().toLowerCase();
+      const meaningVi = (flashcard.meaningVi || '').trim().toLowerCase();
+
+      allFlashcards.forEach((other, otherIndex) => {
+        if (otherIndex !== currentIndex && other) {
+          const otherTerm = (other.term || '').trim().toLowerCase();
+          const otherPhonetic = (other.phonetic || '').trim().toLowerCase();
+          const otherMeaningVi = (other.meaningVi || '').trim().toLowerCase();
+
+          // Rule 1: Same term + same phonetic
+          if (term === otherTerm && phonetic === otherPhonetic) {
+            errors.push(`Trùng với Flashcard #${otherIndex + 1}`);
+          }
+          // Rule 2: Same term + different phonetic + same meaningVi
+          else if (term === otherTerm && phonetic !== otherPhonetic && meaningVi && meaningVi === otherMeaningVi) {
+            errors.push(`Trùng với Flashcard #${otherIndex + 1}`);
+          }
+        }
+      });
     }
 
     return errors;
@@ -711,7 +737,7 @@ export default function FlashcardFormPage() {
       // Validate all flashcards
       const errorMap = new Map<number, string[]>();
       allFlashcards.forEach((fc, index) => {
-        const errors = validateFlashcard(fc);
+        const errors = validateFlashcard(fc, allFlashcards, index);
         if (errors.length > 0) {
           errorMap.set(index, errors);
         }
