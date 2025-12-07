@@ -73,6 +73,7 @@ import {
   getFlashcardsByTopicForAdmin,
   bulkCreateFlashcards,
   deleteFlashcard,
+  checkFlashcardProgress,
 } from "@/actions/flashcard";
 import { getTopics } from "@/actions/topic";
 import { RequiredField } from "@/components/form/required-field";
@@ -119,6 +120,10 @@ export default function FlashcardFormPage() {
     matchedFiles: number;
   } | null>(null);
   const [flashcardErrors, setFlashcardErrors] = useState<Map<number, string[]>>(new Map());
+  const [showProgressDialog, setShowProgressDialog] = useState(false);
+  const [flashcardsWithProgress, setFlashcardsWithProgress] = useState<Array<{ id: number; term: string; progressCount: number; hasMastered: boolean }>>([]);
+  const [pendingSubmitData, setPendingSubmitData] = useState<CreateFlashcardFormData | CreateFlashcardsFormData | null>(null);
+  const [resetProgress, setResetProgress] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const {
@@ -306,6 +311,37 @@ export default function FlashcardFormPage() {
   const onSubmit = async (
     data: CreateFlashcardFormData | CreateFlashcardsFormData
   ) => {
+    // Check if any flashcards being updated have learning progress
+    if (isEditMode) {
+      // Single edit mode - check this one flashcard
+      const progressResult = await checkFlashcardProgress([parseInt(flashcardId)]);
+      if (progressResult && progressResult.length > 0) {
+        // Has progress - show dialog
+        setFlashcardsWithProgress(progressResult);
+        setPendingSubmitData(data);
+        setShowProgressDialog(true);
+        return; // Don't submit yet, wait for user confirmation
+      }
+    } else if (isTopicLocked) {
+      // Bulk mode - check existing flashcards
+      const bulkData = data as CreateFlashcardsFormData;
+      const existingFlashcardIds = bulkData.flashcards
+        .filter((fc) => fc.id)
+        .map((fc) => fc.id!);
+      
+      if (existingFlashcardIds.length > 0) {
+        const progressResult = await checkFlashcardProgress(existingFlashcardIds);
+        if (progressResult && progressResult.length > 0) {
+          // Has progress - show dialog
+          setFlashcardsWithProgress(progressResult);
+          setPendingSubmitData(data);
+          setShowProgressDialog(true);
+          return; // Don't submit yet, wait for user confirmation
+        }
+      }
+    }
+
+    // No progress or user already confirmed - proceed with submit
     setIsSubmitting(true);
     try {
       if (isEditMode) {
@@ -529,6 +565,95 @@ export default function FlashcardFormPage() {
       // Don't set order here - backend will auto-assign
       isActive: true,
     });
+  }
+
+  async function handleConfirmProgressReset() {
+    if (!pendingSubmitData) return;
+
+    setShowProgressDialog(false);
+    setIsSubmitting(true);
+
+    try {
+      if (isEditMode) {
+        // Single edit with progress reset
+        const singleData = pendingSubmitData as CreateFlashcardFormData;
+        const updatedFlashcard = await updateFlashcard(
+          parseInt(flashcardId),
+          { ...singleData, resetProgress }
+        );
+        if (updatedFlashcard) {
+          toast.success(
+            resetProgress
+              ? "Cập nhật thành công và đã reset tiến trình học"
+              : "Cập nhật thành công"
+          );
+        }
+        clearSelection();
+        router.push("/admin/flashcards");
+        router.refresh();
+      } else if (isTopicLocked) {
+        // Bulk update with progress reset
+        const bulkData = pendingSubmitData as CreateFlashcardsFormData;
+        const existingFlashcards = bulkData.flashcards.filter((fc) => fc.id);
+        const newFlashcards = bulkData.flashcards.filter((fc) => !fc.id);
+
+        // Update existing with resetProgress flag
+        if (existingFlashcards.length > 0) {
+          await Promise.all(
+            existingFlashcards.map((flashcard) =>
+              updateFlashcard(flashcard.id!, {
+                topicId: bulkData.topicId,
+                term: flashcard.term,
+                phonetic: flashcard.phonetic,
+                meaningVi: flashcard.meaningVi,
+                exampleEn: flashcard.exampleEn,
+                exampleVi: flashcard.exampleVi,
+                imageUrl: flashcard.imageUrl,
+                audioUrl: flashcard.audioUrl,
+                order: flashcard.order,
+                isActive: flashcard.isActive,
+                resetProgress,
+              })
+            )
+          );
+        }
+
+        // Create new flashcards
+        if (newFlashcards.length > 0) {
+          const cleanedNewFlashcards = newFlashcards.map((flashcard) => {
+            const cleaned: Record<string, any> = {
+              term: flashcard.term,
+              phonetic: flashcard.phonetic,
+              meaningVi: flashcard.meaningVi,
+              isActive: flashcard.isActive ?? true,
+            };
+            if (flashcard.exampleEn) cleaned.exampleEn = flashcard.exampleEn;
+            if (flashcard.exampleVi) cleaned.exampleVi = flashcard.exampleVi;
+            if (flashcard.imageUrl) cleaned.imageUrl = flashcard.imageUrl;
+            if (flashcard.audioUrl) cleaned.audioUrl = flashcard.audioUrl;
+            return cleaned;
+          });
+          await bulkCreateFlashcards(bulkData.topicId, cleanedNewFlashcards as any);
+        }
+
+        toast.success(
+          resetProgress
+            ? "Cập nhật thành công và đã reset tiến trình học"
+            : "Cập nhật thành công"
+        );
+        clearSelection();
+        router.push("/admin/flashcards");
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Failed to update:", error);
+      toast.error("Cập nhật thất bại");
+    } finally {
+      setIsSubmitting(false);
+      setPendingSubmitData(null);
+      setFlashcardsWithProgress([]);
+      setResetProgress(false);
+    }
   }
 
   function handleImportExcel() {
@@ -1591,6 +1716,75 @@ export default function FlashcardFormPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog >
+
+      {/* Progress Reset Confirmation Dialog */}
+      <AlertDialog open={showProgressDialog} onOpenChange={setShowProgressDialog}>
+        <AlertDialogContent className="max-w-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>⚠️ Cảnh báo: Flashcard đã có tiến trình học</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>
+                  Các flashcard sau đã có người dùng học và ghi nhận tiến trình.
+                  Việc cập nhật có thể ảnh hưởng đến trải nghiệm học tập của họ.
+                </p>
+
+                <div className="rounded-lg border bg-muted p-4 space-y-2">
+                  {flashcardsWithProgress.map((fc) => (
+                    <div key={fc.id} className="flex justify-between items-center">
+                      <span className="font-medium">{fc.term}</span>
+                      <div className="flex gap-2 text-sm text-muted-foreground">
+                        <span>{fc.progressCount} người học</span>
+                        {fc.hasMastered && (
+                          <span className="text-green-600 font-medium">✓ Có người đã pass</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-2">
+                  <p className="font-medium">Bạn muốn làm gì với tiến trình học?</p>
+                  <div className="flex items-start gap-2">
+                    <input
+                      type="checkbox"
+                      id="resetProgress"
+                      checked={resetProgress}
+                      onChange={(e) => setResetProgress(e.target.checked)}
+                      className="mt-1"
+                    />
+                    <label htmlFor="resetProgress" className="text-sm">
+                      <span className="font-medium">Reset tiến trình học</span>
+                      <p className="text-muted-foreground">
+                        Xóa toàn bộ tiến trình học của flashcard này (reviewCount, isMastered).
+                        Người dùng sẽ phải học lại từ đầu.
+                      </p>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowProgressDialog(false);
+              setPendingSubmitData(null);
+              setFlashcardsWithProgress([]);
+              setResetProgress(false);
+              setIsSubmitting(false);
+            }}>
+              Hủy
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmProgressReset}
+              className={resetProgress ? "bg-destructive hover:bg-destructive/90" : ""}
+            >
+              {resetProgress ? "Cập nhật & Reset" : "Chỉ cập nhật"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div >
   );
 }
