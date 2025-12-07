@@ -21,6 +21,8 @@ export async function getSentenceImagesByTopicId(topicId: number, isActive?: boo
 export async function deleteSentence(id: number) {
   const { payload } = await http.delete<Sentence>(`/sentences/${id}`);
   revalidatePath("/admin/sentences");
+  revalidatePath("/learn");
+  revalidatePath("/practice");
   return payload;
 }
 
@@ -54,6 +56,8 @@ export async function checkSentenceProgressForDelete(id: number) {
 export async function deleteSentenceImage(id: number) {
   const { payload } = await http.delete<SentenceImage>(`/sentences/images/${id}`);
   revalidatePath('/admin/sentences');
+  revalidatePath('/learn');
+  revalidatePath('/practice');
   return payload;
 }
 

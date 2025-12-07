@@ -27,7 +27,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Flashcard } from "@/types";
 import { DataTableColumnHeader } from "../_components/data-table-column-header";
-import { deleteFlashcard } from "@/actions/flashcard";
+import { deleteFlashcard, checkFlashcardProgressForDelete } from "@/actions/flashcard";
 import { toast } from "sonner";
 import { AlertCircle } from "lucide-react";
 import Image from "next/image";
@@ -57,7 +57,24 @@ const gradeMap: Record<
 };
 
 function DeleteFlashcardDialog({ flashcard }: { flashcard: Flashcard }) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [progressInfo, setProgressInfo] = useState<{
+    hasProgress: boolean;
+    progressCount: number;
+    masteredCount: number;
+  } | null>(null);
+
+  async function handleOpenDialog() {
+    try {
+      const info = await checkFlashcardProgressForDelete(flashcard.id);
+      setProgressInfo(info);
+      setIsOpen(true);
+    } catch (error) {
+      console.error("Failed to check progress:", error);
+      toast.error("Không thể kiểm tra tiến trình học");
+    }
+  }
 
   async function handleDelete() {
     try {
@@ -70,7 +87,7 @@ function DeleteFlashcardDialog({ flashcard }: { flashcard: Flashcard }) {
       }
 
       setIsOpen(false);
-      window.location.reload(); // Reload to update table
+      router.refresh(); // Refresh to update table
     } catch (error) {
       console.error("Failed to delete:", error);
       toast.error("Xóa flashcard thất bại");
@@ -83,7 +100,7 @@ function DeleteFlashcardDialog({ flashcard }: { flashcard: Flashcard }) {
         className="text-red-600"
         onSelect={(e) => {
           e.preventDefault();
-          setIsOpen(true);
+          handleOpenDialog();
         }}
       >
         <Trash className="mr-2 h-4 w-4" />
@@ -96,19 +113,32 @@ function DeleteFlashcardDialog({ flashcard }: { flashcard: Flashcard }) {
             <div>
               Bạn có chắc chắn muốn xóa flashcard này?
             </div>
-            <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
-                <div className="text-sm text-amber-800">
-                  <strong>Lưu ý:</strong> Nếu flashcard này đã được học, hệ thống sẽ <strong>ẩn</strong> thay vì xóa để giữ lại dữ liệu học tập của người dùng.
+            {progressInfo?.hasProgress && (
+              <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                  <div className="text-sm text-amber-800">
+                    <strong>⚠️ Flashcard đã có {progressInfo.progressCount} lượt học{progressInfo.masteredCount > 0 ? ` (${progressInfo.masteredCount} đã thuộc)` : ''}</strong>
+                    <br />
+                    Hệ thống sẽ <strong>ẩn</strong> thay vì xóa để giữ lại dữ liệu học tập của người dùng.
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+            {!progressInfo?.hasProgress && (
+              <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                <div className="text-sm text-gray-600">
+                  Flashcard này chưa có lượt học nào. Sẽ xóa vĩnh viễn khỏi hệ thống.
+                </div>
+              </div>
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Hủy</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete}>Xóa</AlertDialogAction>
+          <AlertDialogAction onClick={handleDelete}>
+            {progressInfo?.hasProgress ? "Ẩn" : "Xóa"}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -74,6 +74,7 @@ import {
   bulkCreateFlashcards,
   deleteFlashcard,
   checkFlashcardProgress,
+  checkFlashcardProgressForDelete,
 } from "@/actions/flashcard";
 import { getTopics } from "@/actions/topic";
 import { RequiredField } from "@/components/form/required-field";
@@ -887,18 +888,25 @@ export default function FlashcardFormPage() {
   async function handleRemoveFlashcard(index: number) {
     const flashcard = form.getValues(`flashcards.${index}` as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
-    // If flashcard has an id, it exists in the database and needs to be deleted
+    // If flashcard has an id, check progress before deleting
     if (flashcard.id) {
       try {
-        const result = await deleteFlashcard(flashcard.id);
+        const progressInfo = await checkFlashcardProgressForDelete(flashcard.id);
+        
+        const confirmMessage = progressInfo.hasProgress
+          ? `⚠️ Flashcard "${progressInfo.term}" đã có ${progressInfo.progressCount} lượt học${progressInfo.masteredCount > 0 ? ` (${progressInfo.masteredCount} đã thuộc)` : ''}. Flashcard sẽ được ẩn đi (soft delete) thay vì xóa vĩnh viễn. Bạn có chắc chắn?`
+          : `Xóa flashcard "${progressInfo.term}"?`;
 
-        if (result.hasProgress) {
-          toast.info("⚠️ Flashcard có lịch sử học → Đã ẩn thay vì xóa để giữ dữ liệu học tập");
-        } else {
-          toast.success("Đã xóa flashcard thành công");
+        if (!window.confirm(confirmMessage)) {
+          return;
         }
 
-        remove(index);
+        const result = await deleteFlashcard(flashcard.id);
+
+        toast.success(result.hasProgress ? "Đã ẩn flashcard thành công" : "Đã xóa flashcard thành công");
+        
+        // Update form value to mark as inactive instead of removing
+        form.setValue(`flashcards.${index}.isActive`, false);
       } catch (error) {
         console.error("Failed to delete flashcard:", error);
         toast.error("Xóa flashcard thất bại");
@@ -1087,9 +1095,13 @@ export default function FlashcardFormPage() {
                     `flashcards.${index}` as any
                   ); // eslint-disable-line @typescript-eslint/no-explicit-any
                   const hasContent = flashcard?.term || flashcard?.meaningVi;
+                  const isInactive = flashcard?.isActive === false;
 
                   return (
-                    <Card key={field.id} className="relative">
+                    <Card 
+                      key={field.id} 
+                      className={`relative ${isInactive ? "opacity-50 bg-gray-100 border-gray-300" : ""}`}
+                    >
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <button
@@ -1108,6 +1120,11 @@ export default function FlashcardFormPage() {
                                 <span className="ml-2 text-sm font-normal text-muted-foreground">
                                   {flashcard.term ? ` - ${flashcard.term}` : ""}
                                 </span>
+                              )}
+                              {isInactive && (
+                                <Badge variant="secondary" className="bg-gray-200 text-gray-600">
+                                  Đã ẩn
+                                </Badge>
                               )}
                               {flashcardErrors.has(index) && (
                                 <Badge variant="destructive">

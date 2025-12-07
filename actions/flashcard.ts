@@ -54,6 +54,17 @@ export async function checkFlashcardProgress(ids: number[]) {
     return payload;
 }
 
+export async function checkFlashcardProgressForDelete(id: number) {
+    const { payload } = await http.post<{
+        id: number;
+        term: string;
+        hasProgress: boolean;
+        progressCount: number;
+        masteredCount: number;
+    }>(`/flashcards/check-progress-for-delete/${id}`, JSON.stringify({}));
+    return payload;
+}
+
 export async function updateFlashcard(
     id: number,
     data: CreateFlashcardFormData & { resetProgress?: boolean }
@@ -69,5 +80,7 @@ export async function updateFlashcard(
 export async function deleteFlashcard(id: number) {
     const { payload } = await http.delete<{ flashcard: Flashcard; hasProgress: boolean; deleted: boolean }>(`/flashcards/${id}`);
     revalidatePath('/admin/flashcards');
+    revalidatePath('/learn');
+    revalidatePath('/practice');
     return payload;
 }

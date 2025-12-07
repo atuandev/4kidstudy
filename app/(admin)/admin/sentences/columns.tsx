@@ -5,6 +5,7 @@ import { MoreHorizontal, Pencil, Trash } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -40,6 +41,7 @@ function DeleteSentenceImageDialog({
 }: {
   sentenceImage: SentenceImage;
 }) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [progressInfo, setProgressInfo] = useState<{
@@ -67,12 +69,9 @@ function DeleteSentenceImageDialog({
     setIsLoading(true);
     try {
       await deleteSentenceImage(sentenceImage.id);
-      // Update local state to reflect soft delete
-      sentenceImage.isActive = false;
       toast.success(progressInfo?.hasProgress ? "Đã ẩn thẻ câu thành công" : "Đã xóa thẻ câu thành công");
       setIsOpen(false);
-      // Force re-render by triggering a state update in parent
-      window.location.reload();
+      router.refresh();
     } catch (error) {
       console.error("Error deleting:", error);
       toast.error("Không thể xóa thẻ câu");
