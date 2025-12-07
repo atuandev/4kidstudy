@@ -425,11 +425,8 @@ export default function SentenceFormPage() {
       // Step 2: Check if any sentences have progress
       if (sentencesToUpdate.length > 0) {
         const sentenceIds = sentencesToUpdate.map((s) => s.id);
-        console.log("🔍 Checking progress for sentence IDs:", sentenceIds);
         const progressInfo = await checkSentenceProgress(sentenceIds);
-        console.log("📊 Progress info returned:", progressInfo);
         const withProgress = progressInfo.filter((s) => s.hasProgress);
-        console.log("⚠️ Sentences with progress:", withProgress);
 
         if (withProgress.length > 0) {
           // Store pending updates, bulk context, and show dialog
@@ -440,12 +437,10 @@ export default function SentenceFormPage() {
           setPendingUpdates(updates);
           setPendingBulkContext({ topicId, groups: sentenceImageGroups });
           setSentencesWithProgress(withProgress);
-          console.log("🔔 Showing progress dialog");
           setShowProgressDialog(true);
           setIsSubmitting(false);
           return; // Stop here, let dialog handlers complete the update
         }
-        console.log("✅ No sentences with progress, proceeding with update");
       }
 
       // Step 3: No progress or no updates needed, proceed normally
@@ -502,17 +497,92 @@ export default function SentenceFormPage() {
 
   const onSubmit = async (data: CreateSentenceImageFormData) => {
     setIsSubmitting(true);
+    
     try {
+      // Check if editing and any sentences have progress
       if (isEditMode) {
-        const updated = await updateSentenceImage(
-          parseInt(sentenceImageId),
-          data
-        );
-        if (updated) {
-          toast.success("Cập nhật thành công");
-        } else {
-          toast.error("Cập nhật thất bại");
+        const sentenceIds = data.sentences
+          .filter((s) => s.id)
+          .map((s) => s.id!);
+        
+        if (sentenceIds.length > 0) {
+          console.log("🔍 Checking progress for sentence IDs:", sentenceIds);
+          const progressInfo = await checkSentenceProgress(sentenceIds);
+          console.log("📊 Progress check result:", progressInfo);
+          const withProgress = progressInfo.filter((s) => s.hasProgress);
+          console.log("⚠️ Sentences with progress:", withProgress);
+
+          if (withProgress.length > 0) {
+            console.log("🔔 Showing progress dialog");
+
+            // Store pending data and show dialog
+            setSentencesWithProgress(withProgress);
+            setPendingBulkContext({
+              topicId: data.topicId,
+              groups: [{
+                id: parseInt(sentenceImageId),
+                imageUrl: data.imageUrl,
+                audioUrl: data.audioUrl || "",
+                order: data.order || 0,
+                isActive: data.isActive,
+                sentences: data.sentences.map(s => ({
+                  id: s.id,
+                  text: s.text,
+                  meaningVi: s.meaningVi,
+                  hintVi: s.hintVi || "",
+                  audioUrl: s.audioUrl || "",
+                  order: s.order || 0,
+                  isActive: s.isActive,
+                })),
+              }],
+            });
+            const updates = new Map();
+            data.sentences.forEach((s) => {
+              if (s.id) {
+                updates.set(s.id, {
+                  text: s.text,
+                  meaningVi: s.meaningVi,
+                  hintVi: s.hintVi,
+                  audioUrl: s.audioUrl,
+                  order: s.order,
+                  isActive: s.isActive,
+                });
+              }
+            });
+            setPendingUpdates(updates);
+            setShowProgressDialog(true);
+            setIsSubmitting(false);
+            return; // Stop here, let dialog handler complete
+          }
         }
+      }
+
+      // Proceed with update
+      if (isEditMode) {
+        // Update SentenceImage
+        await updateSentenceImage(parseInt(sentenceImageId), {
+          topicId: data.topicId,
+          imageUrl: data.imageUrl,
+          audioUrl: data.audioUrl,
+          order: data.order,
+          isActive: data.isActive,
+        });
+
+        // Update individual sentences
+        for (const sentence of data.sentences) {
+          if (sentence.id) {
+            await updateSentence(sentence.id, {
+              text: sentence.text,
+              meaningVi: sentence.meaningVi,
+              hintVi: sentence.hintVi,
+              audioUrl: sentence.audioUrl,
+              order: sentence.order,
+              isActive: sentence.isActive,
+            });
+          }
+        }
+
+        toast.success("Cập nhật thành công");
         clearSelection();
         router.push("/admin/sentences");
         router.refresh();
@@ -1011,8 +1081,9 @@ export default function SentenceFormPage() {
       setPendingBulkContext(null);
       setResetProgress(false);
       
-      // Reload after update
+      // Redirect or reload based on mode
       if (topicIdParam) {
+        // Bulk mode - reload groups
         const topicId = parseInt(topicIdParam);
         const existingSentenceImages = await getSentenceImagesByTopicId(topicId);
         const groups: SentenceImageGroup[] = existingSentenceImages.map((img) => ({
@@ -1032,6 +1103,11 @@ export default function SentenceFormPage() {
           })),
         }));
         setSentenceImageGroups(groups);
+      } else if (sentenceImageId) {
+        // Single edit mode - redirect back to list
+        clearSelection();
+        router.push("/admin/sentences");
+        router.refresh();
       }
     } catch (error) {
       console.error("Failed to update with reset:", error);
@@ -1689,78 +1765,6 @@ export default function SentenceFormPage() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-
-          {/* Progress Reset Dialog */}
-          <AlertDialog open={showProgressDialog} onOpenChange={setShowProgressDialog}>
-            <AlertDialogContent className="max-w-2xl">
-              <AlertDialogHeader>
-                <AlertDialogTitle>⚠️ Cảnh báo: Câu đã có tiến trình học</AlertDialogTitle>
-                <AlertDialogDescription asChild>
-                  <div className="space-y-4">
-                    <p>
-                      Các câu sau đã có người dùng học và ghi nhận tiến trình.
-                      Việc cập nhật có thể ảnh hưởng đến trải nghiệm học tập của họ.
-                    </p>
-
-                    <div className="rounded-lg border bg-muted p-4 space-y-2">
-                      {sentencesWithProgress.map((s) => (
-                        <div key={s.id} className="flex justify-between items-center">
-                          <span className="font-medium">{s.text}</span>
-                          <div className="flex gap-2 text-sm text-muted-foreground">
-                            <span>{s.progressCount} lượt học</span>
-                            {s.masteredCount > 0 && (
-                              <span className="text-green-600">✓ {s.masteredCount} đã thuộc</span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="space-y-2">
-                      <p className="font-medium">Bạn muốn làm gì với tiến trình học?</p>
-                      <div className="flex items-start gap-2">
-                        <input
-                          type="checkbox"
-                          id="resetProgress"
-                          checked={resetProgress}
-                          onChange={(e) => setResetProgress(e.target.checked)}
-                          className="mt-1"
-                        />
-                        <label htmlFor="resetProgress" className="text-sm">
-                          <span className="font-medium">Reset tiến trình học</span>
-                          <p className="text-muted-foreground">
-                            Xóa toàn bộ tiến trình học của câu này (reviewCount, isMastered).
-                            Người dùng sẽ phải học lại từ đầu.
-                          </p>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-
-              <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => {
-                  setShowProgressDialog(false);
-                  setPendingBulkContext(null);
-                  setSentencesWithProgress([]);
-                  setPendingUpdates(new Map());
-                  setResetProgress(false);
-                  setIsSubmitting(false);
-                }}>
-                  Hủy
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleConfirmProgressReset}
-                  className={resetProgress ? "bg-destructive hover:bg-destructive/90" : ""}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {resetProgress ? "Cập nhật & Reset" : "Chỉ cập nhật"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
         </div>
       ) : (
         /* Single Mode Form */
@@ -2147,6 +2151,78 @@ export default function SentenceFormPage() {
           </form>
         </Form>
       )}
+
+      {/* Progress Reset Dialog - Shared for both modes */}
+      <AlertDialog open={showProgressDialog} onOpenChange={setShowProgressDialog}>
+        <AlertDialogContent className="max-w-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>⚠️ Cảnh báo: Câu đã có tiến trình học</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>
+                  Các câu sau đã có người dùng học và ghi nhận tiến trình.
+                  Việc cập nhật có thể ảnh hưởng đến trải nghiệm học tập của họ.
+                </p>
+
+                <div className="rounded-lg border bg-muted p-4 space-y-2">
+                  {sentencesWithProgress.map((s) => (
+                    <div key={s.id} className="flex justify-between items-center">
+                      <span className="font-medium">{s.text}</span>
+                      <div className="flex gap-2 text-sm text-muted-foreground">
+                        <span>{s.progressCount} lượt học</span>
+                        {s.masteredCount > 0 && (
+                          <span className="text-green-600">✓ {s.masteredCount} đã thuộc</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-2">
+                  <p className="font-medium">Bạn muốn làm gì với tiến trình học?</p>
+                  <div className="flex items-start gap-2">
+                    <input
+                      type="checkbox"
+                      id="resetProgress"
+                      checked={resetProgress}
+                      onChange={(e) => setResetProgress(e.target.checked)}
+                      className="mt-1"
+                    />
+                    <label htmlFor="resetProgress" className="text-sm">
+                      <span className="font-medium">Reset tiến trình học</span>
+                      <p className="text-muted-foreground">
+                        Xóa toàn bộ tiến trình học của câu này (reviewCount, isMastered).
+                        Người dùng sẽ phải học lại từ đầu.
+                      </p>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowProgressDialog(false);
+              setPendingBulkContext(null);
+              setSentencesWithProgress([]);
+              setPendingUpdates(new Map());
+              setResetProgress(false);
+              setIsSubmitting(false);
+            }}>
+              Hủy
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmProgressReset}
+              className={resetProgress ? "bg-destructive hover:bg-destructive/90" : ""}
+              disabled={isSubmitting}
+            >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {resetProgress ? "Cập nhật & Reset" : "Chỉ cập nhật"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
