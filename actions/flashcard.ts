@@ -82,3 +82,31 @@ export async function deleteFlashcard(id: number) {
     revalidatePath('/admin/flashcards');
     return payload;
 }
+
+export async function exportFlashcards() {
+    try {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        const response = await fetch(`${baseUrl}/flashcards/export`, {
+            method: 'GET',
+        });
+
+        if (!response.ok) {
+            throw new Error('Export failed');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'flashcards-export.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        return { success: true };
+    } catch (error) {
+        console.error('Export error:', error);
+        throw error;
+    }
+}
