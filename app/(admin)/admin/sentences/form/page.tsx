@@ -71,6 +71,8 @@ import {
   deleteSentence,
   checkSentenceProgress,
   updateSentence,
+  checkSentenceProgressForDelete,
+  checkSentenceImageProgressForDelete,
 } from "@/actions/sentence";
 import { getTopics } from "@/actions/topic";
 import { RequiredField } from "@/components/form/required-field";
@@ -400,7 +402,7 @@ export default function SentenceFormPage() {
 
       // Step 1: Collect all sentences that will be updated (have ID)
       const sentencesToUpdate: Array<{ id: number; updateData: any }> = []; // eslint-disable-line @typescript-eslint/no-explicit-any
-      
+
       for (const group of sentenceImageGroups) {
         if (group.id) {
           // Existing group - check for sentence updates
@@ -497,14 +499,14 @@ export default function SentenceFormPage() {
 
   const onSubmit = async (data: CreateSentenceImageFormData) => {
     setIsSubmitting(true);
-    
+
     try {
       // Check if editing and any sentences have progress
       if (isEditMode) {
         const sentenceIds = data.sentences
           .filter((s) => s.id)
           .map((s) => s.id!);
-        
+
         if (sentenceIds.length > 0) {
           console.log("🔍 Checking progress for sentence IDs:", sentenceIds);
           const progressInfo = await checkSentenceProgress(sentenceIds);
@@ -668,12 +670,23 @@ export default function SentenceFormPage() {
   async function handleRemoveSentence(index: number) {
     const sentence = form.getValues(`sentences.${index}`);
 
-    // If sentence has an id, it exists in the database and needs to be deleted
+    // If sentence has an id, check progress before deleting
     if (sentence.id) {
       try {
+        const progressInfo = await checkSentenceProgressForDelete(sentence.id);
+        
+        const confirmMessage = progressInfo.hasProgress
+          ? `⚠️ Câu "${progressInfo.text}" đã có ${progressInfo.progressCount} lượt học${progressInfo.masteredCount > 0 ? ` (${progressInfo.masteredCount} đã thuộc)` : ''}. Câu sẽ được ẩn đi (soft delete) thay vì xóa vĩnh viễn. Bạn có chắc chắn?`
+          : `Xóa câu "${progressInfo.text}"?`;
+
+        if (!window.confirm(confirmMessage)) {
+          return;
+        }
+
         await deleteSentence(sentence.id);
-        toast.success("Đã xóa câu thành công");
-        remove(index);
+        toast.success(progressInfo.hasProgress ? "Đã ẩn câu thành công" : "Đã xóa câu thành công");
+        // Update form value to mark as inactive instead of removing
+        form.setValue(`sentences.${index}.isActive`, false);
       } catch (error) {
         console.error("Failed to delete sentence:", error);
         toast.error("Xóa câu thất bại");
@@ -760,14 +773,25 @@ export default function SentenceFormPage() {
 
     if (sentence.id) {
       try {
+        const progressInfo = await checkSentenceProgressForDelete(sentence.id);
+        
+        const confirmMessage = progressInfo.hasProgress
+          ? `⚠️ Câu "${progressInfo.text}" đã có ${progressInfo.progressCount} lượt học${progressInfo.masteredCount > 0 ? ` (${progressInfo.masteredCount} đã thuộc)` : ''}. Câu sẽ được ẩn đi (soft delete) thay vì xóa vĩnh viễn. Bạn có chắc chắn?`
+          : `Xóa câu "${progressInfo.text}"?`;
+
+        if (!window.confirm(confirmMessage)) {
+          return;
+        }
+
         await deleteSentence(sentence.id);
-        toast.success("Đã xóa câu thành công");
+        toast.success(progressInfo.hasProgress ? "Đã ẩn câu thành công" : "Đã xóa câu thành công");
+        // Update sentence to mark as inactive instead of removing
         setSentenceImageGroups((prev) => {
           const updated = [...prev];
           updated[groupIndex] = {
             ...updated[groupIndex],
-            sentences: updated[groupIndex].sentences.filter(
-              (_, i) => i !== sentenceIndex
+            sentences: updated[groupIndex].sentences.map((s, i) =>
+              i === sentenceIndex ? { ...s, isActive: false } : s
             ),
           };
           return updated;
@@ -1044,12 +1068,12 @@ export default function SentenceFormPage() {
   // Progress dialog handlers
   const handleConfirmProgressReset = async () => {
     if (!pendingBulkContext) return;
-    
+
     setShowProgressDialog(false);
     setIsSubmitting(true);
     try {
       const { topicId, groups } = pendingBulkContext;
-      
+
       // Step 1: Update individual sentences with resetProgress flag if checked
       for (const [sentenceId, updateData] of pendingUpdates.entries()) {
         await updateSentence(sentenceId, {
@@ -1057,7 +1081,7 @@ export default function SentenceFormPage() {
           resetProgress: resetProgress,
         });
       }
-      
+
       // Step 2: Update SentenceImages (in case other fields like imageUrl, order changed)
       for (const group of groups) {
         if (group.id) {
@@ -1070,7 +1094,7 @@ export default function SentenceFormPage() {
           });
         }
       }
-      
+
       toast.success(
         resetProgress
           ? "Đã cập nhật và reset tiến trình học"
@@ -1080,7 +1104,7 @@ export default function SentenceFormPage() {
       setPendingUpdates(new Map());
       setPendingBulkContext(null);
       setResetProgress(false);
-      
+
       // Redirect or reload based on mode
       if (topicIdParam) {
         // Bulk mode - reload groups
@@ -1309,19 +1333,33 @@ export default function SentenceFormPage() {
                             <AlertDialogCancel>Hủy</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={async () => {
-                                // If group has ID, delete from database first
+                                // If group has ID, check progress and delete from database
                                 if (group.id) {
                                   try {
+                                    const progressInfo = await checkSentenceImageProgressForDelete(group.id);
+                                    
+                                    const extraConfirm = progressInfo.hasProgress
+                                      ? `⚠️ Thẻ câu này có ${progressInfo.sentenceCount} câu và ${progressInfo.progressCount} lượt học${progressInfo.masteredCount > 0 ? ` (${progressInfo.masteredCount} đã thuộc)` : ''}. Thẻ sẽ được ẩn đi (soft delete). Tiếp tục?`
+                                      : null;
+
+                                    if (extraConfirm && !window.confirm(extraConfirm)) {
+                                      return;
+                                    }
+
                                     await deleteSentenceImage(group.id);
-                                    toast.success("Đã xóa thẻ câu thành công");
+                                    toast.success(progressInfo.hasProgress ? "Đã ẩn thẻ câu thành công" : "Đã xóa thẻ câu thành công");
                                   } catch (error) {
                                     console.error("Failed to delete sentence image:", error);
                                     toast.error("Xóa thẻ câu thất bại");
-                                    return; // Don't remove from state if API call failed
+                                    return; // Don't update state if API call failed
                                   }
                                 }
-                                // Remove from state
-                                setSentenceImageGroups((prev) => prev.filter((_, i) => i !== groupIndex));
+                                // Mark as inactive instead of removing
+                                setSentenceImageGroups((prev) => 
+                                  prev.map((g, i) => 
+                                    i === groupIndex ? { ...g, isActive: false } : g
+                                  )
+                                );
                               }}
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
@@ -1468,8 +1506,13 @@ export default function SentenceFormPage() {
                       {group.sentences.map((sentence, sentenceIndex) => (
                         <Card
                           key={sentenceIndex}
-                          className={`border-dashed ${sentence.id ? "border-green-200 bg-green-50/30" : ""
-                            }`}
+                          className={`border-dashed ${
+                            sentence.isActive === false 
+                              ? "opacity-50 bg-gray-100 border-gray-300" 
+                              : sentence.id 
+                              ? "border-green-200 bg-green-50/30" 
+                              : ""
+                          }`}
                         >
                           <CardHeader className="pb-3">
                             <div className="flex items-center justify-between">
@@ -1490,6 +1533,11 @@ export default function SentenceFormPage() {
                                   <span className="text-xs text-muted-foreground font-normal">
                                     (ID: {sentence.id})
                                   </span>
+                                )}
+                                {sentence.isActive === false && (
+                                  <Badge variant="secondary" className="ml-2">
+                                    Đã ẩn
+                                  </Badge>
                                 )}
                               </CardTitle>
                               <AlertDialog>
@@ -1962,10 +2010,14 @@ export default function SentenceFormPage() {
               {fields.map((field, index) => {
                 const isExpanded = expandedCards.has(field.id);
                 const sentenceText = form.watch(`sentences.${index}.text`);
+                const isActive = form.watch(`sentences.${index}.isActive`);
                 const previewText = sentenceText || `Câu ${index + 1}`;
 
                 return (
-                  <Card key={field.id}>
+                  <Card 
+                    key={field.id}
+                    className={isActive === false ? "opacity-50 bg-gray-100 border-gray-300" : ""}
+                  >
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between text-base">
                         <button
@@ -1979,6 +2031,11 @@ export default function SentenceFormPage() {
                             <ChevronRight className="h-4 w-4" />
                           )}
                           <span className="truncate max-w-md">{previewText}</span>
+                          {isActive === false && (
+                            <Badge variant="secondary" className="ml-2">
+                              Đã ẩn
+                            </Badge>
+                          )}
                         </button>
                         {fields.length > 1 && (
                           <AlertDialog>

@@ -16,7 +16,9 @@ export default async function SentencesTopicPage({
   const { topicId } = await params;
   const topicIdNum = parseInt(topicId, 10);
   
-  const sentenceImages = await getSentenceImagesByTopicId(topicIdNum);
+  // Fetch only active sentence images with active sentences for user view
+  const sentenceImages = await getSentenceImagesByTopicId(topicIdNum, true);
+  
   const topic = await getTopicById(topicIdNum);
   
   // Get mastered sentence IDs from backend (sentences with isMastered = true)

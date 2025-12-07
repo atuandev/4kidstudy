@@ -10,9 +10,10 @@ export async function getSentenceImages() {
   return payload;
 }
 
-export async function getSentenceImagesByTopicId(topicId: number) {
+export async function getSentenceImagesByTopicId(topicId: number, isActive?: boolean) {
+  const queryParam = isActive !== undefined ? `?isActive=${isActive}` : '';
   const { payload } = await http.get<SentenceImage[]>(
-    `/sentences/images/topic/${topicId}`
+    `/sentences/images/topic/${topicId}${queryParam}`
   );
   return payload;
 }
@@ -25,6 +26,28 @@ export async function deleteSentence(id: number) {
 
 export async function getSentenceImage(id: number) {
   const { payload } = await http.get<SentenceImage>(`/sentences/images/${id}`);
+  return payload;
+}
+
+export async function checkSentenceImageProgressForDelete(id: number) {
+  const { payload } = await http.post<{
+    id: number;
+    hasProgress: boolean;
+    progressCount: number;
+    masteredCount: number;
+    sentenceCount: number;
+  }>(`/sentences/images/check-progress-for-delete/${id}`, JSON.stringify({}));
+  return payload;
+}
+
+export async function checkSentenceProgressForDelete(id: number) {
+  const { payload } = await http.post<{
+    id: number;
+    text: string;
+    hasProgress: boolean;
+    progressCount: number;
+    masteredCount: number;
+  }>(`/sentences/check-progress-for-delete/${id}`, JSON.stringify({}));
   return payload;
 }
 
@@ -68,7 +91,7 @@ export async function bulkCreateSentences(
   topicId: number,
   sentenceImages: Omit<CreateSentenceImageFormData, 'topicId'>[]
 ) {
-  const cleanedSentenceImages = sentenceImages.map((img) => 
+  const cleanedSentenceImages = sentenceImages.map((img) =>
     cleanSentenceImageData({ ...img, topicId } as CreateSentenceImageFormData)
   );
   const { payload } = await http.post<SentenceImage[]>(

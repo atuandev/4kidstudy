@@ -26,9 +26,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { deleteSentenceImage } from "@/actions/sentence";
+import {
+  deleteSentenceImage,
+  checkSentenceImageProgressForDelete,
+} from "@/actions/sentence";
 import { SentenceImage } from "@/types";
 import { DataTableColumnHeader } from "../_components/data-table-column-header";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 function DeleteSentenceImageDialog({
   sentenceImage,
@@ -36,36 +41,121 @@ function DeleteSentenceImageDialog({
   sentenceImage: SentenceImage;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  async function handleDelete() {
-    await deleteSentenceImage(sentenceImage.id);
-    setIsOpen(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [progressInfo, setProgressInfo] = useState<{
+    hasProgress: boolean;
+    progressCount: number;
+    masteredCount: number;
+    sentenceCount: number;
+  } | null>(null);
+
+  async function handleCheckProgress() {
+    setIsLoading(true);
+    try {
+      const info = await checkSentenceImageProgressForDelete(sentenceImage.id);
+      setProgressInfo(info);
+      setIsOpen(true);
+    } catch (error) {
+      console.error("Error checking progress:", error);
+      toast.error("Không thể kiểm tra tiến trình học");
+    } finally {
+      setIsLoading(false);
+    }
   }
+
+  async function handleDelete() {
+    setIsLoading(true);
+    try {
+      await deleteSentenceImage(sentenceImage.id);
+      // Update local state to reflect soft delete
+      sentenceImage.isActive = false;
+      toast.success(progressInfo?.hasProgress ? "Đã ẩn thẻ câu thành công" : "Đã xóa thẻ câu thành công");
+      setIsOpen(false);
+      // Force re-render by triggering a state update in parent
+      window.location.reload();
+    } catch (error) {
+      console.error("Error deleting:", error);
+      toast.error("Không thể xóa thẻ câu");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
-    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+    <>
       <DropdownMenuItem
         className="text-red-600"
+        disabled={isLoading}
         onSelect={(event) => {
           event.preventDefault();
-          setIsOpen(true);
+          handleCheckProgress();
         }}
       >
-        <Trash className="mr-2 h-4 w-4" />
+        {isLoading ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <Trash className="mr-2 h-4 w-4" />
+        )}
         Xóa
       </DropdownMenuItem>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Hành động này không thể hoàn tác. Thẻ câu và toàn bộ câu liên quan
-            sẽ bị xóa vĩnh viễn khỏi hệ thống.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Hủy</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete}>Xóa</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {progressInfo?.hasProgress
+                ? "⚠️ Cảnh báo: Thẻ câu đã có lượt học"
+                : "Xác nhận xóa thẻ câu"}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                {progressInfo?.hasProgress ? (
+                  <>
+                    <p>
+                      Thẻ câu này có <strong>{progressInfo.sentenceCount} câu</strong> và đã có{" "}
+                      <strong className="text-orange-600">
+                        {progressInfo.progressCount} lượt học
+                      </strong>{" "}
+                      từ người dùng
+                      {progressInfo.masteredCount > 0 && (
+                        <>
+                          {" "}
+                          (trong đó{" "}
+                          <strong className="text-green-600">
+                            {progressInfo.masteredCount} lượt đã thuộc
+                          </strong>
+                          )
+                        </>
+                      )}
+                      .
+                    </p>
+                    <p className="text-amber-600 font-medium">
+                      Thẻ câu sẽ được ẩn đi (soft delete) thay vì xóa vĩnh viễn.
+                      Dữ liệu tiến trình học của người dùng sẽ được giữ lại.
+                    </p>
+                  </>
+                ) : (
+                  <p>
+                    Thẻ câu này chưa có lượt học nào. Thẻ câu sẽ được ẩn đi (soft delete)
+                    và không hiển thị cho người dùng nữa.
+                  </p>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isLoading}>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isLoading}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {progressInfo?.hasProgress ? "Ẩn thẻ câu" : "Xóa"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
