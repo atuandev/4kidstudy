@@ -4,7 +4,7 @@
 
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, ChevronDown, ChevronUp, Edit2, ImageIcon, Loader2, Plus, Trash2, Upload } from "lucide-react";
+import { AlertCircle, ChevronDown, ChevronUp, Edit2, HelpCircle, ImageIcon, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -22,6 +22,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
@@ -87,6 +94,7 @@ export default function ExerciseFormPage() {
   } | null>(null);
   const [exerciseErrors, setExerciseErrors] = useState<Map<number, string[]>>(new Map());
   const [isImporting, setIsImporting] = useState(false);
+  const [showImportHelpDialog, setShowImportHelpDialog] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { selectedLessonId: storeLessonId, clearSelection } = useExerciseFormStore();
@@ -2110,7 +2118,18 @@ export default function ExerciseFormPage() {
       <AlertDialog open={showImportDialog} onOpenChange={setShowImportDialog}>
         <AlertDialogContent className="max-w-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Import câu hỏi từ Excel</AlertDialogTitle>
+            <AlertDialogTitle className="flex items-center justify-between">
+              <span>Import câu hỏi từ Excel</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowImportHelpDialog(true)}
+                className="h-8 w-8 p-0"
+              >
+                <HelpCircle className="h-5 w-5" />
+              </Button>
+            </AlertDialogTitle>
             <AlertDialogDescription>
               Chọn file Excel và thư mục chứa hình ảnh/âm thanh để import.
             </AlertDialogDescription>
@@ -2204,6 +2223,203 @@ export default function ExerciseFormPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Import Help Dialog */}
+      <Dialog open={showImportHelpDialog} onOpenChange={setShowImportHelpDialog}>
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto"
+          style={{ maxWidth: '1400px', width: '90vw' }}
+        >
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <HelpCircle className="h-5 w-5" />
+              Hướng dẫn Import Excel - Bài tập
+            </DialogTitle>
+            <DialogDescription>
+              Hướng dẫn chi tiết cách chuẩn bị và import file Excel bài tập (exercises)
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* Section 1: Excel Format */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">1. Định dạng file Excel</h3>
+              <p className="text-sm text-muted-foreground">
+                File Excel cần có các cột theo thứ tự sau:
+              </p>
+
+              {/* Example Table */}
+              <div className="rounded-lg border overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="border-r p-2 font-medium text-left whitespace-nowrap">type</th>
+                      <th className="border-r p-2 font-medium text-left whitespace-nowrap">prompt</th>
+                      <th className="border-r p-2 font-medium text-left whitespace-nowrap">img</th>
+                      <th className="border-r p-2 font-medium text-left whitespace-nowrap">audio</th>
+                      <th className="border-r p-2 font-medium text-left whitespace-nowrap">targetText</th>
+                      <th className="border-r p-2 font-medium text-left whitespace-nowrap">hintEn</th>
+                      <th className="border-r p-2 font-medium text-left whitespace-nowrap">hintVi</th>
+                      <th className="border-r p-2 font-medium text-left whitespace-nowrap">optT</th>
+                      <th className="border-r p-2 font-medium text-left whitespace-nowrap">optF1</th>
+                      <th className="border-r p-2 font-medium text-left whitespace-nowrap">optF2</th>
+                      <th className="p-2 font-medium text-left whitespace-nowrap">optF3</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t">
+                      <td className="border-r p-2 whitespace-nowrap">SELECT_IMAGE</td>
+                      <td className="border-r p-2 whitespace-nowrap">Look and match: 'hi'</td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap">g3-u1-hi.png</td>
+                      <td className="border-r p-2 whitespace-nowrap">g3-u1-bye.png</td>
+                      <td className="border-r p-2 whitespace-nowrap">g1-u2-car.png</td>
+                      <td className="p-2 whitespace-nowrap">g1-u2-car.png</td>
+                    </tr>
+                    <tr className="border-t bg-muted/30">
+                      <td className="border-r p-2 whitespace-nowrap">MULTIPLE_CHOICE</td>
+                      <td className="border-r p-2 whitespace-nowrap">Listen and choose</td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2  whitespace-nowrap">g3-u1-hi.mp3</td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap">Xin chào</td>
+                      <td className="border-r p-2 whitespace-nowrap">Xin chào</td>
+                      <td className="border-r p-2 whitespace-nowrap">Hi</td>
+                      <td className="border-r p-2 whitespace-nowrap">Bye</td>
+                      <td className="border-r p-2 whitespace-nowrap">c</td>
+                      <td className="p-2 whitespace-nowrap">d</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="border-r p-2 whitespace-nowrap">LISTENING</td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap">b</td>
+                      <td className="border-r p-2 whitespace-nowrap">c</td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="p-2 whitespace-nowrap"></td>
+                    </tr>
+                    <tr className="border-t bg-muted/30">
+                      <td className="border-r p-2 whitespace-nowrap">PRONUNCIATION</td>
+                      <td className="border-r p-2 whitespace-nowrap">Listen and pronunciation</td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap">g3-u1-hi.mp3</td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="p-2 whitespace-nowrap"></td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="border-r p-2 whitespace-nowrap">MATCHING</td>
+                      <td className="border-r p-2 whitespace-nowrap">Matching</td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap">Hi | xin chào</td>
+                      <td className="border-r p-2 whitespace-nowrap">Hi | image: g3-u1-hi.png</td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="p-2 whitespace-nowrap"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Section 2: Column Descriptions */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">2. Mô tả các cột</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex gap-2">
+                  <span className="font-medium min-w-[120px]">type:</span>
+                  <span className="text-muted-foreground">Loại bài tập: MULTIPLE_CHOICE, SELECT_IMAGE, LISTENING, PRONUNCIATION, MATCHING (được yêu cầu)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium min-w-[120px]">prompt:</span>
+                  <span className="text-muted-foreground">Câu hỏi/Yêu cầu của bài tập (được yêu cầu)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium min-w-[120px]">img:</span>
+                  <span className="text-muted-foreground">Tên file ảnh minh họa (tùy chọn)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium min-w-[120px]">audio:</span>
+                  <span className="text-muted-foreground">Tên file audio (tùy chọn)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium min-w-[120px]">targetText:</span>
+                  <span className="text-muted-foreground">Văn bản mục tiêu (dùng cho PRONUNCIATION)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium min-w-[120px]">hintEn:</span>
+                  <span className="text-muted-foreground">Gợi ý tiếng Anh (tùy chọn)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium min-w-[120px]">hintVi:</span>
+                  <span className="text-muted-foreground">Gợi ý tiếng Việt (tùy chọn)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium min-w-[120px]">optT:</span>
+                  <span className="text-muted-foreground">Đáp án đúng (text hoặc tên file ảnh)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium min-w-[120px]">optF1-3:</span>
+                  <span className="text-muted-foreground">Các đáp án sai (tùy chọn, tối đa 3)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 3: Asset Preparation */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">3. Chuẩn bị file assets (Ảnh/Audio)</h3>
+              <ul className="space-y-2 text-sm list-disc list-inside text-muted-foreground">
+                <li>Tạo thư mục chứa tất cả file ảnh và audio</li>
+                <li>
+                  Tên file phải <strong className="text-foreground">KHỚP CHÍNH XÁC</strong> với tên trong Excel (phân biệt hoa/thường)
+                </li>
+                <li>Ảnh: hỗ trợ .png, .jpg, .jpeg, .gif, .webp</li>
+                <li>Audio: hỗ trợ .mp3, .wav, .m4a</li>
+                <li>
+                  <strong className="text-foreground">Nếu không có assets</strong>, bỏ qua bước 2 trong dialog import
+                </li>
+              </ul>
+            </div>
+
+            {/* Section 4: Important Notes */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">4. Lưu ý quan trọng</h3>
+              <ul className="space-y-2 text-sm list-disc list-inside text-muted-foreground">
+                <li>
+                  <strong className="text-foreground">MULTIPLE_CHOICE</strong>: Cần ít nhất 2 đáp án (optT và optF1)
+                </li>
+                <li>
+                  <strong className="text-foreground">SELECT_IMAGE</strong>: optT, optF1-3 chứa tên file ảnh
+                </li>
+                <li>
+                  <strong className="text-foreground">LISTENING</strong>: optT, optF1-3 chứa text đáp án
+                </li>
+                <li>
+                  <strong className="text-foreground">PRONUNCIATION</strong>: Không cần đáp án, chỉ cần prompt và audio
+                </li>
+                <li>
+                  <strong className="text-foreground">MATCHING</strong>: Cột hintEn và hintVi chứa các cặp ghép nối theo format: "text1 | text2" hoặc "text1 | image: filename.png"
+                </li>
+              </ul>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

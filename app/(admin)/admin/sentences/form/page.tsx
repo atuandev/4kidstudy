@@ -14,6 +14,7 @@ import {
   ChevronRight,
   FileUp,
   AlertCircle,
+  HelpCircle,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { CldUploadWidget } from "next-cloudinary";
@@ -59,6 +60,13 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 
 import {
@@ -139,6 +147,7 @@ export default function SentenceFormPage() {
     matchedFiles: string[];
   } | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [showImportHelpDialog, setShowImportHelpDialog] = useState(false);
   const [sentenceGroupErrors, setSentenceGroupErrors] = useState<Map<number, string[]>>(new Map());
   const [showProgressDialog, setShowProgressDialog] = useState(false);
   const [sentencesWithProgress, setSentencesWithProgress] = useState<Array<{
@@ -674,7 +683,7 @@ export default function SentenceFormPage() {
     if (sentence.id) {
       try {
         const progressInfo = await checkSentenceProgressForDelete(sentence.id);
-        
+
         const confirmMessage = progressInfo.hasProgress
           ? `⚠️ Câu "${progressInfo.text}" đã có ${progressInfo.progressCount} lượt học${progressInfo.masteredCount > 0 ? ` (${progressInfo.masteredCount} đã thuộc)` : ''}. Câu sẽ được ẩn đi (soft delete) thay vì xóa vĩnh viễn. Bạn có chắc chắn?`
           : `Xóa câu "${progressInfo.text}"?`;
@@ -774,7 +783,7 @@ export default function SentenceFormPage() {
     if (sentence.id) {
       try {
         const progressInfo = await checkSentenceProgressForDelete(sentence.id);
-        
+
         const confirmMessage = progressInfo.hasProgress
           ? `⚠️ Câu "${progressInfo.text}" đã có ${progressInfo.progressCount} lượt học${progressInfo.masteredCount > 0 ? ` (${progressInfo.masteredCount} đã thuộc)` : ''}. Câu sẽ được ẩn đi (soft delete) thay vì xóa vĩnh viễn. Bạn có chắc chắn?`
           : `Xóa câu "${progressInfo.text}"?`;
@@ -1337,7 +1346,7 @@ export default function SentenceFormPage() {
                                 if (group.id) {
                                   try {
                                     const progressInfo = await checkSentenceImageProgressForDelete(group.id);
-                                    
+
                                     const extraConfirm = progressInfo.hasProgress
                                       ? `⚠️ Thẻ câu này có ${progressInfo.sentenceCount} câu và ${progressInfo.progressCount} lượt học${progressInfo.masteredCount > 0 ? ` (${progressInfo.masteredCount} đã thuộc)` : ''}. Thẻ sẽ được ẩn đi (soft delete). Tiếp tục?`
                                       : null;
@@ -1355,8 +1364,8 @@ export default function SentenceFormPage() {
                                   }
                                 }
                                 // Mark as inactive instead of removing
-                                setSentenceImageGroups((prev) => 
-                                  prev.map((g, i) => 
+                                setSentenceImageGroups((prev) =>
+                                  prev.map((g, i) =>
                                     i === groupIndex ? { ...g, isActive: false } : g
                                   )
                                 );
@@ -1506,13 +1515,12 @@ export default function SentenceFormPage() {
                       {group.sentences.map((sentence, sentenceIndex) => (
                         <Card
                           key={sentenceIndex}
-                          className={`border-dashed ${
-                            sentence.isActive === false 
-                              ? "opacity-50 bg-gray-100 border-gray-300" 
-                              : sentence.id 
-                              ? "border-green-200 bg-green-50/30" 
+                          className={`border-dashed ${sentence.isActive === false
+                            ? "opacity-50 bg-gray-100 border-gray-300"
+                            : sentence.id
+                              ? "border-green-200 bg-green-50/30"
                               : ""
-                          }`}
+                            }`}
                         >
                           <CardHeader className="pb-3">
                             <div className="flex items-center justify-between">
@@ -1731,7 +1739,18 @@ export default function SentenceFormPage() {
           <AlertDialog open={showImportDialog} onOpenChange={setShowImportDialog}>
             <AlertDialogContent className="max-w-3xl">
               <AlertDialogHeader>
-                <AlertDialogTitle>Import câu từ Excel</AlertDialogTitle>
+                <AlertDialogTitle className="flex items-center justify-between">
+                  <span>Import câu từ Excel</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setShowImportHelpDialog(true)}
+                  >
+                    <HelpCircle className="h-5 w-5" />
+                  </Button>
+                </AlertDialogTitle>
                 <AlertDialogDescription>
                   Chọn file Excel và thư mục chứa ảnh/audio để import
                 </AlertDialogDescription>
@@ -1813,6 +1832,151 @@ export default function SentenceFormPage() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+
+          {/* Import Help Dialog */}
+          <Dialog open={showImportHelpDialog} onOpenChange={setShowImportHelpDialog}>
+            <DialogContent
+              className="max-h-[90vh] overflow-y-auto"
+              style={{ maxWidth: '1400px', width: '90vw' }}
+            >
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <HelpCircle className="h-5 w-5" />
+                  Hướng dẫn Import Excel - Câu
+                </DialogTitle>
+                <DialogDescription>
+                  Hướng dẫn chi tiết cách chuẩn bị và import file Excel câu (sentences)
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-6 py-4">
+                {/* Section 1: Excel Format */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold">1. Định dạng file Excel</h3>
+                  <p className="text-sm text-muted-foreground">
+                    File Excel cần có các cột theo thứ tự sau:
+                  </p>
+
+                  {/* Example Table */}
+                  <div className="rounded-lg border overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-muted">
+                        <tr>
+                          <th className="border-r p-2 font-medium text-left whitespace-nowrap">imgSentence</th>
+                          <th className="border-r p-2 font-medium text-left whitespace-nowrap">audioImg</th>
+                          <th className="border-r p-2 font-medium text-left whitespace-nowrap">sen01</th>
+                          <th className="border-r p-2 font-medium text-left whitespace-nowrap">sen1Vi</th>
+                          <th className="border-r p-2 font-medium text-left whitespace-nowrap">sen1Audio</th>
+                          <th className="border-r p-2 font-medium text-left whitespace-nowrap">sen02</th>
+                          <th className="border-r p-2 font-medium text-left whitespace-nowrap">sen2Vi</th>
+                          <th className="border-r p-2 font-medium text-left whitespace-nowrap">sen2Audio</th>
+                          <th className="border-r p-2 font-medium text-left whitespace-nowrap">sen03</th>
+                          <th className="border-r p-2 font-medium text-left whitespace-nowrap">sen3Vi</th>
+                          <th className="border-r p-2 font-medium text-left whitespace-nowrap">sen3Audio</th>
+                          <th className="border-r p-2 font-medium text-left whitespace-nowrap">sen04</th>
+                          <th className="border-r p-2 font-medium text-left whitespace-nowrap">sen4Vi</th>
+                          <th className="p-2 font-medium text-left whitespace-nowrap">sen4Audio</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-t">
+                          <td className="border-r p-2 whitespace-nowrap">g3-u1-Sentence.png</td>
+                          <td className="border-r p-2 whitespace-nowrap">g3-u1-Sentence-a.mp3</td>
+                          <td className="border-r p-2 whitespace-nowrap">Hi. How are you?</td>
+                          <td className="border-r p-2 whitespace-nowrap">Xin chào. Bạn khỏe không?</td>
+                          <td className="border-r p-2 whitespace-nowrap">g3-u1-Sentence1.mp3</td>
+                          <td className="border-r p-2 whitespace-nowrap">Hi. I'm Fine, thank you.</td>
+                          <td className="border-r p-2 whitespace-nowrap">Xin chào. Tôi ổn, cảm ơn.</td>
+                          <td className="border-r p-2 whitespace-nowrap">g3-u1-Sentence2.mp3</td>
+                          <td className="border-r p-2 whitespace-nowrap">Goodbye.</td>
+                          <td className="border-r p-2 whitespace-nowrap">Tạm biệt.</td>
+                          <td className="border-r p-2 whitespace-nowrap">g3-u1-Sentence3.mp3</td>
+                          <td className="border-r p-2 whitespace-nowrap">Bye.</td>
+                          <td className="border-r p-2 whitespace-nowrap">Tạm biệt.</td>
+                          <td className="p-2 whitespace-nowrap">g3-u1-Sentence4.mp3</td>
+                        </tr>
+                        <tr className="border-t bg-muted/30">
+                          <td className="border-r p-2 whitespace-nowrap">g3-u1-u2-Sentence.png</td>
+                          <td className="border-r p-2 whitespace-nowrap">g3-u1-u2-Sentence-a.mp3</td>
+                          <td className="border-r p-2 whitespace-nowrap">Hi.</td>
+                          <td className="border-r p-2 whitespace-nowrap">Xin chào.</td>
+                          <td className="border-r p-2 whitespace-nowrap">g3-u1-u2-Sentence1.mp3</td>
+                          <td className="border-r p-2 whitespace-nowrap"></td>
+                          <td className="border-r p-2 whitespace-nowrap"></td>
+                          <td className="border-r p-2 whitespace-nowrap"></td>
+                          <td className="border-r p-2 whitespace-nowrap"></td>
+                          <td className="border-r p-2 whitespace-nowrap"></td>
+                          <td className="border-r p-2 whitespace-nowrap"></td>
+                          <td className="border-r p-2 whitespace-nowrap"></td>
+                          <td className="border-r p-2 whitespace-nowrap"></td>
+                          <td className="p-2 whitespace-nowrap"></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Section 2: Column Descriptions */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold">2. Mô tả các cột</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex gap-2">
+                      <span className="font-medium min-w-[120px]">imgSentence:</span>
+                      <span className="text-muted-foreground">Tên file ảnh thẻ câu (được yêu cầu)</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="font-medium min-w-[120px]">audioImg:</span>
+                      <span className="text-muted-foreground">Tên file audio của ảnh thẻ (tùy chọn)</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="font-medium min-w-[120px]">sen01, sen02...:</span>
+                      <span className="text-muted-foreground">Câu tiếng Anh (tối thiểu 1 câu, tối đa 4 câu)</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="font-medium min-w-[120px]">sen1Vi, sen2Vi...:</span>
+                      <span className="text-muted-foreground">Nghĩa tiếng Việt của câu (tùy theo câu tiếng Anh)</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="font-medium min-w-[120px]">sen1Audio, sen2Audio...:</span>
+                      <span className="text-muted-foreground">File audio phát âm câu (tùy chọn)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 3: Asset Preparation */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold">3. Chuẩn bị file assets (Ảnh/Audio)</h3>
+                  <ul className="space-y-2 text-sm list-disc list-inside text-muted-foreground">
+                    <li>Tạo thư mục chứa tất cả file ảnh và audio</li>
+                    <li>
+                      Tên file phải <strong className="text-foreground">KHỚP CHÍNH XÁC</strong> với tên trong Excel (phân biệt hoa/thường)
+                    </li>
+                    <li>Ảnh: hỗ trợ .png, .jpg, .jpeg, .gif, .webp</li>
+                    <li>Audio: hỗ trợ .mp3, .wav, .m4a</li>
+                    <li>
+                      <strong className="text-foreground">Nếu không có assets</strong>, bỏ qua bước chọn thư mục trong dialog import
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Section 4: Important Notes */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold">4. Lưu ý quan trọng</h3>
+                  <ul className="space-y-2 text-sm list-disc list-inside text-muted-foreground">
+                    <li>
+                      Mỗi dòng trong Excel = 1 <strong className="text-foreground">Thẻ câu (Sentence Image)</strong>
+                    </li>
+                    <li>
+                      Mỗi thẻ câu có thể chứa từ <strong className="text-foreground">1 đến 4 câu</strong> con
+                    </li>
+                    <li>
+                      Nếu một câu không có nghĩa tiếng Việt hoặc audio, để trống ô tương ứng
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       ) : (
         /* Single Mode Form */
@@ -2014,7 +2178,7 @@ export default function SentenceFormPage() {
                 const previewText = sentenceText || `Câu ${index + 1}`;
 
                 return (
-                  <Card 
+                  <Card
                     key={field.id}
                     className={isActive === false ? "opacity-50 bg-gray-100 border-gray-300" : ""}
                   >

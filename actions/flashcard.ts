@@ -50,7 +50,7 @@ export async function checkFlashcardProgress(ids: number[]) {
         term: string;
         progressCount: number;
         hasMastered: boolean;
-    }>>(`/flashcards/check-progress`, { flashcardIds: ids });
+    }>>(`/flashcards/check-progress`, JSON.stringify({ flashcardIds: ids }));
     return payload;
 }
 
@@ -80,7 +80,5 @@ export async function updateFlashcard(
 export async function deleteFlashcard(id: number) {
     const { payload } = await http.delete<{ flashcard: Flashcard; hasProgress: boolean; deleted: boolean }>(`/flashcards/${id}`);
     revalidatePath('/admin/flashcards');
-    revalidatePath('/learn');
-    revalidatePath('/practice');
     return payload;
 }

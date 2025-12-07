@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ImageIcon,
   Loader2,
+  HelpCircle,
   Upload,
   Plus,
   Trash2,
@@ -64,6 +65,13 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 
 import {
@@ -125,6 +133,7 @@ export default function FlashcardFormPage() {
   const [flashcardsWithProgress, setFlashcardsWithProgress] = useState<Array<{ id: number; term: string; progressCount: number; hasMastered: boolean }>>([]);
   const [pendingSubmitData, setPendingSubmitData] = useState<CreateFlashcardFormData | CreateFlashcardsFormData | null>(null);
   const [resetProgress, setResetProgress] = useState(false);
+  const [showImportHelpDialog, setShowImportHelpDialog] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const {
@@ -329,7 +338,7 @@ export default function FlashcardFormPage() {
       const existingFlashcardIds = bulkData.flashcards
         .filter((fc) => fc.id)
         .map((fc) => fc.id!);
-      
+
       if (existingFlashcardIds.length > 0) {
         const progressResult = await checkFlashcardProgress(existingFlashcardIds);
         if (progressResult && progressResult.length > 0) {
@@ -892,7 +901,7 @@ export default function FlashcardFormPage() {
     if (flashcard.id) {
       try {
         const progressInfo = await checkFlashcardProgressForDelete(flashcard.id);
-        
+
         const confirmMessage = progressInfo.hasProgress
           ? `⚠️ Flashcard "${progressInfo.term}" đã có ${progressInfo.progressCount} lượt học${progressInfo.masteredCount > 0 ? ` (${progressInfo.masteredCount} đã thuộc)` : ''}. Flashcard sẽ được ẩn đi (soft delete) thay vì xóa vĩnh viễn. Bạn có chắc chắn?`
           : `Xóa flashcard "${progressInfo.term}"?`;
@@ -904,7 +913,7 @@ export default function FlashcardFormPage() {
         const result = await deleteFlashcard(flashcard.id);
 
         toast.success(result.hasProgress ? "Đã ẩn flashcard thành công" : "Đã xóa flashcard thành công");
-        
+
         // Update form value to mark as inactive instead of removing
         form.setValue(`flashcards.${index}.isActive`, false);
       } catch (error) {
@@ -1098,8 +1107,8 @@ export default function FlashcardFormPage() {
                   const isInactive = flashcard?.isActive === false;
 
                   return (
-                    <Card 
-                      key={field.id} 
+                    <Card
+                      key={field.id}
                       className={`relative ${isInactive ? "opacity-50 bg-gray-100 border-gray-300" : ""}`}
                     >
                       <CardHeader className="pb-3">
@@ -1656,9 +1665,20 @@ export default function FlashcardFormPage() {
       < AlertDialog open={showImportDialog} onOpenChange={setShowImportDialog} >
         <AlertDialogContent className="max-w-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <Upload className="h-5 w-5" />
-              Import Flashcards từ Excel
+            <AlertDialogTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Import Flashcards từ Excel
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setShowImportHelpDialog(true)}
+              >
+                <HelpCircle className="h-5 w-5" />
+              </Button>
             </AlertDialogTitle>
             <AlertDialogDescription>
               Chọn file Excel và thư mục assets. Assets sẽ được upload để xem preview đầy đủ.
@@ -1733,6 +1753,122 @@ export default function FlashcardFormPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog >
+
+      {/* Import Help Dialog */}
+      <Dialog open={showImportHelpDialog} onOpenChange={setShowImportHelpDialog}>
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto"
+          style={{ maxWidth: '1400px', width: '90vw' }}
+        >
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <HelpCircle className="h-5 w-5" />
+              Hướng dẫn Import Excel
+            </DialogTitle>
+            <DialogDescription>
+              Hướng dẫn chi tiết cách chuẩn bị và import file Excel flashcards
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* Section 1: Excel Format */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">1. Định dạng file Excel</h3>
+              <p className="text-sm text-muted-foreground">
+                File Excel cần có các cột theo thứ tự sau:
+              </p>
+
+              {/* Example Table */}
+              <div className="rounded-lg border overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="border-r p-2 font-medium text-left whitespace-nowrap">term</th>
+                      <th className="border-r p-2 font-medium text-left whitespace-nowrap">phonetic</th>
+                      <th className="border-r p-2 font-medium text-left whitespace-nowrap">meaningVi</th>
+                      <th className="border-r p-2 font-medium text-left whitespace-nowrap">ExEn</th>
+                      <th className="border-r p-2 font-medium text-left whitespace-nowrap">ExVi</th>
+                      <th className="border-r p-2 font-medium text-left whitespace-nowrap">img</th>
+                      <th className="p-2 font-medium text-left whitespace-nowrap">audio</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t">
+                      <td className="border-r p-2 whitespace-nowrap">Hi</td>
+                      <td className="border-r p-2 whitespace-nowrap">/haɪ/</td>
+                      <td className="border-r p-2 whitespace-nowrap">Xin chào</td>
+                      <td className="border-r p-2 whitespace-nowrap">Hi, I'm Bill</td>
+                      <td className="border-r p-2 whitespace-nowrap">Xin chào, tôi là Bill</td>
+                      <td className="border-r p-2 whitespace-nowrap">g3-u1-hi.png</td>
+                      <td className="p-2 whitespace-nowrap">g3-u1-hi.mp3</td>
+                    </tr>
+                    <tr className="border-t bg-muted/30">
+                      <td className="border-r p-2 whitespace-nowrap">Bye</td>
+                      <td className="border-r p-2 whitespace-nowrap">/baɪ/</td>
+                      <td className="border-r p-2 whitespace-nowrap">Tạm biệt</td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap"></td>
+                      <td className="border-r p-2 whitespace-nowrap">g3-u1-bye.png</td>
+                      <td className="p-2 whitespace-nowrap">g3-u1-bye.mp3</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Section 2: Column Descriptions */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">2. Mô tả các cột</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex gap-2">
+                  <span className="font-medium min-w-[100px]">term:</span>
+                  <span className="text-muted-foreground">Từ vựng tiếng Anh (được yêu cầu)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium min-w-[100px]">phonetic:</span>
+                  <span className="text-muted-foreground">Phiên âm IPA, ví dụ: /haɪ/ (được yêu cầu)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium min-w-[100px]">meaningVi:</span>
+                  <span className="text-muted-foreground">Nghĩa tiếng Việt (được yêu cầu)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium min-w-[100px]">ExEn:</span>
+                  <span className="text-muted-foreground">Câu ví dụ tiếng Anh (tùy chọn)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium min-w-[100px]">ExVi:</span>
+                  <span className="text-muted-foreground">Nghĩa câu ví dụ tiếng Việt (tùy chọn)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium min-w-[100px]">img:</span>
+                  <span className="text-muted-foreground">Tên file ảnh (ví dụ: hi.png, g3-u1-hi.png) - Tùy chọn</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium min-w-[100px]">audio:</span>
+                  <span className="text-muted-foreground">Tên file audio (ví dụ: hi.mp3, g3-u1-hi.mp3) - Tùy chọn</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 3: Asset Preparation */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">3. Chuẩn bị file assets (Ảnh/Audio)</h3>
+              <ul className="space-y-2 text-sm list-disc list-inside text-muted-foreground">
+                <li>Tạo thư mục chứa tất cả file ảnh và audio</li>
+                <li>
+                  Tên file phải <strong className="text-foreground">KHỚP CHÍNH XÁC</strong> với tên trong Excel (phân biệt hoa/thường)
+                </li>
+                <li>Ảnh: hỗ trợ .png, .jpg, .jpeg, .gif, .webp</li>
+                <li>Audio: hỗ trợ .mp3, .wav, .m4a</li>
+                <li>
+                  <strong className="text-foreground">Nếu không có assets</strong>, bỏ qua bước 2 trong dialog import
+                </li>
+              </ul>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Progress Reset Confirmation Dialog */}
       <AlertDialog open={showProgressDialog} onOpenChange={setShowProgressDialog}>
