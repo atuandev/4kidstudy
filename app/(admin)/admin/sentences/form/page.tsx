@@ -69,6 +69,8 @@ import {
   bulkCreateSentences,
   deleteSentenceImage,
   deleteSentence,
+  checkSentenceProgress,
+  updateSentence,
 } from "@/actions/sentence";
 import { getTopics } from "@/actions/topic";
 import { RequiredField } from "@/components/form/required-field";
@@ -136,6 +138,20 @@ export default function SentenceFormPage() {
   } | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [sentenceGroupErrors, setSentenceGroupErrors] = useState<Map<number, string[]>>(new Map());
+  const [showProgressDialog, setShowProgressDialog] = useState(false);
+  const [sentencesWithProgress, setSentencesWithProgress] = useState<Array<{
+    id: number;
+    text: string;
+    hasProgress: boolean;
+    progressCount: number;
+    masteredCount: number;
+  }>>([]);
+  const [pendingUpdates, setPendingUpdates] = useState<Map<number, any>>(new Map());
+  const [pendingBulkContext, setPendingBulkContext] = useState<{
+    topicId: number;
+    groups: SentenceImageGroup[];
+  } | null>(null);
+  const [resetProgress, setResetProgress] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const {
@@ -382,7 +398,57 @@ export default function SentenceFormPage() {
     try {
       const topicId = form.getValues("topicId");
 
-      // Process each SentenceImageGroup
+      // Step 1: Collect all sentences that will be updated (have ID)
+      const sentencesToUpdate: Array<{ id: number; updateData: any }> = []; // eslint-disable-line @typescript-eslint/no-explicit-any
+      
+      for (const group of sentenceImageGroups) {
+        if (group.id) {
+          // Existing group - check for sentence updates
+          for (const sentence of group.sentences) {
+            if (sentence.id) {
+              sentencesToUpdate.push({
+                id: sentence.id,
+                updateData: {
+                  text: sentence.text,
+                  meaningVi: sentence.meaningVi,
+                  hintVi: sentence.hintVi,
+                  audioUrl: sentence.audioUrl,
+                  order: sentence.order,
+                  isActive: sentence.isActive,
+                },
+              });
+            }
+          }
+        }
+      }
+
+      // Step 2: Check if any sentences have progress
+      if (sentencesToUpdate.length > 0) {
+        const sentenceIds = sentencesToUpdate.map((s) => s.id);
+        console.log("🔍 Checking progress for sentence IDs:", sentenceIds);
+        const progressInfo = await checkSentenceProgress(sentenceIds);
+        console.log("📊 Progress info returned:", progressInfo);
+        const withProgress = progressInfo.filter((s) => s.hasProgress);
+        console.log("⚠️ Sentences with progress:", withProgress);
+
+        if (withProgress.length > 0) {
+          // Store pending updates, bulk context, and show dialog
+          const updates = new Map();
+          sentencesToUpdate.forEach((s) => {
+            updates.set(s.id, s.updateData);
+          });
+          setPendingUpdates(updates);
+          setPendingBulkContext({ topicId, groups: sentenceImageGroups });
+          setSentencesWithProgress(withProgress);
+          console.log("🔔 Showing progress dialog");
+          setShowProgressDialog(true);
+          setIsSubmitting(false);
+          return; // Stop here, let dialog handlers complete the update
+        }
+        console.log("✅ No sentences with progress, proceeding with update");
+      }
+
+      // Step 3: No progress or no updates needed, proceed normally
       for (const group of sentenceImageGroups) {
         if (group.id) {
           // Update existing SentenceImage
@@ -392,16 +458,21 @@ export default function SentenceFormPage() {
             audioUrl: group.audioUrl,
             order: group.order,
             isActive: group.isActive,
-            sentences: group.sentences.map((s) => ({
-              id: s.id,
-              text: s.text,
-              meaningVi: s.meaningVi,
-              hintVi: s.hintVi,
-              audioUrl: s.audioUrl,
-              order: s.order,
-              isActive: s.isActive,
-            })),
           });
+
+          // Update individual sentences
+          for (const sentence of group.sentences) {
+            if (sentence.id) {
+              await updateSentence(sentence.id, {
+                text: sentence.text,
+                meaningVi: sentence.meaningVi,
+                hintVi: sentence.hintVi,
+                audioUrl: sentence.audioUrl,
+                order: sentence.order,
+                isActive: sentence.isActive,
+              });
+            }
+          }
         } else if (group.sentences.length > 0) {
           // Create new SentenceImage with sentences
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -899,6 +970,78 @@ export default function SentenceFormPage() {
       setIsImporting(false);
     }
   };
+
+  // Progress dialog handlers
+  const handleConfirmProgressReset = async () => {
+    if (!pendingBulkContext) return;
+    
+    setShowProgressDialog(false);
+    setIsSubmitting(true);
+    try {
+      const { topicId, groups } = pendingBulkContext;
+      
+      // Step 1: Update individual sentences with resetProgress flag if checked
+      for (const [sentenceId, updateData] of pendingUpdates.entries()) {
+        await updateSentence(sentenceId, {
+          ...updateData,
+          resetProgress: resetProgress,
+        });
+      }
+      
+      // Step 2: Update SentenceImages (in case other fields like imageUrl, order changed)
+      for (const group of groups) {
+        if (group.id) {
+          await updateSentenceImage(group.id, {
+            topicId,
+            imageUrl: group.imageUrl,
+            audioUrl: group.audioUrl,
+            order: group.order,
+            isActive: group.isActive,
+          });
+        }
+      }
+      
+      toast.success(
+        resetProgress
+          ? "Đã cập nhật và reset tiến trình học"
+          : "Đã cập nhật thành công"
+      );
+      setSentencesWithProgress([]);
+      setPendingUpdates(new Map());
+      setPendingBulkContext(null);
+      setResetProgress(false);
+      
+      // Reload after update
+      if (topicIdParam) {
+        const topicId = parseInt(topicIdParam);
+        const existingSentenceImages = await getSentenceImagesByTopicId(topicId);
+        const groups: SentenceImageGroup[] = existingSentenceImages.map((img) => ({
+          id: img.id,
+          imageUrl: img.imageUrl,
+          audioUrl: img.audioUrl ?? "",
+          order: img.order,
+          isActive: img.isActive,
+          sentences: img.sentences.map((s) => ({
+            id: s.id,
+            text: s.text,
+            meaningVi: s.meaningVi ?? "",
+            hintVi: s.hintVi ?? "",
+            audioUrl: s.audioUrl ?? "",
+            order: s.order,
+            isActive: s.isActive,
+          })),
+        }));
+        setSentenceImageGroups(groups);
+      }
+    } catch (error) {
+      console.error("Failed to update with reset:", error);
+      toast.error("Cập nhật thất bại");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+
 
   if (isLoading) {
     return (
@@ -1546,6 +1689,78 @@ export default function SentenceFormPage() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+
+          {/* Progress Reset Dialog */}
+          <AlertDialog open={showProgressDialog} onOpenChange={setShowProgressDialog}>
+            <AlertDialogContent className="max-w-2xl">
+              <AlertDialogHeader>
+                <AlertDialogTitle>⚠️ Cảnh báo: Câu đã có tiến trình học</AlertDialogTitle>
+                <AlertDialogDescription asChild>
+                  <div className="space-y-4">
+                    <p>
+                      Các câu sau đã có người dùng học và ghi nhận tiến trình.
+                      Việc cập nhật có thể ảnh hưởng đến trải nghiệm học tập của họ.
+                    </p>
+
+                    <div className="rounded-lg border bg-muted p-4 space-y-2">
+                      {sentencesWithProgress.map((s) => (
+                        <div key={s.id} className="flex justify-between items-center">
+                          <span className="font-medium">{s.text}</span>
+                          <div className="flex gap-2 text-sm text-muted-foreground">
+                            <span>{s.progressCount} lượt học</span>
+                            {s.masteredCount > 0 && (
+                              <span className="text-green-600">✓ {s.masteredCount} đã thuộc</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="font-medium">Bạn muốn làm gì với tiến trình học?</p>
+                      <div className="flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          id="resetProgress"
+                          checked={resetProgress}
+                          onChange={(e) => setResetProgress(e.target.checked)}
+                          className="mt-1"
+                        />
+                        <label htmlFor="resetProgress" className="text-sm">
+                          <span className="font-medium">Reset tiến trình học</span>
+                          <p className="text-muted-foreground">
+                            Xóa toàn bộ tiến trình học của câu này (reviewCount, isMastered).
+                            Người dùng sẽ phải học lại từ đầu.
+                          </p>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => {
+                  setShowProgressDialog(false);
+                  setPendingBulkContext(null);
+                  setSentencesWithProgress([]);
+                  setPendingUpdates(new Map());
+                  setResetProgress(false);
+                  setIsSubmitting(false);
+                }}>
+                  Hủy
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleConfirmProgressReset}
+                  className={resetProgress ? "bg-destructive hover:bg-destructive/90" : ""}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {resetProgress ? "Cập nhật & Reset" : "Chỉ cập nhật"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       ) : (
         /* Single Mode Form */
@@ -1695,58 +1910,24 @@ export default function SentenceFormPage() {
               )}
             />
 
-            {/* Order and Active Status */}
-            <div className="grid gap-4 md:grid-cols-2">
-              {isEditMode && (
-                <FormField
-                  control={formControl}
-                  name="order"
-                  render={({ field }) => {
-                    const { value, ...restField } = field;
-                    const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-                      if (event.target.value === "") {
-                        field.onChange(undefined);
-                        return;
-                      }
-                      field.onChange(parseInt(event.target.value, 10));
-                    };
-                    return (
-                      <FormItem>
-                        <FormLabel>Thứ tự</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...restField}
-                            value={value ?? ""}
-                            type="number"
-                            min="1"
-                            onChange={handleChange}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
-                />
+            {/* Active Status */}
+            <FormField
+              control={formControl}
+              name="isActive"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Trạng thái hoạt động</FormLabel>
+                  </div>
+                </FormItem>
               )}
-
-              <FormField
-                control={formControl}
-                name="isActive"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Trạng thái hoạt động</FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
+            />
 
             <Separator />
 
@@ -1922,55 +2103,24 @@ export default function SentenceFormPage() {
                           )}
                         />
 
-                        {/* Order and Active Status for each sentence */}
-                        <div className="grid gap-4 md:grid-cols-2">
-                          <FormField
-                            control={formControl}
-                            name={`sentences.${index}.order`}
-                            render={({ field }) => {
-                              const { value, ...restField } = field;
-                              const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-                                if (event.target.value === "") {
-                                  field.onChange(undefined);
-                                  return;
-                                }
-                                field.onChange(parseInt(event.target.value, 10));
-                              };
-                              return (
-                                <FormItem>
-                                  <FormLabel>Thứ tự</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      {...restField}
-                                      value={value ?? ""}
-                                      type="number"
-                                      onChange={handleChange}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              );
-                            }}
-                          />
-
-                          <FormField
-                            control={formControl}
-                            name={`sentences.${index}.isActive`}
-                            render={({ field }) => (
-                              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                  />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                  <FormLabel>Trạng thái hoạt động</FormLabel>
-                                </div>
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                        {/* Active Status for each sentence */}
+                        <FormField
+                          control={formControl}
+                          name={`sentences.${index}.isActive`}
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel>Trạng thái hoạt động</FormLabel>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
                       </CardContent>
                     )}
                   </Card>

@@ -92,9 +92,22 @@ export async function updateSentenceImage(
   return payload;
 }
 
+export async function checkSentenceProgress(sentenceIds: number[]) {
+  const { payload } = await http.post<
+    Array<{
+      id: number;
+      text: string;
+      hasProgress: boolean;
+      progressCount: number;
+      masteredCount: number;
+    }>
+  >('/sentences/check-progress', JSON.stringify({ sentenceIds }));
+  return payload;
+}
+
 export async function updateSentence(
   id: number,
-  data: Partial<Sentence>
+  data: Partial<Sentence> & { resetProgress?: boolean }
 ) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const body: any = {};
