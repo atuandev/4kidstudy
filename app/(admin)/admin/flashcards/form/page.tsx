@@ -849,8 +849,13 @@ export default function FlashcardFormPage() {
         const imgPath = normalizeValue(row.img);
         const audioPath = normalizeValue(row.audio);
 
-        const imgFileName = imgPath ? extractFileName(imgPath) : null;
-        const audioFileName = audioPath ? extractFileName(audioPath) : null;
+        // Check if imgPath/audioPath are URLs
+        const isImgUrl = imgPath && (imgPath.startsWith('http://') || imgPath.startsWith('https://'));
+        const isAudioUrl = audioPath && (audioPath.startsWith('http://') || audioPath.startsWith('https://'));
+
+        // If URL, use directly. Otherwise extract filename and lookup in assetMap
+        const imgFileName = !isImgUrl && imgPath ? extractFileName(imgPath) : null;
+        const audioFileName = !isAudioUrl && audioPath ? extractFileName(audioPath) : null;
 
         return {
           term: term || '',
@@ -858,8 +863,8 @@ export default function FlashcardFormPage() {
           meaningVi: meaningVi || '',
           exampleEn: normalizeValue(row.ExEn),
           exampleVi: normalizeValue(row.ExVi),
-          imageUrl: imgFileName && assetMap.has(imgFileName) ? assetMap.get(imgFileName)! : '',
-          audioUrl: audioFileName && assetMap.has(audioFileName) ? assetMap.get(audioFileName)! : '',
+          imageUrl: isImgUrl ? imgPath : (imgFileName && assetMap.has(imgFileName) ? assetMap.get(imgFileName)! : ''),
+          audioUrl: isAudioUrl ? audioPath : (audioFileName && assetMap.has(audioFileName) ? assetMap.get(audioFileName)! : ''),
           isActive: true,
         };
       });

@@ -999,8 +999,21 @@ export default function SentenceFormPage() {
       };
 
       // Map asset filenames to URLs
-      const mapAssetUrl = (filename: string | null): string => {
+      const mapAssetUrl = (cellValue: string | null): string => {
+        if (!cellValue) return '';
+
+        const normalized = cellValue.trim();
+        if (!normalized) return '';
+
+        // If it's already a URL (http/https), use it directly
+        if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+          return normalized;
+        }
+
+        // Otherwise, extract filename and lookup in assetMap
+        const filename = extractFileName(normalized);
         if (!filename) return '';
+
         const url = assetMap.get(filename);
         if (url) return url;
 
@@ -1021,24 +1034,26 @@ export default function SentenceFormPage() {
           const text = normalizeValue(row[`sen0${i}`]);
           if (!text) continue;
 
-          const audioFileName = extractFileName(normalizeValue(row[`sen0${i}audio`]));
+          // Pass raw value to mapAssetUrl, it will handle URL detection
+          const audioValue = normalizeValue(row[`sen0${i}audio`]);
 
           sentences.push({
             text,
             meaningVi: normalizeValue(row[`sen0${i}Vi`]),
             hintVi: "",
-            audioUrl: mapAssetUrl(audioFileName),
+            audioUrl: mapAssetUrl(audioValue),
             order: i - 1,
             isActive: true,
           });
         }
 
-        const imgFileName = extractFileName(normalizeValue(row.imgSentence));
-        const audioImgFileName = extractFileName(normalizeValue(row.audioImg));
+        // Pass raw values to mapAssetUrl
+        const imgValue = normalizeValue(row.imgSentence);
+        const audioImgValue = normalizeValue(row.audioImg);
 
         return {
-          imageUrl: mapAssetUrl(imgFileName),
-          audioUrl: mapAssetUrl(audioImgFileName),
+          imageUrl: mapAssetUrl(imgValue),
+          audioUrl: mapAssetUrl(audioImgValue),
           order: index,
           isActive: true,
           sentences,

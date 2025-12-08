@@ -842,6 +842,13 @@ export default function ExerciseFormPage() {
       // Map asset filenames to URLs
       const mapAssetUrl = (filename: string | null): string => {
         if (!filename) return '';
+
+        // If it's already a URL (http/https), use it directly
+        if (filename.startsWith('http://') || filename.startsWith('https://')) {
+          return filename;
+        }
+
+        // Otherwise lookup in assetMap
         const url = assetMap.get(filename);
         if (url) return url;
 
@@ -857,15 +864,17 @@ export default function ExerciseFormPage() {
       // Parse exercises
       const parsedExercises: CreateExerciseFormData[] = data.map((row) => {
         const type = (normalizeValue(row.Type || row.type)) as CreateExerciseFormData['type'];
-        const imgFileName = extractFileName(normalizeValue(row.img));
-        const audioFileName = extractFileName(normalizeValue(row.audio));
+
+        // Pass raw values to mapAssetUrl
+        const imgValue = normalizeValue(row.img);
+        const audioValue = normalizeValue(row.audio);
 
         const exercise: CreateExerciseFormData = {
           lessonId: currentLessonId,
           type: type || 'MULTIPLE_CHOICE',
           prompt: normalizeValue(row.prompt),
-          imageUrl: mapAssetUrl(imgFileName),
-          audioUrl: mapAssetUrl(audioFileName),
+          imageUrl: mapAssetUrl(imgValue),
+          audioUrl: mapAssetUrl(audioValue),
           targetText: normalizeValue(row.targetText),
           hintEn: normalizeValue(row.hintEn),
           hintVi: normalizeValue(row.hintVi),
@@ -876,11 +885,11 @@ export default function ExerciseFormPage() {
 
         // Parse options based on exercise type (matching backend)
         if (type === 'SELECT_IMAGE') {
-          const correctImg = mapAssetUrl(extractFileName(normalizeValue(row.optT)));
+          const correctImg = mapAssetUrl(normalizeValue(row.optT));
           const incorrectImgs = [
-            mapAssetUrl(extractFileName(normalizeValue(row.optF1))),
-            mapAssetUrl(extractFileName(normalizeValue(row.optF2))),
-            mapAssetUrl(extractFileName(normalizeValue(row.optF3))),
+            mapAssetUrl(normalizeValue(row.optF1)),
+            mapAssetUrl(normalizeValue(row.optF2)),
+            mapAssetUrl(normalizeValue(row.optF3)),
           ];
 
           console.log('SELECT_IMAGE debug:', {
@@ -922,8 +931,9 @@ export default function ExerciseFormPage() {
               const isImagePath = (val: string) => val.match(/\.(jpg|jpeg|png|gif|webp|mp3|mp4)$/i) !== null || val.includes('g1-') || val.includes('/');
               const leftIsImage = isImagePath(left);
               const rightIsImage = isImagePath(right);
-              exercise.options.push({ text: leftIsImage ? '' : left, imageUrl: leftIsImage ? mapAssetUrl(extractFileName(left)) : '', audioUrl: '', isCorrect: false, order: optionOrder++, matchKey });
-              exercise.options.push({ text: rightIsImage ? '' : right, imageUrl: rightIsImage ? mapAssetUrl(extractFileName(right)) : '', audioUrl: '', isCorrect: false, order: optionOrder++, matchKey });
+              // Pass raw values to mapAssetUrl
+              exercise.options.push({ text: leftIsImage ? '' : left, imageUrl: leftIsImage ? mapAssetUrl(left) : '', audioUrl: '', isCorrect: false, order: optionOrder++, matchKey });
+              exercise.options.push({ text: rightIsImage ? '' : right, imageUrl: rightIsImage ? mapAssetUrl(right) : '', audioUrl: '', isCorrect: false, order: optionOrder++, matchKey });
             }
           });
         }
@@ -977,7 +987,8 @@ export default function ExerciseFormPage() {
       }
 
       // Duplicate detection - check both prompt and options
-      if (exercise.prompt) {
+      // Skip for PRONUNCIATION since it uses targetText instead of prompt
+      if (exercise.prompt && exercise.type !== 'PRONUNCIATION') {
         // Create composite key: prompt + sorted options content
         const optionsKey = exercise.options
           .map(opt => {
