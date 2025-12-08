@@ -50,6 +50,36 @@ export const CreateFlashcardsSchema = z.object({
 });
 
 export type CreateFlashcardsFormData = z.infer<typeof CreateFlashcardsSchema>;
+export type FlashcardWithOptionalId = z.infer<typeof FlashcardWithOptionalIdSchema>;
+
+// Type for Excel row import
+export interface ExcelFlashcardRow {
+  term?: string | number;
+  meaningVi?: string | number;
+  phonetic?: string | number;
+  ExEn?: string | number;
+  ExVi?: string | number;
+  img?: string | number;
+  audio?: string | number;
+  [key: string]: unknown;
+}
+
+// Type for progress info
+export interface FlashcardProgressInfo {
+  id: number;
+  term: string;
+  hasProgress: boolean;
+  progressCount: number;
+  masteredCount: number;
+}
+
+// Type for flashcard with progress
+export interface FlashcardWithProgress {
+  id: number;
+  term: string;
+  progressCount: number;
+  hasMastered: boolean;
+}
 
 export const flashcardStatusLabels: Record<string, string> = {
   true: "Hoạt động",

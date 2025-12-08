@@ -68,6 +68,7 @@ import { TypographyH3, TypographyH4 } from "@/components/typography";
 import {
   CreateExerciseFormData,
   CreateExerciseSchema,
+  ExerciseTypeEnum,
   exerciseTypeLabels,
 } from "@/schemas/exercise";
 import { Lesson } from "@/types";
@@ -863,7 +864,7 @@ export default function ExerciseFormPage() {
 
       // Parse exercises
       const parsedExercises: CreateExerciseFormData[] = data.map((row) => {
-        const type = (normalizeValue(row.Type || row.type)) as CreateExerciseFormData['type'];
+        const type = normalizeValue(row.Type || row.type) as ExerciseTypeEnum;
 
         // Pass raw values to mapAssetUrl
         const imgValue = normalizeValue(row.img);
