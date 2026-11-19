@@ -39,7 +39,7 @@ describe('AttemptController', () => {
     it('should start a new attempt', async () => {
       const createAttemptDto = { lessonId: 1 };
       const userId = 1;
-      const mockRequest = { user: { sub: userId } };
+      const mockRequest = { user: { id: userId } };
       const expectedResult = {
         id: 1,
         userId,
