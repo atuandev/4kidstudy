@@ -1,12 +1,7 @@
 import { z } from "zod";
+import { ExerciseType as ExerciseTypeValues } from "@4kidstudy/contracts";
 
-export const ExerciseType = z.enum([
-  "SELECT_IMAGE",
-  "MULTIPLE_CHOICE",
-  "MATCHING",
-  "LISTENING",
-  "PRONUNCIATION",
-]);
+export const ExerciseType = z.enum(ExerciseTypeValues);
 
 export const ExerciseOptionSchema = z.object({
   id: z.number().int().positive().optional(),

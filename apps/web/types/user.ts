@@ -1,8 +1,6 @@
-export type UserRole = 'ADMIN' | 'LEARNER';
+import type { Gender, GradeLevel, UserRole } from '@4kidstudy/contracts';
 
-export type Gender = 'MALE' | 'FEMALE' | 'UNSET';
-
-export type GradeLevel = 'GRADE_1' | 'GRADE_2' | 'GRADE_3' | 'GRADE_4' | 'GRADE_5';
+export type { Gender, GradeLevel, UserRole };
 
 export interface User {
   id: number;

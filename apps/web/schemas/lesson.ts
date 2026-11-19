@@ -1,15 +1,12 @@
 import { z } from "zod";
+import { LessonStatus } from "@4kidstudy/contracts";
 
 /**
- * Lesson status enum
+ * Lesson status enum (from the Prisma schema via @4kidstudy/contracts)
  */
-export const LESSON_STATUS = {
-  PUBLISHED: "PUBLISHED",
-  DRAFT: "DRAFT",
-  ARCHIVED: "ARCHIVED",
-} as const;
+export const LESSON_STATUS = LessonStatus;
 
-export type LessonStatus = (typeof LESSON_STATUS)[keyof typeof LESSON_STATUS];
+export type { LessonStatus };
 
 /**
  * Lesson status labels for UI display
@@ -45,7 +42,7 @@ export const CreateLessonSchema = z.object({
 
   order: z.number().optional(),
 
-  status: z.enum(["PUBLISHED", "DRAFT", "ARCHIVED"], {
+  status: z.enum(LessonStatus, {
     error: "Vui lòng chọn trạng thái",
   }),
 
@@ -83,7 +80,7 @@ export const LessonWithOptionalIdSchema = z.object({
 
   order: z.number().optional(),
 
-  status: z.enum(["PUBLISHED", "DRAFT", "ARCHIVED"], {
+  status: z.enum(LessonStatus, {
     error: "Vui lòng chọn trạng thái",
   }),
 

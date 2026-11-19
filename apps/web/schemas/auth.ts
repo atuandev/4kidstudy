@@ -1,4 +1,5 @@
 import { refine, z } from "zod";
+import { GradeLevel } from "@4kidstudy/contracts";
 
 /**
  * Login schema based on backend LoginDto
@@ -38,7 +39,7 @@ export const RegisterSchema = z
     confirmPassword: z
       .string("Xác nhận mật khẩu là bắt buộc")
       .min(1, "Xác nhận mật khẩu không được để trống"),
-    grade: z.enum(["GRADE_1", "GRADE_2", "GRADE_3", "GRADE_4", "GRADE_5"], {
+    grade: z.enum(GradeLevel, {
       message: "Vui lòng chọn khối lớp hợp lệ",
     }),
   })

@@ -1,10 +1,12 @@
+import type { LearningContentType } from '@4kidstudy/contracts';
+
 export interface LearningProgress {
   id: number;
   userId: number;
   reviewCount: number;
   isMastered: boolean;
   lastReviewedAt?: string;
-  contentType: 'FLASHCARD' | 'SENTENCE';
+  contentType: LearningContentType;
   flashcardId?: number;
   sentenceId?: number;
   createdAt: string;

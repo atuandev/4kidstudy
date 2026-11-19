@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { GradeLevel } from '@4kidstudy/contracts';
 
 export const CreateTopicSchema = z.object({
   title: z.string().min(1, 'Tiêu đề là bắt buộc'),
@@ -6,7 +7,7 @@ export const CreateTopicSchema = z.object({
     if (!val || val.trim() === '') return undefined;
     return val;
   }),
-  grade: z.enum(['GRADE_1', 'GRADE_2', 'GRADE_3', 'GRADE_4', 'GRADE_5'], {
+  grade: z.enum(GradeLevel, {
     message: 'Lớp là bắt buộc',
   }),
   coverImage: z.string().nullish().transform((val) => {

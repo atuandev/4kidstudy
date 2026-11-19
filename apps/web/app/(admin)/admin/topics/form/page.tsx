@@ -52,6 +52,7 @@ import {
 } from '@/schemas/topic';
 import { UPLOAD_PRESET } from '@/lib/constants';
 import { useTopicFormStore } from '@/lib/stores/topic-form-store';
+import type { GradeLevel } from '@4kidstudy/contracts';
 
 export default function TopicFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -97,7 +98,7 @@ export default function TopicFormPage() {
           });
         } else if (selectedGrade) {
           // If creating new topic and grade is selected from filter, pre-fill it
-          form.setValue('grade', selectedGrade as "GRADE_1" | "GRADE_2" | "GRADE_3" | "GRADE_4" | "GRADE_5");
+          form.setValue('grade', selectedGrade as GradeLevel);
           toast.success(`Đã chọn lớp: ${gradeLabels[selectedGrade as keyof typeof gradeLabels]}`);
         }
       } catch (error) {

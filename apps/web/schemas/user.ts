@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { Gender, GradeLevel } from '@4kidstudy/contracts';
 
 /**
  * Update profile schema
@@ -10,7 +11,7 @@ export const UpdateProfileSchema = z.object({
     .max(50, 'Tên không được vượt quá 50 ký tự')
     .optional()
     .or(z.literal('')),
-  grade: z.enum(['GRADE_1', 'GRADE_2', 'GRADE_3', 'GRADE_4', 'GRADE_5'], {
+  grade: z.enum(GradeLevel, {
     message: 'Vui lòng chọn khối lớp hợp lệ',
   }).optional(),
   dob: z
@@ -27,7 +28,7 @@ export const UpdateProfileSchema = z.object({
       },
       { message: 'Ngày sinh phải trước ngày hôm nay' }
     ),
-  gender: z.enum(['MALE', 'FEMALE', 'UNSET'], {
+  gender: z.enum(Gender, {
     message: 'Vui lòng chọn giới tính hợp lệ',
   }).optional(),
   avatar: z

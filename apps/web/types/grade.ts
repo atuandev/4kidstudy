@@ -1,3 +1,5 @@
+import { GradeLevel } from '@4kidstudy/contracts';
+
 /**
  * Grade interface representing a grade level
  */
@@ -11,15 +13,9 @@ export interface Grade {
 /**
  * Grade values enum for type safety
  */
-export const GRADE_VALUES = {
-  GRADE_1: 'GRADE_1',
-  GRADE_2: 'GRADE_2',
-  GRADE_3: 'GRADE_3',
-  GRADE_4: 'GRADE_4',
-  GRADE_5: 'GRADE_5',
-} as const;
+export const GRADE_VALUES = GradeLevel;
 
-export type GradeValue = typeof GRADE_VALUES[keyof typeof GRADE_VALUES];
+export type GradeValue = GradeLevel;
 
 /**
  * Grade mapping for display labels

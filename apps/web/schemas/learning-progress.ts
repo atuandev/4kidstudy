@@ -1,7 +1,8 @@
 import { z } from 'zod';
+import { LearningContentType } from '@4kidstudy/contracts';
 
 export const CreateLearningProgressSchema = z.object({
-  contentType: z.enum(['FLASHCARD', 'SENTENCE'], {
+  contentType: z.enum(LearningContentType, {
     message: 'Loại nội dung là bắt buộc',
   }),
   flashcardId: z
@@ -19,7 +20,7 @@ export const CreateLearningProgressSchema = z.object({
 });
 
 export const ReviewContentSchema = z.object({
-  contentType: z.enum(['FLASHCARD', 'SENTENCE'], {
+  contentType: z.enum(LearningContentType, {
     message: 'Loại nội dung là bắt buộc',
   }),
   flashcardId: z

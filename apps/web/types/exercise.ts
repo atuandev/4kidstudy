@@ -1,3 +1,7 @@
+import type { ExerciseType } from "@4kidstudy/contracts";
+
+export type { ExerciseType };
+
 export type Exercise = {
   id: number;
   lessonId: number;
@@ -26,10 +30,3 @@ export type ExerciseOption = {
   order: number;
   matchKey?: string;
 };
-
-export type ExerciseType =
-  | "SELECT_IMAGE"
-  | "MULTIPLE_CHOICE"
-  | "MATCHING"
-  | "LISTENING"
-  | "PRONUNCIATION";

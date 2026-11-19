@@ -1,15 +1,12 @@
 import { Topic } from './topic';
+import { LessonStatus } from '@4kidstudy/contracts';
 
 /**
- * Lesson status values
+ * Lesson status values (from the Prisma schema via @4kidstudy/contracts)
  */
-export const LESSON_STATUS = {
-  PUBLISHED: 'PUBLISHED',
-  DRAFT: 'DRAFT',
-  ARCHIVED: 'ARCHIVED',
-} as const;
+export const LESSON_STATUS = LessonStatus;
 
-export type LessonStatus = typeof LESSON_STATUS[keyof typeof LESSON_STATUS];
+export type { LessonStatus };
 
 /**
  * Lesson interface representing a learning lesson with all related data
