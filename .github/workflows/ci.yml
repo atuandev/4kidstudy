@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # turbo --affected compares against the PR base
+
+      - uses: pnpm/action-setup@v4 # version comes from package.json "packageManager"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Contracts are up to date with the API
+        run: |
+          pnpm turbo run generate --filter=@4kidstudy/contracts
+          git diff --exit-code -- packages/contracts || {
+            echo "::error::packages/contracts is stale. Run 'pnpm contracts:generate' and commit the result."
+            exit 1
+          }
+
+      - name: Typecheck, build, test
+        run: pnpm turbo run typecheck build test ${{ github.event_name == 'pull_request' && '--affected' || '' }}
+
+      # Both apps had lint errors before the monorepo migration (web 35, api 108).
+      # Non-blocking until those are fixed; then delete continue-on-error.
+      - name: Lint
+        continue-on-error: true
+        run: pnpm turbo run lint ${{ github.event_name == 'pull_request' && '--affected' || '' }}
