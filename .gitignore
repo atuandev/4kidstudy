@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output / caches
+.turbo/
+dist/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# Env files (each app documents its keys in .env.example)
+.env
+.env*.local
+
+# OS / editor
+.DS_Store
+.idea/

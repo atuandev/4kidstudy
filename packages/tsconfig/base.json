@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Base: options shared by every package",
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "incremental": true,
+    "isolatedModules": true,
+    "skipLibCheck": true
+  }
+}

@@ -1,0 +1,28 @@
+packages:
+  - apps/*
+  - packages/*
+
+# One version of shared tooling across the repo. Reference with "catalog:".
+catalog:
+  "@eslint/eslintrc": ^3.3.1
+  "@types/node": ^22.18.0
+  eslint: ^9.34.0
+  typescript: ^5.9.2
+  xlsx: ^0.18.5
+
+# Dependencies allowed to run install scripts (pnpm blocks all others).
+allowBuilds:
+  "@ffmpeg-installer/darwin-arm64": true
+  "@ffmpeg-installer/darwin-x64": true
+  "@ffmpeg-installer/linux-arm64": true
+  "@ffmpeg-installer/linux-x64": true
+  "@ffmpeg-installer/win32-x64": true
+  "@nestjs/core": false
+  "@prisma/client": true
+  "@scarf/scarf": false # install-time telemetry from swagger-ui-dist
+  "@prisma/engines": true
+  "@tailwindcss/oxide": true
+  bcrypt: true
+  prisma: true
+  sharp: true
+  unrs-resolver: true
