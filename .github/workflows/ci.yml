@@ -41,6 +41,9 @@ jobs:
       - name: Typecheck, build, test
         run: pnpm turbo run typecheck build test ${{ github.event_name == 'pull_request' && '--affected' || '' }}
 
+      - name: Check web formatting (oxfmt)
+        run: pnpm turbo run format:check --filter=@4kidstudy/web ${{ github.event_name == 'pull_request' && '--affected' || '' }}
+
       # Web (oxlint) has no lint errors and must stay that way.
       - name: Lint web
         run: pnpm turbo run lint --filter=@4kidstudy/web ${{ github.event_name == 'pull_request' && '--affected' || '' }}

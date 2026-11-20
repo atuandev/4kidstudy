@@ -32,6 +32,7 @@
       "dependsOn": ["@4kidstudy/api#build"],
       "inputs": ["scripts/**", "$TURBO_ROOT$/apps/api/prisma/schema.prisma"],
       "outputs": ["src/generated/**", "openapi.json"]
-    }
+    },
+    "format:check": {}
   }
 }
