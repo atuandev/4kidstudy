@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { LearningContentType } from '@prisma/client';
+import { GradeLevel, LearningContentType, Prisma } from '@prisma/client';
 import {
   CreateLearningProgressDto,
   UpdateLearningProgressDto,
@@ -13,6 +13,10 @@ import {
   LearningProgressResponseDto,
   PaginatedLearningProgressResponseDto,
   LearningProgressStatsResponseDto,
+  TopicProgressResponseDto,
+  GradeLearningStatsResponseDto,
+  GradeContentStatsDto,
+  GradeStatsItemDto,
 } from './dtos';
 
 /**
@@ -488,163 +492,208 @@ export class LearningProgressService {
   async getTopicProgress(
     userId: number,
     topicId: number,
-  ): Promise<{
-    topicId: number;
-    totalFlashcards: number;
-    reviewedFlashcards: number;
-    flashcardProgress: number;
-    totalSentences: number;
-    reviewedSentences: number;
-    sentenceProgress: number;
-    lastReviewedFlashcardIndex?: number;
-    lastReviewedSentenceIndex?: number;
-  }> {
-    // Get all active flashcard IDs in topic first
-    const activeFlashcards = await this.prisma.flashcard.findMany({
-      where: { topicId, isActive: true },
-      select: { id: true },
+  ): Promise<TopicProgressResponseDto> {
+    const [progress] = await this.computeTopicProgress(userId, {
+      id: topicId,
     });
-    const activeFlashcardIds = activeFlashcards.map((f) => f.id);
-    const totalFlashcards = activeFlashcardIds.length;
+    return progress ?? buildTopicProgress(topicId, [], [], []);
+  }
 
-    // Count mastered flashcards by user in this topic (only isMastered = true AND flashcard is active)
-    const reviewedFlashcards = await this.prisma.learningProgress.count({
-      where: {
-        userId,
-        contentType: LearningContentType.FLASHCARD,
-        isMastered: true,
-        flashcardId: { in: activeFlashcardIds },
-      },
-    });
+  /**
+   * Get learning progress for every topic in a grade, in topic order.
+   * Runs a fixed number of queries however many topics the grade has.
+   */
+  async getTopicsProgressByGrade(
+    userId: number,
+    grade: GradeLevel,
+  ): Promise<TopicProgressResponseDto[]> {
+    return this.computeTopicProgress(userId, { grade });
+  }
 
-    // Get all reviewed flashcards to find the one with highest index (only active ones)
-    const reviewedFlashcardsList = await this.prisma.learningProgress.findMany({
-      where: {
-        userId,
-        contentType: LearningContentType.FLASHCARD,
-        flashcardId: { in: activeFlashcardIds },
-      },
-      include: {
-        flashcard: true,
-      },
-    });
-
-    // Find the index of the furthest reviewed flashcard (highest order)
-    let lastReviewedFlashcardIndex: number | undefined = undefined;
-    if (reviewedFlashcardsList.length > 0) {
-      const allFlashcards = await this.prisma.flashcard.findMany({
-        where: { topicId, isActive: true },
-        orderBy: { order: 'asc' },
-        select: { id: true, order: true },
-      });
-
-      // Find the highest index among reviewed flashcards
-      let maxIndex = -1;
-      reviewedFlashcardsList.forEach((progress) => {
-        if (progress.flashcard) {
-          const index = allFlashcards.findIndex(
-            (f) => f.id === progress.flashcard?.id,
-          );
-          if (index > maxIndex) {
-            maxIndex = index;
-          }
-        }
-      });
-
-      if (maxIndex >= 0) {
-        lastReviewedFlashcardIndex = maxIndex;
-      }
-    }
-
-    // Get all active sentence IDs in topic first
-    const activeSentences = await this.prisma.sentence.findMany({
-      where: {
-        isActive: true,
-        sentenceImage: {
-          topicId,
-          isActive: true,
+  /**
+   * Learning statistics for one grade, for the learning history dialog.
+   * Totals include inactive content, matching what the dialog has always shown.
+   */
+  async getGradeLearningStats(
+    userId: number,
+    grade: GradeLevel,
+  ): Promise<GradeLearningStatsResponseDto> {
+    const [topics, progresses, flashcards, sentences] = await Promise.all([
+      this.prisma.topic.findMany({
+        where: { grade },
+        orderBy: [{ order: 'asc' }],
+        select: { id: true, title: true },
+      }),
+      this.prisma.learningProgress.findMany({
+        where: {
+          userId,
+          OR: [
+            {
+              contentType: LearningContentType.FLASHCARD,
+              flashcard: { topic: { grade } },
+            },
+            {
+              contentType: LearningContentType.SENTENCE,
+              sentence: { sentenceImage: { topic: { grade } } },
+            },
+          ],
         },
-      },
-      select: { id: true },
-    });
-    const activeSentenceIds = activeSentences.map((s) => s.id);
-    const totalSentences = activeSentenceIds.length;
-
-    // Count mastered sentences by user in this topic (only isMastered = true AND sentence is active)
-    const reviewedSentences = await this.prisma.learningProgress.count({
-      where: {
-        userId,
-        contentType: LearningContentType.SENTENCE,
-        isMastered: true,
-        sentenceId: { in: activeSentenceIds },
-      },
-    });
-
-    // Get all reviewed sentences to find the one with highest index (only active ones)
-    const reviewedSentencesList = await this.prisma.learningProgress.findMany({
-      where: {
-        userId,
-        contentType: LearningContentType.SENTENCE,
-        sentenceId: { in: activeSentenceIds },
-      },
-      include: {
-        sentence: {
-          include: {
-            sentenceImage: true,
+        orderBy: { lastReviewedAt: 'desc' },
+        select: {
+          contentType: true,
+          isMastered: true,
+          reviewCount: true,
+          flashcard: { select: { id: true, term: true, topicId: true } },
+          sentence: {
+            select: {
+              id: true,
+              text: true,
+              sentenceImage: { select: { topicId: true } },
+            },
           },
         },
-      },
-    });
+      }),
+      this.prisma.flashcard.findMany({
+        where: { topic: { grade } },
+        select: { id: true, topicId: true },
+      }),
+      this.prisma.sentence.findMany({
+        where: { sentenceImage: { topic: { grade } } },
+        select: { id: true, sentenceImage: { select: { topicId: true } } },
+      }),
+    ]);
 
-    // Find the index of the furthest reviewed sentence (highest order)
-    let lastReviewedSentenceIndex: number | undefined = undefined;
-    if (reviewedSentencesList.length > 0) {
-      const allSentenceImages = await this.prisma.sentenceImage.findMany({
-        where: { topicId, isActive: true },
-        orderBy: { order: 'asc' },
-        select: { id: true, order: true },
-      });
+    const topicTitle = new Map(topics.map((t) => [t.id, t.title]));
+    const flashcardItems: GradeStatsItemDto[] = [];
+    const sentenceItems: GradeStatsItemDto[] = [];
+    const rowsPerTopic = new Map<number, number>();
 
-      // Find the highest index among reviewed sentences
-      let maxIndex = -1;
-      reviewedSentencesList.forEach((progress) => {
-        if (progress.sentence?.sentenceImage) {
-          const index = allSentenceImages.findIndex(
-            (si) => si.id === progress.sentence?.sentenceImageId,
-          );
-          if (index > maxIndex) {
-            maxIndex = index;
-          }
-        }
-      });
+    for (const p of progresses) {
+      const isFlashcard = p.contentType === LearningContentType.FLASHCARD;
+      const topicId = isFlashcard
+        ? p.flashcard?.topicId
+        : p.sentence?.sentenceImage.topicId;
+      if (topicId === undefined) continue;
 
-      if (maxIndex >= 0) {
-        lastReviewedSentenceIndex = maxIndex;
-      }
+      rowsPerTopic.set(topicId, (rowsPerTopic.get(topicId) ?? 0) + 1);
+      if (!p.isMastered) continue;
+
+      const item = {
+        id: isFlashcard ? p.flashcard!.id : p.sentence!.id,
+        name: (isFlashcard ? p.flashcard!.term : p.sentence!.text) ?? '',
+        reviewCount: p.reviewCount,
+        topicName: topicTitle.get(topicId) ?? '',
+        topicId,
+      };
+      (isFlashcard ? flashcardItems : sentenceItems).push(item);
     }
 
-    // Calculate percentages
-    const flashcardProgress =
-      totalFlashcards > 0
-        ? Math.round((reviewedFlashcards / totalFlashcards) * 100 * 10) / 10
-        : 0;
+    // Array.prototype.sort is stable, so ties keep most-recently-reviewed first.
+    flashcardItems.sort((a, b) => b.reviewCount - a.reviewCount);
+    sentenceItems.sort((a, b) => b.reviewCount - a.reviewCount);
 
-    const sentenceProgress =
-      totalSentences > 0
-        ? Math.round((reviewedSentences / totalSentences) * 100 * 10) / 10
-        : 0;
+    const masteredFlashcards = new Set(flashcardItems.map((i) => i.id));
+    const masteredSentences = new Set(sentenceItems.map((i) => i.id));
+    const completedTopics = topics.filter((topic) => {
+      const topicFlashcards = flashcards.filter((f) => f.topicId === topic.id);
+      const topicSentences = sentences.filter(
+        (s) => s.sentenceImage.topicId === topic.id,
+      );
+      return (
+        topicFlashcards.length > 0 &&
+        topicSentences.length > 0 &&
+        topicFlashcards.every((f) => masteredFlashcards.has(f.id)) &&
+        topicSentences.every((s) => masteredSentences.has(s.id))
+      );
+    });
+
+    const contentStats = (
+      items: GradeStatsItemDto[],
+      total: number,
+    ): GradeContentStatsDto => ({
+      reviewed: items.length,
+      total,
+      percentage: total > 0 ? (items.length / total) * 100 : 0,
+      topItems: items.slice(0, 5),
+      allItems: items,
+    });
 
     return {
-      topicId,
-      totalFlashcards,
-      reviewedFlashcards,
-      flashcardProgress,
-      totalSentences,
-      reviewedSentences,
-      sentenceProgress,
-      lastReviewedFlashcardIndex,
-      lastReviewedSentenceIndex,
+      totalReviewed: flashcardItems.length + sentenceItems.length,
+      flashcardStats: contentStats(flashcardItems, flashcards.length),
+      sentenceStats: contentStats(sentenceItems, sentences.length),
+      topicCount: completedTopics.length,
+      topTopics: [...rowsPerTopic.entries()]
+        .filter(([id]) => topicTitle.get(id))
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([id, reviewCount]) => ({
+          id,
+          name: topicTitle.get(id)!,
+          reviewCount,
+        })),
+      topics: topics.map((t) => ({ id: t.id, name: t.title })),
     };
+  }
+
+  private async computeTopicProgress(
+    userId: number,
+    topicWhere: Prisma.TopicWhereInput,
+  ): Promise<TopicProgressResponseDto[]> {
+    const [topics, flashcards, sentenceImages, progresses] = await Promise.all([
+      this.prisma.topic.findMany({
+        where: topicWhere,
+        orderBy: [{ order: 'asc' }],
+        select: { id: true },
+      }),
+      this.prisma.flashcard.findMany({
+        where: { isActive: true, topic: topicWhere },
+        orderBy: [{ topicId: 'asc' }, { order: 'asc' }],
+        select: { id: true, topicId: true },
+      }),
+      this.prisma.sentenceImage.findMany({
+        where: { isActive: true, topic: topicWhere },
+        orderBy: [{ topicId: 'asc' }, { order: 'asc' }],
+        select: {
+          id: true,
+          topicId: true,
+          sentences: { where: { isActive: true }, select: { id: true } },
+        },
+      }),
+      this.prisma.learningProgress.findMany({
+        where: {
+          userId,
+          OR: [
+            {
+              contentType: LearningContentType.FLASHCARD,
+              flashcard: { isActive: true, topic: topicWhere },
+            },
+            {
+              contentType: LearningContentType.SENTENCE,
+              sentence: {
+                isActive: true,
+                sentenceImage: { isActive: true, topic: topicWhere },
+              },
+            },
+          ],
+        },
+        select: {
+          contentType: true,
+          isMastered: true,
+          flashcardId: true,
+          sentenceId: true,
+        },
+      }),
+    ]);
+
+    return topics.map((topic) =>
+      buildTopicProgress(
+        topic.id,
+        flashcards.filter((f) => f.topicId === topic.id),
+        sentenceImages.filter((si) => si.topicId === topic.id),
+        progresses,
+      ),
+    );
   }
 
   /**
@@ -746,4 +795,68 @@ export class LearningProgressService {
 
     return null;
   }
+}
+
+type ProgressRow = {
+  contentType: LearningContentType;
+  isMastered: boolean;
+  flashcardId: number | null;
+  sentenceId: number | null;
+};
+
+const toPercent = (part: number, total: number): number =>
+  total > 0 ? Math.round((part / total) * 100 * 10) / 10 : 0;
+
+/**
+ * Builds one topic's progress from its active content (sorted by `order`)
+ * and the user's progress rows. A row counts as reviewed when it is mastered;
+ * the "last reviewed" index is the furthest item the user has any row for.
+ */
+function buildTopicProgress(
+  topicId: number,
+  flashcards: { id: number }[],
+  sentenceImages: { id: number; sentences: { id: number }[] }[],
+  progresses: ProgressRow[],
+): TopicProgressResponseDto {
+  const flashcardIndex = new Map(flashcards.map((f, i) => [f.id, i]));
+  const sentenceImageIndex = new Map<number, number>();
+  sentenceImages.forEach((si, i) =>
+    si.sentences.forEach((s) => sentenceImageIndex.set(s.id, i)),
+  );
+
+  let reviewedFlashcards = 0;
+  let reviewedSentences = 0;
+  let maxFlashcardIndex = -1;
+  let maxSentenceIndex = -1;
+
+  for (const p of progresses) {
+    if (p.contentType === LearningContentType.FLASHCARD && p.flashcardId) {
+      const index = flashcardIndex.get(p.flashcardId);
+      if (index === undefined) continue;
+      if (p.isMastered) reviewedFlashcards++;
+      maxFlashcardIndex = Math.max(maxFlashcardIndex, index);
+    } else if (p.contentType === LearningContentType.SENTENCE && p.sentenceId) {
+      const index = sentenceImageIndex.get(p.sentenceId);
+      if (index === undefined) continue;
+      if (p.isMastered) reviewedSentences++;
+      maxSentenceIndex = Math.max(maxSentenceIndex, index);
+    }
+  }
+
+  const totalFlashcards = flashcards.length;
+  const totalSentences = sentenceImageIndex.size;
+
+  return {
+    topicId,
+    totalFlashcards,
+    reviewedFlashcards,
+    flashcardProgress: toPercent(reviewedFlashcards, totalFlashcards),
+    totalSentences,
+    reviewedSentences,
+    sentenceProgress: toPercent(reviewedSentences, totalSentences),
+    lastReviewedFlashcardIndex:
+      maxFlashcardIndex >= 0 ? maxFlashcardIndex : undefined,
+    lastReviewedSentenceIndex:
+      maxSentenceIndex >= 0 ? maxSentenceIndex : undefined,
+  };
 }

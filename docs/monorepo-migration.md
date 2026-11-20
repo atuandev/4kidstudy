@@ -66,7 +66,7 @@ Point it at the monorepo:
 ### 5. GitHub
 
 - Enable the `CI` workflow as a required check on `master`.
-- Archive `atuandev/4kidstudy-backend`. Don't delete it: rewritten commit messages link to its PRs.
+- `atuandev/4kidstudy-backend` was archived on 2026-11-20. Don't delete it: rewritten commit messages link to its PRs.
 
 ### 6. Local machines
 

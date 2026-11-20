@@ -31,30 +31,26 @@ const buildTopicsWithProgress = (
     .filter((topic): topic is TopicWithProgress => topic !== null);
 };
 
-const fetchTopicProgresses = async (topics: Topic[]): Promise<TopicProgress[]> => {
-  const results = await Promise.all(
-    topics.map(async (topic) => {
-      const { payload } = await http.get<TopicProgress>(`/learning-progress/topic/${topic.id}`);
-      return payload;
-    }),
-  );
-  return results;
-};
-
 /**
  * Fetches topics for a grade along with the current user's progress.
  */
 export async function getTopicsWithProgress(
   grade: GradeValue,
 ): Promise<TopicsWithProgressResponse> {
-  const { payload } = await http.get<Topic[]>(`/topics?grade=${grade}`);
-  if (!Array.isArray(payload) || payload.length === 0) {
+  // Both requests are independent, so run them together: two round-trips
+  // in parallel instead of one request per topic.
+  const [{ payload: topics }, { payload: progresses }] = await Promise.all([
+    http.get<Topic[]>(`/topics?grade=${grade}`),
+    http.get<TopicProgress[]>(`/learning-progress/topics?grade=${grade}`),
+  ]);
+  if (!Array.isArray(topics) || topics.length === 0) {
     return { topics: [] };
   }
 
-  const progresses = await fetchTopicProgresses(payload);
-  const topics = buildTopicsWithProgress(payload, progresses);
-
-  return { topics };
+  return {
+    topics: buildTopicsWithProgress(
+      topics,
+      Array.isArray(progresses) ? progresses : [],
+    ),
+  };
 }
-

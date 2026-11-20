@@ -3443,6 +3443,97 @@
         ]
       }
     },
+    "/api/learning-progress/topics": {
+      "get": {
+        "operationId": "LearningProgressController_getTopicsProgress",
+        "parameters": [
+          {
+            "name": "grade",
+            "required": true,
+            "in": "query",
+            "description": "Grade whose topics to return progress for",
+            "schema": {
+              "example": "GRADE_1",
+              "type": "string",
+              "enum": [
+                "GRADE_1",
+                "GRADE_2",
+                "GRADE_3",
+                "GRADE_4",
+                "GRADE_5"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TopicProgressResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Learning Progress"
+        ]
+      }
+    },
+    "/api/learning-progress/grade-stats": {
+      "get": {
+        "operationId": "LearningProgressController_getGradeLearningStats",
+        "parameters": [
+          {
+            "name": "grade",
+            "required": true,
+            "in": "query",
+            "description": "Grade whose topics to return progress for",
+            "schema": {
+              "example": "GRADE_1",
+              "type": "string",
+              "enum": [
+                "GRADE_1",
+                "GRADE_2",
+                "GRADE_3",
+                "GRADE_4",
+                "GRADE_5"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradeLearningStatsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Learning Progress"
+        ]
+      }
+    },
     "/api/learning-progress/topic/{topicId}": {
       "get": {
         "operationId": "LearningProgressController_getTopicProgress",
@@ -7010,6 +7101,163 @@
           "totalSentences",
           "reviewedSentences",
           "sentenceProgress"
+        ]
+      },
+      "GradeStatsItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 12
+          },
+          "name": {
+            "type": "string",
+            "description": "Flashcard term or sentence text",
+            "example": "apple"
+          },
+          "reviewCount": {
+            "type": "number",
+            "example": 3
+          },
+          "topicName": {
+            "type": "string",
+            "example": "Unit 1: Hello"
+          },
+          "topicId": {
+            "type": "number",
+            "example": 19
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "reviewCount",
+          "topicName",
+          "topicId"
+        ]
+      },
+      "GradeContentStatsDto": {
+        "type": "object",
+        "properties": {
+          "reviewed": {
+            "type": "number",
+            "description": "Mastered items in the grade",
+            "example": 15
+          },
+          "total": {
+            "type": "number",
+            "description": "All items in the grade",
+            "example": 120
+          },
+          "percentage": {
+            "type": "number",
+            "description": "reviewed / total * 100",
+            "example": 12.5
+          },
+          "topItems": {
+            "description": "Five most-reviewed items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GradeStatsItemDto"
+            }
+          },
+          "allItems": {
+            "description": "Mastered items, most-reviewed first",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GradeStatsItemDto"
+            }
+          }
+        },
+        "required": [
+          "reviewed",
+          "total",
+          "percentage",
+          "topItems",
+          "allItems"
+        ]
+      },
+      "GradeStatsTopTopicDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 19
+          },
+          "name": {
+            "type": "string",
+            "example": "Unit 1: Hello"
+          },
+          "reviewCount": {
+            "type": "number",
+            "description": "Progress rows the user has in the topic",
+            "example": 8
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "reviewCount"
+        ]
+      },
+      "GradeStatsTopicDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 19
+          },
+          "name": {
+            "type": "string",
+            "example": "Unit 1: Hello"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "GradeLearningStatsResponseDto": {
+        "type": "object",
+        "properties": {
+          "totalReviewed": {
+            "type": "number",
+            "description": "Mastered flashcards plus mastered sentences",
+            "example": 23
+          },
+          "flashcardStats": {
+            "$ref": "#/components/schemas/GradeContentStatsDto"
+          },
+          "sentenceStats": {
+            "$ref": "#/components/schemas/GradeContentStatsDto"
+          },
+          "topicCount": {
+            "type": "number",
+            "description": "Topics where every flashcard and sentence is mastered",
+            "example": 2
+          },
+          "topTopics": {
+            "description": "Five topics with the most progress rows",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GradeStatsTopTopicDto"
+            }
+          },
+          "topics": {
+            "description": "All topics in the grade, in display order",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GradeStatsTopicDto"
+            }
+          }
+        },
+        "required": [
+          "totalReviewed",
+          "flashcardStats",
+          "sentenceStats",
+          "topicCount",
+          "topTopics",
+          "topics"
         ]
       },
       "Object": {
