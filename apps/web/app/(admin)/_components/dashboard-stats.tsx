@@ -2,13 +2,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  BookAIcon,
-  LibraryIcon,
-  LibrarySquareIcon,
+  BookIcon,
+  CardsIcon,
+  ChatTextIcon,
   NotebookIcon,
-  NotebookTextIcon,
+  NotepadIcon,
   UsersIcon,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 
 interface DashboardStatsProps {
@@ -40,7 +40,7 @@ export function DashboardStats({
     {
       title: "Thẻ từ vựng",
       value: totalFlashcards,
-      icon: LibraryIcon,
+      icon: CardsIcon,
       description: "Tất cả thẻ từ vựng",
       color: "text-pink-600",
       url: "/admin/flashcards",
@@ -48,7 +48,7 @@ export function DashboardStats({
     {
       title: "Thẻ câu",
       value: totalSentenceImages,
-      icon: LibrarySquareIcon,
+      icon: ChatTextIcon,
       description: "Tất cả thẻ câu",
       color: "text-cyan-600",
       url: "/admin/sentences",
@@ -56,7 +56,7 @@ export function DashboardStats({
     {
       title: "Bài luyện tập",
       value: totalLessons,
-      icon: BookAIcon,
+      icon: BookIcon,
       description: "Tất cả bài luyện tập",
       color: "text-blue-600",
       url: "/admin/lessons",
@@ -64,7 +64,7 @@ export function DashboardStats({
     {
       title: "Câu hỏi luyện tập",
       value: totalExercises,
-      icon: NotebookTextIcon,
+      icon: NotepadIcon,
       description: "Tất cả câu hỏi luyện tập",
       color: "text-green-600",
       url: "/admin/exercises",

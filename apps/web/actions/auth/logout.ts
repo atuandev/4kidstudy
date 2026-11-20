@@ -1,19 +1,17 @@
 "use server";
 
-import http from "@/lib/http";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
+/**
+ * Signs the user out: the API keeps no session (tokens are stateless JWTs), so this
+ * only drops the auth cookies. Redirecting here, inside the action, makes Next render
+ * /login instead of re-rendering the current page, whose layout would otherwise refetch
+ * the profile without a token and fail with 401.
+ */
 export async function logout() {
   const cookieStore = await cookies();
-
-  const refreshToken = cookieStore.get("refreshToken")?.value;
-  const { payload } = await http.post(
-    "/user-service/auth/logout",
-    JSON.stringify({ refreshToken }),
-  );
-
   cookieStore.delete("accessToken");
   cookieStore.delete("refreshToken");
-
-  return payload;
+  redirect("/login");
 }

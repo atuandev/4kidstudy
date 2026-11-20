@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Upload, FileUp } from "lucide-react";
+import { FileArrowUpIcon, UploadSimpleIcon } from "@/components/icons";
 import {
   Dialog,
   DialogContent,
@@ -74,7 +74,7 @@ export function ImportCsvDialog({ lessonId, lessonTitle }: ImportCsvDialogProps)
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm">
-          <Upload className="mr-2 h-4 w-4" />
+          <UploadSimpleIcon className="mr-2 h-4 w-4" />
           Import CSV
         </Button>
       </DialogTrigger>
@@ -101,7 +101,7 @@ export function ImportCsvDialog({ lessonId, lessonTitle }: ImportCsvDialogProps)
                   onChange={(e) => setExercisesFile(e.target.files?.[0] || null)}
                   disabled={isLoading}
                 />
-                {exercisesFile && <FileUp className="h-4 w-4 text-green-600" />}
+                {exercisesFile && <FileArrowUpIcon className="h-4 w-4 text-green-600" />}
               </div>
               <p className="text-xs text-muted-foreground">
                 Columns: type, order, prompt, imageUrl, audioUrl, targetText, hintEn, hintVi,
@@ -122,7 +122,7 @@ export function ImportCsvDialog({ lessonId, lessonTitle }: ImportCsvDialogProps)
                   onChange={(e) => setOptionsFile(e.target.files?.[0] || null)}
                   disabled={isLoading}
                 />
-                {optionsFile && <FileUp className="h-4 w-4 text-green-600" />}
+                {optionsFile && <FileArrowUpIcon className="h-4 w-4 text-green-600" />}
               </div>
               <p className="text-xs text-muted-foreground">
                 Columns: exerciseId, text, imageUrl, audioUrl, isCorrect, order, matchKey

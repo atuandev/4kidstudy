@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { CopyIcon, MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { CopyIcon, DotsThreeIcon, PencilSimpleIcon, TrashIcon } from "@/components/icons";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -71,7 +71,7 @@ function DeleteFlashcardDialog({ flashcard }: { flashcard: Flashcard }) {
           setIsOpen(true);
         }}
       >
-        <Trash className="mr-2 h-4 w-4" />
+        <TrashIcon className="mr-2 h-4 w-4" />
         Xóa
       </DropdownMenuItem>
       <AlertDialogContent>
@@ -249,7 +249,7 @@ export const columns: ColumnDef<Flashcard>[] = [
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
               <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
+              <DotsThreeIcon className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -261,7 +261,7 @@ export const columns: ColumnDef<Flashcard>[] = [
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleEdit}>
-              <Pencil className="mr-2 h-4 w-4" />
+              <PencilSimpleIcon className="mr-2 h-4 w-4" />
               Chỉnh sửa
             </DropdownMenuItem>
             <DeleteFlashcardDialog flashcard={flashcard} />

@@ -1,7 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ImageIcon, Loader2, Upload, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  CaretDownIcon,
+  CaretRightIcon,
+  ImageIcon,
+  PlusIcon,
+  SpinnerGapIcon,
+  TrashIcon,
+  UploadSimpleIcon,
+} from "@/components/icons";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -612,7 +620,7 @@ export default function FlashcardFormPage() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <SpinnerGapIcon className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -732,11 +740,11 @@ export default function FlashcardFormPage() {
                   </div>
                   <div className="flex gap-2">
                     <Button type="button" onClick={handleImportExcel} size="sm" variant="secondary">
-                      <Upload className="mr-2 h-4 w-4" />
+                      <UploadSimpleIcon className="mr-2 h-4 w-4" />
                       Import Excel
                     </Button>
                     <Button type="button" onClick={handleAddFlashcard} size="sm">
-                      <Plus className="mr-2 h-4 w-4" />
+                      <PlusIcon className="mr-2 h-4 w-4" />
                       Thêm flashcard
                     </Button>
                   </div>
@@ -757,9 +765,9 @@ export default function FlashcardFormPage() {
                             className="flex items-center gap-2 text-left flex-1"
                           >
                             {isExpanded ? (
-                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                              <CaretDownIcon className="h-4 w-4 text-muted-foreground" />
                             ) : (
-                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              <CaretRightIcon className="h-4 w-4 text-muted-foreground" />
                             )}
                             <CardTitle className="text-base">
                               Flashcard #{index + 1}
@@ -778,7 +786,7 @@ export default function FlashcardFormPage() {
                                 size="icon"
                                 disabled={fields.length === 1}
                               >
-                                <Trash2 className="h-4 w-4 text-destructive" />
+                                <TrashIcon className="h-4 w-4 text-destructive" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -896,7 +904,7 @@ export default function FlashcardFormPage() {
                                     >
                                       {({ open }) => (
                                         <Button type="button" size="icon" onClick={() => open()}>
-                                          <Upload className="h-4 w-4" />
+                                          <UploadSimpleIcon className="h-4 w-4" />
                                         </Button>
                                       )}
                                     </CldUploadWidget>
@@ -1108,7 +1116,7 @@ export default function FlashcardFormPage() {
                         >
                           {({ open }) => (
                             <Button type="button" size="icon" onClick={() => open()}>
-                              <Upload className="h-4 w-4" />
+                              <UploadSimpleIcon className="h-4 w-4" />
                             </Button>
                           )}
                         </CldUploadWidget>
@@ -1182,7 +1190,7 @@ export default function FlashcardFormPage() {
               Hủy
             </Button>
             <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting && <SpinnerGapIcon className="mr-2 h-4 w-4 animate-spin" />}
               {isEditMode ? "Cập nhật" : isTopicLocked ? "Lưu tất cả" : "Tạo mới"}
             </Button>
           </div>
@@ -1194,7 +1202,7 @@ export default function FlashcardFormPage() {
         <AlertDialogContent className="max-w-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <Upload className="h-5 w-5" />
+              <UploadSimpleIcon className="h-5 w-5" />
               Import Flashcards từ Excel
             </AlertDialogTitle>
             <AlertDialogDescription>
@@ -1271,7 +1279,7 @@ export default function FlashcardFormPage() {
               disabled={!selectedExcelFile || !selectedFolderFiles || isSubmitting}
               className="bg-primary hover:bg-primary/90"
             >
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting && <SpinnerGapIcon className="mr-2 h-4 w-4 animate-spin" />}
               Bắt đầu Import
             </AlertDialogAction>
           </AlertDialogFooter>

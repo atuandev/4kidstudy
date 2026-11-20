@@ -1,4 +1,11 @@
-import { CheckCircleIcon, Clock, InfinityIcon, SkipForward, Target, Trophy } from "lucide-react";
+import {
+  CheckCircleIcon,
+  ClockIcon,
+  InfinityIcon,
+  SkipForwardIcon,
+  TargetIcon,
+  TrophyIcon,
+} from "@/components/icons";
 
 import { cn } from "@/lib/utils";
 
@@ -8,9 +15,14 @@ type ResultCardProps = {
 };
 
 const CONFIG = {
-  points: { title: "Tổng điểm", en: "Points", icon: Trophy, tone: "text-sun-ink bg-sun-wash" },
-  duration: { title: "Thời gian", en: "Time", icon: Clock, tone: "text-sky-ink bg-sky-wash" },
-  accuracy: { title: "Tỷ lệ đúng", en: "Accuracy", icon: Target, tone: "text-forest bg-leaf-wash" },
+  points: { title: "Tổng điểm", en: "Points", icon: TrophyIcon, tone: "text-sun-ink bg-sun-wash" },
+  duration: { title: "Thời gian", en: "Time", icon: ClockIcon, tone: "text-sky-ink bg-sky-wash" },
+  accuracy: {
+    title: "Tỷ lệ đúng",
+    en: "Accuracy",
+    icon: TargetIcon,
+    tone: "text-forest bg-leaf-wash",
+  },
   correct: {
     title: "Số câu đúng",
     en: "Correct",
@@ -20,7 +32,7 @@ const CONFIG = {
   skipped: {
     title: "Bỏ qua",
     en: "Skipped",
-    icon: SkipForward,
+    icon: SkipForwardIcon,
     tone: "text-cherry-deep bg-cherry-wash",
   },
 } as const;
@@ -36,8 +48,7 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
   const Icon = config.icon;
 
   let display: React.ReactNode = value;
-  if (value === Infinity)
-    display = <InfinityIcon className="size-7 stroke-[3]" aria-label="Không giới hạn" />;
+  if (value === Infinity) display = <InfinityIcon className="size-7" aria-label="Không giới hạn" />;
   else if (variant === "duration") display = formatDuration(value);
   else if (variant === "accuracy") display = `${value}%`;
 

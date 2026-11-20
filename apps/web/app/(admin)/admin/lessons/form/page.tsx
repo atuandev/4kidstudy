@@ -1,7 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ImageIcon, Loader2, Upload, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  CaretDownIcon,
+  CaretRightIcon,
+  ImageIcon,
+  PlusIcon,
+  SpinnerGapIcon,
+  TrashIcon,
+  UploadSimpleIcon,
+} from "@/components/icons";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -447,7 +455,7 @@ export default function LessonFormPage() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <SpinnerGapIcon className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -570,7 +578,7 @@ export default function LessonFormPage() {
                     )}
                   </div>
                   <Button type="button" onClick={handleAddLesson} size="sm">
-                    <Plus className="mr-2 h-4 w-4" />
+                    <PlusIcon className="mr-2 h-4 w-4" />
                     Thêm bài luyện tập
                   </Button>
                 </div>
@@ -590,9 +598,9 @@ export default function LessonFormPage() {
                             className="flex items-center gap-2 text-left flex-1"
                           >
                             {isExpanded ? (
-                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                              <CaretDownIcon className="h-4 w-4 text-muted-foreground" />
                             ) : (
-                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              <CaretRightIcon className="h-4 w-4 text-muted-foreground" />
                             )}
                             <CardTitle className="text-base">
                               Bài luyện tập #{index + 1}
@@ -611,7 +619,7 @@ export default function LessonFormPage() {
                                 size="icon"
                                 disabled={fields.length === 1}
                               >
-                                <Trash2 className="h-4 w-4 text-destructive" />
+                                <TrashIcon className="h-4 w-4 text-destructive" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -804,7 +812,7 @@ export default function LessonFormPage() {
                                     >
                                       {({ open }) => (
                                         <Button type="button" size="icon" onClick={() => open()}>
-                                          <Upload className="h-4 w-4" />
+                                          <UploadSimpleIcon className="h-4 w-4" />
                                         </Button>
                                       )}
                                     </CldUploadWidget>
@@ -1008,7 +1016,7 @@ export default function LessonFormPage() {
                         >
                           {({ open }) => (
                             <Button type="button" size="icon" onClick={() => open()}>
-                              <Upload className="h-4 w-4" />
+                              <UploadSimpleIcon className="h-4 w-4" />
                             </Button>
                           )}
                         </CldUploadWidget>
@@ -1028,7 +1036,7 @@ export default function LessonFormPage() {
               Hủy
             </Button>
             <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting && <SpinnerGapIcon className="mr-2 h-4 w-4 animate-spin" />}
               {isEditMode ? "Cập nhật" : isTopicLocked ? "Lưu tất cả" : "Tạo mới"}
             </Button>
           </div>

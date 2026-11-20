@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { SentenceImage } from "@/types";
-import { Check, Lightbulb, Volume2 } from "lucide-react";
+import { CheckIcon, LightbulbIcon, SpeakerHighIcon } from "@/components/icons";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AudioRecord } from "./audio-record";
 import { AudioControl } from "@/components/audio-control";
@@ -107,7 +107,7 @@ export function SentenceCard({
                       isMastered ? "bg-leaf-deep text-white" : "bg-sky-wash text-sky-ink",
                     )}
                   >
-                    {isMastered ? <Check className="size-4" strokeWidth={3} /> : position + 1}
+                    {isMastered ? <CheckIcon className="size-4" /> : position + 1}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-xl font-black leading-snug text-ink sm:text-2xl">
@@ -130,7 +130,7 @@ export function SentenceCard({
                       aria-label="Nghe câu này"
                       onClick={() => handlePlayAudio(sentence.audioUrl!)}
                     >
-                      <Volume2 aria-hidden="true" />
+                      <SpeakerHighIcon aria-hidden="true" />
                     </RoundButton>
                   )}
 
@@ -142,7 +142,7 @@ export function SentenceCard({
                           aria-label="Xem gợi ý"
                           className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-sun-wash text-sun-ink shadow-[0_4px_0_#F5D77A] outline-none transition-[translate,box-shadow] duration-150 ease-peel active:translate-y-1 active:shadow-none focus-visible:ring-4 focus-visible:ring-sky/50"
                         >
-                          <Lightbulb className="size-5" aria-hidden="true" />
+                          <LightbulbIcon className="size-5" aria-hidden="true" />
                         </button>
                       </PopoverTrigger>
                       <PopoverContent side="bottom" className="max-w-xs">

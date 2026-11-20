@@ -5,9 +5,7 @@ import { PageHeading } from "@/components/page-heading";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { GRADE_LABELS, GradeValue, User as UserType } from "@/types";
-import { FireIcon, TrophyIcon } from "@phosphor-icons/react";
-import { KeyRoundIcon, LogOutIcon, UserIcon } from "lucide-react";
-import { redirect } from "next/navigation";
+import { FireIcon, KeyIcon, SignOutIcon, TrophyIcon, UserIcon } from "@/components/icons";
 import { useState } from "react";
 import { UpdateProfileDialog } from "./update-profile";
 import { ChangePasswordDialog } from "./change-password";
@@ -115,19 +113,18 @@ export default function Profile({ profile }: ProfileProps) {
             Sửa hồ sơ
           </Button>
           <Button size="lg" onClick={() => setIsChangePasswordDialogOpen(true)}>
-            <KeyRoundIcon aria-hidden="true" />
+            <KeyIcon aria-hidden="true" />
             Đổi mật khẩu
           </Button>
           <Button
             size="lg"
             variant="dangerOutline"
             className="sm:ml-auto"
-            onClick={async () => {
-              await logout();
-              redirect("/login");
+            onClick={() => {
+              void logout();
             }}
           >
-            <LogOutIcon aria-hidden="true" />
+            <SignOutIcon aria-hidden="true" />
             Đăng xuất
           </Button>
         </div>

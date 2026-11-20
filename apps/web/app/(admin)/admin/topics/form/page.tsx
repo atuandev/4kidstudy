@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ImageIcon, Loader2 } from "lucide-react";
+import { ImageIcon, SpinnerGapIcon } from "@/components/icons";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -175,7 +175,7 @@ export default function TopicFormPage() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <SpinnerGapIcon className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -360,7 +360,7 @@ export default function TopicFormPage() {
               Hủy
             </Button>
             <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting && <SpinnerGapIcon className="mr-2 h-4 w-4 animate-spin" />}
               {isEditMode ? "Cập nhật" : "Tạo mới"}
             </Button>
           </div>

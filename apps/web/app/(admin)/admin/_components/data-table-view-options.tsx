@@ -2,7 +2,7 @@
 
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { Table } from "@tanstack/react-table";
-import { Settings2 } from "lucide-react";
+import { SlidersHorizontalIcon } from "@/components/icons";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +26,7 @@ export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps
           size="sm"
           className="ml-auto hidden h-8 border border-dashed lg:flex"
         >
-          <Settings2 className="mr-2 h-4 w-4" />
+          <SlidersHorizontalIcon className="mr-2 h-4 w-4" />
           Hiển thị
         </Button>
       </DropdownMenuTrigger>

@@ -1,6 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, Mic, RotateCcw } from "lucide-react";
+import {
+  ArrowCounterClockwiseIcon,
+  ArrowLeftIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
+  CheckIcon,
+  MicrophoneIcon,
+} from "@/components/icons";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,7 +31,7 @@ export function StudyHeader({ title, kind, backHref, index, total, onReset }: St
       <div className="flex items-center gap-3">
         <Button asChild size="icon" className="size-11" aria-label="Về danh sách chủ đề">
           <Link href={backHref}>
-            <ArrowLeft className="size-5" aria-hidden="true" />
+            <ArrowLeftIcon className="size-5" aria-hidden="true" />
           </Link>
         </Button>
         <div className="min-w-0 flex-1">
@@ -36,7 +43,7 @@ export function StudyHeader({ title, kind, backHref, index, total, onReset }: St
           </p>
         </div>
         <Button onClick={onReset} className="h-11" aria-label="Học lại từ thẻ đầu">
-          <RotateCcw aria-hidden="true" />
+          <ArrowCounterClockwiseIcon aria-hidden="true" />
           <span className="hidden sm:inline">Học lại</span>
         </Button>
       </div>
@@ -96,15 +103,15 @@ export function StudyNav({
         )}
       >
         {isDone ? (
-          <Check aria-hidden="true" className="size-5 shrink-0" strokeWidth={3} />
+          <CheckIcon aria-hidden="true" className="size-5 shrink-0" />
         ) : (
-          <Mic aria-hidden="true" className="size-5 shrink-0" />
+          <MicrophoneIcon aria-hidden="true" className="size-5 shrink-0" />
         )}
         {isDone ? doneLabel : todoLabel}
       </p>
       <div className="grid grid-cols-2 gap-3">
         <Button size="lg" onClick={onPrevious} disabled={isFirst} className="h-14">
-          <ChevronLeft aria-hidden="true" className="size-5" />
+          <CaretLeftIcon aria-hidden="true" className="size-5" />
           Quay lại
         </Button>
         <Button
@@ -115,7 +122,7 @@ export function StudyNav({
           className="h-14 uppercase"
         >
           Tiếp tục
-          <ChevronRight aria-hidden="true" className="size-5" />
+          <CaretRightIcon aria-hidden="true" className="size-5" />
         </Button>
       </div>
     </nav>

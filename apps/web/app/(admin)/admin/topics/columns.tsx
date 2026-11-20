@@ -1,7 +1,14 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { CopyIcon, MoreHorizontal, Pencil, Trash, ImageIcon, Plus } from "lucide-react";
+import {
+  CopyIcon,
+  DotsThreeIcon,
+  ImageIcon,
+  PencilSimpleIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@/components/icons";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
@@ -71,7 +78,7 @@ function DeleteTopicDialog({ topic }: { topic: Topic }) {
           setIsOpen(true);
         }}
       >
-        <Trash className="mr-2 h-4 w-4" />
+        <TrashIcon className="mr-2 h-4 w-4" />
         Xóa
       </DropdownMenuItem>
       <AlertDialogContent>
@@ -242,7 +249,7 @@ export const columns: ColumnDef<Topic>[] = [
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
               <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
+              <DotsThreeIcon className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -254,24 +261,24 @@ export const columns: ColumnDef<Topic>[] = [
             <DropdownMenuItem
               onClick={() => router.push(`/admin/flashcards/form?topicId=${topic.id}`)}
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <PlusIcon className="mr-2 h-4 w-4" />
               Tạo nhiều thẻ từ vựng
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => router.push(`/admin/sentences/form?topicId=${topic.id}`)}
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <PlusIcon className="mr-2 h-4 w-4" />
               Tạo nhiều thẻ câu
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => router.push(`/admin/lessons/form?topicId=${topic.id}`)}
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <PlusIcon className="mr-2 h-4 w-4" />
               Tạo nhiều bài luyện tập
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleEdit}>
-              <Pencil className="mr-2 h-4 w-4" />
+              <PencilSimpleIcon className="mr-2 h-4 w-4" />
               Chỉnh sửa
             </DropdownMenuItem>
             <DeleteTopicDialog topic={topic} />

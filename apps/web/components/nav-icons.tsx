@@ -6,7 +6,7 @@ import {
   RankingIcon,
   UserCircleIcon,
   type Icon,
-} from "@phosphor-icons/react";
+} from "@/components/icons";
 
 import { cn } from "@/lib/utils";
 import { NAV_TONES, type NavIconKey, type NavTone } from "./nav-items";

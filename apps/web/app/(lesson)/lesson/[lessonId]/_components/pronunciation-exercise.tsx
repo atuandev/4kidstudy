@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Mic, Square, RotateCcw } from "lucide-react";
+import { ArrowCounterClockwiseIcon, MicrophoneIcon, SquareIcon } from "@/components/icons";
 import { useAudio } from "react-use";
 
 import { Button } from "@/components/ui/button";
@@ -258,9 +258,9 @@ export function PronunciationExercise({
               />
             )}
             {recordingState === "idle" ? (
-              <Mic className="relative size-11" aria-hidden="true" />
+              <MicrophoneIcon className="relative size-11" aria-hidden="true" />
             ) : (
-              <Square className="relative size-9 fill-white" aria-hidden="true" />
+              <SquareIcon weight="fill" className="relative size-9" aria-hidden="true" />
             )}
           </button>
           <p className="text-center" aria-live="polite">
@@ -280,7 +280,7 @@ export function PronunciationExercise({
           {recordedAudioUrl && <AudioControl audioUrl={recordedAudioUrl} className="w-full" />}
           <div className="flex w-full flex-col gap-3 sm:flex-row">
             <Button onClick={resetRecording} variant="default" size="lg" className="sm:flex-1">
-              <RotateCcw className="size-5" />
+              <ArrowCounterClockwiseIcon className="size-5" />
               Ghi âm lại
             </Button>
             <Button
@@ -346,7 +346,7 @@ export function PronunciationExercise({
               <AudioControl audioUrl={recordedAudioUrl} className="min-w-0 flex-1" />
             )}
             <Button onClick={resetRecording} variant="default">
-              <RotateCcw className="size-4" />
+              <ArrowCounterClockwiseIcon className="size-4" />
               Ghi âm lại
             </Button>
           </div>

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { Volume2, RotateCcw } from "lucide-react";
+import { ArrowCounterClockwiseIcon, SpeakerHighIcon } from "@/components/icons";
 import { RoundButton } from "@/components/learn/round-button";
 import { cn } from "@/lib/utils";
 import { Flashcard } from "@/types";
@@ -198,7 +198,7 @@ export function FlashcardComponent({
       type="button"
       className="mt-auto inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-extrabold text-ink-body outline-none transition-colors hover:bg-wash focus-visible:ring-4 focus-visible:ring-sky/50"
     >
-      <RotateCcw className="size-4" aria-hidden="true" />
+      <ArrowCounterClockwiseIcon className="size-4" aria-hidden="true" />
       {isFlipped ? "Lật lại mặt trước" : "Chạm vào thẻ để xem nghĩa"}
     </button>
   );
@@ -251,7 +251,7 @@ export function FlashcardComponent({
                 }}
                 disabled={isLoading || !flashcard.audioUrl}
               >
-                <Volume2 aria-hidden="true" />
+                <SpeakerHighIcon aria-hidden="true" />
               </RoundButton>
 
               <AudioRecord

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Volume2 } from "lucide-react";
+import { SpeakerHighIcon } from "@/components/icons";
 
 import { cn } from "@/lib/utils";
 import { WordArt } from "./word-art";
@@ -229,7 +229,7 @@ function Sticker({ item, isFlipped, isPeeled, onToggle }: StickerProps) {
             {item.example}
           </span>
           <span className="mt-auto flex size-10 items-center justify-center rounded-full bg-sky text-white shadow-[0_4px_0_#0284C7]">
-            <Volume2 className="size-5" aria-hidden="true" />
+            <SpeakerHighIcon className="size-5" aria-hidden="true" />
           </span>
         </span>
       </span>

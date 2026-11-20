@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CheckIcon, PlusCircle } from "lucide-react";
+import { CheckIcon, PlusCircleIcon } from "@/components/icons";
 import { Column } from "@tanstack/react-table";
 
 import { cn } from "@/lib/utils";
@@ -43,7 +43,7 @@ export function DataTableFacetedFilter<TData, TValue>({
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="ghost" className="h-8 border border-dashed" disabled={disabled}>
-          <PlusCircle className="mr-2 h-4 w-4" />
+          <PlusCircleIcon className="mr-2 h-4 w-4" />
           {title}
           {selectedValues?.size > 0 && (
             <>

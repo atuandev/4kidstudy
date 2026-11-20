@@ -10,7 +10,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { History, BookOpen, MessageSquare, Target } from "lucide-react";
+import {
+  BookOpenIcon,
+  ChatTextIcon,
+  ClockCounterClockwiseIcon,
+  TargetIcon,
+} from "@/components/icons";
 import { GradeValue } from "@/types/grade";
 import { FlashcardDetailDialog } from "./flashcard-detail-dialog";
 import { SentenceDetailDialog } from "./sentence-detail-dialog";
@@ -84,7 +89,7 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="default" size="lg" onClick={handleOpen}>
-          <History className="size-5 text-sky-deep" />
+          <ClockCounterClockwiseIcon className="size-5 text-sky-deep" />
           Tiến trình học
         </Button>
       </DialogTrigger>
@@ -116,7 +121,7 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
             </div>
             <ul className="mt-2 divide-y-2 divide-wash">
               <HistoryRow
-                icon={<Target />}
+                icon={<TargetIcon />}
                 color="#1CB0F6"
                 shade="#0284C7"
                 name="Thẻ từ vựng"
@@ -131,7 +136,7 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
                 }
               />
               <HistoryRow
-                icon={<MessageSquare />}
+                icon={<ChatTextIcon />}
                 color="#22C55E"
                 shade="#15803D"
                 name="Thẻ câu"
@@ -146,7 +151,7 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
                 }
               />
               <HistoryRow
-                icon={<BookOpen />}
+                icon={<BookOpenIcon />}
                 color="#A855F7"
                 shade="#7E22CE"
                 name="Chủ đề đã xong"

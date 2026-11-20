@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye } from "lucide-react";
+import { EyeIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,7 +25,7 @@ export function TopicDetailDialog({ topTopics }: Props) {
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="primaryOutline" size="sm" className="gap-2">
-          <Eye className="h-4 w-4" />
+          <EyeIcon className="h-4 w-4" />
           Xem chi tiết
         </Button>
       </DialogTrigger>

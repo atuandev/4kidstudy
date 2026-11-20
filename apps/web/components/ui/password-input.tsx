@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import { EyeIcon, EyeSlashIcon } from "@/components/icons";
 
 import { cn } from '@/lib/utils'
 
@@ -30,7 +30,7 @@ function PasswordInput({ className, ...props }: React.ComponentProps<'input'>) {
         aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
         aria-pressed={showPassword}
       >
-        {showPassword ? <Eye className='h-4 w-4' /> : <EyeOff className='h-4 w-4' />}
+        {showPassword ? <EyeIcon className='h-4 w-4' /> : <EyeSlashIcon className='h-4 w-4' />}
       </button>
     </div>
   )

@@ -14,7 +14,7 @@ import { DataTable } from "./data-table";
 import { columns } from "./columns";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon } from "@/components/icons";
 
 export default async function SentencesPage() {
   const sentenceImages = await getSentenceImages();

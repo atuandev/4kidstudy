@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { XIcon } from "@/components/icons";
 import { Table } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
@@ -101,7 +101,7 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
             className="h-8 px-2 lg:px-3"
           >
             Xoá bộ lọc
-            <X className="ml-2 h-4 w-4" />
+            <XIcon className="ml-2 h-4 w-4" />
           </Button>
         )}
       </div>
