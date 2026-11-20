@@ -1,17 +1,12 @@
 // @ts-check
-// Next.js app rules (moved unchanged from apps/web/eslint.config.mjs).
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { FlatCompat } from '@eslint/eslintrc';
-
-// Resolve eslint-config-next from this package, where it is a dependency.
-const compat = new FlatCompat({
-  baseDirectory: dirname(fileURLToPath(import.meta.url)),
-});
+// Next.js app rules. eslint-config-next 16+ ships native flat configs.
+import coreWebVitals from 'eslint-config-next/core-web-vitals';
+import typescript from 'eslint-config-next/typescript';
 
 export function nextConfig() {
   return [
-    ...compat.extends('next/core-web-vitals', 'next/typescript'),
+    ...coreWebVitals,
+    ...typescript,
     {
       ignores: [
         'node_modules/**',

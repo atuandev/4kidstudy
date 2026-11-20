@@ -10,9 +10,6 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: workspaceRoot,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   images: {
     remotePatterns: [
       {
