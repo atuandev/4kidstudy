@@ -49,6 +49,22 @@ export function PronunciationExercise({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const chunksRef = useRef<Blob[]>([]);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  // Leaving mid-recording (skip, exit): release the mic without reporting a
+  // "recorded" state to the next question.
+  useEffect(() => {
+    return () => {
+      const recorder = recorderRef.current;
+      if (recorder) {
+        recorder.ondataavailable = null;
+        recorder.onstop = null;
+        if (recorder.state !== "inactive") recorder.stop();
+      }
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+    };
+  }, []);
 
   // Audio player for target pronunciation
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -63,9 +79,17 @@ export function PronunciationExercise({
   const startRecording = useCallback(async () => {
     if (disabled) return;
 
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      setErrorMessage("Trình duyệt này không ghi âm được. Bé có thể bỏ qua câu này.");
+      return;
+    }
+
+    let stream: MediaStream | null = null;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       const recorder = new MediaRecorder(stream);
+      recorderRef.current = recorder;
 
       chunksRef.current = [];
 
@@ -91,7 +115,7 @@ export function PronunciationExercise({
         onStateChange?.("recorded", null);
 
         // Stop all tracks to release microphone
-        stream.getTracks().forEach((track) => track.stop());
+        stream?.getTracks().forEach((track) => track.stop());
       };
 
       recorder.start();
@@ -100,7 +124,13 @@ export function PronunciationExercise({
       setRecordingState("recording");
     } catch (error) {
       console.error("Error accessing microphone:", error);
-      setErrorMessage("Không mở được micro. Hãy cho phép trình duyệt dùng micro rồi thử lại.");
+      stream?.getTracks().forEach((track) => track.stop());
+      const name = error instanceof DOMException ? error.name : "";
+      setErrorMessage(
+        name === "NotFoundError" || name === "OverconstrainedError"
+          ? "Không tìm thấy micro trên máy này. Bé có thể bỏ qua câu này."
+          : "Không mở được micro. Hãy cho phép trình duyệt dùng micro rồi thử lại, hoặc bỏ qua câu này.",
+      );
     }
   }, [disabled]);
 

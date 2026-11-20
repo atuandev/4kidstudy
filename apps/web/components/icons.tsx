@@ -48,6 +48,7 @@ import {
   ListChecksIcon as ListChecksGlyph,
   MagnifyingGlassIcon as MagnifyingGlassGlyph,
   MicrophoneIcon as MicrophoneGlyph,
+  MicrophoneSlashIcon as MicrophoneSlashGlyph,
   NotebookIcon as NotebookGlyph,
   NotepadIcon as NotepadGlyph,
   PencilSimpleIcon as PencilSimpleGlyph,
@@ -125,6 +126,7 @@ export const ListIcon = bold(ListGlyph);
 export const ListChecksIcon = bold(ListChecksGlyph);
 export const MagnifyingGlassIcon = bold(MagnifyingGlassGlyph);
 export const MicrophoneIcon = bold(MicrophoneGlyph);
+export const MicrophoneSlashIcon = bold(MicrophoneSlashGlyph);
 export const NotebookIcon = bold(NotebookGlyph);
 export const NotepadIcon = bold(NotepadGlyph);
 export const PencilSimpleIcon = bold(PencilSimpleGlyph);

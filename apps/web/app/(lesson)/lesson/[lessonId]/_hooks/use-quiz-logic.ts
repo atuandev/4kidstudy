@@ -1,13 +1,19 @@
 import { useTransition } from "react";
 import { useQuizStore } from "@/lib/stores/quiz-store";
 import { useExerciseStatsStore } from "@/lib/stores/exercise-stats-store";
-import { submitExercise } from "@/actions/attempt";
 
 type UseQuizLogicProps = {
   playCorrect: () => void;
   playIncorrect: () => void;
 };
 
+/** First try: 10 points. Second try: 5 points. */
+const pointsForTry = (attemptCount: number) => (attemptCount === 0 ? 10 : 5);
+
+/**
+ * Checks answers and moves through the lesson. Results stay in the quiz store
+ * (`recordAnswer`); the finish page saves them all at once.
+ */
 export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) {
   const [pending, startTransition] = useTransition();
 
@@ -18,10 +24,8 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     pronunciation,
     activeIndex,
     exercises,
-    attemptId,
     nextExercise,
     selectOption,
-    selectOptions,
     clearSelection,
     setStatus,
     getCurrentExercise,
@@ -29,84 +33,69 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     getExerciseAttemptCount,
     incrementExerciseAttempt,
     resetPronunciation,
+    recordAnswer,
   } = useQuizStore();
 
-  const {
-    completeExercise,
-    skipExercise,
-    startExercise,
-    currentExerciseStartTime,
-    incrementWrongCount,
-  } = useExerciseStatsStore();
+  const { completeExercise, skipExercise, startExercise, incrementWrongCount } =
+    useExerciseStatsStore();
 
   const exercise = getCurrentExercise();
   const options = getOptions();
 
+  /** Seconds spent on the current try. Read before completeExercise clears the clock. */
+  const elapsedSec = () => {
+    const start = useExerciseStatsStore.getState().currentExerciseStartTime;
+    return start ? Math.floor((Date.now() - start) / 1000) : 0;
+  };
+
+  const markResult = (isCorrect: boolean, points: number) => {
+    if (isCorrect) {
+      playCorrect();
+      setStatus("correct");
+      completeExercise(true, points);
+    } else {
+      playIncorrect();
+      setStatus("wrong");
+      completeExercise(false, 0);
+    }
+  };
+
   const handleSelect = (id: number) => {
-    if (status !== "none") return;
+    if (status !== "none" || !exercise) return;
 
-    // Handle wrong match signal from MATCHING exercise
+    // Wrong match signal from the MATCHING exercise
     if (id === -1) {
-      if (!exercise || !attemptId) return;
-
-      const attemptCount = getExerciseAttemptCount(exercise.id);
       incrementExerciseAttempt(exercise.id);
+      const timeSec = elapsedSec();
 
       startTransition(() => {
-        playIncorrect();
-        setStatus("wrong");
-        completeExercise(false, 0);
-
-        // Submit to backend
-        const timeSec = currentExerciseStartTime
-          ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
-          : 0;
-
-        void submitExercise(attemptId, {
-          exerciseId: exercise.id,
-          isCorrect: false,
-          selectedOptionId: undefined,
-          timeSec,
-          points: 0,
-        });
+        markResult(false, 0);
+        recordAnswer({ exerciseId: exercise.id, isCorrect: false, timeSec, points: 0 });
       });
       return;
     }
 
-    // For MATCHING exercises, options are already set via selectOptions in the component
-    // Don't call selectOption as it would reset selectedOption2 to undefined
-    if (exercise?.type !== "MATCHING") {
+    // MATCHING sets both options via selectOptions in the component;
+    // selectOption would reset selectedOption2.
+    if (exercise.type !== "MATCHING") {
       selectOption(id);
+      return;
     }
 
-    // Auto-complete MATCHING exercise when option is selected
-    // This happens when all pairs are matched
-    // Note: For matching exercises, selectedOption2 should already be set via selectOptions
-    // when the last pair is matched in the matching-exercise component
-    if (exercise?.type === "MATCHING" && id > 0 && attemptId) {
-      const attemptCount = getExerciseAttemptCount(exercise.id);
+    // MATCHING completes itself once every pair is matched.
+    if (id > 0) {
+      const pointsToAward = pointsForTry(getExerciseAttemptCount(exercise.id));
       incrementExerciseAttempt(exercise.id);
-
-      // First attempt: 10 points, Second attempt: 5 points
-      const pointsToAward = attemptCount === 0 ? 10 : 5;
+      const timeSec = elapsedSec();
 
       startTransition(() => {
-        playCorrect();
-        setStatus("correct");
-        completeExercise(true, pointsToAward);
-
-        // Submit to backend
-        // Read selectedOption2 from store at submission time to ensure we have the latest value
-        const currentState = useQuizStore.getState();
-        const timeSec = currentExerciseStartTime
-          ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
-          : 0;
-
-        void submitExercise(attemptId, {
+        markResult(true, pointsToAward);
+        recordAnswer({
           exerciseId: exercise.id,
           isCorrect: true,
           selectedOptionId: id,
-          selectedOption2Id: currentState.selectedOption2,
+          // Read at submit time so the last matched pair is included.
+          selectedOption2Id: useQuizStore.getState().selectedOption2,
           timeSec,
           points: pointsToAward,
         });
@@ -117,16 +106,12 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
   const handleSkip = () => {
     if (status !== "none") return;
 
-    // Submit skip to backend (0 points)
-    if (exercise && attemptId) {
-      const timeSec = currentExerciseStartTime
-        ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
-        : 0;
-
-      void submitExercise(attemptId, {
+    if (exercise) {
+      recordAnswer({
         exerciseId: exercise.id,
         isCorrect: false,
-        timeSec,
+        isSkipped: true,
+        timeSec: elapsedSec(),
         points: 0,
       });
     }
@@ -139,18 +124,17 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     if (status === "wrong") {
       if (!exercise) return;
 
-      const attemptCount = getExerciseAttemptCount(exercise.id);
-
-      // If already attempted twice, increment wrong count and move to next exercise
-      if (attemptCount >= 2) {
+      // Two tries used: count it wrong and move on.
+      if (getExerciseAttemptCount(exercise.id) >= 2) {
         incrementWrongCount();
         nextExercise();
         return;
       }
 
-      // Otherwise, allow retry - reset selection and pronunciation state
+      // Otherwise allow a retry, timing it from now.
       clearSelection();
       resetPronunciation();
+      startExercise();
       return;
     }
 
@@ -159,118 +143,60 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
       return;
     }
 
-    if (!exercise || !attemptId) return;
+    if (!exercise) return;
 
-    // Handle PRONUNCIATION exercise
-    if (
-      exercise.type === "PRONUNCIATION" &&
-      pronunciation.state === "completed" &&
-      pronunciation.score
-    ) {
-      const overallScore = pronunciation.score.overall ?? 0;
+    if (exercise.type === "PRONUNCIATION") {
+      if (pronunciation.state !== "completed" || !pronunciation.score) return;
 
-      // Calculate points based on overall score:
-      // - overall > 50 and < 80: 5 points
-      // - overall >= 80: 10 points
-      // - overall <= 50: 0 points
-      let pointsToAward = 0;
-      let isGoodScore = false;
+      const score = pronunciation.score;
+      const overallScore = score.overall ?? 0;
 
-      if (overallScore > 50 && overallScore < 80) {
-        pointsToAward = 5;
-        isGoodScore = true;
-      } else if (overallScore >= 80) {
-        pointsToAward = 10;
-        isGoodScore = true;
-      }
+      // overall >= 80: 10 points; 50 < overall < 80: 5 points; otherwise wrong.
+      const pointsToAward = overallScore >= 80 ? 10 : overallScore > 50 ? 5 : 0;
+      const isGoodScore = pointsToAward > 0;
 
-      // Get attempt count before incrementing for scoring
-      const attemptCount = getExerciseAttemptCount(exercise.id);
-
-      // Only increment if this is a new submission (status === 'none')
-      if (status === "none") {
-        incrementExerciseAttempt(exercise.id);
-      }
+      incrementExerciseAttempt(exercise.id);
+      const timeSec = elapsedSec();
 
       startTransition(() => {
-        const timeSec = currentExerciseStartTime
-          ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
-          : 0;
-
-        if (isGoodScore) {
-          playCorrect();
-          setStatus("correct");
-          completeExercise(true, pointsToAward);
-        } else {
-          playIncorrect();
-          setStatus("wrong");
-          completeExercise(false, 0);
-        }
-
-        // Submit to backend with pronunciation data
-        void submitExercise(attemptId, {
+        markResult(isGoodScore, pointsToAward);
+        recordAnswer({
           exerciseId: exercise.id,
           isCorrect: isGoodScore,
           timeSec,
           points: pointsToAward,
           pronunciation: {
-            accuracy: pronunciation.score?.accuracy,
-            fluency: pronunciation.score?.fluency,
-            completeness: pronunciation.score?.completeness,
-            prosody: pronunciation.score?.prosody,
-            overall: pronunciation.score?.overall,
+            accuracy: score.accuracy,
+            fluency: score.fluency,
+            completeness: score.completeness,
+            prosody: score.prosody,
+            overall: score.overall,
           },
         });
       });
       return;
     }
 
-    // MATCHING exercise completion is now handled in handleSelect
-    // When all pairs are matched, status is already 'correct'
-
-    // Handle standard exercises (MULTIPLE_CHOICE, SELECT_IMAGE, LISTENING)
+    // MATCHING is completed in handleSelect.
+    // Standard exercises: MULTIPLE_CHOICE, SELECT_IMAGE, LISTENING
     if (!selectedOption) return;
 
     const correctOption = options.find((option) => option.isCorrect);
     if (!correctOption) return;
 
     const isCorrect = correctOption.id === selectedOption;
-    const attemptCount = getExerciseAttemptCount(exercise.id);
-
-    // For standard exercises (non-matching):
-    // - First attempt: selectedOption2Id = undefined
-    // - Second attempt: Backend will preserve first wrong answer in selectedOption2Id
-    //   (if first attempt was wrong)
-    // For matching exercises: selectedOption2Id is set by the matching component
+    const pointsToAward = isCorrect ? pointsForTry(getExerciseAttemptCount(exercise.id)) : 0;
 
     incrementExerciseAttempt(exercise.id);
-
-    // First attempt: 10 points, Second attempt: 5 points
-    const pointsToAward = isCorrect ? (attemptCount === 0 ? 10 : 5) : 0;
+    const timeSec = elapsedSec();
 
     startTransition(() => {
-      const timeSec = currentExerciseStartTime
-        ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
-        : 0;
-
-      if (isCorrect) {
-        playCorrect();
-        setStatus("correct");
-        completeExercise(true, pointsToAward);
-      } else {
-        playIncorrect();
-        setStatus("wrong");
-        completeExercise(false, 0);
-      }
-
-      // Submit to backend
-      // For second attempt: if first attempt was wrong, backend should preserve first wrong in selectedOption2Id
-      void submitExercise(attemptId, {
+      markResult(isCorrect, pointsToAward);
+      recordAnswer({
         exerciseId: exercise.id,
         isCorrect,
         selectedOptionId: selectedOption,
-        // Don't set selectedOption2Id here for standard exercises - backend will handle retry logic
-        // Only set it for matching exercises
+        // On a retry the store keeps the first wrong choice here.
         selectedOption2Id: exercise.type === "MATCHING" ? selectedOption2 : undefined,
         timeSec,
         points: pointsToAward,

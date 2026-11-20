@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useIsClient } from "@/hooks/use-is-client";
 import ReactConfetti from "react-confetti";
 import { Footer } from "./_components/footer";
@@ -9,8 +8,9 @@ import Image from "next/image";
 import { useWindowSize } from "react-use";
 import { useRouter } from "next/navigation";
 import { useExerciseStatsStore } from "@/lib/stores/exercise-stats-store";
-import { useProfile } from "@/hooks/use-profile";
 import { buildGradeHref } from "@/types/grade";
+import { Button } from "@/components/ui/button";
+import { useSaveAttempt } from "./_hooks";
 
 interface FinishPageProps {
   lessonId: number;
@@ -22,19 +22,10 @@ export default function FinishPage({ lessonId, grade }: FinishPageProps) {
   const { width, height } = useWindowSize();
   const router = useRouter();
   const { getAccuracy } = useExerciseStatsStore();
-  const { fetchProfile } = useProfile();
   const isMounted = useIsClient();
-
-  useEffect(() => {
-    async function refreshProfile() {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      await fetchProfile();
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      await fetchProfile();
-    }
-
-    void refreshProfile();
-  }, [fetchProfile]);
+  // The whole lesson is saved in the background, once, after the last answer.
+  // Only a failure is shown, so the learner can retry.
+  const { status: saveStatus, retry } = useSaveAttempt(lessonId);
 
   const accuracy = getAccuracy();
   const completionMessage =
@@ -76,6 +67,20 @@ export default function FinishPage({ lessonId, grade }: FinishPageProps) {
           </h1>
           <p className="mt-2 text-lg font-extrabold text-sky-ink">{completionMessage}</p>
         </div>
+
+        {saveStatus === "error" && (
+          <div
+            role="alert"
+            className="flex w-full flex-col items-center gap-3 rounded-2xl bg-cherry-wash px-4 py-3 text-cherry-deep sm:flex-row sm:justify-between sm:text-left"
+          >
+            <p className="text-base font-bold">
+              Chưa lưu được kết quả. Kiểm tra mạng rồi thử lại nhé.
+            </p>
+            <Button variant="danger" onClick={retry} className="shrink-0">
+              Thử lại
+            </Button>
+          </div>
+        )}
 
         <div className="w-full">
           <ExerciseStatsDashboard />

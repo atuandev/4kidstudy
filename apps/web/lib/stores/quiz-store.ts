@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Exercise, ExerciseOption } from "@/types";
+import { AttemptAnswer, Exercise, ExerciseOption } from "@/types";
 
 type QuizStatus = "none" | "wrong" | "correct";
 
@@ -22,8 +22,8 @@ type QuizState = {
   exercises: Exercise[];
   lessonId: number;
 
-  // Attempt tracking
-  attemptId: number | null;
+  // Final result per exercise, in the order answered. Saved on the finish page.
+  answers: AttemptAnswer[];
 
   // Selection state
   selectedOption: number | undefined;
@@ -45,8 +45,8 @@ type QuizActions = {
   initializeQuiz: (lessonId: number, exercises: Exercise[]) => void;
   resetQuiz: () => void;
 
-  // Attempt tracking
-  setAttemptId: (attemptId: number) => void;
+  // Answers
+  recordAnswer: (answer: Omit<AttemptAnswer, "attempts">) => void;
 
   // Navigation
   nextExercise: () => void;
@@ -82,7 +82,7 @@ const initialState: QuizState = {
   activeIndex: 0,
   exercises: [],
   lessonId: 0,
-  attemptId: null,
+  answers: [],
   selectedOption: undefined,
   selectedOption2: undefined,
   status: "none",
@@ -103,7 +103,7 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
       lessonId,
       exercises,
       activeIndex: 0,
-      attemptId: null,
+      answers: [],
       selectedOption: undefined,
       selectedOption2: undefined,
       status: "none",
@@ -120,9 +120,28 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
     set(initialState);
   },
 
-  // Attempt tracking
-  setAttemptId: (attemptId: number) => {
-    set({ attemptId });
+  // Answers: a retry or a skip after a wrong try replaces the exercise's
+  // result, keeping its place, counting the try, and keeping the first wrong
+  // choice in selectedOption2Id.
+  recordAnswer: (answer) => {
+    const { answers } = get();
+    const index = answers.findIndex((a) => a.exerciseId === answer.exerciseId);
+
+    if (index === -1) {
+      set({ answers: [...answers, { ...answer, attempts: 1 }] });
+      return;
+    }
+
+    const previous = answers[index];
+    const merged: AttemptAnswer = {
+      ...answer,
+      attempts: Math.min(previous.attempts + 1, 2),
+      selectedOption2Id:
+        answer.selectedOption2Id ?? (!previous.isCorrect ? previous.selectedOptionId : undefined),
+      timeSec: (previous.timeSec ?? 0) + (answer.timeSec ?? 0),
+      pronunciation: answer.pronunciation ?? previous.pronunciation,
+    };
+    set({ answers: answers.map((a, i) => (i === index ? merged : a)) });
   },
 
   // Navigation
