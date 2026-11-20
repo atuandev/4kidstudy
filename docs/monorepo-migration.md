@@ -61,6 +61,7 @@ Point it at the monorepo:
 
 - **Docker:** `apps/api/Dockerfile`, build context = repo root.
 - **Buildpack/Node host:** root directory = repo root, install with `pnpm install --frozen-lockfile`, build with `pnpm turbo run build --filter=@4kidstudy/api`, start with `node apps/api/dist/main`.
+- **Vercel (current, since 2026-11-20):** project `4kidstudy-backend`, Git repo `atuandev/4kidstudy`, Root Directory `apps/api` with files outside the root included, NestJS preset, install `pnpm install --frozen-lockfile`, build `pnpm build`. The Ignored Build Step `npx turbo-ignore --fallback=HEAD^1` is set in the project settings (there is no `apps/api/vercel.json`), so pushes that don't touch the API or its dependencies skip the build. Previews sit behind Vercel deployment protection; test them with `vercel curl`.
 
 ### 5. GitHub
 
