@@ -12,11 +12,13 @@ Module này quản lý tiến trình học tập của người dùng cho flashc
 ## API Endpoints
 
 ### 1. Get or Create Learning Progress
+
 **POST** `/learning-progress`
 
 Tạo hoặc lấy tiến trình học tập cho một nội dung cụ thể.
 
 **Request Body:**
+
 ```json
 {
   "contentType": "FLASHCARD" | "SENTENCE",
@@ -26,6 +28,7 @@ Tạo hoặc lấy tiến trình học tập cho một nội dung cụ thể.
 ```
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -49,11 +52,13 @@ Tạo hoặc lấy tiến trình học tập cho một nội dung cụ thể.
 ```
 
 ### 2. Review Content
+
 **POST** `/learning-progress/review`
 
 Ghi nhận một lần ôn tập (tăng review count).
 
 **Request Body:**
+
 ```json
 {
   "contentType": "FLASHCARD" | "SENTENCE",
@@ -66,11 +71,13 @@ Ghi nhận một lần ôn tập (tăng review count).
 **Response:** Giống như Get or Create
 
 ### 3. Get User Statistics
+
 **GET** `/learning-progress/stats`
 
 Lấy thống kê tổng quan về tiến trình học tập.
 
 **Response:**
+
 ```json
 {
   "totalReviewed": 50,
@@ -90,11 +97,13 @@ Lấy thống kê tổng quan về tiến trình học tập.
 ```
 
 ### 4. Get User Progress (Paginated)
+
 **GET** `/learning-progress?page=1&limit=10&contentType=FLASHCARD&isMastered=false`
 
 Lấy danh sách tiến trình học tập của người dùng.
 
 **Query Parameters:**
+
 - `page`: Số trang (mặc định: 1)
 - `limit`: Số items mỗi trang (mặc định: 10)
 - `contentType`: Lọc theo loại nội dung (FLASHCARD | SENTENCE)
@@ -103,6 +112,7 @@ Lấy danh sách tiến trình học tập của người dùng.
 - `isMastered`: Lọc theo trạng thái thành thạo (true | false)
 
 **Response:**
+
 ```json
 {
   "data": [...],
@@ -114,16 +124,19 @@ Lấy danh sách tiến trình học tập của người dùng.
 ```
 
 ### 5. Get Progress by ID
+
 **GET** `/learning-progress/:id`
 
 Lấy chi tiết tiến trình học tập theo ID.
 
 ### 6. Update Progress
+
 **PATCH** `/learning-progress/:id`
 
 Cập nhật tiến trình học tập.
 
 **Request Body:**
+
 ```json
 {
   "reviewCount": 5,
@@ -133,11 +146,13 @@ Cập nhật tiến trình học tập.
 ```
 
 ### 7. Delete Progress
+
 **DELETE** `/learning-progress/:id`
 
 Xóa tiến trình học tập.
 
 **Response:**
+
 ```json
 {
   "message": "Learning progress deleted successfully"

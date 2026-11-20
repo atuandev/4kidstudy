@@ -40,7 +40,7 @@ type SentenceImageWithSentences = SentenceImage & {
  */
 @Injectable()
 export class SentenceService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Get all sentence images by topic ID with their associated sentences
@@ -682,7 +682,10 @@ export class SentenceService {
         if (!normalized) return null;
 
         // If it's already a URL (http/https), use it directly
-        if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+        if (
+          normalized.startsWith('http://') ||
+          normalized.startsWith('https://')
+        ) {
           return normalized;
         }
 

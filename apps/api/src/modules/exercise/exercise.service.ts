@@ -31,7 +31,7 @@ interface CsvRow {
 
 @Injectable()
 export class ExerciseService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   /**
    * Upload file to Cloudinary

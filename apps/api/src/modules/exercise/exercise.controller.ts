@@ -45,7 +45,7 @@ import { ExerciseType } from '@prisma/client';
 @ApiTags('exercises')
 @Controller('exercises')
 export class ExerciseController {
-  constructor(private readonly exerciseService: ExerciseService) { }
+  constructor(private readonly exerciseService: ExerciseService) {}
 
   @Get()
   //   @UseGuards(JwtAuthGuard)
@@ -106,7 +106,8 @@ export class ExerciseController {
     const buffer = await this.exerciseService.exportToExcel(lessonId);
 
     res.set({
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'Content-Disposition': 'attachment; filename="exercises-export.xlsx"',
       'Content-Length': buffer.length,
     });

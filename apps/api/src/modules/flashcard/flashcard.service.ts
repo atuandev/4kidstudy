@@ -23,7 +23,7 @@ cloudinary.config({
 
 @Injectable()
 export class FlashcardService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Upload file to Cloudinary
