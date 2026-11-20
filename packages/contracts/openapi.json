@@ -4424,63 +4424,6 @@
         ]
       }
     },
-    "/api/chat": {
-      "post": {
-        "operationId": "ChatController_sendMessage",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ChatRequestDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ChatResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Chat"
-        ]
-      }
-    },
-    "/api/chat/history": {
-      "get": {
-        "operationId": "ChatController_getHistory",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Chat"
-        ]
-      },
-      "delete": {
-        "operationId": "ChatController_clearHistory",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Chat"
-        ]
-      }
-    },
     "/api/email/send-otp": {
       "post": {
         "description": "Gửi mã OTP 6 số đến email để xác thực (có hiệu lực trong 1 phút)",
@@ -8035,55 +7978,6 @@
           "weekStart",
           "weekEnd",
           "grade"
-        ]
-      },
-      "ChatRequestDto": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string"
-          },
-          "isTranslation": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "message"
-        ]
-      },
-      "ChatResponseDto": {
-        "type": "object",
-        "properties": {
-          "response": {
-            "type": "string"
-          },
-          "translation": {
-            "type": "object",
-            "properties": {
-              "word": {
-                "type": "string"
-              },
-              "meaning": {
-                "type": "string"
-              },
-              "phonetic": {
-                "type": "string"
-              },
-              "examples": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            },
-            "required": [
-              "word",
-              "meaning"
-            ]
-          }
-        },
-        "required": [
-          "response"
         ]
       },
       "SendOTPDto": {

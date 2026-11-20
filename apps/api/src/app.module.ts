@@ -14,7 +14,6 @@ import { AttemptModule } from './modules/attempt/attempt.module';
 import { LearningProgressModule } from './modules/learning-progress/learning-progress.module';
 import { PronunciationModule } from './modules/pronunciation/pronunciation.module';
 import { LeaderboardModule } from './modules/leaderboard/leaderboard.module';
-import { ChatModule } from './modules/chat/chat.module';
 import { EmailModule } from './modules/email/email.module';
 
 @Module({
@@ -32,7 +31,6 @@ import { EmailModule } from './modules/email/email.module';
     LearningProgressModule,
     PronunciationModule,
     LeaderboardModule,
-    ChatModule,
     EmailModule,
   ],
   controllers: [AppController],

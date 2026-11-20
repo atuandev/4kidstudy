@@ -82,7 +82,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
 }
-export type UserRelation = 'attempts' | 'xpLogs' | 'streakLogs' | 'learningProgress' | 'chatHistory';
+export type UserRelation = 'attempts' | 'xpLogs' | 'streakLogs' | 'learningProgress';
 
 export interface Topic {
   id: number;
@@ -268,12 +268,3 @@ export interface LearningProgress {
   sentenceId: number | null;
 }
 export type LearningProgressRelation = 'user' | 'flashcard' | 'sentence';
-
-export interface ChatHistory {
-  id: number;
-  userId: number;
-  role: string;
-  content: string;
-  createdAt: string;
-}
-export type ChatHistoryRelation = 'user';
