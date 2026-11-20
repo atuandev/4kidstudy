@@ -15,17 +15,17 @@ type ExerciseStatsActions = {
   // Initialize session
   startSession: () => void;
   endSession: () => void;
-  
+
   // Exercise tracking
   startExercise: () => void;
   completeExercise: (isCorrect: boolean, points: number) => void;
   skipExercise: () => void;
   incrementWrongCount: () => void;
-  
+
   // Getters
   getAccuracy: () => number;
   getAverageDuration: () => number;
-  
+
   // Reset
   resetStats: () => void;
 };
@@ -78,13 +78,13 @@ export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
   completeExercise: (isCorrect: boolean, points: number) => {
     const state = get();
     const currentTime = Date.now();
-    
+
     // Calculate duration if we have a start time
     let exerciseDuration = 0;
     if (state.currentExerciseStartTime) {
       exerciseDuration = Math.floor((currentTime - state.currentExerciseStartTime) / 1000);
     }
-    
+
     set({
       totalPoints: state.totalPoints + points,
       correctCount: state.correctCount + (isCorrect ? 1 : 0),
@@ -97,13 +97,13 @@ export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
   skipExercise: () => {
     const state = get();
     const currentTime = Date.now();
-    
+
     // Calculate duration if we have a start time
     let exerciseDuration = 0;
     if (state.currentExerciseStartTime) {
       exerciseDuration = Math.floor((currentTime - state.currentExerciseStartTime) / 1000);
     }
-    
+
     // Count skips but don't award points (0 points for skip)
     set({
       skippedCount: state.skippedCount + 1,

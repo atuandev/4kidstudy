@@ -12,13 +12,7 @@ type UseQuizSessionProps = {
 };
 
 export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
-  const {
-    initializeQuiz,
-    resetQuiz,
-    activeIndex,
-    setAttemptId,
-    attemptId,
-  } = useQuizStore();
+  const { initializeQuiz, resetQuiz, activeIndex, setAttemptId, attemptId } = useQuizStore();
 
   // Get state values that need to be reactive
   const startTime = useExerciseStatsStore((state) => state.startTime);
@@ -88,18 +82,18 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
     async function finishAttempt() {
       // Check if all exercises are complete first
       const allExercisesComplete = activeIndex >= exercises.length;
-      
+
       if (!allExercisesComplete) return;
-      
+
       // Use attemptId from closure - this is the attempt that was active when
       // activeIndex reached completion. If attemptId is null, we can't complete.
       if (!attemptId) return;
-      
+
       // Prevent double completion for this specific attempt
       if (completedAttemptsRef.current.has(attemptId)) {
         return;
       }
-      
+
       // Mark as completed BEFORE async operations to prevent race conditions
       completedAttemptsRef.current.add(attemptId);
 
@@ -128,13 +122,7 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
     }
 
     void finishAttempt();
-  }, [
-    activeIndex,
-    exercises.length,
-    attemptId,
-    startTime,
-    duration,
-  ]);
+  }, [activeIndex, exercises.length, attemptId, startTime, duration]);
 
   return {
     isInitializing,
@@ -144,41 +132,16 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
 
 export function useQuizDuration() {
   const startTime = useExerciseStatsStore((state) => state.startTime);
-  const [duration, setDuration] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [now, setNow] = useState<number | null>(null);
 
+  // Tick once a second while a quiz is running.
   useEffect(() => {
-    // Clear any existing interval
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    if (!startTime) {
-      setDuration(0);
-      return;
-    }
-
-    // Function to calculate and update duration
-    const updateDuration = () => {
-      const now = Date.now();
-      const newDuration = Math.floor((now - startTime) / 1000);
-      setDuration(newDuration);
-    };
-
-    // Update immediately
-    updateDuration();
-
-    // Then update every second
-    intervalRef.current = setInterval(updateDuration, 1000);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
+    if (!startTime) return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
   }, [startTime]);
 
-  return duration;
+  if (!startTime || now === null) return 0;
+  // A tick from an earlier quiz can predate this startTime; clamp to 0.
+  return Math.max(0, Math.floor((now - startTime) / 1000));
 }

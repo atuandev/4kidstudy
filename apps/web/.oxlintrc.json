@@ -1,0 +1,56 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "nextjs", "jsx-a11y", "import", "oxc", "unicorn"],
+  // React Compiler rules oxlint has no native version of (alpha JS plugin).
+  "jsPlugins": [{ "name": "react-compiler", "specifier": "eslint-plugin-react-hooks" }],
+  "env": { "browser": true, "node": true, "es2024": true },
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    // Hooks
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "warn",
+    "react/exhaustive-effect-dependencies": "off",
+    "react/memo-dependencies": "off",
+
+    // React Compiler: native where oxlint has the rule
+    "react/set-state-in-effect": "error",
+    "react/purity": "error",
+    "react/incompatible-library": "warn",
+    // React Compiler: JS plugin for the rest
+    "react-compiler/immutability": "error",
+    "react-compiler/refs": "error",
+    "react-compiler/static-components": "error",
+    "react-compiler/use-memo": "error",
+    "react-compiler/globals": "error",
+    "react-compiler/error-boundaries": "error",
+    "react-compiler/preserve-manual-memoization": "warn",
+    "react-compiler/unsupported-syntax": "warn",
+
+    "react/react-in-jsx-scope": "off",
+    "react/no-unescaped-entities": "error",
+
+    // Next.js
+    "nextjs/no-html-link-for-pages": "error",
+    "nextjs/no-sync-scripts": "error",
+    "nextjs/no-img-element": "warn",
+
+    // Accessibility: reported, not blocking (was mostly off under eslint-config-next)
+    "jsx-a11y/click-events-have-key-events": "warn",
+    "jsx-a11y/label-has-associated-control": "warn",
+    "jsx-a11y/media-has-caption": "warn",
+    "jsx-a11y/no-static-element-interactions": "warn",
+    "jsx-a11y/prefer-tag-over-role": "warn",
+    "jsx-a11y/role-has-required-aria-props": "warn",
+
+    // TypeScript
+    "typescript/no-explicit-any": "error",
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-empty-object-type": "error",
+    "typescript/no-require-imports": "error",
+    "no-unused-vars": "warn",
+    "prefer-const": "error"
+  },
+  "ignorePatterns": [".next/**", "out/**", "build/**", "next-env.d.ts", "node_modules/**"]
+}

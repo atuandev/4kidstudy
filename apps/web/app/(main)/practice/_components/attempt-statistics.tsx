@@ -2,13 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExerciseType, PracticeStatistics, User } from "@/types";
-import {
-  BookAIcon,
-  CheckCircle2,
-  Clock,
-  GraduationCap,
-  XCircle
-} from "lucide-react";
+import { BookAIcon, CheckCircle2, Clock, GraduationCap, XCircle } from "lucide-react";
 
 interface AttemptStatisticsProps {
   stats: PracticeStatistics;
@@ -74,9 +68,7 @@ export function AttemptStatistics({ stats }: AttemptStatisticsProps) {
                   {stats.totalCorrectCount}
                 </div>
               </div>
-              <div className="text-sm font-medium text-muted-foreground">
-                Số câu đúng
-              </div>
+              <div className="text-sm font-medium text-muted-foreground">Số câu đúng</div>
             </div>
 
             <div className="p-4 rounded-lg bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 h-fit">
@@ -88,9 +80,7 @@ export function AttemptStatistics({ stats }: AttemptStatisticsProps) {
                   {stats.totalIncorrectCount}
                 </div>
               </div>
-              <div className="text-sm font-medium text-muted-foreground">
-                Số câu sai
-              </div>
+              <div className="text-sm font-medium text-muted-foreground">Số câu sai</div>
             </div>
           </div>
 

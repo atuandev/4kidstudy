@@ -23,7 +23,7 @@ cloudinary.config({
 
 @Injectable()
 export class FlashcardService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Upload file to Cloudinary
@@ -208,7 +208,11 @@ export class FlashcardService {
     ];
 
     // Generate buffer
-    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    // XLSX.write is typed `any`; type: 'buffer' returns a Buffer.
+    const buffer = XLSX.write(workbook, {
+      type: 'buffer',
+      bookType: 'xlsx',
+    }) as Buffer;
     return buffer;
   }
 

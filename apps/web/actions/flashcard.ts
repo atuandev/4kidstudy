@@ -1,12 +1,12 @@
-'use server';
+"use server";
 
-import http from '@/lib/http';
-import { Flashcard } from '@/types';
-import { revalidatePath } from 'next/cache';
-import { CreateFlashcardFormData } from '@/schemas/flashcard';
+import http from "@/lib/http";
+import { Flashcard } from "@/types";
+import { revalidatePath } from "next/cache";
+import { CreateFlashcardFormData, NewFlashcardInput } from "@/schemas/flashcard";
 
 export async function getFlashcards() {
-  const { payload } = await http.get<Flashcard[]>('/flashcards');
+  const { payload } = await http.get<Flashcard[]>("/flashcards");
   return payload;
 }
 
@@ -21,37 +21,28 @@ export async function getFlashcardsByTopic(topicId: number) {
 }
 
 export async function createFlashcard(data: CreateFlashcardFormData) {
-  const { payload } = await http.post<Flashcard>(
-    '/flashcards',
-    JSON.stringify(data)
-  );
-  revalidatePath('/admin/flashcards');
+  const { payload } = await http.post<Flashcard>("/flashcards", JSON.stringify(data));
+  revalidatePath("/admin/flashcards");
   return payload;
 }
 
-export async function bulkCreateFlashcards(topicId: number, flashcards: Omit<CreateFlashcardFormData, 'topicId'>[]) {
+export async function bulkCreateFlashcards(topicId: number, flashcards: NewFlashcardInput[]) {
   const { payload } = await http.post<Flashcard[]>(
-    '/flashcards/bulk',
-    JSON.stringify({ topicId, flashcards })
+    "/flashcards/bulk",
+    JSON.stringify({ topicId, flashcards }),
   );
-  revalidatePath('/admin/flashcards');
+  revalidatePath("/admin/flashcards");
   return payload;
 }
 
-export async function updateFlashcard(
-  id: number,
-  data: CreateFlashcardFormData
-) {
-  const { payload } = await http.put<Flashcard>(
-    `/flashcards/${id}`,
-    JSON.stringify(data)
-  );
-  revalidatePath('/admin/flashcards');
+export async function updateFlashcard(id: number, data: CreateFlashcardFormData) {
+  const { payload } = await http.put<Flashcard>(`/flashcards/${id}`, JSON.stringify(data));
+  revalidatePath("/admin/flashcards");
   return payload;
 }
 
 export async function deleteFlashcard(id: number) {
   const { payload } = await http.delete<Flashcard>(`/flashcards/${id}`);
-  revalidatePath('/admin/flashcards');
+  revalidatePath("/admin/flashcards");
   return payload;
 }

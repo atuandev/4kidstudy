@@ -28,15 +28,14 @@ export function ListeningExercise({
           onClick={() => onSelect(option.id)}
           className={cn(
             "p-6 rounded-xl border-2 border-b-4 cursor-pointer hover:bg-black/5 active:border-b-2",
-            selectedOption === option.id &&
-              "border-sky-300 bg-sky-100 hover:bg-sky-100",
+            selectedOption === option.id && "border-sky-300 bg-sky-100 hover:bg-sky-100",
             selectedOption === option.id &&
               status === "correct" &&
               "border-green-300 bg-green-100 hover:bg-green-100",
             selectedOption === option.id &&
               status === "wrong" &&
               "border-rose-300 bg-rose-100 hover:bg-rose-100",
-            disabled && "pointer-events-none hover:bg-white"
+            disabled && "pointer-events-none hover:bg-white",
           )}
         >
           <div className="text-center">
@@ -44,12 +43,8 @@ export function ListeningExercise({
               className={cn(
                 "font-semibold text-neutral-600 text-xl",
                 selectedOption === option.id && "text-sky-500",
-                selectedOption === option.id &&
-                  status === "correct" &&
-                  "text-green-500",
-                selectedOption === option.id &&
-                  status === "wrong" &&
-                  "text-rose-500"
+                selectedOption === option.id && status === "correct" && "text-green-500",
+                selectedOption === option.id && status === "wrong" && "text-rose-500",
               )}
             >
               {option.text}

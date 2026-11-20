@@ -12,18 +12,12 @@ export function ExerciseStatsDashboard() {
   return (
     <div className="space-y-4">
       <ResultCard value={totalPoints} variant="points" />
-      <div
-        className={`grid gap-4 ${
-          skippedCount > 0 ? "lg:grid-cols-4" : "lg:grid-cols-3"
-        }`}
-      >
+      <div className={`grid gap-4 ${skippedCount > 0 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
         <ResultCard value={correctCount} variant="correct" />
         <ResultCard value={accuracy} variant="accuracy" />
         <ResultCard value={duration} variant="duration" />
         {/* Show skipped count if there are any skipped exercises */}
-        {skippedCount > 0 && (
-          <ResultCard value={skippedCount} variant="skipped" />
-        )}
+        {skippedCount > 0 && <ResultCard value={skippedCount} variant="skipped" />}
       </div>
     </div>
   );

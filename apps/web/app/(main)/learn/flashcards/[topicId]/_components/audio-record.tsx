@@ -17,7 +17,13 @@ interface AudioRecordProps {
   onAssessmentComplete?: (score: number, passed: boolean) => void; // Callback when assessment completes
 }
 
-export function AudioRecord({ className, onStopPropagation, resetTrigger, targetText, onAssessmentComplete }: AudioRecordProps) {
+export function AudioRecord({
+  className,
+  onStopPropagation,
+  resetTrigger,
+  targetText,
+  onAssessmentComplete,
+}: AudioRecordProps) {
   const [recordingState, setRecordingState] = useState<RecordingState>("idle");
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
@@ -26,7 +32,7 @@ export function AudioRecord({ className, onStopPropagation, resetTrigger, target
   const [assessmentPassed, setAssessmentPassed] = useState<boolean>(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  
+
   const chunksRef = useRef<Blob[]>([]);
   const prevResetTriggerRef = useRef<string | number | undefined>(undefined);
 
@@ -94,7 +100,7 @@ export function AudioRecord({ className, onStopPropagation, resetTrigger, target
 
   const playRecordedAudio = useCallback(async () => {
     if (!recordedAudioUrl) return;
-    
+
     try {
       const audio = new Audio(recordedAudioUrl);
       await audio.play();
@@ -130,7 +136,7 @@ export function AudioRecord({ className, onStopPropagation, resetTrigger, target
         blobType: recordedBlob.type,
         targetText,
       });
-      
+
       const response = await assessPronunciation(recordedBlob, targetText);
 
       clearInterval(progressInterval);
@@ -141,7 +147,7 @@ export function AudioRecord({ className, onStopPropagation, resetTrigger, target
       if (response.success && response.overall !== undefined) {
         const score = response.overall;
         const passed = score > 50;
-        
+
         setAssessmentScore(score);
         setAssessmentPassed(passed);
         setRecordingState("completed");
@@ -158,9 +164,10 @@ export function AudioRecord({ className, onStopPropagation, resetTrigger, target
     } catch (error) {
       clearInterval(progressInterval);
       console.error("Exception during pronunciation assessment:", error);
-      const errorMsg = error instanceof Error 
-        ? error.message 
-        : "Đã xảy ra lỗi khi phân tích phát âm. Vui lòng thử lại.";
+      const errorMsg =
+        error instanceof Error
+          ? error.message
+          : "Đã xảy ra lỗi khi phân tích phát âm. Vui lòng thử lại.";
       setErrorMessage(errorMsg);
       setRecordingState("recorded");
     }
@@ -170,13 +177,20 @@ export function AudioRecord({ className, onStopPropagation, resetTrigger, target
   useEffect(() => {
     // Only reset if we have a previous resetTrigger value and it's different
     // This prevents reset on initial mount
-    if (prevResetTriggerRef.current !== undefined && 
-        prevResetTriggerRef.current !== resetTrigger && 
-        resetTrigger !== undefined) {
-      console.log("Resetting recording due to resetTrigger change:", prevResetTriggerRef.current, "->", resetTrigger);
+    if (
+      prevResetTriggerRef.current !== undefined &&
+      prevResetTriggerRef.current !== resetTrigger &&
+      resetTrigger !== undefined
+    ) {
+      console.log(
+        "Resetting recording due to resetTrigger change:",
+        prevResetTriggerRef.current,
+        "->",
+        resetTrigger,
+      );
       resetRecording();
     }
-    
+
     prevResetTriggerRef.current = resetTrigger;
   }, [resetTrigger, resetRecording]);
 
@@ -195,8 +209,13 @@ export function AudioRecord({ className, onStopPropagation, resetTrigger, target
     action();
   };
 
-  console.log("AudioRecord render, recordingState:", recordingState, "recordedAudioUrl:", !!recordedAudioUrl);
-  
+  console.log(
+    "AudioRecord render, recordingState:",
+    recordingState,
+    "recordedAudioUrl:",
+    !!recordedAudioUrl,
+  );
+
   return (
     <div className={cn("flex items-center justify-center gap-2 min-h-[44px]", className)}>
       {/* Recording Controls */}
@@ -256,7 +275,10 @@ export function AudioRecord({ className, onStopPropagation, resetTrigger, target
       )}
 
       {recordingState === "analyzing" && (
-        <div className="flex items-center gap-3 min-w-[250px]" onClick={(e) => onStopPropagation?.(e)}>
+        <div
+          className="flex items-center gap-3 min-w-[250px]"
+          onClick={(e) => onStopPropagation?.(e)}
+        >
           <Loader2 className="w-5 h-5 animate-spin text-blue-600 flex-shrink-0" />
           <div className="flex-1">
             <Progress value={analysisProgress} className="h-2" />
@@ -267,16 +289,20 @@ export function AudioRecord({ className, onStopPropagation, resetTrigger, target
 
       {recordingState === "completed" && assessmentScore !== null && (
         <>
-          <div className={cn(
-            "text-xl font-bold min-w-[60px] text-center",
-            assessmentPassed ? "text-green-600" : "text-red-600"
-          )}>
+          <div
+            className={cn(
+              "text-xl font-bold min-w-[60px] text-center",
+              assessmentPassed ? "text-green-600" : "text-red-600",
+            )}
+          >
             {assessmentScore}%
           </div>
-          <p className={cn(
-            "text-xs font-medium whitespace-nowrap",
-            assessmentPassed ? "text-green-600" : "text-red-600"
-          )}>
+          <p
+            className={cn(
+              "text-xs font-medium whitespace-nowrap",
+              assessmentPassed ? "text-green-600" : "text-red-600",
+            )}
+          >
             {assessmentPassed ? "✓ Đạt" : "✗ Chưa đạt"}
           </p>
           <Button

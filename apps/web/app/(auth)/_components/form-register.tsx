@@ -56,9 +56,9 @@ export function FormRegister() {
     startTransition(async () => {
       setError("");
       setSuccess("");
-      
+
       const result = await register(values);
-      
+
       if (!result.success) {
         setError(result.error || "Đăng ký thất bại");
         return;
@@ -71,10 +71,8 @@ export function FormRegister() {
 
       await sendEmailOTP(values.email);
       setEmail(values.email);
-      
-      setSuccess(
-        "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản"
-      );
+
+      setSuccess("Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản");
       router.push("/verify-email");
     });
   };
@@ -98,11 +96,7 @@ export function FormRegister() {
                 <FormItem>
                   <FormLabel>Họ tên</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isSpending}
-                      placeholder="Nhập tên"
-                    />
+                    <Input {...field} disabled={isSpending} placeholder="Nhập tên" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -143,12 +137,7 @@ export function FormRegister() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isSpending}
-                      placeholder="Nhập email"
-                      type="email"
-                    />
+                    <Input {...field} disabled={isSpending} placeholder="Nhập email" type="email" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -161,11 +150,7 @@ export function FormRegister() {
                 <FormItem>
                   <FormLabel>Mật khẩu</FormLabel>
                   <FormControl>
-                    <PasswordInput
-                      {...field}
-                      disabled={isSpending}
-                      placeholder="Nhập mật khẩu"
-                    />
+                    <PasswordInput {...field} disabled={isSpending} placeholder="Nhập mật khẩu" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -196,7 +181,7 @@ export function FormRegister() {
             disabled={isSpending}
             type="submit"
             className="w-full"
-            variant='secondary'
+            variant="secondary"
           >
             Đăng ký
           </Button>

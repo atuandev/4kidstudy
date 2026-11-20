@@ -111,10 +111,7 @@ export const CreateExerciseSchema = z
     }
 
     // Validate options for non-PRONUNCIATION types
-    if (
-      data.type !== "PRONUNCIATION" &&
-      (!data.options || data.options.length === 0)
-    ) {
+    if (data.type !== "PRONUNCIATION" && (!data.options || data.options.length === 0)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Cần có ít nhất một đáp án",
@@ -124,8 +121,7 @@ export const CreateExerciseSchema = z
 
     // Validate exactly one correct answer for multiple choice types
     if (["MULTIPLE_CHOICE", "SELECT_IMAGE", "LISTENING"].includes(data.type)) {
-      const correctAnswersCount =
-        data.options?.filter((opt) => opt.isCorrect).length ?? 0;
+      const correctAnswersCount = data.options?.filter((opt) => opt.isCorrect).length ?? 0;
       if (correctAnswersCount === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -165,22 +161,17 @@ export const CreateExerciseSchema = z
       }
 
       if (data.type === "MATCHING") {
-        const matchKeyCounts = data.options.reduce<Map<string, number>>(
-          (counts, option) => {
-            const key = option.matchKey?.trim();
-            if (!key) {
-              return counts;
-            }
-            const currentCount = counts.get(key) ?? 0;
-            counts.set(key, currentCount + 1);
+        const matchKeyCounts = data.options.reduce<Map<string, number>>((counts, option) => {
+          const key = option.matchKey?.trim();
+          if (!key) {
             return counts;
-          },
-          new Map<string, number>()
-        );
+          }
+          const currentCount = counts.get(key) ?? 0;
+          counts.set(key, currentCount + 1);
+          return counts;
+        }, new Map<string, number>());
 
-        const invalidMatchKey = Array.from(matchKeyCounts.entries()).find(
-          ([, count]) => count < 2
-        );
+        const invalidMatchKey = Array.from(matchKeyCounts.entries()).find(([, count]) => count < 2);
 
         if (invalidMatchKey) {
           ctx.addIssue({
@@ -191,7 +182,7 @@ export const CreateExerciseSchema = z
         }
 
         const excessiveMatchKey = Array.from(matchKeyCounts.entries()).find(
-          ([, count]) => count > 2
+          ([, count]) => count > 2,
         );
 
         if (excessiveMatchKey) {
@@ -286,7 +277,7 @@ export const getRequiredFieldsByType = (type: ExerciseTypeEnum) => {
 // Validation for options based on exercise type
 export const validateOptionsByType = (
   options: ExerciseOption[],
-  type: ExerciseTypeEnum
+  type: ExerciseTypeEnum,
 ): boolean => {
   if (!options || options.length === 0) {
     // PRONUNCIATION doesn't need options
@@ -306,9 +297,7 @@ export const validateOptionsByType = (
       const uniqueKeys = [...new Set(matchKeys)];
       return (
         matchKeys.length === options.length &&
-        uniqueKeys.every(
-          (key) => options.filter((opt) => opt.matchKey === key).length === 2
-        )
+        uniqueKeys.every((key) => options.filter((opt) => opt.matchKey === key).length === 2)
       );
     case "LISTENING":
       // At least one correct option

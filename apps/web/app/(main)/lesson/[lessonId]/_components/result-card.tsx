@@ -5,12 +5,7 @@ import { cn } from "@/lib/utils";
 
 type ResultCardProps = {
   value: number;
-  variant:
-    | "points"
-    | "duration"
-    | "accuracy"
-    | "correct"
-    | "skipped";
+  variant: "points" | "duration" | "accuracy" | "correct" | "skipped";
 };
 
 export const ResultCard = ({ value, variant }: ResultCardProps) => {
@@ -83,17 +78,11 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
   const IconComponent = config.icon;
 
   return (
-    <div
-      className={cn(
-        "w-full rounded-2xl border-2",
-        config.borderColor,
-        config.bgColor
-      )}
-    >
+    <div className={cn("w-full rounded-2xl border-2", config.borderColor, config.bgColor)}>
       <div
         className={cn(
           "rounded-t-xl p-1.5 text-center text-xs font-bold uppercase text-white",
-          config.bgColor
+          config.bgColor,
         )}
       >
         {config.title}
@@ -102,17 +91,11 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
       <div
         className={cn(
           "flex items-center justify-center rounded-2xl bg-white p-6 text-xl font-bold",
-          config.textColor
+          config.textColor,
         )}
       >
         {config.imageSrc && (
-          <Image
-            src={config.imageSrc}
-            alt={variant}
-            height={30}
-            width={30}
-            className="mr-1.5"
-          />
+          <Image src={config.imageSrc} alt={variant} height={30} width={30} className="mr-1.5" />
         )}
         {IconComponent && <IconComponent className="mr-1.5 h-6 w-6" />}
         {value === Infinity ? (
@@ -120,9 +103,7 @@ export const ResultCard = ({ value, variant }: ResultCardProps) => {
         ) : (
           <>
             {value}
-            {config.suffix && (
-              <span className="text-sm ml-0.5">{config.suffix}</span>
-            )}
+            {config.suffix && <span className="text-sm ml-0.5">{config.suffix}</span>}
           </>
         )}
       </div>

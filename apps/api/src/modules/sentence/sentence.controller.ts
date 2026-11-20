@@ -41,7 +41,7 @@ import {
 @ApiTags('sentences')
 @Controller('sentences')
 export class SentenceController {
-  constructor(private readonly sentenceService: SentenceService) { }
+  constructor(private readonly sentenceService: SentenceService) {}
 
   @Get('images')
   @ApiOperation({
@@ -247,7 +247,8 @@ export class SentenceController {
     const buffer = await this.sentenceService.exportToExcel();
 
     res.set({
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'Content-Disposition': 'attachment; filename="sentences-export.xlsx"',
       'Content-Length': buffer.length,
     });

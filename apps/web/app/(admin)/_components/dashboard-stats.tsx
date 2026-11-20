@@ -89,9 +89,7 @@ export function DashboardStats({
               <CardTitle className="text-lg font-bold">{stat.title}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className={`text-3xl font-bold ${stat.color}`}>
-                {stat.value}
-              </div>
+              <div className={`text-3xl font-bold ${stat.color}`}>{stat.value}</div>
               <p className="text-muted-foreground">{stat.description}</p>
             </CardContent>
           </Card>

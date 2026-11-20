@@ -36,17 +36,13 @@ export const LessonButton = ({ id, lesson }: LessonButtonProps) => {
     <>
       <div
         className={`bg-background rounded-lg p-4 border-2 hover:bg-gray-50 transition-all flex items-center justify-between ${
-          hasBestAttempt
-            ? "border-green-500 bg-green-50/30"
-            : "border-green-100"
+          hasBestAttempt ? "border-green-500 bg-green-50/30" : "border-green-100"
         }`}
       >
         <div className="space-y-2 flex-1">
           <div className="flex items-center gap-2">
             <p className="text-2xl font-bold">{lesson.title}</p>
-            {hasBestAttempt && (
-              <CheckCircle2 className="h-6 w-6 text-green-600 flex-shrink-0" />
-            )}
+            {hasBestAttempt && <CheckCircle2 className="h-6 w-6 text-green-600 flex-shrink-0" />}
           </div>
           <div className="flex items-center gap-2 text-sm">
             <Target className="h-4 w-4 text-muted-foreground" />
@@ -56,9 +52,7 @@ export const LessonButton = ({ id, lesson }: LessonButtonProps) => {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button onClick={() => setIsSheetOpen(true)}>
-            Lịch sử luyện tập
-          </Button>
+          <Button onClick={() => setIsSheetOpen(true)}>Lịch sử luyện tập</Button>
           <Button asChild variant="secondary">
             <Link href={`/lesson/${id}`}>Vào luyện tập</Link>
           </Button>
@@ -66,11 +60,7 @@ export const LessonButton = ({ id, lesson }: LessonButtonProps) => {
       </div>
 
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <LessonHistoryContent
-          lesson={lesson}
-          lessonId={id}
-          isOpen={isSheetOpen}
-        />
+        <LessonHistoryContent lesson={lesson} lessonId={id} isOpen={isSheetOpen} />
       </Sheet>
     </>
   );

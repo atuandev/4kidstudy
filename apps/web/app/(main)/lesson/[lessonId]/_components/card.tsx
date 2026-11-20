@@ -38,8 +38,8 @@ export const Card = ({
 }: CardProps) => {
   // Initialize audio - always render to prevent useAudio ref issues
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [audio, _, controls] = useAudio({ 
-    src: audioSrc || "/correct.wav"
+  const [audio, _, controls] = useAudio({
+    src: audioSrc || "/correct.wav",
   });
 
   const handleClick = useCallback(() => {
@@ -51,12 +51,15 @@ export const Card = ({
     onClick();
   }, [disabled, onClick, controls, audioSrc]);
 
-  const handleAudioPlay = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (audioSrc) {
-      void controls.play();
-    }
-  }, [controls, audioSrc]);
+  const handleAudioPlay = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (audioSrc) {
+        void controls.play();
+      }
+    },
+    [controls, audioSrc],
+  );
 
   useKey(shortcut, handleClick, {}, [handleClick]);
 
@@ -72,12 +75,14 @@ export const Card = ({
               </div>
             )}
             {text && (
-              <p className={cn(
-                "font-medium text-neutral-600 lg:text-lg",
-                selected && "text-sky-500",
-                selected && status === "correct" && "text-green-500",
-                selected && status === "wrong" && "text-rose-500"
-              )}>
+              <p
+                className={cn(
+                  "font-medium text-neutral-600 lg:text-lg",
+                  selected && "text-sky-500",
+                  selected && status === "correct" && "text-green-500",
+                  selected && status === "wrong" && "text-rose-500",
+                )}
+              >
                 {text}
               </p>
             )}
@@ -93,20 +98,24 @@ export const Card = ({
               </div>
             )}
             <div className="flex items-center justify-between">
-              <p className={cn(
-                "text-sm text-neutral-600 lg:text-lg",
-                selected && "text-sky-500",
-                selected && status === "correct" && "text-green-500",
-                selected && status === "wrong" && "text-rose-500"
-              )}>
+              <p
+                className={cn(
+                  "text-sm text-neutral-600 lg:text-lg",
+                  selected && "text-sky-500",
+                  selected && status === "correct" && "text-green-500",
+                  selected && status === "wrong" && "text-rose-500",
+                )}
+              >
                 {text}
               </p>
-              <div className={cn(
-                "flex h-[20px] w-[20px] items-center justify-center rounded-lg border-2 text-xs font-semibold text-neutral-400 lg:h-[30px] lg:w-[30px] lg:text-[15px]",
-                selected && "border-sky-300 text-sky-500",
-                selected && status === "correct" && "border-green-500 text-green-500",
-                selected && status === "wrong" && "border-rose-500 text-rose-500"
-              )}>
+              <div
+                className={cn(
+                  "flex h-[20px] w-[20px] items-center justify-center rounded-lg border-2 text-xs font-semibold text-neutral-400 lg:h-[30px] lg:w-[30px] lg:text-[15px]",
+                  selected && "border-sky-300 text-sky-500",
+                  selected && status === "correct" && "border-green-500 text-green-500",
+                  selected && status === "wrong" && "border-rose-500 text-rose-500",
+                )}
+              >
                 {shortcut}
               </div>
             </div>
@@ -116,12 +125,14 @@ export const Card = ({
       case "MATCHING":
         return (
           <div className="text-center">
-            <p className={cn(
-              "text-sm font-medium text-neutral-700 lg:text-lg",
-              selected && "text-sky-500",
-              isMatched && "text-green-500",
-              selected && status === "wrong" && "text-rose-500"
-            )}>
+            <p
+              className={cn(
+                "text-sm font-medium text-neutral-700 lg:text-lg",
+                selected && "text-sky-500",
+                isMatched && "text-green-500",
+                selected && status === "wrong" && "text-rose-500",
+              )}
+            >
               {text}
             </p>
             {audioSrc && (
@@ -141,20 +152,24 @@ export const Card = ({
       case "LISTENING":
         return (
           <div className="text-center">
-            <p className={cn(
-              "font-medium text-neutral-600 lg:text-lg",
-              selected && "text-sky-500",
-              selected && status === "correct" && "text-green-500",
-              selected && status === "wrong" && "text-rose-500"
-            )}>
+            <p
+              className={cn(
+                "font-medium text-neutral-600 lg:text-lg",
+                selected && "text-sky-500",
+                selected && status === "correct" && "text-green-500",
+                selected && status === "wrong" && "text-rose-500",
+              )}
+            >
               {text}
             </p>
-            <div className={cn(
-              "mt-2 flex h-[20px] w-[20px] items-center justify-center rounded-lg border-2 text-xs font-semibold text-neutral-400 lg:h-[30px] lg:w-[30px] lg:text-[15px]",
-              selected && "border-sky-300 text-sky-500",
-              selected && status === "correct" && "border-green-500 text-green-500",
-              selected && status === "wrong" && "border-rose-500 text-rose-500"
-            )}>
+            <div
+              className={cn(
+                "mt-2 flex h-[20px] w-[20px] items-center justify-center rounded-lg border-2 text-xs font-semibold text-neutral-400 lg:h-[30px] lg:w-[30px] lg:text-[15px]",
+                selected && "border-sky-300 text-sky-500",
+                selected && status === "correct" && "border-green-500 text-green-500",
+                selected && status === "wrong" && "border-rose-500 text-rose-500",
+              )}
+            >
               {shortcut}
             </div>
           </div>
@@ -163,19 +178,17 @@ export const Card = ({
       case "PRONUNCIATION":
         return (
           <div className="text-center space-y-4">
-            <p className="text-lg font-bold text-neutral-700 lg:text-xl">
-              {text}
-            </p>
+            <p className="text-lg font-bold text-neutral-700 lg:text-xl">{text}</p>
             {audioSrc && (
-            <Button
-              variant="primaryOutline"
-              onClick={handleAudioPlay}
-              className="flex items-center gap-2"
-              disabled={disabled}
-            >
-              <Volume2 className="h-4 w-4" />
-              Play Pronunciation
-            </Button>
+              <Button
+                variant="primaryOutline"
+                onClick={handleAudioPlay}
+                className="flex items-center gap-2"
+                disabled={disabled}
+              >
+                <Volume2 className="h-4 w-4" />
+                Play Pronunciation
+              </Button>
             )}
             <Button
               variant="default"
@@ -192,20 +205,24 @@ export const Card = ({
       default:
         return (
           <div className="flex items-center justify-between">
-            <p className={cn(
-              "font-medium text-neutral-600 lg:text-lg",
-              selected && "text-sky-500",
-              selected && status === "correct" && "text-green-500",
-              selected && status === "wrong" && "text-rose-500"
-            )}>
+            <p
+              className={cn(
+                "font-medium text-neutral-600 lg:text-lg",
+                selected && "text-sky-500",
+                selected && status === "correct" && "text-green-500",
+                selected && status === "wrong" && "text-rose-500",
+              )}
+            >
               {text}
             </p>
-            <div className={cn(
-              "flex h-[20px] w-[20px] items-center justify-center rounded-lg border-2 text-xs font-semibold text-neutral-400 lg:h-[30px] lg:w-[30px] lg:text-[15px]",
-              selected && "border-sky-300 text-sky-500",
-              selected && status === "correct" && "border-green-500 text-green-500",
-              selected && status === "wrong" && "border-rose-500 text-rose-500"
-            )}>
+            <div
+              className={cn(
+                "flex h-[20px] w-[20px] items-center justify-center rounded-lg border-2 text-xs font-semibold text-neutral-400 lg:h-[30px] lg:w-[30px] lg:text-[15px]",
+                selected && "border-sky-300 text-sky-500",
+                selected && status === "correct" && "border-green-500 text-green-500",
+                selected && status === "wrong" && "border-rose-500 text-rose-500",
+              )}
+            >
               {shortcut}
             </div>
           </div>
@@ -223,7 +240,7 @@ export const Card = ({
         selected && status === "correct" && "border-green-300 bg-green-100 hover:bg-green-100",
         selected && status === "wrong" && "border-rose-300 bg-rose-100 hover:bg-rose-100",
         isMatched && "border-green-300 bg-green-100",
-        disabled && "pointer-events-none hover:bg-white"
+        disabled && "pointer-events-none hover:bg-white",
       )}
     >
       {audio}

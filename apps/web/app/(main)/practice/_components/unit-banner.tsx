@@ -26,11 +26,7 @@ export const UnitBanner = ({ topic, isExpanded, onClick }: UnitBannerProps) => {
           height={100}
           className="rounded-lg object-cover h-20 border-4 border-green-600"
         />
-        {isExpanded ? (
-          <ChevronUp className="h-6 w-6" />
-        ) : (
-          <ChevronDown className="h-6 w-6" />
-        )}
+        {isExpanded ? <ChevronUp className="h-6 w-6" /> : <ChevronDown className="h-6 w-6" />}
       </div>
     </button>
   );

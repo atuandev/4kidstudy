@@ -40,7 +40,7 @@ type SentenceImageWithSentences = SentenceImage & {
  */
 @Injectable()
 export class SentenceService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Get all sentence images by topic ID with their associated sentences
@@ -682,7 +682,10 @@ export class SentenceService {
         if (!normalized) return null;
 
         // If it's already a URL (http/https), use it directly
-        if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+        if (
+          normalized.startsWith('http://') ||
+          normalized.startsWith('https://')
+        ) {
           return normalized;
         }
 
@@ -859,7 +862,7 @@ export class SentenceService {
 
     // Prepare data for Excel - each row is one SentenceImage with up to 4 sentences
     const excelData = sentenceImages.map((img) => {
-      const row: any = {
+      const row: Record<string, string> = {
         imgSentence: img.imageUrl || '',
         audioImg: img.audioUrl || '',
       };
@@ -907,7 +910,11 @@ export class SentenceService {
     ];
 
     // Generate buffer
-    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    // XLSX.write is typed `any`; type: 'buffer' returns a Buffer.
+    const buffer = XLSX.write(workbook, {
+      type: 'buffer',
+      bookType: 'xlsx',
+    }) as Buffer;
     return buffer;
   }
 }

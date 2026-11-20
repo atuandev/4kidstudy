@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Chat message schema based on backend ChatRequestDto
@@ -6,9 +6,9 @@ import { z } from 'zod';
  */
 export const ChatMessageSchema = z.object({
   message: z
-    .string('Tin nhắn là bắt buộc')
-    .min(1, 'Tin nhắn không được để trống')
-    .max(1000, 'Tin nhắn không được vượt quá 1000 ký tự'),
+    .string("Tin nhắn là bắt buộc")
+    .min(1, "Tin nhắn không được để trống")
+    .max(1000, "Tin nhắn không được vượt quá 1000 ký tự"),
 });
 
 export type ChatMessageSchemaType = z.infer<typeof ChatMessageSchema>;
@@ -19,7 +19,7 @@ export type ChatMessageSchemaType = z.infer<typeof ChatMessageSchema>;
 export interface Message {
   id: string;
   text: string;
-  type: 'user' | 'ai';
+  type: "user" | "ai";
   timestamp: Date;
 }
 

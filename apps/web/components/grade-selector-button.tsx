@@ -23,10 +23,7 @@ const gradeOrderMap: Record<GradeValue, number> = {
 export function GradeSelectorButton() {
   const router = useRouter();
   const { profile } = useProfile();
-  const [selectedGrade, setSelectedGrade] = useQueryState(
-    "grade",
-    parseAsString.withDefault("")
-  );
+  const [selectedGrade, setSelectedGrade] = useQueryState("grade", parseAsString.withDefault(""));
 
   const handleGradeClick = async (grade: Grade) => {
     if (selectedGrade === grade.value) {
@@ -38,9 +35,7 @@ export function GradeSelectorButton() {
 
   const userGradeValue = profile?.grade as GradeValue | undefined;
   const availableGrades = userGradeValue
-    ? GRADES.filter(
-        (grade) => gradeOrderMap[grade.value] <= gradeOrderMap[userGradeValue]
-      )
+    ? GRADES.filter((grade) => gradeOrderMap[grade.value] <= gradeOrderMap[userGradeValue])
     : GRADES;
 
   return (

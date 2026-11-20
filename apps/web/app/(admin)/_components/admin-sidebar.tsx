@@ -1,16 +1,16 @@
-'use client'
+"use client";
 
-import React from 'react'
+import React from "react";
 
-import { NavUser } from '@/app/(admin)/_components/nav-user'
-import { NavMain } from '@/app/(admin)/_components/nav-main'
-import { Sidebar, SidebarContent, SidebarFooter, SidebarRail } from '@/components/ui/sidebar'
-import { sidebarData } from '@/app/(admin)/_components/admin-sidebar-data'
-import { User } from '@/types'
+import { NavUser } from "@/app/(admin)/_components/nav-user";
+import { NavMain } from "@/app/(admin)/_components/nav-main";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarRail } from "@/components/ui/sidebar";
+import { sidebarData } from "@/app/(admin)/_components/admin-sidebar-data";
+import { User } from "@/types";
 
 type AdminSidebarType = React.ComponentProps<typeof Sidebar> & {
-  user: User
-}
+  user: User;
+};
 
 export function AdminSidebar({ user, ...props }: AdminSidebarType) {
   return (
@@ -23,5 +23,5 @@ export function AdminSidebar({ user, ...props }: AdminSidebarType) {
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

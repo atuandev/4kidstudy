@@ -1,5 +1,5 @@
-import { Topic } from './topic';
-import { LessonStatus } from '@4kidstudy/contracts';
+import { Topic } from "./topic";
+import { LessonStatus } from "@4kidstudy/contracts";
 
 /**
  * Lesson status values (from the Prisma schema via @4kidstudy/contracts)

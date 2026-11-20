@@ -9,10 +9,10 @@ type AudioPlayerProps = {
   className?: string;
 };
 
-export default function AudioPlayer({ 
-  audioUrl, 
-  variant = "full", 
-  className = "" 
+export default function AudioPlayer({
+  audioUrl,
+  variant = "full",
+  className = "",
 }: AudioPlayerProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [audio, _, controls] = useAudio({ src: audioUrl });
@@ -40,13 +40,7 @@ export default function AudioPlayer({
   return (
     <div className={className}>
       {audio}
-      <audio
-        key={audioUrl}
-        controls
-        className="w-full"
-        preload="metadata"
-        autoPlay
-      >
+      <audio key={audioUrl} controls className="w-full" preload="metadata" autoPlay>
         <source src={audioUrl} type="audio/mpeg" />
         Trình duyệt của bạn không hỗ trợ phần tử âm thanh.
       </audio>

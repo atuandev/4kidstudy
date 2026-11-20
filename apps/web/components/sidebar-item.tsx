@@ -27,9 +27,7 @@ export const SidebarItem = ({ label, iconSrc, href }: SidebarItemProps) => {
   const pathname = usePathname();
   const [selectedGrade] = useQueryState("grade", parseAsString.withDefault(""));
   const targetHref =
-    selectedGrade && shouldAppendGrade(href)
-      ? buildRouteWithGrade(href, selectedGrade)
-      : href;
+    selectedGrade && shouldAppendGrade(href) ? buildRouteWithGrade(href, selectedGrade) : href;
   const isActive = pathname === href;
 
   return (
@@ -39,13 +37,7 @@ export const SidebarItem = ({ label, iconSrc, href }: SidebarItemProps) => {
       asChild
     >
       <Link href={targetHref}>
-        <Image
-          src={iconSrc}
-          alt={label}
-          className="mr-5"
-          height={32}
-          width={32}
-        />
+        <Image src={iconSrc} alt={label} className="mr-5" height={32} width={32} />
         {label}
       </Link>
     </Button>

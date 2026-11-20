@@ -34,9 +34,11 @@ interface FlashcardDetailDialogProps {
 export function FlashcardDetailDialog({ topItems, topics }: FlashcardDetailDialogProps) {
   const [selectedTopic, setSelectedTopic] = useState<string>("all");
 
-  const filteredItems = (selectedTopic === "all" 
-    ? topItems 
-    : topItems.filter(item => item.topicId?.toString() === selectedTopic)).slice(0, 5);
+  const filteredItems = (
+    selectedTopic === "all"
+      ? topItems
+      : topItems.filter((item) => item.topicId?.toString() === selectedTopic)
+  ).slice(0, 5);
 
   return (
     <Dialog>

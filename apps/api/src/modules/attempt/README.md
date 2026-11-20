@@ -14,12 +14,15 @@ The Attempt module handles lesson attempts and exercise submissions, tracking st
 ## API Endpoints
 
 ### Start Attempt
+
 ```
 POST /attempts
 ```
+
 Start a new lesson attempt.
 
 **Body:**
+
 ```json
 {
   "lessonId": 1
@@ -27,6 +30,7 @@ Start a new lesson attempt.
 ```
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -46,12 +50,15 @@ Start a new lesson attempt.
 ```
 
 ### Submit Exercise
+
 ```
 POST /attempts/:id/submit
 ```
+
 Submit an answer for an exercise within an attempt.
 
 **Body:**
+
 ```json
 {
   "exerciseId": 1,
@@ -61,7 +68,7 @@ Submit an answer for an exercise within an attempt.
   "points": 10,
   "pronunciation": {
     "accuracy": 0.95,
-    "fluency": 0.90,
+    "fluency": 0.9,
     "completeness": 0.98,
     "prosody": 0.88,
     "overall": 0.93,
@@ -71,12 +78,15 @@ Submit an answer for an exercise within an attempt.
 ```
 
 ### Complete Attempt
+
 ```
 PATCH /attempts/:id/complete
 ```
+
 Complete an attempt and calculate final statistics.
 
 **Body:**
+
 ```json
 {
   "durationSec": 300
@@ -84,55 +94,71 @@ Complete an attempt and calculate final statistics.
 ```
 
 ### Get Attempt
+
 ```
 GET /attempts/:id
 ```
+
 Get a specific attempt with all details.
 
 ### Get Attempts
+
 ```
 GET /attempts?lessonId=1&userId=1&page=1&limit=10
 ```
+
 Get attempts with pagination and filters.
 
 ### Get Best Attempt
+
 ```
 GET /attempts/lesson/:lessonId/best
 ```
+
 Get user's best attempt for a specific lesson.
 
 ### Get Attempt History
+
 ```
 GET /attempts/lesson/:lessonId/history
 ```
+
 Get all user's attempts for a specific lesson.
 
 ## Service Methods
 
 ### `startAttempt(userId, createAttemptDto)`
+
 Creates a new attempt for a lesson.
 
 ### `submitExercise(attemptId, submitExerciseDto)`
+
 Records an exercise submission and updates attempt statistics.
 
 ### `completeAttempt(attemptId, completeAttemptDto)`
+
 Marks an attempt as completed and calculates final statistics.
 
 ### `getAttemptById(attemptId)`
+
 Retrieves an attempt with all exercise details.
 
 ### `getAttempts(query)`
+
 Retrieves paginated attempts with optional filters.
 
 ### `getBestAttempt(userId, lessonId)`
+
 Gets the user's highest-scoring completed attempt for a lesson.
 
 ### `getUserLessonAttempts(userId, lessonId)`
+
 Gets all attempts by a user for a specific lesson.
 
 ## Statistics Calculation
 
 The module automatically calculates:
+
 - **totalScore**: Sum of points earned
 - **maxScore**: Maximum possible points
 - **accuracyPct**: Percentage of correct answers
@@ -144,4 +170,3 @@ The module automatically calculates:
 
 - XP awarding is handled separately by the application logic
 - Attempt statistics are recalculated automatically after each exercise submission
-

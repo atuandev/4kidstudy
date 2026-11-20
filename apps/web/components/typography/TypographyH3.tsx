@@ -1,10 +1,10 @@
-import React from 'react'
-import { cn } from '@/lib/utils'
+import React from "react";
+import { cn } from "@/lib/utils";
 
 type TypographyH3Props = {
-  children: React.ReactNode
-  className?: string
-}
+  children: React.ReactNode;
+  className?: string;
+};
 
 export function TypographyH3({ children, className }: TypographyH3Props) {
   return (
@@ -13,5 +13,5 @@ export function TypographyH3({ children, className }: TypographyH3Props) {
     >
       {children}
     </h3>
-  )
+  );
 }

@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  // Same style the previous Prettier config produced (.prettierrc).
+  "printWidth": 80,
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "sortImports": false,
+  "sortPackageJson": false,
+  "ignorePatterns": ["dist/**", "src/generated/**", "openapi.json"]
+}

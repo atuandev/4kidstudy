@@ -41,7 +41,7 @@ import {
 @ApiTags('flashcards')
 @Controller('flashcards')
 export class FlashcardController {
-  constructor(private readonly flashcardService: FlashcardService) { }
+  constructor(private readonly flashcardService: FlashcardService) {}
 
   @Post()
   @ApiOperation({
@@ -328,7 +328,8 @@ export class FlashcardController {
     const buffer = await this.flashcardService.exportToExcel();
 
     res.set({
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'Content-Disposition': 'attachment; filename="flashcards-export.xlsx"',
       'Content-Length': buffer.length,
     });
