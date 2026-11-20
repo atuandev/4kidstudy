@@ -42,10 +42,7 @@ export function TopicDetailDialog({ topTopics }: Props) {
           ) : (
             <div className="divide-y-2 divide-wash">
               {topTopics.slice(0, 5).map((topic, index) => (
-                <div
-                  key={topic.id}
-                  className="flex items-center justify-between gap-3 py-3"
-                >
+                <div key={topic.id} className="flex items-center justify-between gap-3 py-3">
                   <div className="flex items-center gap-3">
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-wash text-base font-black tabular-nums text-ink-body">
                       {index + 1}

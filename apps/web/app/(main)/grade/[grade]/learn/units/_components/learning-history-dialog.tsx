@@ -91,7 +91,9 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="text-2xl">Tiến trình học · {getGradeName(grade)}</DialogTitle>
-          <DialogDescription>Những thẻ từ, thẻ câu và chủ đề bé đã học ở lớp này.</DialogDescription>
+          <DialogDescription>
+            Những thẻ từ, thẻ câu và chủ đề bé đã học ở lớp này.
+          </DialogDescription>
         </DialogHeader>
 
         {loading ? (

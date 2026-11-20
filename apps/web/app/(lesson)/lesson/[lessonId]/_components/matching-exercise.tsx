@@ -222,11 +222,15 @@ export function MatchingExercise({ options, onSelect, status, disabled }: Matchi
         {leftOptions.map((option) => (
           <button
             type="button"
-              onKeyDown={keepEnterForCheck}
+            onKeyDown={keepEnterForCheck}
             key={option.id}
             aria-pressed={selectedLeft === option.id}
             onClick={() => handleLeftClick(option.id)}
-            className={tileClass(option, selectedLeft === option.id, wrongMatch?.leftId === option.id)}
+            className={tileClass(
+              option,
+              selectedLeft === option.id,
+              wrongMatch?.leftId === option.id,
+            )}
           >
             {option.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -247,11 +251,15 @@ export function MatchingExercise({ options, onSelect, status, disabled }: Matchi
         {rightOptions.map((option) => (
           <button
             type="button"
-              onKeyDown={keepEnterForCheck}
+            onKeyDown={keepEnterForCheck}
             key={option.id}
             aria-pressed={selectedRight === option.id}
             onClick={() => handleRightClick(option.id)}
-            className={tileClass(option, selectedRight === option.id, wrongMatch?.rightId === option.id)}
+            className={tileClass(
+              option,
+              selectedRight === option.id,
+              wrongMatch?.rightId === option.id,
+            )}
           >
             <span className="text-lg font-extrabold leading-snug sm:text-xl">{option.text}</span>
           </button>

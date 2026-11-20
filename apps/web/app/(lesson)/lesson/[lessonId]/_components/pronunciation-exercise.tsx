@@ -283,7 +283,12 @@ export function PronunciationExercise({
               <RotateCcw className="size-5" />
               Ghi âm lại
             </Button>
-            <Button onClick={analyzeRecording} variant="primary" size="lg" className="sm:flex-[1.4]">
+            <Button
+              onClick={analyzeRecording}
+              variant="primary"
+              size="lg"
+              className="sm:flex-[1.4]"
+            >
               Chấm điểm phát âm
             </Button>
           </div>
@@ -353,7 +358,8 @@ export function PronunciationExercise({
 
 /** Score bands: green is good, yellow is close, red needs another try. */
 function scoreBand(value: number) {
-  if (value >= 90) return { vi: "Xuất sắc!", en: "Excellent!", disc: "bg-leaf-deep", bar: "bg-leaf" };
+  if (value >= 90)
+    return { vi: "Xuất sắc!", en: "Excellent!", disc: "bg-leaf-deep", bar: "bg-leaf" };
   if (value >= 80) return { vi: "Tốt lắm!", en: "Good!", disc: "bg-leaf-deep", bar: "bg-leaf" };
   if (value >= 70) return { vi: "Khá rồi!", en: "Fair.", disc: "bg-sun text-ink", bar: "bg-sun" };
   return { vi: "Luyện thêm nhé", en: "Needs practice.", disc: "bg-cherry", bar: "bg-cherry" };

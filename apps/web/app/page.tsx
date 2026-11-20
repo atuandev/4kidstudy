@@ -16,9 +16,7 @@ export default function Home() {
   const year = new Date().getFullYear();
 
   return (
-    <div
-      className={`min-h-screen bg-lime ${INK} selection:bg-sun selection:text-ink`}
-    >
+    <div className={`min-h-screen bg-lime ${INK} selection:bg-sun selection:text-ink`}>
       <header className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-4 py-4 sm:px-8 sm:py-5">
         <Link
           href="/"
@@ -243,10 +241,7 @@ export default function Home() {
             <Link href="/login" className="hover:text-ink hover:underline underline-offset-4">
               Đăng nhập
             </Link>
-            <Link
-              href="/register"
-              className="hover:text-ink hover:underline underline-offset-4"
-            >
+            <Link href="/register" className="hover:text-ink hover:underline underline-offset-4">
               Đăng ký
             </Link>
           </div>
@@ -400,10 +395,7 @@ function ScoreSticker() {
               <dd className="font-black tabular-nums">{score.value}</dd>
             </div>
             <div className="mt-1.5 h-3.5 rounded-full bg-slate-100" aria-hidden="true">
-              <div
-                className="h-full rounded-full bg-leaf"
-                style={{ width: `${score.value}%` }}
-              />
+              <div className="h-full rounded-full bg-leaf" style={{ width: `${score.value}%` }} />
             </div>
           </div>
         ))}

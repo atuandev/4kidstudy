@@ -26,7 +26,7 @@ export function ListeningExercise({
         return (
           <button
             type="button"
-              onKeyDown={keepEnterForCheck}
+            onKeyDown={keepEnterForCheck}
             key={option.id}
             aria-pressed={selected}
             onClick={() => onSelect(option.id)}

@@ -232,7 +232,12 @@ export const Card = ({
   return (
     <Tag
       {...(isButton
-        ? { type: "button" as const, onClick: handleClick, onKeyDown: keepEnterForCheck, "aria-pressed": !!selected }
+        ? {
+            type: "button" as const,
+            onClick: handleClick,
+            onKeyDown: keepEnterForCheck,
+            "aria-pressed": !!selected,
+          }
         : {})}
       className={cn(
         answerTileClass({ selected, status, matched: isMatched, disabled }),
@@ -241,7 +246,12 @@ export const Card = ({
     >
       {audio}
       {type === "SELECT_IMAGE" && (
-        <span className={cn(answerKeyClass({ selected, status }), "absolute left-2 top-2 z-10 hidden lg:flex")}>
+        <span
+          className={cn(
+            answerKeyClass({ selected, status }),
+            "absolute left-2 top-2 z-10 hidden lg:flex",
+          )}
+        >
           {shortcut}
         </span>
       )}

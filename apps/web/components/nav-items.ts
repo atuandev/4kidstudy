@@ -23,8 +23,28 @@ export const NAV_TONES: Record<
   NavTone,
   { active: string; disc: string; text: string; icon: string }
 > = {
-  leaf: { active: "border-leaf bg-leaf-wash", disc: "bg-leaf-wash", text: "text-forest", icon: "text-leaf-deep" },
-  sky: { active: "border-sky bg-sky-wash", disc: "bg-sky-wash", text: "text-sky-ink", icon: "text-sky-deep" },
-  sun: { active: "border-sun bg-sun-wash", disc: "bg-sun-wash", text: "text-sun-ink", icon: "text-sun-deep" },
-  grape: { active: "border-grape bg-grape-wash", disc: "bg-grape-wash", text: "text-grape-ink", icon: "text-grape" },
+  leaf: {
+    active: "border-leaf bg-leaf-wash",
+    disc: "bg-leaf-wash",
+    text: "text-forest",
+    icon: "text-leaf-deep",
+  },
+  sky: {
+    active: "border-sky bg-sky-wash",
+    disc: "bg-sky-wash",
+    text: "text-sky-ink",
+    icon: "text-sky-deep",
+  },
+  sun: {
+    active: "border-sun bg-sun-wash",
+    disc: "bg-sun-wash",
+    text: "text-sun-ink",
+    icon: "text-sun-deep",
+  },
+  grape: {
+    active: "border-grape bg-grape-wash",
+    disc: "bg-grape-wash",
+    text: "text-grape-ink",
+    icon: "text-grape",
+  },
 };

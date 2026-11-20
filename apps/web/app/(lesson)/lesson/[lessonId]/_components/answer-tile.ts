@@ -38,7 +38,8 @@ export function answerTileClass({ selected, status, matched, wrong, disabled }: 
     matched && "cursor-default border-leaf bg-leaf-wash text-forest",
     isCorrect &&
       "-translate-y-1 border-leaf bg-leaf-wash text-forest shadow-[0_14px_22px_-12px_rgb(21_128_61/0.6)] motion-safe:-rotate-2",
-    isWrong && "border-cherry bg-cherry-wash text-cherry-deep motion-safe:animate-[nudge_0.35s_ease-in-out]",
+    isWrong &&
+      "border-cherry bg-cherry-wash text-cherry-deep motion-safe:animate-[nudge_0.35s_ease-in-out]",
     disabled && "pointer-events-none",
   );
 }

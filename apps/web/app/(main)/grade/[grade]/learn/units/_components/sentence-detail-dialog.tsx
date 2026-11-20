@@ -77,10 +77,7 @@ export function SentenceDetailDialog({ topItems, topics }: SentenceDetailDialogP
           ) : (
             <div className="divide-y-2 divide-wash">
               {filteredItems.map((item, index) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between gap-3 py-3"
-                >
+                <div key={item.id} className="flex items-center justify-between gap-3 py-3">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-wash text-base font-black tabular-nums text-ink-body">
                       {index + 1}

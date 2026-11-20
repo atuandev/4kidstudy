@@ -2,7 +2,13 @@
 version: 1
 slug: "app-main-layout-tsx"
 primary_target: "app/(main)/layout.tsx"
-related_targets: ["app/(main)","components/sidebar.tsx","components/grade-selector-button.tsx","components/mobile-header.tsx"]
+related_targets:
+  [
+    "app/(main)",
+    "components/sidebar.tsx",
+    "components/grade-selector-button.tsx",
+    "components/mobile-header.tsx",
+  ]
 ---
 
 # Surface: learner app (`app/(main)`)

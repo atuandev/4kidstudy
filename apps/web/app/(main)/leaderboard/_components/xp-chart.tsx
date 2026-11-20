@@ -76,7 +76,13 @@ export function XPChart() {
               formatter={(value: number) => [`${value} XP`, "Điểm"]}
               labelFormatter={(label) => `Chủ đề: ${label}`}
             />
-            <Bar dataKey="xpEarned" fill="#0284C7" radius={[0, 4, 4, 0]} maxBarSize={24} animationDuration={500} />
+            <Bar
+              dataKey="xpEarned"
+              fill="#0284C7"
+              radius={[0, 4, 4, 0]}
+              maxBarSize={24}
+              animationDuration={500}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>

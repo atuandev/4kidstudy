@@ -93,7 +93,12 @@ export function UnitCard({ topic }: UnitCardProps) {
         </div>
       ) : (
         <div className="flex aspect-[16/9] w-full items-center justify-center rounded-[22px] bg-wash">
-          <BookOpenTextIcon size={56} weight="duotone" className="text-ink-meta" aria-hidden="true" />
+          <BookOpenTextIcon
+            size={56}
+            weight="duotone"
+            className="text-ink-meta"
+            aria-hidden="true"
+          />
         </div>
       )}
       <h2 className="mt-5 text-xl font-black leading-snug text-ink">{topic.title}</h2>
@@ -165,8 +170,14 @@ function TopicAction({ variant, icon, label, echo, progress, onClick }: TopicAct
       </span>
       {progress !== null ? (
         <span className="ml-auto flex items-center gap-2">
-          <span className="hidden h-2 w-14 overflow-hidden rounded-full bg-white/30 sm:block" aria-hidden="true">
-            <span className="block h-full rounded-full bg-white" style={{ width: `${progress}%` }} />
+          <span
+            className="hidden h-2 w-14 overflow-hidden rounded-full bg-white/30 sm:block"
+            aria-hidden="true"
+          >
+            <span
+              className="block h-full rounded-full bg-white"
+              style={{ width: `${progress}%` }}
+            />
           </span>
           <span className="text-sm font-black tabular-nums">{progress}%</span>
         </span>

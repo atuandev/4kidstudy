@@ -225,6 +225,7 @@ Density is low and targets are big. The app serves children aged 6 to 11 and the
 The system is light-only. `app/globals.css` defines no dark token block; its `dark:` variant applies only under an explicit `.dark` ancestor, which no surface sets.
 
 **Key Characteristics:**
+
 - Chunky 3D controls: a 4px bottom ledge (with a 2px side edge on white faces) that collapses on press.
 - Die-cut stickers: saturated fills, 4–7px white borders, a 2px slate hairline outside, soft ink-tinted drop shadows, small hand-placed tilts.
 - Nunito 900 for everything that must be read first; 800 for the English echo line.
@@ -236,18 +237,21 @@ The system is light-only. `app/globals.css` defines no dark token block; its `da
 A saturated toy-box palette (green, sky, yellow, red plus four sticker hues) on slate ink and a pale lime ground. Each family has a fill, a deeper ledge or text shade, and a pale wash; the code names them `leaf`, `leaf-deep`, `forest`, `leaf-wash`, `sky`, `sky-deep`, `sky-ink`, `sky-wash` and so on in `app/globals.css`, and surfaces use those utilities, never hex.
 
 ### Primary
+
 - **Leaf Green** (`leaf-green`, `leaf`): the brand hue. Progress fills (study and lesson progress bars, stat bars), the correct-answer border, the active Học tab's edge, and a sticker field. It is too light to carry white text.
 - **Leaf Green Deep** (`leaf-green-deep`, `leaf-deep`): the fill of every white-text "go" button (Đăng ký, Bắt đầu học, Tiếp tục, Vào luyện tập, Kiểm tra), completed-lesson discs, and the streak chart's bars. The shadcn `--primary` token resolves to this colour.
 - **Forest Green** (`forest-green`, `forest`): the go button's ledge and hover fill, the wordmark, emphasised words inside headlines, Vietnamese meanings on a flipped card, correct-verdict text, and the full-bleed parents section.
 - **Leaf Wash** (`leaf-wash`): the ground of pass verdicts, success messages, a correct answer tile and the "done" hint pill.
 
 ### Secondary
+
 - **Sky Blue** (`sky-blue`, `sky`): listening and focus. The round listen button, the focus ring (at 50% alpha), the picked answer tile's border, the active grade chip and the Luyện tập tab edge, a sticker field. It carries white icons, not white text.
 - **Sky Blue Deep** (`sky-blue-deep`, `sky-deep`): the `primary` button fill (Chấm điểm), text links, the round listen button's ledge, the XP chart's bars.
 - **Sky Ink** (`sky-ink`): the English echo line on every learner heading, the active grade chip's text, the primary button's ledge.
 - **Sky Wash** (`sky-wash`): the picked tile, the active grade chip, un-done lesson and sentence number discs, and the learner's own leaderboard row.
 
 ### Tertiary
+
 - **Sunshine Yellow** (`sunshine-yellow`, `sun`): reward and highlight. A full-bleed section ground, the gold rank disc, the trophy, text selection, a sticker field. Text on it is Slate Ink or the sun browns, never white. **Sun Deep** (`sun-deep`) is its ledge; **Sun Ink** (`sun-ink`) and **Sun Body** (`sun-body`) are text on **Sun Wash** (`sun-wash`), the ground of the "still to do" hint pill and the hint popover.
 - **Cherry Red** (`cherry-red`, `cherry`): speaking and wrong. The record button, the `danger` button, the wrong-answer border, a sticker field. **Cherry Red Deep** (`cherry-red-deep`) is its ledge and all red text; **Cherry Wash** (`cherry-wash`) grounds fail verdicts, form errors and a wrong tile.
 - **Grape** (`grape-purple`, `grape-ink`, `grape-wash`): a sticker field, and the Hồ sơ (profile) section's colour in navigation: Grape edge on Grape Wash with Grape Ink text.
@@ -255,6 +259,7 @@ A saturated toy-box palette (green, sky, yellow, red plus four sticker hues) on 
 - **Lagoon Teal, Bubblegum Pink** (`lagoon-teal`, `bubblegum-pink`): word-sticker and exercise-tile fields only.
 
 ### Neutral
+
 - **Slate Ink** (`slate-ink`, `ink`): all headings, primary text, and plain-button text. Replaces black throughout.
 - **Slate Body** (`slate-body`, `ink-body`): paragraph text, secondary lines, and every label that sits on a wash.
 - **Slate Meta** (`slate-meta`, `ink-meta`): phonetics on the homepage, placeholders, keyboard-key badges, ghost buttons. Only on white.
@@ -265,6 +270,7 @@ A saturated toy-box palette (green, sky, yellow, red plus four sticker hues) on 
 - **Paper White** (`paper-white`): sticker borders, sheets, cards and sections.
 
 ### Named Rules
+
 **The Colour Means Something Rule.** Green is go/correct, sky is listen/link/focus, red is speak/wrong, yellow is reward. The other sticker hues carry no answer state: they fill word sets and exercise tiles, and grape marks the profile section only as a wayfinding colour.
 
 **The Section Colour Rule.** Each learner section keeps one family everywhere it is named: Học leaf, Luyện tập sky, Xếp hạng sun, Hồ sơ grape (`components/nav-items.ts`).
@@ -282,6 +288,7 @@ A saturated toy-box palette (green, sky, yellow, red plus four sticker hues) on 
 **Character:** One rounded sans used at its extremes. Weight 900 headlines feel bold and toy-like; regular-weight body copy stays calm for the parent reading it.
 
 ### Hierarchy
+
 - **Display** (`display`): the one homepage hero headline, balanced wrapping; key words recoloured Forest Green.
 - **Headline** (`headline`): homepage section headings. Closing call-to-action headings step down to 1.875–2.25rem.
 - **Page title** (`page-title`): the one learner page heading (`components/page-heading.tsx`), 1.875rem rising to 2.25rem from `sm`. Auth cards use the same size centred; error, empty and study headers step down to 1.5rem.
@@ -291,6 +298,7 @@ A saturated toy-box palette (green, sky, yellow, red plus four sticker hues) on 
 - **Label** (`label`): weights 700–800 at 0.875–1rem for captions, stat labels and form labels (1rem, 800, Slate Ink). Buttons use 700; numbers are 900 with tabular figures.
 
 ### Named Rules
+
 **The Heavy Or Calm Rule.** Headings, names and prompts are 800–900; running paragraphs are 400; short list points and labels are 700. Weight 600 appears only for Vietnamese glosses and small captions.
 
 **The Echo Rule.** Every Vietnamese heading is followed by its English echo line. English never replaces the Vietnamese lead.
@@ -308,6 +316,7 @@ The learner shell (`app/(main)/layout.tsx`) is a lime ground with a fixed `sideb
 Depth has two jobs. Controls get a **ledge**: a solid bottom edge in a darker shade of the control's colour (a 4px bottom border, or a 4–5px zero-blur shadow on round buttons) that shrinks on press while the face moves down. Stickers and sheets get a **lift**: a soft, negatively spread drop shadow tinted with ink, green or the section's own hue, never neutral grey-black.
 
 ### Shadow Vocabulary
+
 - **Ledge** (`border-bottom: 4px solid <shade>` → `2px` on `:active`, face moves 2px down): every 3D button, grade chip, active nav tab and answer tile.
 - **Round ledge** (`box-shadow: 0 4px 0 <shade>` → `0 0 0` on `:active`, face moves 4px down): round buttons. Shades: `#0284C7` sky, `#BE123C` cherry, `#15803D` leaf, `#CBD5E1` wash. The homepage mic uses 5px.
 - **Sticker rest** (`--shadow-sticker`: `0 0 0 2px #E2E8F0, 0 10px 18px -8px rgba(61,70,93,0.35)`): word stickers and every framed picture (topic covers, flashcard and sentence images). Grows to `--shadow-sticker-hover` (`0 16px 24px -10px rgba(61,70,93,0.45)`).
@@ -318,6 +327,7 @@ Depth has two jobs. Controls get a **ledge**: a solid bottom edge in a darker sh
 - **Sheet rise** (`0 -24px 60px -30px rgba(21,128,61,0.45)`): the white sheet rising from the homepage hero.
 
 ### Named Rules
+
 **The Pressable Must Look Pressable Rule.** Anything tappable that is not plain text wears a ledge. Anything that is not tappable does not.
 
 ## Shapes
@@ -327,7 +337,9 @@ Everything is rounded, and radius grows with size: buttons `button` (about 8px),
 ## Components
 
 ### Buttons
+
 Chunky, glossy-free and physical: a solid fill on a darker ledge (`components/ui/button.tsx`).
+
 - **Shape:** gently rounded (`button`), heights 36 / 44 / 48px (sm / default / lg). Learner step actions use `lg` (often stretched to 56px); rows inside sheets use the default. The homepage hero call-to-action is 56px with 32px side padding, 1.125rem uppercase text.
 - **White faces (`ledge`):** a 2px Slate Edge border with a 4px bottom ledge. Default and outline are white with Slate Ink text, hover to Slate Wash. Link-style actions such as Đăng nhập recolour the text to Sky Blue Deep.
 - **Filled faces (`fillLedge`):** a 4px bottom ledge only, no side edge. `secondary` (go) is Leaf Green Deep on a Forest ledge; `primary` (listen, score) is Sky Blue Deep on Sky Ink; `danger` Cherry Red on Cherry Red Deep; `super` Sunshine Yellow with Slate Ink text on Sun Deep; `gray` Slate Ink.
@@ -336,21 +348,26 @@ Chunky, glossy-free and physical: a solid fill on a darker ledge (`components/ui
 - **Focus:** a 4px Sky Blue ring at 50% alpha.
 
 ### Round Button
+
 `components/learn/round-button.tsx`: an icon-only circle on a round ledge, in four tones (sky listen, cherry record, leaf, wash for secondary actions) and two sizes (44px, 56px). It always carries an `aria-label`. Model audio uses the Volume2 speaker; the child's own recording uses AudioLines, so the two never look alike.
 
 ### Grade Chips
+
 The 3D button grammar applied to Lớp 1–5. White fill, Slate Edge border with 4px ledge, Slate Ink 900 text, `chip` radius, 44px. Hover and the current grade turn the border Sky Blue, the fill Sky Wash and the text Sky Ink. On learner pages they sit in a 5-column grid on phones and a row from `sm`; registration uses the same chips as a radio group (48px). The homepage adds a wrapping row of 64px chips at 1.25rem.
 
 ### Cards / Containers
+
 - **Learner sheet:** Paper White, `panel` radius, Sheet on lime, 20–24px padding. Title (1.25rem 900) with its echo, then content. Practice units are accordion sheets: a tilted framed cover, unit name, a Leaf Wash count pill and a round chevron, with lesson rows below a Slate Wash divider.
 - **Homepage card:** `sheet` radius, 6px white border, Section card lift, 24px padding (32px from `sm`).
 - **Inner card:** white with a 2px Slate Edge border (Leaf when mastered), `card` radius, 16px padding.
 - **Stat tile:** Slate Wash, `chip` radius, 12–14px padding, a tinted icon disc and Slate Body label, value in 1.25rem 900 tabular Slate Ink.
 
 ### Inputs / Fields
+
 `components/ui/input.tsx`: 44px high, white, 2px Slate Edge border, `field` radius, 1rem bold Slate Ink text with regular Slate Meta placeholder. Hover darkens the edge; focus turns it Sky Blue with a 4px Sky ring at 25%. Invalid turns the border Cherry Red Deep with a faint cherry ring. Labels are 1rem 800 Slate Ink (Cherry Red Deep on error); messages are 0.875rem 700 Cherry Red Deep. Form-level errors and successes are `chip`-radius boxes on Cherry Wash or Leaf Wash with an icon and 700 text in the family's deep shade.
 
 ### Navigation
+
 - **Sidebar** (`lg` and up): 256px white column with a 2px Lime Rule right border; mascot and Forest 900 wordmark, the XP and streak pills, then 64px tiles (18px label 900) with a 44px icon disc in the section's wash. The active tile takes its section colour: a 2px edge with a 4px ledge in the section hue, the wash fill, a white disc and the section's ink text. Inactive tiles are Slate Body with a Slate Wash hover. A mascot buddy greets the child by name in a lime speech bubble at the foot.
 - **Bottom nav** (below `lg`): fixed white bar, 2px Lime Rule top border, safe-area padding, four 64px tabs (icon over 0.875rem 900 label) with the same section-coloured active state.
 - **Mobile header** (below `lg`): 64px white bar, mascot and wordmark, compact XP and streak pills.
@@ -358,6 +375,7 @@ The 3D button grammar applied to Lớp 1–5. White fill, Slate Edge border with
 - **Homepage header:** mascot (40px) and Forest Green 900 wordmark, 800-weight anchor links with a 3px Leaf Green underline offset 8px on hover, then plain and go buttons.
 
 ### App Surfaces
+
 - **Page heading** (`components/page-heading.tsx`): the one heading on every learner section: Vietnamese `page-title` h1, a 1.125rem Sky Ink echo, an optional Slate Body description, and an optional action on the right that wraps below on phones.
 - **Study shell** (`components/learn/study-shell.tsx`): `StudyHeader` holds a 44px back button, the topic title clamped to two lines with a "Thẻ từ vựng · Word cards" style echo, a Học lại button, and a 16px progress bar (white track with a Lime Rule inset ring, Leaf fill with a white gloss stripe, easing over 500ms). `StudyNav` puts a hint pill first (Sun Wash with a mic while the card is unpassed, Leaf Wash with a check once passed), then two 56px buttons: Quay lại (plain) and TIẾP TỤC (go), which stays disabled until the card is passed. `StudyEmpty` is a white sheet with the mascot, title, echo and a go button back.
 - **Recorder** (`components/learn/recorder-controls.tsx`): record (56px cherry round button) → recording (a stop square with a pinging halo, "Đang ghi âm…") → recorded (listen back, a `primary` Chấm điểm button, re-record) → analysing (a 12px sky progress bar) → a 44px verdict pill, Leaf Wash "✓ n% · Đạt" or Cherry Wash "✕ n% · Chưa đạt", beside listen-back and re-record.
@@ -371,20 +389,25 @@ The 3D button grammar applied to Lớp 1–5. White fill, Slate Edge border with
 - **Error sheet** (`components/error-sheet.tsx`): a white `panel` sheet with a tilted mascot, "Có lỗi xảy ra" with its echo, the cause in a Slate Wash box, then Thử lại (go) and Trang chủ (plain).
 
 ### Word Sticker (signature)
+
 A 4:5 die-cut sticker in a sticker hue with a 6px white border, a white disc holding a flat 64×64-grid SVG illustration, and a white name plate (10px side padding) holding the word in Title and the Vietnamese meaning below it at 14px, rising to 15px when the sticker is at least 10rem wide, 700 weight, Slate Body, never wrapping. The front face has 12px padding inside its border. Tapping it speaks the word and flips it in 3D to a white back showing the word, phonetic, Vietnamese meaning in Forest Green, an example sentence, and a Sky Blue play button. A flipped sticker lifts 10px, scales to 1.06 and tilts to −7°. Motion uses `cubic-bezier(0.16,1,0.3,1)` over 500ms; one sticker peels in once on load (`sticker-peel`, 900ms, 400ms delay). All of it is disabled under `prefers-reduced-motion`.
 
 ### Flip Tray
+
 A rounded tray (24px radius, Slate Wash fill, 12–16px by 20px padding) at the foot of the hero sticker sheet that tracks the signature interaction. Its status line (800 weight, Slate Ink, announced with `aria-live="polite"`) reads "Đã lật n/8 thẻ" with an English echo "Flip all 8" in Slate Meta. Below it, a 12px white track holds a Leaf Green progress fill that eases its width over 500ms with `cubic-bezier(0.16,1,0.3,1)`; the transition is off under `prefers-reduced-motion`. When all eight stickers are flipped, the line becomes "Giỏi lắm! Bé đã lật hết thẻ." (echo "Well done!") and a 44px go link, "Học tiếp từ mới", appears: Leaf Green Deep fill, Forest Green 4px ledge, 16px radius, uppercase 900 text, linking to `/register`.
 
 ### Exercise Tile
+
 A 56px rounded square (`tile`) in a sticker hue with a 4px white border, a 2px Slate Edge ring, a hue-shaded drop shadow, a white line icon and a small tilt. It marks an exercise type in a divided list.
 
 ### Mascot Mark
+
 `public/mascot.svg`, a green gradient rounded square with a face, always paired with the "4KidStudy" wordmark in the header, sidebar and auth layout (36–40px). It stands alone at 56–88px as a companion: beside a closing call to action, at the sidebar's foot, over the auth card, and on error and empty sheets.
 
 ## Do's and Don'ts
 
 ### Do:
+
 - **Do** give every pressable control a darker ledge (4px bottom border or a zero-blur offset shadow) that shrinks on `:active`.
 - **Do** put white text on Leaf Green Deep (#16A34A) or darker, never on Leaf Green (#22C55E), and keep white-on-Leaf-Deep and white-on-Cherry to large bold button labels.
 - **Do** use Slate Ink (#3D465D) for headings and primary text instead of black.
@@ -400,6 +423,7 @@ A 56px rounded square (`tile`) in a sticker hue with a 4px white border, a 2px S
 - **Do** wrap sticker, peel, flip and progress motion in `motion-safe` / `motion-reduce` guards.
 
 ### Don't:
+
 - **Don't** use sticker hues (purple, orange, teal, pink) for answer state; state colours are green, sky, red and yellow only.
 - **Don't** put a ledge on anything that cannot be tapped.
 - **Don't** use Slate Meta for text on a wash; use Slate Body.

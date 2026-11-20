@@ -22,11 +22,35 @@ type QuizProps = {
 
 /** Vietnamese name, English echo, and the exercise tile's sticker hue (same as the homepage). */
 const EXERCISE_TITLES = {
-  SELECT_IMAGE: { vi: "Chọn hình đúng", en: "Select the picture", icon: ImageIcon, color: "#1CB0F6", shade: "#0284C7" },
-  MULTIPLE_CHOICE: { vi: "Chọn đáp án đúng", en: "Multiple choice", icon: ListChecks, color: "#A855F7", shade: "#7E22CE" },
+  SELECT_IMAGE: {
+    vi: "Chọn hình đúng",
+    en: "Select the picture",
+    icon: ImageIcon,
+    color: "#1CB0F6",
+    shade: "#0284C7",
+  },
+  MULTIPLE_CHOICE: {
+    vi: "Chọn đáp án đúng",
+    en: "Multiple choice",
+    icon: ListChecks,
+    color: "#A855F7",
+    shade: "#7E22CE",
+  },
   MATCHING: { vi: "Ghép cặp", en: "Matching", icon: Puzzle, color: "#FF9600", shade: "#C2410C" },
-  LISTENING: { vi: "Nghe và chọn", en: "Listening", icon: Headphones, color: "#14B8A6", shade: "#0F766E" },
-  PRONUNCIATION: { vi: "Luyện phát âm", en: "Pronunciation", icon: Mic, color: "#FF4B4B", shade: "#BE123C" },
+  LISTENING: {
+    vi: "Nghe và chọn",
+    en: "Listening",
+    icon: Headphones,
+    color: "#14B8A6",
+    shade: "#0F766E",
+  },
+  PRONUNCIATION: {
+    vi: "Luyện phát âm",
+    en: "Pronunciation",
+    icon: Mic,
+    color: "#FF4B4B",
+    shade: "#BE123C",
+  },
 } as const;
 
 export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {

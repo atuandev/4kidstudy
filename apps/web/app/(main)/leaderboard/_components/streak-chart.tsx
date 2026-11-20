@@ -68,7 +68,13 @@ export function StreakChart() {
               labelFormatter={(value) => longDate(value as string)}
               formatter={(value: number) => [`${value} XP`, "Điểm"]}
             />
-            <Bar dataKey="xpEarned" fill="#16A34A" radius={[4, 4, 0, 0]} maxBarSize={24} animationDuration={500} />
+            <Bar
+              dataKey="xpEarned"
+              fill="#16A34A"
+              radius={[4, 4, 0, 0]}
+              maxBarSize={24}
+              animationDuration={500}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>

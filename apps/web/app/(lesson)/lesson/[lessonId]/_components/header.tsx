@@ -64,7 +64,12 @@ export const Header = ({
       <div className="mx-auto flex max-w-[1000px] items-center gap-3 px-4 pt-4 sm:gap-4 sm:pt-5">
         <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <AlertDialogTrigger asChild>
-            <Button variant="default" size="icon" aria-label="Thoát bài học" className="size-11 text-ink">
+            <Button
+              variant="default"
+              size="icon"
+              aria-label="Thoát bài học"
+              className="size-11 text-ink"
+            >
               <X className="size-6" />
             </Button>
           </AlertDialogTrigger>

@@ -37,7 +37,13 @@ export function MultipleChoiceExercise({
       {isValidUrl(imageUrl) && (
         <div className="flex justify-center">
           <div className="relative aspect-square w-full max-w-[180px] -rotate-2 overflow-hidden rounded-[24px] border-[6px] border-white bg-white shadow-sticker sm:max-w-[210px]">
-            <Image src={imageUrl!} fill alt="Hình của câu hỏi" sizes="210px" className="object-contain" />
+            <Image
+              src={imageUrl!}
+              fill
+              alt="Hình của câu hỏi"
+              sizes="210px"
+              className="object-contain"
+            />
           </div>
         </div>
       )}

@@ -119,7 +119,10 @@ export function WeeklyLeaderboard() {
             <TrophyIcon size={26} weight="fill" aria-hidden="true" />
           </span>
           <div>
-            <h2 id="weekly-title" className="whitespace-nowrap text-lg font-black leading-tight text-ink">
+            <h2
+              id="weekly-title"
+              className="whitespace-nowrap text-lg font-black leading-tight text-ink"
+            >
               Xếp hạng tuần này
             </h2>
             {grade || weekStart ? (
