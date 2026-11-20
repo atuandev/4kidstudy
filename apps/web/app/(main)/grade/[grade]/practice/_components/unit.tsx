@@ -8,9 +8,11 @@ import { Lesson, Topic } from "@/types";
 type UnitProps = {
   topic: Topic;
   lessons: Lesson[];
+  /** Lessons in this topic the learner has finished at least once. */
+  completedCount: number;
 };
 
-export const Unit = ({ topic, lessons }: UnitProps) => {
+export const Unit = ({ topic, lessons, completedCount }: UnitProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const panelId = useId();
 
@@ -23,6 +25,7 @@ export const Unit = ({ topic, lessons }: UnitProps) => {
       <UnitBanner
         topic={topic}
         lessonCount={lessons.length}
+        completedCount={completedCount}
         isExpanded={isExpanded}
         controls={panelId}
         onClick={toggleExpanded}

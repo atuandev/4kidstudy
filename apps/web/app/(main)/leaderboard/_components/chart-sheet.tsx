@@ -36,12 +36,16 @@ interface ChartSheetProps {
   readonly titleId: string;
   readonly title: string;
   readonly echo: string;
-  readonly totalXP: number;
+  readonly total: React.ReactNode;
+  /** Unit after the total; XP unless set. */
+  readonly unit?: string;
   readonly totalLabel: string;
   readonly days: number;
   readonly onDaysChange: (days: number) => void;
   readonly loading: boolean;
   readonly isEmpty: boolean;
+  /** Optional controls between the total and the plot, such as a view switch. */
+  readonly toolbar?: React.ReactNode;
   readonly children: React.ReactNode;
 }
 
@@ -50,12 +54,14 @@ export function ChartSheet({
   titleId,
   title,
   echo,
-  totalXP,
+  total,
+  unit = "XP",
   totalLabel,
   days,
   onDaysChange,
   loading,
   isEmpty,
+  toolbar,
   children,
 }: ChartSheetProps) {
   return (
@@ -85,9 +91,11 @@ export function ChartSheet({
       </div>
 
       <p className="mt-3 text-3xl font-black tabular-nums text-ink">
-        {totalXP} <span className="text-lg text-ink-body">XP</span>
+        {total} <span className="text-lg text-ink-body">{unit}</span>
       </p>
       <p className="text-sm font-bold text-ink-body">{totalLabel}</p>
+
+      {toolbar ? <div className="mt-4">{toolbar}</div> : null}
 
       <div className="mt-4">
         {loading ? (
@@ -99,7 +107,7 @@ export function ChartSheet({
           </div>
         ) : isEmpty ? (
           <div className="flex h-[260px] flex-col items-center justify-center rounded-2xl bg-wash text-center">
-            <p className="text-base font-black text-ink">Chưa có điểm nào trong khoảng này</p>
+            <p className="text-base font-black text-ink">Chưa có bài nào trong khoảng này</p>
             <p className="text-sm font-bold text-ink-body">
               Học một bài là biểu đồ sẽ có cột đầu tiên.
             </p>

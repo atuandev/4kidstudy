@@ -21,7 +21,10 @@ const Loading = () => {
           </div>
         ))}
       </div>
-      <div className="h-72 animate-pulse rounded-[28px] bg-white/70 lg:mt-16" />
+      <div className="flex flex-col gap-4 lg:mt-16">
+        <div className="h-96 animate-pulse rounded-[28px] bg-white/70" />
+        <div className="h-48 animate-pulse rounded-[28px] bg-white/70" />
+      </div>
     </div>
   );
 };

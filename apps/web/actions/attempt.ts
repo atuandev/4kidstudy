@@ -1,7 +1,14 @@
 "use server";
 
 import http from "@/lib/http";
-import { Attempt, SubmitAttemptRequest, MostWrongExerciseStats } from "@/types";
+import {
+  Attempt,
+  DailyPracticeStats,
+  MostWrongExerciseStats,
+  PracticeStatistics,
+  SubmitAttemptRequest,
+} from "@/types";
+import { GradeValue } from "@/types/grade";
 
 /**
  * Save a finished lesson: the attempt, every answer, XP and streak in one request.
@@ -36,23 +43,29 @@ export async function getUserLessonAttempts(lessonId: number): Promise<Attempt[]
 }
 
 /**
- * Get user's overall practice statistics
+ * Get the user's practice statistics for one grade: finished lessons only,
+ * on the lessons the practice page lists.
  */
-export async function getPracticeStatistics() {
-  const { payload } = await http.get<{
-    completeLessonCount: number;
-    totalLessonCount: number;
-    totalDurationSec: number;
-    totalCorrectCount: number;
-    totalIncorrectCount: number;
-    byType: Array<{
-      type: string;
-      correctCount: number;
-      correctOnSecondCount: number;
-      incorrectCount: number;
-    }>;
-  }>(`/attempts/statistics`);
+export async function getPracticeStatistics(grade: GradeValue): Promise<PracticeStatistics> {
+  const { payload } = await http.get<PracticeStatistics>(`/attempts/statistics?grade=${grade}`);
   return payload;
+}
+
+/**
+ * Get the user's practice over the last `days` days (Vietnam time): one row
+ * per day. Empty on error so charts can show
+ * their empty state.
+ */
+export async function getDailyPracticeStats(days: number = 7): Promise<DailyPracticeStats> {
+  try {
+    const { payload } = await http.get<DailyPracticeStats>(
+      `/attempts/statistics/daily?days=${days}`,
+    );
+    return payload;
+  } catch (error) {
+    console.error("Error fetching daily practice stats:", error);
+    return { days, data: [] };
+  }
 }
 
 /**

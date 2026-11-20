@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma, ExerciseType } from '@prisma/client';
+import { Prisma, ExerciseType, GradeLevel, LessonStatus } from '@prisma/client';
 import {
   CreateAttemptDto,
   CreateAttemptDetailDto,
@@ -16,12 +16,51 @@ import {
   PaginatedAttemptsResponseDto,
   AttemptDetailResponseDto,
   PracticeStatisticsResponseDto,
+  PracticeStatisticsByTypeDto,
+  DailyPracticeStatsResponseDto,
+  DailyPracticeStatsDayDto,
   MostWrongExerciseStatsDto,
 } from './dto';
 import {
   AttemptWithDetails,
   AttemptDetailWithPronunciation,
 } from './interfaces/attempt.interface';
+
+/** Learners are in Vietnam, so a practice "day" follows their clock. */
+const PRACTICE_TIME_ZONE = 'Asia/Ho_Chi_Minh';
+
+/** Exercise types in the order the app lists them. */
+const EXERCISE_TYPE_ORDER: ExerciseType[] = [
+  ExerciseType.SELECT_IMAGE,
+  ExerciseType.MULTIPLE_CHOICE,
+  ExerciseType.MATCHING,
+  ExerciseType.LISTENING,
+  ExerciseType.PRONUNCIATION,
+];
+
+/**
+ * Every exercise type, in a fixed order, with zeros for types the user has
+ * not practised.
+ */
+function everyExerciseType(
+  rows: Array<{
+    type: ExerciseType;
+    correctCount: number;
+    correctOnSecondCount: number;
+    incorrectCount: number;
+  }>,
+): PracticeStatisticsByTypeDto[] {
+  const rowByType = new Map(rows.map((row) => [row.type, row]));
+  return EXERCISE_TYPE_ORDER.map((type) => {
+    const row = rowByType.get(type);
+    return {
+      type,
+      correctCount: row?.correctCount ?? 0,
+      correctOnSecondCount: row?.correctOnSecondCount ?? 0,
+      incorrectCount: row?.incorrectCount ?? 0,
+    };
+  });
+}
 
 /**
  * Service for handling lesson attempts and exercise submissions
@@ -655,27 +694,100 @@ export class AttemptService {
   }
 
   /**
-   * Get aggregated practice statistics for a user
+   * Get aggregated practice statistics for a user.
+   *
+   * Counts only finished attempts (unfinished ones come from the old
+   * answer-by-answer flow and were abandoned), on lessons learners can see
+   * (published or archived, as the topics list shows), optionally within one
+   * grade so the numbers match the practice page they sit on.
    */
   async getPracticeStatistics(
     userId: number,
+    grade?: GradeLevel,
   ): Promise<PracticeStatisticsResponseDto> {
-    // Two aggregate queries instead of one count per stat and exercise type.
-    // COUNT/SUM return bigint in Postgres, so cast to int for plain numbers.
-    const [summaryRows, typeRows] = await Promise.all([
+    const lessonScope = Prisma.sql`
+      l."status" IN ('PUBLISHED', 'ARCHIVED')
+      ${grade ? Prisma.sql`AND t."grade"::text = ${grade}` : Prisma.empty}
+    `;
+
+    // Three queries, run together. COUNT/SUM return bigint in
+    // Postgres, so cast to int for plain numbers.
+    const [topicRows, typeRows, recentRows] = await Promise.all([
+      // Per topic; the overall totals are the sums of these rows. Right and
+      // wrong come from the saved answers, not the attempt's own counters:
+      // deleting an exercise deletes its answers but not the counters, and
+      // counting answers keeps these totals equal to the per-type ones.
       this.prisma.$queryRaw<
         Array<{
-          totalLessonCount: number;
+          topicId: number;
+          title: string;
+          lessonCount: number;
           completeLessonCount: number;
-          totalDurationSec: number;
+          perfectLessonCount: number;
+          attemptCount: number;
+          durationSec: number;
+          correctCount: number;
+          incorrectCount: number;
+          skipCount: number;
+          totalScore: number;
+          maxScore: number;
         }>
       >`
+        WITH lessons AS (
+          SELECT l."id" AS "lessonId", t."id" AS "topicId"
+          FROM "Lesson" l
+          JOIN "Topic" t ON t."id" = l."topicId"
+          WHERE ${lessonScope}
+        ),
+        attempts AS (
+          SELECT a.*
+          FROM "Attempt" a
+          JOIN lessons USING ("lessonId")
+          WHERE a."userId" = ${userId} AND a."isCompleted" = true
+        ),
+        per_lesson AS (
+          SELECT
+            lessons."topicId",
+            lessons."lessonId",
+            COUNT(a."id") AS "attemptCount",
+            BOOL_OR(a."maxScore" > 0 AND a."totalScore" >= a."maxScore")
+              AS "isPerfect",
+            SUM(a."durationSec") AS "durationSec",
+            SUM(a."skipCount") AS "skipCount",
+            SUM(a."totalScore") AS "totalScore",
+            SUM(a."maxScore") AS "maxScore"
+          FROM lessons
+          LEFT JOIN attempts a USING ("lessonId")
+          GROUP BY lessons."topicId", lessons."lessonId"
+        ),
+        answers AS (
+          SELECT
+            a."lessonId",
+            COUNT(*) FILTER (WHERE d."isCorrect") AS "correctCount",
+            COUNT(*) FILTER (WHERE NOT d."isCorrect") AS "incorrectCount"
+          FROM "AttemptDetail" d
+          JOIN attempts a ON a."id" = d."attemptId"
+          GROUP BY a."lessonId"
+        )
         SELECT
-          (SELECT COUNT(*) FROM "Lesson")::int AS "totalLessonCount",
-          COUNT(DISTINCT a."lessonId")::int AS "completeLessonCount",
-          COALESCE(SUM(a."durationSec"), 0)::int AS "totalDurationSec"
-        FROM "Attempt" a
-        WHERE a."userId" = ${userId} AND a."isCompleted" = true
+          t."id" AS "topicId",
+          t."title" AS "title",
+          COUNT(*)::int AS "lessonCount",
+          COUNT(*) FILTER (WHERE pl."attemptCount" > 0)::int
+            AS "completeLessonCount",
+          COUNT(*) FILTER (WHERE pl."isPerfect")::int AS "perfectLessonCount",
+          COALESCE(SUM(pl."attemptCount"), 0)::int AS "attemptCount",
+          COALESCE(SUM(pl."durationSec"), 0)::int AS "durationSec",
+          COALESCE(SUM(ans."correctCount"), 0)::int AS "correctCount",
+          COALESCE(SUM(ans."incorrectCount"), 0)::int AS "incorrectCount",
+          COALESCE(SUM(pl."skipCount"), 0)::int AS "skipCount",
+          COALESCE(SUM(pl."totalScore"), 0)::int AS "totalScore",
+          COALESCE(SUM(pl."maxScore"), 0)::int AS "maxScore"
+        FROM per_lesson pl
+        JOIN "Topic" t ON t."id" = pl."topicId"
+        LEFT JOIN answers ans ON ans."lessonId" = pl."lessonId"
+        GROUP BY t."id", t."title", t."order"
+        ORDER BY t."order" ASC, t."id" ASC
       `,
       this.prisma.$queryRaw<
         Array<{
@@ -694,53 +806,145 @@ export class AttemptService {
         FROM "AttemptDetail" d
         JOIN "Attempt" a ON a."id" = d."attemptId"
         JOIN "Exercise" e ON e."id" = d."exerciseId"
+        JOIN "Lesson" l ON l."id" = a."lessonId"
+        JOIN "Topic" t ON t."id" = l."topicId"
         WHERE a."userId" = ${userId}
+          AND a."isCompleted" = true
+          AND ${lessonScope}
         GROUP BY e."type"
       `,
+      this.prisma.attempt.findMany({
+        where: {
+          userId,
+          isCompleted: true,
+          lesson: {
+            status: { in: [LessonStatus.PUBLISHED, LessonStatus.ARCHIVED] },
+            ...(grade ? { topic: { grade } } : {}),
+          },
+        },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: 5,
+        select: {
+          id: true,
+          lessonId: true,
+          totalScore: true,
+          maxScore: true,
+          accuracyPct: true,
+          createdAt: true,
+          lesson: {
+            select: { title: true, topic: { select: { title: true } } },
+          },
+        },
+      }),
     ]);
 
-    const summary = summaryRows[0];
-    const rowByType = new Map(typeRows.map((row) => [row.type, row]));
+    const sum = (key: keyof (typeof topicRows)[number]) =>
+      topicRows.reduce((total, row) => total + Number(row[key]), 0);
 
-    const exerciseTypes: ExerciseType[] = [
-      ExerciseType.SELECT_IMAGE,
-      ExerciseType.MULTIPLE_CHOICE,
-      ExerciseType.MATCHING,
-      ExerciseType.LISTENING,
-      ExerciseType.PRONUNCIATION,
-    ];
+    const totalCorrectCount = sum('correctCount');
+    const totalIncorrectCount = sum('incorrectCount');
+    const totalAnswers = totalCorrectCount + totalIncorrectCount;
+    const totalScore = sum('totalScore');
+    const maxScore = sum('maxScore');
 
-    // Always return every type, in a fixed order, with zeros for types
-    // the user has not practised.
-    const byType = exerciseTypes.map((type) => {
-      const row = rowByType.get(type);
-      return {
-        type,
-        correctCount: row?.correctCount ?? 0,
-        correctOnSecondCount: row?.correctOnSecondCount ?? 0,
-        incorrectCount: row?.incorrectCount ?? 0,
-      };
-    });
-
-    // Every detail belongs to an exercise with a type, so the per-type
-    // counts add up to the overall totals.
-    const totalCorrectCount = typeRows.reduce(
-      (sum, row) => sum + row.correctCount,
-      0,
-    );
-    const totalIncorrectCount = typeRows.reduce(
-      (sum, row) => sum + row.incorrectCount,
-      0,
-    );
+    const byType = everyExerciseType(typeRows);
 
     return {
-      completeLessonCount: summary?.completeLessonCount ?? 0,
-      totalLessonCount: summary?.totalLessonCount ?? 0,
-      totalDurationSec: summary?.totalDurationSec ?? 0,
+      completeLessonCount: sum('completeLessonCount'),
+      totalLessonCount: sum('lessonCount'),
+      perfectLessonCount: sum('perfectLessonCount'),
+      attemptCount: sum('attemptCount'),
+      totalDurationSec: sum('durationSec'),
       totalCorrectCount,
       totalIncorrectCount,
+      totalSkipCount: sum('skipCount'),
+      totalCorrectOnSecondCount: byType.reduce(
+        (total, row) => total + row.correctOnSecondCount,
+        0,
+      ),
+      accuracyPct:
+        totalAnswers > 0 ? (totalCorrectCount / totalAnswers) * 100 : 0,
+      scorePct: maxScore > 0 ? (totalScore / maxScore) * 100 : 0,
       byType,
+      byTopic: topicRows.map((row) => ({
+        topicId: row.topicId,
+        title: row.title,
+        lessonCount: row.lessonCount,
+        completeLessonCount: row.completeLessonCount,
+        correctCount: row.correctCount,
+        incorrectCount: row.incorrectCount,
+      })),
+      recentAttempts: recentRows.map((attempt) => ({
+        attemptId: attempt.id,
+        lessonId: attempt.lessonId,
+        lessonTitle: attempt.lesson.title,
+        topicTitle: attempt.lesson.topic.title,
+        totalScore: attempt.totalScore,
+        maxScore: attempt.maxScore,
+        accuracyPct: attempt.accuracyPct,
+        createdAt: attempt.createdAt,
+      })),
     };
+  }
+
+  /**
+   * Practice over the last `days` days (Vietnam time, today included): one
+   * row per day, zeros on days without practice. Finished attempts only; right and wrong come from saved answers,
+   * as in getPracticeStatistics.
+   */
+  async getDailyPracticeStats(
+    userId: number,
+    days: number,
+  ): Promise<DailyPracticeStatsResponseDto> {
+    const firstDay = Prisma.sql`(now() AT TIME ZONE ${PRACTICE_TIME_ZONE})::date - ${days - 1}::int`;
+    const finished = Prisma.sql`
+      SELECT
+        a."id",
+        (a."createdAt" AT TIME ZONE 'UTC' AT TIME ZONE ${PRACTICE_TIME_ZONE})::date
+          AS "day",
+        a."durationSec"
+      FROM "Attempt" a
+      WHERE a."userId" = ${userId}
+        AND a."isCompleted" = true
+        AND a."createdAt" >= now() - ${days + 1}::int * interval '1 day'
+    `;
+
+    const dayRows = await this.prisma.$queryRaw<DailyPracticeStatsDayDto[]>`
+        WITH days AS (
+          SELECT generate_series(
+            ${firstDay},
+            (now() AT TIME ZONE ${PRACTICE_TIME_ZONE})::date,
+            interval '1 day'
+          )::date AS "day"
+        ),
+        finished AS (${finished}),
+        per_day AS (
+          SELECT "day", COUNT(*) AS "attemptCount", SUM("durationSec") AS "durationSec"
+          FROM finished
+          GROUP BY "day"
+        ),
+        answers AS (
+          SELECT
+            f."day",
+            COUNT(*) FILTER (WHERE d."isCorrect") AS "correctCount",
+            COUNT(*) FILTER (WHERE NOT d."isCorrect") AS "incorrectCount"
+          FROM "AttemptDetail" d
+          JOIN finished f ON f."id" = d."attemptId"
+          GROUP BY f."day"
+        )
+        SELECT
+          to_char(days."day", 'YYYY-MM-DD') AS "date",
+          COALESCE(pd."attemptCount", 0)::int AS "attemptCount",
+          COALESCE(pd."durationSec", 0)::int AS "durationSec",
+          COALESCE(ans."correctCount", 0)::int AS "correctCount",
+          COALESCE(ans."incorrectCount", 0)::int AS "incorrectCount"
+        FROM days
+        LEFT JOIN per_day pd ON pd."day" = days."day"
+        LEFT JOIN answers ans ON ans."day" = days."day"
+        ORDER BY days."day" ASC
+      `;
+
+    return { days, data: dayRows };
   }
 
   /**

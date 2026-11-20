@@ -1,6 +1,6 @@
 import { PageHeading } from "@/components/page-heading";
-import { StreakChart } from "./_components/streak-chart";
 import { XPChart } from "./_components/xp-chart";
+import { PracticeChart } from "./_components/practice-charts";
 import { WeeklyLeaderboard } from "./_components/weekly-leaderboard";
 
 export default function LeaderboardPage() {
@@ -20,10 +20,10 @@ export default function LeaderboardPage() {
           </div>
         </div>
 
-        {/* Charts */}
+        {/* Charts: XP, then practice each day */}
         <div className="flex min-w-0 flex-col gap-6 lg:order-1">
-          <StreakChart />
           <XPChart />
+          <PracticeChart />
         </div>
       </div>
     </div>
