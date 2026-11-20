@@ -160,6 +160,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/attempts/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AttemptController_submitAttempt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/login": {
         parameters: {
             query?: never;
@@ -1424,6 +1440,50 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AttemptAnswerDto: {
+            /**
+             * @description Number of tries the learner used (1 or 2)
+             * @example 1
+             */
+            attempts?: number;
+            /**
+             * @description Exercise ID
+             * @example 1
+             */
+            exerciseId: number;
+            /**
+             * @description Whether the answer is correct
+             * @example true
+             */
+            isCorrect: boolean;
+            /**
+             * @description The learner skipped the exercise instead of answering it
+             * @example false
+             */
+            isSkipped?: boolean;
+            /**
+             * @description Points earned for this answer
+             * @example 10
+             */
+            points?: number;
+            /** @description Pronunciation score if applicable */
+            pronunciation?: components["schemas"]["PronunciationScoreDto"];
+            /**
+             * @description ID of the second selected option (for matching exercises)
+             * @example 8
+             */
+            selectedOption2Id?: number;
+            /**
+             * @description ID of the first selected option
+             * @example 5
+             */
+            selectedOptionId?: number;
+            /**
+             * @description Time taken to answer in seconds
+             * @example 15
+             */
+            timeSec?: number;
+        };
         AttemptDetailResponseDto: {
             /**
              * @description Attempt ID
@@ -2739,6 +2799,20 @@ export interface components {
             gradeData: components["schemas"]["StreakStatsDataPointDto"][];
             totalXP: number;
         };
+        SubmitAttemptDto: {
+            /** @description One final result per exercise, in the order answered */
+            answers: components["schemas"]["AttemptAnswerDto"][];
+            /**
+             * @description Time spent on the whole lesson in seconds
+             * @example 120
+             */
+            durationSec?: number;
+            /**
+             * @description Lesson ID
+             * @example 1
+             */
+            lessonId: number;
+        };
         SubmitExerciseDto: {
             /**
              * @description Exercise ID
@@ -3481,6 +3555,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MostWrongExerciseStatsDto"][];
+                };
+            };
+        };
+    };
+    AttemptController_submitAttempt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitAttemptDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptResponseDto"];
                 };
             };
         };

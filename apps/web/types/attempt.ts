@@ -44,22 +44,25 @@ export type Attempt = {
   updatedAt: string;
 };
 
-export type CreateAttemptRequest = {
-  lessonId: number;
-};
-
-export type SubmitExerciseRequest = {
+/** The final result of one exercise, kept in the quiz store until the lesson ends. */
+export type AttemptAnswer = {
   exerciseId: number;
   isCorrect: boolean;
+  /** Skipped instead of answered (for example, no microphone). */
+  isSkipped?: boolean;
   selectedOptionId?: number;
   selectedOption2Id?: number;
   timeSec?: number;
-  points?: number;
+  points: number;
+  /** Tries used: 1 or 2. */
+  attempts: number;
   pronunciation?: PronunciationScore;
 };
 
-export type CompleteAttemptRequest = {
-  durationSec: number;
+export type SubmitAttemptRequest = {
+  lessonId: number;
+  durationSec?: number;
+  answers: AttemptAnswer[];
 };
 
 export interface PracticeStatisticsByType {

@@ -3454,6 +3454,42 @@
         ]
       }
     },
+    "/api/attempts/submit": {
+      "post": {
+        "operationId": "AttemptController_submitAttempt",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitAttemptDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttemptResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Attempt"
+        ]
+      }
+    },
     "/api/attempts/details": {
       "post": {
         "operationId": "AttemptController_createAttemptDetail",
@@ -7035,6 +7071,93 @@
             "type": "string"
           }
         }
+      },
+      "AttemptAnswerDto": {
+        "type": "object",
+        "properties": {
+          "exerciseId": {
+            "type": "number",
+            "description": "Exercise ID",
+            "example": 1
+          },
+          "isCorrect": {
+            "type": "boolean",
+            "description": "Whether the answer is correct",
+            "example": true
+          },
+          "selectedOptionId": {
+            "type": "number",
+            "description": "ID of the first selected option",
+            "example": 5
+          },
+          "selectedOption2Id": {
+            "type": "number",
+            "description": "ID of the second selected option (for matching exercises)",
+            "example": 8
+          },
+          "timeSec": {
+            "type": "number",
+            "description": "Time taken to answer in seconds",
+            "example": 15
+          },
+          "points": {
+            "type": "number",
+            "description": "Points earned for this answer",
+            "example": 10
+          },
+          "pronunciation": {
+            "description": "Pronunciation score if applicable",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PronunciationScoreDto"
+              }
+            ]
+          },
+          "attempts": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 2,
+            "description": "Number of tries the learner used (1 or 2)",
+            "example": 1
+          },
+          "isSkipped": {
+            "type": "boolean",
+            "description": "The learner skipped the exercise instead of answering it",
+            "example": false
+          }
+        },
+        "required": [
+          "exerciseId",
+          "isCorrect"
+        ]
+      },
+      "SubmitAttemptDto": {
+        "type": "object",
+        "properties": {
+          "lessonId": {
+            "type": "number",
+            "description": "Lesson ID",
+            "example": 1
+          },
+          "durationSec": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Time spent on the whole lesson in seconds",
+            "example": 120
+          },
+          "answers": {
+            "maxItems": 200,
+            "description": "One final result per exercise, in the order answered",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttemptAnswerDto"
+            }
+          }
+        },
+        "required": [
+          "lessonId",
+          "answers"
+        ]
       },
       "CreateAttemptDetailDto": {
         "type": "object",

@@ -1,4 +1,4 @@
-import { Check, X } from "lucide-react";
+import { Check, MicOff, X } from "lucide-react";
 import { useKey } from "react-use";
 
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,10 @@ type FooterProps = {
   hintVi?: string;
   hintEn?: string;
   isFirstWrongAttempt?: boolean;
+  /** Show "pick an answer, then press Enter" while nothing is checked yet. */
+  showCheckHint?: boolean;
+  /** Offer skipping a pronunciation question when there is no microphone. */
+  showMicSkip?: boolean;
 };
 
 /**
@@ -31,6 +35,8 @@ export const Footer = ({
   hintVi,
   hintEn,
   isFirstWrongAttempt,
+  showCheckHint = true,
+  showMicSkip = false,
 }: FooterProps) => {
   useKey("Enter", onCheck, {}, [onCheck]);
   useKey("s", onSkip || (() => {}), {}, [onSkip]);
@@ -87,7 +93,7 @@ export const Footer = ({
             </div>
           )}
 
-          {status === "none" && (
+          {status === "none" && showCheckHint && (
             <p className="hidden text-sm font-bold text-ink-meta sm:block">
               Chọn đáp án rồi bấm{" "}
               <kbd className="rounded-md border-2 border-b-4 border-edge bg-white px-1.5 font-sans text-xs font-black text-ink-body">
@@ -109,17 +115,30 @@ export const Footer = ({
           )}
         </div>
 
-        <Button
-          disabled={disabled}
-          aria-disabled={disabled}
-          onClick={onCheck}
-          onKeyDown={keepEnterForCheck}
-          size="lg"
-          variant={isWrong ? "danger" : "secondary"}
-          className="h-14 w-full shrink-0 text-base uppercase tracking-wide sm:w-auto sm:min-w-[220px]"
-        >
-          {status === "none" ? "Kiểm tra" : "Tiếp tục"}
-        </Button>
+        <div className="flex w-full shrink-0 flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+          {showMicSkip && status === "none" && onSkip && (
+            <Button
+              onClick={onSkip}
+              size="lg"
+              variant="default"
+              className="order-last h-14 w-full text-base sm:order-none sm:w-auto"
+            >
+              <MicOff className="size-5" aria-hidden="true" />
+              Không có micro? Bỏ qua
+            </Button>
+          )}
+          <Button
+            disabled={disabled}
+            aria-disabled={disabled}
+            onClick={onCheck}
+            onKeyDown={keepEnterForCheck}
+            size="lg"
+            variant={isWrong ? "danger" : "secondary"}
+            className="h-14 w-full text-base uppercase tracking-wide sm:w-auto sm:min-w-[220px]"
+          >
+            {status === "none" ? "Kiểm tra" : "Tiếp tục"}
+          </Button>
+        </div>
       </div>
     </footer>
   );

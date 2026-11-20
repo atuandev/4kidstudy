@@ -10,6 +10,7 @@ import {
   CreateAttemptDetailDto,
   SubmitExerciseDto,
   CompleteAttemptDto,
+  SubmitAttemptDto,
   GetAttemptsQueryDto,
   AttemptResponseDto,
   PaginatedAttemptsResponseDto,
@@ -398,6 +399,148 @@ export class AttemptService {
   }
 
   /**
+   * Save a finished lesson in one transaction: the completed attempt, every
+   * answer (with pronunciation scores), XP and the streak. Nothing is written
+   * while the learner plays, so an abandoned lesson leaves no rows behind.
+   */
+  async submitAttempt(
+    userId: number,
+    submitAttemptDto: SubmitAttemptDto,
+  ): Promise<AttemptResponseDto> {
+    const { lessonId, durationSec, answers } = submitAttemptDto;
+
+    const lesson = await this.prisma.lesson.findUnique({
+      where: { id: lessonId },
+      include: {
+        exercises: { include: { options: { select: { id: true } } } },
+      },
+    });
+
+    if (!lesson) {
+      throw new NotFoundException(`Lesson with ID ${lessonId} not found`);
+    }
+
+    const exercisesById = new Map(lesson.exercises.map((ex) => [ex.id, ex]));
+    const answeredIds = new Set<number>();
+
+    const details = answers.map((answer) => {
+      const exercise = exercisesById.get(answer.exerciseId);
+      if (!exercise) {
+        throw new BadRequestException(
+          `Exercise ${answer.exerciseId} does not belong to lesson ${lessonId}`,
+        );
+      }
+      if (answeredIds.has(exercise.id)) {
+        throw new BadRequestException(
+          `Exercise ${exercise.id} is answered more than once`,
+        );
+      }
+      answeredIds.add(exercise.id);
+
+      const optionIds = new Set(exercise.options.map((option) => option.id));
+      for (const optionId of [
+        answer.selectedOptionId,
+        answer.selectedOption2Id,
+      ]) {
+        if (optionId !== undefined && !optionIds.has(optionId)) {
+          throw new BadRequestException(
+            `Option ${optionId} does not belong to exercise ${exercise.id}`,
+          );
+        }
+      }
+
+      // The client scores tries (10 first, 5 second); never trust more than
+      // the exercise is worth.
+      const points = answer.isCorrect
+        ? Math.max(
+            0,
+            Math.min(answer.points ?? exercise.points, exercise.points),
+          )
+        : 0;
+
+      return { answer, exercise, points };
+    });
+
+    const totalScore = details.reduce((sum, d) => sum + d.points, 0);
+    const correctCount = details.filter((d) => d.answer.isCorrect).length;
+    const incorrectCount = details.length - correctCount;
+    const skipCount = details.filter((d) => d.answer.isSkipped).length;
+    const accuracyPct =
+      details.length > 0 ? (correctCount / details.length) * 100 : 0;
+    const maxScore = lesson.exercises.reduce((sum, ex) => sum + ex.points, 0);
+
+    const attempt = await this.prisma.$transaction(
+      async (tx) => {
+        const previousAttempts = await tx.attempt.count({
+          where: { userId, lessonId },
+        });
+
+        const created = await tx.attempt.create({
+          data: {
+            userId,
+            lessonId,
+            attemptNumber: previousAttempts + 1,
+            maxScore,
+            durationSec,
+            totalScore,
+            correctCount,
+            incorrectCount,
+            skipCount,
+            accuracyPct,
+            isCompleted: true,
+            details: {
+              create: details.map(({ answer, exercise, points }) => ({
+                exerciseId: exercise.id,
+                isCorrect: answer.isCorrect,
+                selectedOptionId: answer.selectedOptionId,
+                selectedOption2Id: answer.selectedOption2Id,
+                timeSec: answer.timeSec,
+                points,
+                maxPoints: exercise.points,
+                attempts: answer.attempts ?? 1,
+                pronunciation: answer.pronunciation
+                  ? {
+                      create: {
+                        accuracy: answer.pronunciation.accuracy,
+                        fluency: answer.pronunciation.fluency,
+                        completeness: answer.pronunciation.completeness,
+                        prosody: answer.pronunciation.prosody,
+                        overall: answer.pronunciation.overall,
+                        rawJson: answer.pronunciation.rawJson,
+                        audioUrl: answer.pronunciation.audioUrl,
+                      },
+                    }
+                  : undefined,
+              })),
+            },
+          },
+          include: {
+            details: {
+              include: { pronunciation: true },
+              orderBy: { id: 'asc' },
+            },
+          },
+        });
+
+        await this.awardXpForAttempt(
+          tx,
+          userId,
+          created.id,
+          lessonId,
+          totalScore,
+        );
+        await this.updateUserStreak(tx, userId);
+
+        return created;
+      },
+      // Each answer is its own insert; leave room for a slow database.
+      { timeout: 15_000 },
+    );
+
+    return this.mapToAttemptResponse(attempt);
+  }
+
+  /**
    * Get attempt by ID
    */
   async getAttemptById(attemptId: number): Promise<AttemptResponseDto> {
@@ -413,7 +556,8 @@ export class AttemptService {
               },
             },
           },
-          orderBy: { createdAt: 'asc' },
+          // Answers saved together share a timestamp; id keeps their order.
+          orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
         },
       },
     });

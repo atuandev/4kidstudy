@@ -17,6 +17,7 @@ import {
   CreateAttemptDetailDto,
   SubmitExerciseDto,
   CompleteAttemptDto,
+  SubmitAttemptDto,
   GetAttemptsQueryDto,
   AttemptResponseDto,
   PaginatedAttemptsResponseDto,
@@ -47,6 +48,21 @@ export class AttemptController {
   ): Promise<AttemptResponseDto> {
     const userId = req.user.id;
     return this.attemptService.startAttempt(userId, createAttemptDto);
+  }
+
+  /**
+   * Save a finished lesson: the attempt, all answers, XP and streak at once
+   * POST /attempts/submit
+   */
+  @Post('submit')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async submitAttempt(
+    @Request() req: any,
+    @Body() submitAttemptDto: SubmitAttemptDto,
+  ): Promise<AttemptResponseDto> {
+    const userId = req.user.id;
+    return this.attemptService.submitAttempt(userId, submitAttemptDto);
   }
 
   /**

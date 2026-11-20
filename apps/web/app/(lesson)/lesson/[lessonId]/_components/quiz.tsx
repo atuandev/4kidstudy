@@ -58,7 +58,7 @@ export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
   const { correctAudio, incorrectAudio, finishAudio, playCorrect, playIncorrect } = useQuizAudio();
 
   // Session management
-  useQuizSession({
+  const { isReady } = useQuizSession({
     lessonId: lesson.id,
     exercises: lessonExercises,
   });
@@ -82,12 +82,24 @@ export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
   } = useQuizLogic({ playCorrect, playIncorrect });
 
   // Stats
-  const { totalPoints, correctCount, skippedCount, wrongCount } = useExerciseStatsStore();
+  const { totalPoints, correctCount, wrongCount } = useExerciseStatsStore();
   const { updatePronunciation, getExerciseAttemptCount } = useQuizStore();
 
   const handlePronunciationStateChange = (state: string, score?: PronunciationScore | null) => {
     updatePronunciation(state, score);
   };
+
+  // Wait for this lesson's fresh store; the old one may hold a finished quiz.
+  // The audio elements still render: useAudio needs them from mount.
+  if (!isReady) {
+    return (
+      <>
+        {incorrectAudio}
+        {correctAudio}
+        {finishAudio}
+      </>
+    );
+  }
 
   // Quiz complete logic
   if (!exercise) {
@@ -159,6 +171,8 @@ export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
           )}
 
           <Exercise
+            // Fresh state per question, so a recording never carries over.
+            key={exercise.id}
             options={options}
             onSelect={handleSelect}
             status={status}
@@ -179,6 +193,8 @@ export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
         status={status}
         onCheck={handleContinue}
         onSkip={handleSkip}
+        showCheckHint={exercise.type !== "PRONUNCIATION"}
+        showMicSkip={exercise.type === "PRONUNCIATION"}
         showSkip={status === "none"}
         isAutoSkipExercise={["SELECT_IMAGE", "MULTIPLE_CHOICE", "LISTENING"].includes(
           exercise.type,
