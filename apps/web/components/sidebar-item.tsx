@@ -1,14 +1,14 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";
+import { NavIcon } from "./nav-icons";
 import { NAV_TONES, type NavItem } from "./nav-items";
 import { useNavTarget } from "./use-nav-target";
 
 /** A big sidebar tile: the section's picture in a tinted disc, its name, its colour when active. */
-export const SidebarItem = ({ label, iconSrc, href, tone }: NavItem) => {
+export const SidebarItem = ({ label, icon, href, tone }: NavItem) => {
   const { targetHref, isActive } = useNavTarget(href);
   const colors = NAV_TONES[tone];
 
@@ -30,7 +30,7 @@ export const SidebarItem = ({ label, iconSrc, href, tone }: NavItem) => {
             isActive ? "bg-white" : colors.disc,
           )}
         >
-          <Image src={iconSrc} alt="" height={30} width={30} />
+          <NavIcon icon={icon} tone={tone} active={isActive} />
         </span>
         {label}
       </Link>

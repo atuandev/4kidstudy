@@ -5,7 +5,8 @@ import { PageHeading } from "@/components/page-heading";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { GRADE_LABELS, GradeValue, User as UserType } from "@/types";
-import { Flame, KeyRoundIcon, LogOutIcon, Trophy, UserIcon } from "lucide-react";
+import { FireIcon, TrophyIcon } from "@phosphor-icons/react";
+import { KeyRoundIcon, LogOutIcon, UserIcon } from "lucide-react";
 import { redirect } from "next/navigation";
 import { useState } from "react";
 import { UpdateProfileDialog } from "./update-profile";
@@ -147,7 +148,7 @@ export default function Profile({ profile }: ProfileProps) {
               <dt className="text-sm font-bold text-sun-body">Tổng kinh nghiệm</dt>
               <dd className="flex flex-col items-center gap-2">
                 <span className="flex size-12 -rotate-6 items-center justify-center rounded-2xl bg-sun text-ink shadow-[0_4px_0_#B78A00]">
-                  <Trophy className="size-6" aria-hidden="true" />
+                  <TrophyIcon size={28} weight="fill" aria-hidden="true" />
                 </span>
                 <span className="text-3xl font-black tabular-nums text-ink">
                   {profile.xp.toLocaleString("vi-VN")}
@@ -158,7 +159,7 @@ export default function Profile({ profile }: ProfileProps) {
               <dt className="text-sm font-bold text-ink-body">Chuỗi ngày học</dt>
               <dd className="flex flex-col items-center gap-2">
                 <span className="flex size-12 rotate-6 items-center justify-center rounded-2xl bg-tangerine text-white shadow-[0_4px_0_#C2410C]">
-                  <Flame className="size-6 fill-white/30" aria-hidden="true" />
+                  <FireIcon size={28} weight="fill" aria-hidden="true" />
                 </span>
                 <span className="text-3xl font-black tabular-nums text-ink">
                   {profile.streakDays}

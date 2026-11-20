@@ -1,4 +1,6 @@
 "use client";
+
+import { BookOpenTextIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { TopicWithProgress } from "@/types/topic-with-progress";
 import Image from "next/image";
@@ -91,7 +93,7 @@ export function UnitCard({ topic }: UnitCardProps) {
         </div>
       ) : (
         <div className="flex aspect-[16/9] w-full items-center justify-center rounded-[22px] bg-wash">
-          <Image src="/learn.svg" alt="" width={56} height={56} className="opacity-60" />
+          <BookOpenTextIcon size={56} weight="duotone" className="text-ink-meta" aria-hidden="true" />
         </div>
       )}
       <h2 className="mt-5 text-xl font-black leading-snug text-ink">{topic.title}</h2>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy } from "lucide-react";
+import { TrophyIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { getWeeklyLeaderboard, LeaderboardEntry } from "@/actions/leaderboard";
 
@@ -116,7 +116,7 @@ export function WeeklyLeaderboard() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex size-11 shrink-0 -rotate-6 items-center justify-center rounded-2xl bg-sun text-ink shadow-[0_4px_0_#B78A00]">
-            <Trophy className="size-6" aria-hidden="true" />
+            <TrophyIcon size={26} weight="fill" aria-hidden="true" />
           </span>
           <div>
             <h2 id="weekly-title" className="whitespace-nowrap text-lg font-black leading-tight text-ink">

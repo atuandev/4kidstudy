@@ -1,6 +1,6 @@
 "use client";
 
-import { FlameIcon, TrophyIcon } from "lucide-react";
+import { FireIcon, TrophyIcon } from "@phosphor-icons/react";
 
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/use-profile";
@@ -22,14 +22,14 @@ export function LearnerStats({
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <span className={pill}>
-        <TrophyIcon className="size-5 fill-sun text-sun-deep" aria-hidden="true" />
+        <TrophyIcon size={22} weight="duotone" className="text-sun-deep" aria-hidden="true" />
         <span className="text-lg font-black tabular-nums text-ink">
           {profile ? profile.xp.toLocaleString("vi-VN") : "–"}
         </span>
         <span className={cn("text-sm font-extrabold text-ink-body", compact && "sr-only")}>XP</span>
       </span>
       <span className={pill}>
-        <FlameIcon className="size-5 fill-sun text-tangerine" aria-hidden="true" />
+        <FireIcon size={22} weight="duotone" className="text-tangerine" aria-hidden="true" />
         <span className="text-lg font-black tabular-nums text-ink">
           {profile ? profile.streakDays : "–"}
         </span>

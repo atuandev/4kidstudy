@@ -1,13 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";
+import { NavIcon } from "./nav-icons";
 import { NAV_ITEMS, NAV_TONES, type NavItem } from "./nav-items";
 import { useNavTarget } from "./use-nav-target";
 
-function BottomNavItem({ label, iconSrc, href, tone }: NavItem) {
+function BottomNavItem({ label, icon, href, tone }: NavItem) {
   const { targetHref, isActive } = useNavTarget(href);
   const colors = NAV_TONES[tone];
 
@@ -23,11 +23,10 @@ function BottomNavItem({ label, iconSrc, href, tone }: NavItem) {
             : "border-transparent text-ink-body",
         )}
       >
-        <Image
-          src={iconSrc}
-          alt=""
-          width={30}
-          height={30}
+        <NavIcon
+          icon={icon}
+          tone={tone}
+          active={isActive}
           className={cn(
             "transition-transform duration-200 ease-peel",
             isActive && "-translate-y-0.5 scale-110",
