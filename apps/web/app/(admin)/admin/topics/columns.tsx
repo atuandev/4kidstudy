@@ -78,15 +78,13 @@ function DeleteTopicDialog({ topic }: { topic: Topic }) {
         <AlertDialogHeader>
           <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
           <AlertDialogDescription>
-            Hành động này không thể hoàn tác. Chủ đề này sẽ bị xóa vĩnh viễn
-            khỏi hệ thống cùng với tất cả các bài học và flashcard liên quan.
+            Hành động này không thể hoàn tác. Chủ đề này sẽ bị xóa vĩnh viễn khỏi hệ thống cùng với
+            tất cả các bài học và flashcard liên quan.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Hủy</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete}>
-            Xóa
-          </AlertDialogAction>
+          <AlertDialogAction onClick={handleDelete}>Xóa</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -99,8 +97,7 @@ export const columns: ColumnDef<Topic>[] = [
     header: ({ table }) => (
       <Checkbox
         checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
+          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
@@ -118,9 +115,7 @@ export const columns: ColumnDef<Topic>[] = [
   },
   {
     accessorKey: "id",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="ID" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
     cell: ({ row }) => <div className="w-[60px]">{row.getValue("id")}</div>,
     filterFn: (row, id, value) => {
       const rowId = String(row.getValue(id));
@@ -155,9 +150,7 @@ export const columns: ColumnDef<Topic>[] = [
   },
   {
     accessorKey: "title",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Tiêu đề" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Tiêu đề" />,
     cell: ({ row }) => {
       const title = row.getValue("title") as string;
       return (
@@ -169,9 +162,7 @@ export const columns: ColumnDef<Topic>[] = [
   },
   {
     accessorKey: "grade",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Lớp" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Lớp" />,
     cell: ({ row }) => {
       const grade = row.getValue("grade") as string | undefined;
       if (!grade) return <div>-</div>;
@@ -187,9 +178,7 @@ export const columns: ColumnDef<Topic>[] = [
   },
   {
     accessorKey: "isActive",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Trạng thái" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Trạng thái" />,
     cell: ({ row }) => {
       const isActive = row.getValue("isActive") as boolean;
       return (
@@ -205,9 +194,7 @@ export const columns: ColumnDef<Topic>[] = [
   {
     accessorKey: "_count.lessons",
     id: "lessonsCount",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Số bài luyện tập" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Số bài luyện tập" />,
     cell: ({ row }) => {
       const count = row.original._count?.lessons || 0;
       return <div className="text-center">{count}</div>;
@@ -216,9 +203,7 @@ export const columns: ColumnDef<Topic>[] = [
   {
     accessorKey: "_count.flashcards",
     id: "flashcardsCount",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Số thẻ từ vựng" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Số thẻ từ vựng" />,
     cell: ({ row }) => {
       const count = row.original._count?.flashcards || 0;
       return <div className="text-center">{count}</div>;
@@ -227,9 +212,7 @@ export const columns: ColumnDef<Topic>[] = [
   {
     accessorKey: "_count.sentenceImages",
     id: "sentenceImagesCount",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Số thẻ câu" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Số thẻ câu" />,
     cell: ({ row }) => {
       const count = row.original._count?.sentenceImages || 0;
       return <div className="text-center">{count}</div>;
@@ -237,9 +220,7 @@ export const columns: ColumnDef<Topic>[] = [
   },
   {
     accessorKey: "createdAt",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Ngày tạo" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Ngày tạo" />,
     cell: ({ row }) => {
       const date = new Date(row.getValue("createdAt"));
       return <div>{date.toLocaleDateString("vi-VN")}</div>;
@@ -265,35 +246,25 @@ export const columns: ColumnDef<Topic>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() =>
-                navigator.clipboard.writeText(topic.id.toString())
-              }
-            >
+            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(topic.id.toString())}>
               <CopyIcon className="mr-2 h-4 w-4" />
               Copy ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() =>
-                router.push(`/admin/flashcards/form?topicId=${topic.id}`)
-              }
+              onClick={() => router.push(`/admin/flashcards/form?topicId=${topic.id}`)}
             >
               <Plus className="mr-2 h-4 w-4" />
               Tạo nhiều thẻ từ vựng
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() =>
-                router.push(`/admin/sentences/form?topicId=${topic.id}`)
-              }
+              onClick={() => router.push(`/admin/sentences/form?topicId=${topic.id}`)}
             >
               <Plus className="mr-2 h-4 w-4" />
               Tạo nhiều thẻ câu
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() =>
-                router.push(`/admin/lessons/form?topicId=${topic.id}`)
-              }
+              onClick={() => router.push(`/admin/lessons/form?topicId=${topic.id}`)}
             >
               <Plus className="mr-2 h-4 w-4" />
               Tạo nhiều bài luyện tập

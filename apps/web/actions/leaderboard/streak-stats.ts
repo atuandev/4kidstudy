@@ -14,23 +14,18 @@ interface StreakStatsResponse {
   days: number;
 }
 
-export async function getStreakStats(
-  days: number = 7
-): Promise<StreakStatsResponse> {
+export async function getStreakStats(days: number = 7): Promise<StreakStatsResponse> {
   try {
     const accessToken = await getAccessToken();
     if (!accessToken) {
       throw new Error("Not authenticated");
     }
 
-    const response = await http.get<StreakStatsResponse>(
-      `/leaderboard/streak-stats?days=${days}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    const response = await http.get<StreakStatsResponse>(`/leaderboard/streak-stats?days=${days}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
 
     return response.payload;
   } catch (error) {

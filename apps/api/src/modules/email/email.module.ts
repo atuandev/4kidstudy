@@ -4,11 +4,13 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { EmailController } from './email.controller';
 import { EmailService } from './email.service';
 import { PrismaModule } from '../prisma/prisma.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule,
     PrismaModule,
+    AuthModule,
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({

@@ -59,12 +59,21 @@ export const CreateLessonSchema = z.object({
 
 export type CreateLessonFormData = z.infer<typeof CreateLessonSchema>;
 
+/** A new lesson for bulk create: no topicId/order; empty optional fields omitted. */
+export type NewLessonInput = Pick<CreateLessonFormData, "title" | "description" | "status"> &
+  Partial<
+    Pick<
+      CreateLessonFormData,
+      "theoryText" | "phoneticsNote" | "grammarNote" | "audioUrl" | "coverImage"
+    >
+  >;
+
 /**
  * Schema for lesson item in bulk create (without topicId, with optional id)
  */
 export const LessonWithOptionalIdSchema = z.object({
   id: z.number().optional(),
-  
+
   title: z
     .string({
       error: "Vui lòng nhập tiêu đề",
@@ -104,7 +113,7 @@ export const CreateLessonsSchema = z.object({
       error: "Vui lòng chọn chủ đề",
     })
     .min(1, "Vui lòng chọn chủ đề"),
-  
+
   lessons: z.array(LessonWithOptionalIdSchema).min(1, "Phải có ít nhất một bài luyện tập"),
 });
 

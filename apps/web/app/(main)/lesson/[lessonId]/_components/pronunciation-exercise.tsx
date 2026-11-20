@@ -20,18 +20,10 @@ type PronunciationExerciseProps = {
   disabled?: boolean;
   targetText?: string;
   audioUrl?: string;
-  onStateChange?: (
-    state: RecordingState,
-    score?: PronunciationScore | null
-  ) => void;
+  onStateChange?: (state: RecordingState, score?: PronunciationScore | null) => void;
 };
 
-type RecordingState =
-  | "idle"
-  | "recording"
-  | "recorded"
-  | "analyzing"
-  | "completed";
+type RecordingState = "idle" | "recording" | "recorded" | "analyzing" | "completed";
 
 type PronunciationScore = {
   accuracy: number;
@@ -49,9 +41,7 @@ export function PronunciationExercise({
   onStateChange,
 }: PronunciationExerciseProps) {
   const [recordingState, setRecordingState] = useState<RecordingState>("idle");
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
-    null
-  );
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const [recordedAudioUrl, setRecordedAudioUrl] = useState<string | null>(null);
   const [score, setScore] = useState<PronunciationScore | null>(null);
@@ -155,7 +145,7 @@ export function PronunciationExercise({
         blobType: recordedBlob.type,
         targetText,
       });
-      
+
       const response = await assessPronunciation(recordedBlob, targetText);
 
       clearInterval(progressInterval);
@@ -180,7 +170,10 @@ export function PronunciationExercise({
         onStateChange?.("completed", assessmentScore);
       } else {
         // Handle error - log full response for debugging
-        console.error("Pronunciation assessment failed. Full response:", JSON.stringify(response, null, 2));
+        console.error(
+          "Pronunciation assessment failed. Full response:",
+          JSON.stringify(response, null, 2),
+        );
         const errorMsg = response?.error || "Không thể phân tích phát âm. Vui lòng thử lại.";
         console.error("Error message:", errorMsg);
         setErrorMessage(errorMsg);
@@ -195,9 +188,10 @@ export function PronunciationExercise({
         message: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });
-      const errorMsg = error instanceof Error 
-        ? error.message 
-        : "Đã xảy ra lỗi khi phân tích phát âm. Vui lòng thử lại.";
+      const errorMsg =
+        error instanceof Error
+          ? error.message
+          : "Đã xảy ra lỗi khi phân tích phát âm. Vui lòng thử lại.";
       setErrorMessage(errorMsg);
       setRecordingState("recorded");
       onStateChange?.("recorded", null);
@@ -243,9 +237,7 @@ export function PronunciationExercise({
       {/* Audio Controls */}
       {audioUrl && (
         <div className="space-y-2 pb-6">
-          <p className="text-2xl font-bold text-neutral-800 lg:text-3xl">
-            {targetText}
-          </p>
+          <p className="text-2xl font-bold text-neutral-800 lg:text-3xl">{targetText}</p>
           <AudioPlayer
             audioUrl={audioUrl}
             variant="button"
@@ -319,13 +311,9 @@ export function PronunciationExercise({
 
         {recordingState === "analyzing" && (
           <div className="flex flex-col items-center space-y-3 w-full max-w-md">
-            <p className="font-medium text-blue-600">
-              Đang phân tích phát âm...
-            </p>
+            <p className="font-medium text-blue-600">Đang phân tích phát âm...</p>
             <Progress value={analysisProgress} className="w-full" />
-            <p className="text-neutral-500">
-              Sử dụng AI để phân tích phát âm của bạn
-            </p>
+            <p className="text-neutral-500">Sử dụng AI để phân tích phát âm của bạn</p>
           </div>
         )}
 
@@ -334,9 +322,7 @@ export function PronunciationExercise({
             <div className="flex flex-col items-center gap-3">
               {recordedAudioUrl && (
                 <div className="flex flex-col items-center space-y-2">
-                  <p className="font-bold text-lg text-neutral-600">
-                    Ghi âm của bạn
-                  </p>
+                  <p className="font-bold text-lg text-neutral-600">Ghi âm của bạn</p>
                   <AudioControl audioUrl={recordedAudioUrl} />
                 </div>
               )}
@@ -351,51 +337,29 @@ export function PronunciationExercise({
             </div>
 
             <div className="w-full space-y-3">
-              <h3 className="text-lg font-bold text-neutral-800">
-                Kết quả phát âm
-              </h3>
+              <h3 className="text-lg font-bold text-neutral-800">Kết quả phát âm</h3>
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">Độ chính xác:</span>
-                <span
-                  className={cn(
-                    "text-sm font-bold",
-                    getScoreColor(score.accuracy)
-                  )}
-                >
+                <span className={cn("text-sm font-bold", getScoreColor(score.accuracy))}>
                   {score.accuracy}%
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">Tốc độ:</span>
-                <span
-                  className={cn(
-                    "text-sm font-bold",
-                    getScoreColor(score.fluency)
-                  )}
-                >
+                <span className={cn("text-sm font-bold", getScoreColor(score.fluency))}>
                   {score.fluency}%
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">Độ đầy đủ:</span>
-                <span
-                  className={cn(
-                    "text-sm font-bold",
-                    getScoreColor(score.completeness)
-                  )}
-                >
+                <span className={cn("text-sm font-bold", getScoreColor(score.completeness))}>
                   {score.completeness}%
                 </span>
               </div>
               <hr className="my-2" />
               <div className="flex justify-between items-center">
                 <span className="font-bold">Điểm tổng: </span>
-                <span
-                  className={cn(
-                    "text-lg font-bold",
-                    getScoreColor(score.overall)
-                  )}
-                >
+                <span className={cn("text-lg font-bold", getScoreColor(score.overall))}>
                   {score.overall}% - {getScoreLabel(score.overall)}
                 </span>
               </div>

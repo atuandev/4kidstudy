@@ -15,8 +15,7 @@ interface UseProfileResult {
  * Provides the authenticated profile from the profile store and fetches it on first access.
  */
 export function useProfile(): UseProfileResult {
-  const { profile, isLoadingProfile, setProfile, setLoadingProfile } =
-    useProfileStore();
+  const { profile, isLoadingProfile, setProfile, setLoadingProfile } = useProfileStore();
   const fetchProfile = useCallback(async () => {
     if (isLoadingProfile) return;
     try {

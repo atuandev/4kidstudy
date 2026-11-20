@@ -1,7 +1,7 @@
-import { useTransition } from 'react';
-import { useQuizStore } from '@/lib/stores/quiz-store';
-import { useExerciseStatsStore } from '@/lib/stores/exercise-stats-store';
-import { submitExercise } from '@/actions/attempt';
+import { useTransition } from "react";
+import { useQuizStore } from "@/lib/stores/quiz-store";
+import { useExerciseStatsStore } from "@/lib/stores/exercise-stats-store";
+import { submitExercise } from "@/actions/attempt";
 
 type UseQuizLogicProps = {
   playCorrect: () => void;
@@ -10,7 +10,7 @@ type UseQuizLogicProps = {
 
 export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) {
   const [pending, startTransition] = useTransition();
-  
+
   const {
     selectedOption,
     selectedOption2,
@@ -31,31 +31,37 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     resetPronunciation,
   } = useQuizStore();
 
-  const { completeExercise, skipExercise, startExercise, currentExerciseStartTime, incrementWrongCount } = useExerciseStatsStore();
+  const {
+    completeExercise,
+    skipExercise,
+    startExercise,
+    currentExerciseStartTime,
+    incrementWrongCount,
+  } = useExerciseStatsStore();
 
   const exercise = getCurrentExercise();
   const options = getOptions();
 
   const handleSelect = (id: number) => {
-    if (status !== 'none') return;
+    if (status !== "none") return;
 
     // Handle wrong match signal from MATCHING exercise
     if (id === -1) {
       if (!exercise || !attemptId) return;
-      
+
       const attemptCount = getExerciseAttemptCount(exercise.id);
       incrementExerciseAttempt(exercise.id);
-      
+
       startTransition(() => {
         playIncorrect();
-        setStatus('wrong');
+        setStatus("wrong");
         completeExercise(false, 0);
-        
+
         // Submit to backend
-        const timeSec = currentExerciseStartTime 
+        const timeSec = currentExerciseStartTime
           ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
           : 0;
-        
+
         void submitExercise(attemptId, {
           exerciseId: exercise.id,
           isCorrect: false,
@@ -69,7 +75,7 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
 
     // For MATCHING exercises, options are already set via selectOptions in the component
     // Don't call selectOption as it would reset selectedOption2 to undefined
-    if (exercise?.type !== 'MATCHING') {
+    if (exercise?.type !== "MATCHING") {
       selectOption(id);
     }
 
@@ -77,25 +83,25 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     // This happens when all pairs are matched
     // Note: For matching exercises, selectedOption2 should already be set via selectOptions
     // when the last pair is matched in the matching-exercise component
-    if (exercise?.type === 'MATCHING' && id > 0 && attemptId) {
+    if (exercise?.type === "MATCHING" && id > 0 && attemptId) {
       const attemptCount = getExerciseAttemptCount(exercise.id);
       incrementExerciseAttempt(exercise.id);
-      
+
       // First attempt: 10 points, Second attempt: 5 points
       const pointsToAward = attemptCount === 0 ? 10 : 5;
-      
+
       startTransition(() => {
         playCorrect();
-        setStatus('correct');
+        setStatus("correct");
         completeExercise(true, pointsToAward);
-        
+
         // Submit to backend
         // Read selectedOption2 from store at submission time to ensure we have the latest value
         const currentState = useQuizStore.getState();
-        const timeSec = currentExerciseStartTime 
+        const timeSec = currentExerciseStartTime
           ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
           : 0;
-        
+
         void submitExercise(attemptId, {
           exerciseId: exercise.id,
           isCorrect: true,
@@ -109,14 +115,14 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
   };
 
   const handleSkip = () => {
-    if (status !== 'none') return;
+    if (status !== "none") return;
 
     // Submit skip to backend (0 points)
     if (exercise && attemptId) {
-      const timeSec = currentExerciseStartTime 
+      const timeSec = currentExerciseStartTime
         ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
         : 0;
-      
+
       void submitExercise(attemptId, {
         exerciseId: exercise.id,
         isCorrect: false,
@@ -130,25 +136,25 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
   };
 
   const handleContinue = () => {
-    if (status === 'wrong') {
+    if (status === "wrong") {
       if (!exercise) return;
-      
+
       const attemptCount = getExerciseAttemptCount(exercise.id);
-      
+
       // If already attempted twice, increment wrong count and move to next exercise
       if (attemptCount >= 2) {
         incrementWrongCount();
         nextExercise();
         return;
       }
-      
+
       // Otherwise, allow retry - reset selection and pronunciation state
       clearSelection();
       resetPronunciation();
       return;
     }
 
-    if (status === 'correct') {
+    if (status === "correct") {
       nextExercise();
       return;
     }
@@ -157,19 +163,19 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
 
     // Handle PRONUNCIATION exercise
     if (
-      exercise.type === 'PRONUNCIATION' &&
-      pronunciation.state === 'completed' &&
+      exercise.type === "PRONUNCIATION" &&
+      pronunciation.state === "completed" &&
       pronunciation.score
     ) {
       const overallScore = pronunciation.score.overall ?? 0;
-      
+
       // Calculate points based on overall score:
       // - overall > 50 and < 80: 5 points
       // - overall >= 80: 10 points
       // - overall <= 50: 0 points
       let pointsToAward = 0;
       let isGoodScore = false;
-      
+
       if (overallScore > 50 && overallScore < 80) {
         pointsToAward = 5;
         isGoodScore = true;
@@ -177,30 +183,30 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
         pointsToAward = 10;
         isGoodScore = true;
       }
-      
+
       // Get attempt count before incrementing for scoring
       const attemptCount = getExerciseAttemptCount(exercise.id);
-      
+
       // Only increment if this is a new submission (status === 'none')
-      if (status === 'none') {
+      if (status === "none") {
         incrementExerciseAttempt(exercise.id);
       }
-      
+
       startTransition(() => {
-        const timeSec = currentExerciseStartTime 
+        const timeSec = currentExerciseStartTime
           ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
           : 0;
-        
+
         if (isGoodScore) {
           playCorrect();
-          setStatus('correct');
+          setStatus("correct");
           completeExercise(true, pointsToAward);
         } else {
           playIncorrect();
-          setStatus('wrong');
+          setStatus("wrong");
           completeExercise(false, 0);
         }
-        
+
         // Submit to backend with pronunciation data
         void submitExercise(attemptId, {
           exerciseId: exercise.id,
@@ -230,33 +236,33 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
 
     const isCorrect = correctOption.id === selectedOption;
     const attemptCount = getExerciseAttemptCount(exercise.id);
-    
+
     // For standard exercises (non-matching):
     // - First attempt: selectedOption2Id = undefined
     // - Second attempt: Backend will preserve first wrong answer in selectedOption2Id
     //   (if first attempt was wrong)
     // For matching exercises: selectedOption2Id is set by the matching component
-    
+
     incrementExerciseAttempt(exercise.id);
-    
+
     // First attempt: 10 points, Second attempt: 5 points
     const pointsToAward = isCorrect ? (attemptCount === 0 ? 10 : 5) : 0;
 
     startTransition(() => {
-      const timeSec = currentExerciseStartTime 
+      const timeSec = currentExerciseStartTime
         ? Math.floor((Date.now() - currentExerciseStartTime) / 1000)
         : 0;
-      
+
       if (isCorrect) {
         playCorrect();
-        setStatus('correct');
+        setStatus("correct");
         completeExercise(true, pointsToAward);
       } else {
         playIncorrect();
-        setStatus('wrong');
+        setStatus("wrong");
         completeExercise(false, 0);
       }
-      
+
       // Submit to backend
       // For second attempt: if first attempt was wrong, backend should preserve first wrong in selectedOption2Id
       void submitExercise(attemptId, {
@@ -265,7 +271,7 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
         selectedOptionId: selectedOption,
         // Don't set selectedOption2Id here for standard exercises - backend will handle retry logic
         // Only set it for matching exercises
-        selectedOption2Id: exercise.type === 'MATCHING' ? selectedOption2 : undefined,
+        selectedOption2Id: exercise.type === "MATCHING" ? selectedOption2 : undefined,
         timeSec,
         points: pointsToAward,
       });
@@ -275,14 +281,11 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
   const isDisabled =
     pending ||
     // For MATCHING: disable until all matches complete (status becomes 'correct')
-    (exercise?.type === 'MATCHING' && status === 'none') ||
+    (exercise?.type === "MATCHING" && status === "none") ||
     // For other exercises: disable if no option selected
-    (!selectedOption &&
-      exercise?.type !== 'MATCHING' &&
-      exercise?.type !== 'PRONUNCIATION') ||
+    (!selectedOption && exercise?.type !== "MATCHING" && exercise?.type !== "PRONUNCIATION") ||
     // For PRONUNCIATION: disable until completed
-    (exercise?.type === 'PRONUNCIATION' &&
-      pronunciation.state !== 'completed');
+    (exercise?.type === "PRONUNCIATION" && pronunciation.state !== "completed");
 
   return {
     exercise,
@@ -299,4 +302,3 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     handleContinue,
   };
 }
-

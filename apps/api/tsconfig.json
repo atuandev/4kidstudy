@@ -1,7 +1,6 @@
 {
   "extends": "@4kidstudy/tsconfig/nestjs.json",
   "compilerOptions": {
-    "outDir": "./dist",
-    "baseUrl": "./"
+    "outDir": "./dist"
   }
 }

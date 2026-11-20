@@ -1,8 +1,8 @@
-import http from '@/lib/http';
-import { GradeValue } from '@/types/grade';
-import { TopicWithProgress } from '@/types/topic-with-progress';
-import { Topic } from '@/types/topic';
-import { TopicProgress } from '@/types/learning-progress';
+import http from "@/lib/http";
+import { GradeValue } from "@/types/grade";
+import { TopicWithProgress } from "@/types/topic-with-progress";
+import { Topic } from "@/types/topic";
+import { TopicProgress } from "@/types/learning-progress";
 
 interface TopicsWithProgressResponse {
   readonly topics: TopicWithProgress[];
@@ -48,9 +48,6 @@ export async function getTopicsWithProgress(
   }
 
   return {
-    topics: buildTopicsWithProgress(
-      topics,
-      Array.isArray(progresses) ? progresses : [],
-    ),
+    topics: buildTopicsWithProgress(topics, Array.isArray(progresses) ? progresses : []),
   };
 }

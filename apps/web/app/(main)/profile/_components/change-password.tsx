@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useState, useTransition } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Button } from '@/components/ui/button';
+import { useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -18,25 +18,22 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { FormError } from '@/components/form/form-error';
-import { FormSuccess } from '@/components/form/form-success';
-import { ChangePasswordSchema, ChangePasswordSchemaType } from '@/schemas/auth';
-import { changePassword } from '@/actions/user/change-password';
-import { Eye, EyeOff } from 'lucide-react';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { FormError } from "@/components/form/form-error";
+import { FormSuccess } from "@/components/form/form-success";
+import { ChangePasswordSchema, ChangePasswordSchemaType } from "@/schemas/auth";
+import { changePassword } from "@/actions/user/change-password";
+import { Eye, EyeOff } from "lucide-react";
 
 interface ChangePasswordDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function ChangePasswordDialog({
-  open,
-  onOpenChange,
-}: ChangePasswordDialogProps) {
-  const [error, setError] = useState<string | undefined>('');
-  const [success, setSuccess] = useState<string | undefined>('');
+export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialogProps) {
+  const [error, setError] = useState<string | undefined>("");
+  const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -45,24 +42,24 @@ export function ChangePasswordDialog({
   const form = useForm<ChangePasswordSchemaType>({
     resolver: zodResolver(ChangePasswordSchema),
     defaultValues: {
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
     },
   });
 
   const onSubmit = (values: ChangePasswordSchemaType) => {
     startTransition(async () => {
-      setError('');
-      setSuccess('');
+      setError("");
+      setSuccess("");
 
       try {
         const result = await changePassword(values);
-        
+
         if (result.success) {
           setSuccess(result.message);
           form.reset();
-          
+
           // Close dialog after 1.5 seconds
           setTimeout(() => {
             onOpenChange(false);
@@ -74,7 +71,7 @@ export function ChangePasswordDialog({
         if (err instanceof Error) {
           setError(err.message);
         } else {
-          setError('Đổi mật khẩu thất bại');
+          setError("Đổi mật khẩu thất bại");
         }
       }
     });
@@ -103,7 +100,7 @@ export function ChangePasswordDialog({
                     <div className="relative">
                       <Input
                         {...field}
-                        type={showCurrentPassword ? 'text' : 'password'}
+                        type={showCurrentPassword ? "text" : "password"}
                         placeholder="Nhập mật khẩu hiện tại"
                         disabled={isPending}
                       />
@@ -139,7 +136,7 @@ export function ChangePasswordDialog({
                     <div className="relative">
                       <Input
                         {...field}
-                        type={showNewPassword ? 'text' : 'password'}
+                        type={showNewPassword ? "text" : "password"}
                         placeholder="Nhập mật khẩu mới"
                         disabled={isPending}
                       />
@@ -175,7 +172,7 @@ export function ChangePasswordDialog({
                     <div className="relative">
                       <Input
                         {...field}
-                        type={showConfirmPassword ? 'text' : 'password'}
+                        type={showConfirmPassword ? "text" : "password"}
                         placeholder="Nhập lại mật khẩu mới"
                         disabled={isPending}
                       />
@@ -214,7 +211,7 @@ export function ChangePasswordDialog({
                 Hủy
               </Button>
               <Button type="submit" variant="primary" className="flex-1" disabled={isPending}>
-                {isPending ? 'Đang xử lý...' : 'Đổi mật khẩu'}
+                {isPending ? "Đang xử lý..." : "Đổi mật khẩu"}
               </Button>
             </div>
           </form>
@@ -223,4 +220,3 @@ export function ChangePasswordDialog({
     </Dialog>
   );
 }
-

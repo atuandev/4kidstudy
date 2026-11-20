@@ -1,13 +1,13 @@
-import { useAudio } from 'react-use';
+import { useAudio } from "react-use";
 
 export function useQuizAudio() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [correctAudio, _c, correctControls] = useAudio({ src: '/correct.wav' });
+  const [correctAudio, _c, correctControls] = useAudio({ src: "/correct.wav" });
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [incorrectAudio, _i, incorrectControls] = useAudio({ 
-    src: '/incorrect.wav' 
+  const [incorrectAudio, _i, incorrectControls] = useAudio({
+    src: "/incorrect.wav",
   });
-  const [finishAudio] = useAudio({ src: '/finish.mp3' });
+  const [finishAudio] = useAudio({ src: "/finish.mp3" });
 
   const playCorrect = () => {
     void correctControls.play();
@@ -25,4 +25,3 @@ export function useQuizAudio() {
     playIncorrect,
   };
 }
-

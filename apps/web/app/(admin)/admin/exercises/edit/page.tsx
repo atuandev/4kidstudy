@@ -1,14 +1,12 @@
-
 "use client";
-
-
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ImageIcon, Loader2, Trash2, Upload } from "lucide-react";
-import { CldUploadWidget } from "next-cloudinary";
+import { CldUploadWidget, type CloudinaryUploadWidgetResults } from "next-cloudinary";
+import { getUploadedUrl } from "@/lib/cloudinary-upload";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { type Resolver, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -71,7 +69,9 @@ export default function EditExercisePage() {
   const exerciseId = searchParams.get("id");
 
   const form = useForm<CreateExerciseFormData>({
-    resolver: zodResolver(CreateExerciseSchema) as any,
+    // The schema's z.preprocess fields make its input type `unknown`; the
+    // parsed output is what the form holds.
+    resolver: zodResolver(CreateExerciseSchema) as Resolver<CreateExerciseFormData>,
     defaultValues: {
       lessonId: 0,
       type: "MULTIPLE_CHOICE",
@@ -110,29 +110,26 @@ export default function EditExercisePage() {
   });
 
   const exerciseType = form.watch("type");
-  const formControl = form.control as any;
+  const formControl = form.control;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const [fetchedLessons, fetchedTopics] = await Promise.all([
-          getLessons(),
-          getTopics(),
-        ]);
+        const [fetchedLessons, fetchedTopics] = await Promise.all([getLessons(), getTopics()]);
         setAvailableLessons(fetchedLessons);
         setAvailableTopics(fetchedTopics);
 
         if (exerciseId) {
           const exercise = await getExercise(parseInt(exerciseId));
-          
+
           // Set grade and topic based on the lesson
           const lesson = fetchedLessons.find((l) => l.id === exercise.lessonId);
           if (lesson && lesson.topic) {
             setSelectedGrade(lesson.topic.grade || null);
             setSelectedTopicId(lesson.topicId);
           }
-          
+
           form.reset({
             lessonId: exercise.lessonId,
             type: exercise.type,
@@ -180,11 +177,8 @@ export default function EditExercisePage() {
 
     const values = form.getValues();
 
-    if (
-      ["MULTIPLE_CHOICE", "SELECT_IMAGE", "LISTENING"].includes(values.type)
-    ) {
-      const correctAnswersCount =
-        values.options?.filter((opt) => opt.isCorrect).length ?? 0;
+    if (["MULTIPLE_CHOICE", "SELECT_IMAGE", "LISTENING"].includes(values.type)) {
+      const correctAnswersCount = values.options?.filter((opt) => opt.isCorrect).length ?? 0;
 
       if (correctAnswersCount === 0) {
         toast.error("Vui lòng chọn một đáp án đúng");
@@ -208,10 +202,7 @@ export default function EditExercisePage() {
 
     setIsSubmitting(true);
     try {
-      const { payload: updatedExercise, status } = await updateExercise(
-        parseInt(exerciseId),
-        data
-      );
+      const { payload: updatedExercise, status } = await updateExercise(parseInt(exerciseId), data);
 
       if ((status !== 201 && status !== 200) || !updatedExercise) {
         toast.error("Cập nhật câu hỏi thất bại");
@@ -219,32 +210,23 @@ export default function EditExercisePage() {
       }
 
       toast.success("Cập nhật câu hỏi thành công");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to save exercise:", error);
 
-      const errorMessage = error?.payload?.message;
+      const errorMessage = (error as { payload?: { message?: unknown } } | null)?.payload?.message;
 
       if (typeof errorMessage === "string") {
-        if (
-          errorMessage.includes("option with order") &&
-          errorMessage.includes("already exists")
-        ) {
+        if (errorMessage.includes("option with order") && errorMessage.includes("already exists")) {
           toast.error("Thứ tự đáp án đã tồn tại. Vui lòng chọn thứ tự khác.");
           return;
         }
-        if (
-          errorMessage.includes("Unique constraint") ||
-          errorMessage.includes("already exists")
-        ) {
+        if (errorMessage.includes("Unique constraint") || errorMessage.includes("already exists")) {
           toast.error(
-            "Câu hỏi với thứ tự này đã tồn tại trong bài học. Vui lòng chọn thứ tự khác."
+            "Câu hỏi với thứ tự này đã tồn tại trong bài học. Vui lòng chọn thứ tự khác.",
           );
           return;
         }
-        if (
-          errorMessage.includes("Lesson") &&
-          errorMessage.includes("not found")
-        ) {
+        if (errorMessage.includes("Lesson") && errorMessage.includes("not found")) {
           toast.error("Không tìm thấy bài học. Vui lòng chọn bài học khác.");
           return;
         }
@@ -259,28 +241,24 @@ export default function EditExercisePage() {
     }
   };
 
-  const handleImageUpload = (result: any) => {
-    if (result?.info?.secure_url) {
-      form.setValue("imageUrl", result.info.secure_url);
-    }
+  const handleImageUpload = (result: CloudinaryUploadWidgetResults) => {
+    const url = getUploadedUrl(result);
+    if (url) form.setValue("imageUrl", url);
   };
 
-  const handleAudioUpload = (result: any) => {
-    if (result?.info?.secure_url) {
-      form.setValue("audioUrl", result.info.secure_url);
-    }
+  const handleAudioUpload = (result: CloudinaryUploadWidgetResults) => {
+    const url = getUploadedUrl(result);
+    if (url) form.setValue("audioUrl", url);
   };
 
-  const handleOptionImageUpload = (result: any, index: number) => {
-    if (result?.info?.secure_url) {
-      form.setValue(`options.${index}.imageUrl`, result.info.secure_url);
-    }
+  const handleOptionImageUpload = (result: CloudinaryUploadWidgetResults, index: number) => {
+    const url = getUploadedUrl(result);
+    if (url) form.setValue(`options.${index}.imageUrl`, url);
   };
 
-  const handleOptionAudioUpload = (result: any, index: number) => {
-    if (result?.info?.secure_url) {
-      form.setValue(`options.${index}.audioUrl`, result.info.secure_url);
-    }
+  const handleOptionAudioUpload = (result: CloudinaryUploadWidgetResults, index: number) => {
+    const url = getUploadedUrl(result);
+    if (url) form.setValue(`options.${index}.audioUrl`, url);
   };
 
   const addOption = () => {
@@ -311,10 +289,7 @@ export default function EditExercisePage() {
       {/* Header */}
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-1" />
-        <Separator
-          orientation="vertical"
-          className="mr-2 data-[orientation=vertical]:h-4"
-        />
+        <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -432,26 +407,19 @@ export default function EditExercisePage() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {Object.entries(exerciseTypeLabels).map(
-                      ([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      )
-                    )}
+                    {Object.entries(exerciseTypeLabels).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormDescription>
-                  {exerciseType === "SELECT_IMAGE" &&
-                    "Học viên sẽ chọn hình ảnh đúng với câu hỏi"}
-                  {exerciseType === "MULTIPLE_CHOICE" &&
-                    "Học viên sẽ chọn câu trả lời đúng"}
-                  {exerciseType === "MATCHING" &&
-                    "Học viên sẽ nối các cặp với nhau"}
-                  {exerciseType === "LISTENING" &&
-                    "Học viên sẽ nghe và chọn đáp án"}
-                  {exerciseType === "PRONUNCIATION" &&
-                    "Học viên sẽ phát âm và được AI đánh giá"}
+                  {exerciseType === "SELECT_IMAGE" && "Học viên sẽ chọn hình ảnh đúng với câu hỏi"}
+                  {exerciseType === "MULTIPLE_CHOICE" && "Học viên sẽ chọn câu trả lời đúng"}
+                  {exerciseType === "MATCHING" && "Học viên sẽ nối các cặp với nhau"}
+                  {exerciseType === "LISTENING" && "Học viên sẽ nghe và chọn đáp án"}
+                  {exerciseType === "PRONUNCIATION" && "Học viên sẽ phát âm và được AI đánh giá"}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -483,10 +451,7 @@ export default function EditExercisePage() {
               <FormItem>
                 <FormLabel>Đáp án (Tiếng Anh)</FormLabel>
                 <FormControl>
-                  <Input
-                    {...field}
-                    placeholder="Nhập đáp án bằng tiếng Anh"
-                  />
+                  <Input {...field} placeholder="Nhập đáp án bằng tiếng Anh" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -501,10 +466,7 @@ export default function EditExercisePage() {
               <FormItem>
                 <FormLabel>Đáp án (Tiếng Việt)</FormLabel>
                 <FormControl>
-                  <Input
-                    {...field}
-                    placeholder="Nhập đáp án bằng tiếng Việt"
-                  />
+                  <Input {...field} placeholder="Nhập đáp án bằng tiếng Việt" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -523,10 +485,7 @@ export default function EditExercisePage() {
                       Văn bản cần đọc <RequiredField />
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Nhập văn bản học viên cần phát âm"
-                      />
+                      <Input {...field} placeholder="Nhập văn bản học viên cần phát âm" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -543,10 +502,7 @@ export default function EditExercisePage() {
                     <FormControl>
                       <div className="flex gap-2">
                         <Input {...field} placeholder="URL âm thanh" />
-                        <CldUploadWidget
-                          uploadPreset={UPLOAD_PRESET}
-                          onSuccess={handleAudioUpload}
-                        >
+                        <CldUploadWidget uploadPreset={UPLOAD_PRESET} onSuccess={handleAudioUpload}>
                           {({ open }) => (
                             <Button type="button" size="icon" onClick={() => open()}>
                               <Upload className="h-4 w-4" />
@@ -573,16 +529,9 @@ export default function EditExercisePage() {
                   <FormControl>
                     <div className="flex gap-2">
                       <Input {...field} placeholder="URL hình ảnh" />
-                      <CldUploadWidget
-                        uploadPreset={UPLOAD_PRESET}
-                        onSuccess={handleImageUpload}
-                      >
+                      <CldUploadWidget uploadPreset={UPLOAD_PRESET} onSuccess={handleImageUpload}>
                         {({ open }) => (
-                          <Button
-                            type="button"
-                            size="icon"
-                            onClick={() => open()}
-                          >
+                          <Button type="button" size="icon" onClick={() => open()}>
                             <ImageIcon className="h-4 w-4" />
                           </Button>
                         )}
@@ -608,10 +557,7 @@ export default function EditExercisePage() {
                   <FormControl>
                     <div className="flex gap-2">
                       <Input {...field} placeholder="URL âm thanh" />
-                      <CldUploadWidget
-                        uploadPreset={UPLOAD_PRESET}
-                        onSuccess={handleAudioUpload}
-                      >
+                      <CldUploadWidget uploadPreset={UPLOAD_PRESET} onSuccess={handleAudioUpload}>
                         {({ open }) => (
                           <Button type="button" size="icon" onClick={() => open()}>
                             <Upload className="h-4 w-4" />
@@ -638,9 +584,7 @@ export default function EditExercisePage() {
                     <Input
                       {...field}
                       type="number"
-                      onChange={(e) =>
-                        field.onChange(parseInt(e.target.value))
-                      }
+                      onChange={(e) => field.onChange(parseInt(e.target.value))}
                     />
                   </FormControl>
                   <FormMessage />
@@ -707,25 +651,17 @@ export default function EditExercisePage() {
               <div>
                 <TypographyH3>Đáp án</TypographyH3>
                 <p className="text-sm text-muted-foreground">
-                  {exerciseType === "SELECT_IMAGE" &&
-                    "Thêm các hình ảnh để học viên lựa chọn"}
+                  {exerciseType === "SELECT_IMAGE" && "Thêm các hình ảnh để học viên lựa chọn"}
                   {exerciseType === "MULTIPLE_CHOICE" &&
                     "Thêm các đáp án văn bản cho câu hỏi trắc nghiệm"}
-                  {exerciseType === "MATCHING" &&
-                    "Thêm các cặp nội dung cần ghép nối"}
-                  {exerciseType === "LISTENING" &&
-                    "Thêm các đáp án cho bài nghe"}
+                  {exerciseType === "MATCHING" && "Thêm các cặp nội dung cần ghép nối"}
+                  {exerciseType === "LISTENING" && "Thêm các đáp án cho bài nghe"}
                   {exerciseType === "PRONUNCIATION" &&
                     "Không cần thêm đáp án - AI sẽ đánh giá phát âm"}
                 </p>
               </div>
               {exerciseType !== "PRONUNCIATION" && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={addOption}
-                >
+                <Button type="button" variant="secondary" size="sm" onClick={addOption}>
                   <Upload className="mr-2 h-4 w-4" />
                   Thêm đáp án
                 </Button>
@@ -772,9 +708,7 @@ export default function EditExercisePage() {
                                 <Input {...field} placeholder="URL hình ảnh" />
                                 <CldUploadWidget
                                   uploadPreset={UPLOAD_PRESET}
-                                  onSuccess={(result) =>
-                                    handleOptionImageUpload(result, index)
-                                  }
+                                  onSuccess={(result) => handleOptionImageUpload(result, index)}
                                 >
                                   {({ open }) => (
                                     <Button type="button" size="icon" onClick={() => open()}>
@@ -801,10 +735,7 @@ export default function EditExercisePage() {
                                   if (checked) {
                                     fields.forEach((_, i) => {
                                       if (i !== index) {
-                                        form.setValue(
-                                          `options.${i}.isCorrect`,
-                                          false
-                                        );
+                                        form.setValue(`options.${i}.isCorrect`, false);
                                       }
                                     });
                                   }
@@ -812,9 +743,7 @@ export default function EditExercisePage() {
                                 }}
                               />
                             </FormControl>
-                            <FormLabel className="font-normal">
-                              Đáp án đúng
-                            </FormLabel>
+                            <FormLabel className="font-normal">Đáp án đúng</FormLabel>
                           </FormItem>
                         )}
                       />
@@ -868,10 +797,7 @@ export default function EditExercisePage() {
                                   if (checked) {
                                     fields.forEach((_, i) => {
                                       if (i !== index) {
-                                        form.setValue(
-                                          `options.${i}.isCorrect`,
-                                          false
-                                        );
+                                        form.setValue(`options.${i}.isCorrect`, false);
                                       }
                                     });
                                   }
@@ -879,9 +805,7 @@ export default function EditExercisePage() {
                                 }}
                               />
                             </FormControl>
-                            <FormLabel className="font-normal">
-                              Đáp án đúng
-                            </FormLabel>
+                            <FormLabel className="font-normal">Đáp án đúng</FormLabel>
                           </FormItem>
                         )}
                       />
@@ -933,10 +857,7 @@ export default function EditExercisePage() {
                           <FormItem>
                             <FormLabel>Văn bản</FormLabel>
                             <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Nội dung văn bản"
-                              />
+                              <Input {...field} placeholder="Nội dung văn bản" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -954,9 +875,7 @@ export default function EditExercisePage() {
                                 <Input {...field} placeholder="URL hình ảnh" />
                                 <CldUploadWidget
                                   uploadPreset={UPLOAD_PRESET}
-                                  onSuccess={(result) =>
-                                    handleOptionImageUpload(result, index)
-                                  }
+                                  onSuccess={(result) => handleOptionImageUpload(result, index)}
                                 >
                                   {({ open }) => (
                                     <Button type="button" size="icon" onClick={() => open()}>
@@ -1020,10 +939,7 @@ export default function EditExercisePage() {
                                   if (checked) {
                                     fields.forEach((_, i) => {
                                       if (i !== index) {
-                                        form.setValue(
-                                          `options.${i}.isCorrect`,
-                                          false
-                                        );
+                                        form.setValue(`options.${i}.isCorrect`, false);
                                       }
                                     });
                                   }
@@ -1031,9 +947,7 @@ export default function EditExercisePage() {
                                 }}
                               />
                             </FormControl>
-                            <FormLabel className="font-normal">
-                              Đáp án đúng
-                            </FormLabel>
+                            <FormLabel className="font-normal">Đáp án đúng</FormLabel>
                           </FormItem>
                         )}
                       />
@@ -1045,8 +959,8 @@ export default function EditExercisePage() {
             {exerciseType === "PRONUNCIATION" && (
               <div className="rounded-lg border p-4 bg-muted/50">
                 <p className="text-sm text-muted-foreground">
-                  Bài tập phát âm không cần đáp án. Học viên sẽ đọc văn bản và
-                  được đánh giá bằng AI.
+                  Bài tập phát âm không cần đáp án. Học viên sẽ đọc văn bản và được đánh giá bằng
+                  AI.
                 </p>
               </div>
             )}
@@ -1054,18 +968,11 @@ export default function EditExercisePage() {
 
           {/* Form Actions */}
           <div className="flex justify-end gap-2 sticky bottom-0 bg-background pt-4 pb-2 border-t">
-            <Button
-              type="button"
-              variant="default"
-              onClick={handleCancel}
-              disabled={isSubmitting}
-            >
+            <Button type="button" variant="default" onClick={handleCancel} disabled={isSubmitting}>
               Hủy
             </Button>
             <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Cập nhật
             </Button>
           </div>
@@ -1074,4 +981,3 @@ export default function EditExercisePage() {
     </div>
   );
 }
-

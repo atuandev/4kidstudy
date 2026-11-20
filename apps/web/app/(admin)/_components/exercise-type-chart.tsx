@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { Cell, Legend, Pie, PieChart } from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Cell, Legend, Pie, PieChart } from "recharts";
 
 interface ExerciseTypeChartProps {
   data: {
@@ -12,19 +12,19 @@ interface ExerciseTypeChartProps {
 }
 
 const COLORS = [
-  'hsl(221, 83%, 53%)',
-  'hsl(142, 76%, 36%)',
-  'hsl(48, 96%, 53%)',
-  'hsl(280, 65%, 60%)',
-  'hsl(0, 84%, 60%)',
+  "hsl(221, 83%, 53%)",
+  "hsl(142, 76%, 36%)",
+  "hsl(48, 96%, 53%)",
+  "hsl(280, 65%, 60%)",
+  "hsl(0, 84%, 60%)",
 ];
 
 const TYPE_LABELS: Record<string, string> = {
-  SELECT_IMAGE: 'Chọn hình ảnh',
-  MULTIPLE_CHOICE: 'Trắc nghiệm',
-  MATCHING: 'Ghép cặp',
-  LISTENING: 'Nghe',
-  PRONUNCIATION: 'Phát âm',
+  SELECT_IMAGE: "Chọn hình ảnh",
+  MULTIPLE_CHOICE: "Trắc nghiệm",
+  MATCHING: "Ghép cặp",
+  LISTENING: "Nghe",
+  PRONUNCIATION: "Phát âm",
 };
 
 export function ExerciseTypeChart({ data }: ExerciseTypeChartProps) {
@@ -34,13 +34,16 @@ export function ExerciseTypeChart({ data }: ExerciseTypeChartProps) {
     fill: COLORS[index % COLORS.length],
   }));
 
-  const chartConfig = formattedData.reduce((acc, item) => {
-    acc[item.name] = {
-      label: item.name,
-      color: item.fill,
-    };
-    return acc;
-  }, {} as Record<string, { label: string; color: string }>);
+  const chartConfig = formattedData.reduce(
+    (acc, item) => {
+      acc[item.name] = {
+        label: item.name,
+        color: item.fill,
+      };
+      return acc;
+    },
+    {} as Record<string, { label: string; color: string }>,
+  );
 
   return (
     <Card>
@@ -72,4 +75,3 @@ export function ExerciseTypeChart({ data }: ExerciseTypeChartProps) {
     </Card>
   );
 }
-

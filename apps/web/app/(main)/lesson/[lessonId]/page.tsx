@@ -19,11 +19,5 @@ export default async function LessonIdPage({ params }: LessonIdPageProps) {
     getProfile(),
   ]);
 
-  return (
-    <Quiz
-      lesson={lesson}
-      lessonExercises={lessonExercises}
-      profile={profile}
-    />
-  );
+  return <Quiz lesson={lesson} lessonExercises={lessonExercises} profile={profile} />;
 }

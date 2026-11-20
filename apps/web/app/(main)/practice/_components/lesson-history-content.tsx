@@ -12,12 +12,7 @@ import {
   XCircle,
 } from "lucide-react";
 
-import {
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Lesson, Attempt, ExerciseType, MostWrongExerciseStats } from "@/types";
@@ -44,57 +39,59 @@ const EXERCISE_TYPE_LABELS: Record<ExerciseType, string> = {
   PRONUNCIATION: "Luyện phát âm (AI)",
 };
 
-export function LessonHistoryContent({
-  lesson,
-  lessonId,
-  isOpen,
-}: LessonHistoryContentProps) {
+export function LessonHistoryContent({ lesson, lessonId, isOpen }: LessonHistoryContentProps) {
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [isLoadingAttempts, setIsLoadingAttempts] = useState(false);
-  const [expandedAttemptId, setExpandedAttemptId] = useState<number | null>(
-    null
-  );
+  const [expandedAttemptId, setExpandedAttemptId] = useState<number | null>(null);
   const [attemptDetails, setAttemptDetails] = useState<Attempt | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
-  const [mostWrongExercises, setMostWrongExercises] = useState<
-    MostWrongExerciseStats[]
-  >([]);
+  const [mostWrongExercises, setMostWrongExercises] = useState<MostWrongExerciseStats[]>([]);
   const [isLoadingMostWrong, setIsLoadingMostWrong] = useState(false);
   const [isWrongSectionOpen, setIsWrongSectionOpen] = useState(true);
 
+  // When the panel opens (or the lesson changes), reset and show loaders.
+  const loadKey = isOpen ? lessonId : null;
+  const [startedLoadKey, setStartedLoadKey] = useState<number | null>(null);
+  if (loadKey !== startedLoadKey) {
+    setStartedLoadKey(loadKey);
+    if (loadKey !== null) {
+      setIsLoadingAttempts(true);
+      setIsLoadingMostWrong(true);
+      setExpandedAttemptId(null);
+      setAttemptDetails(null);
+    }
+  }
+
+  // Fetch attempts and most-wrong exercises; ignore responses after close/change.
   useEffect(() => {
-    if (isOpen) {
-      loadAttempts();
-      loadMostWrongExercises();
-    }
+    if (!isOpen) return;
+    let cancelled = false;
+
+    getUserLessonAttempts(lessonId)
+      .then((data) => {
+        if (!cancelled) setAttempts(data);
+      })
+      .catch((error) => console.error("Failed to load attempts:", error))
+      .finally(() => {
+        if (!cancelled) setIsLoadingAttempts(false);
+      });
+
+    getMostWrongExercisesByLesson(lessonId)
+      .then((data) => {
+        if (!cancelled) setMostWrongExercises(data);
+      })
+      .catch((error) => {
+        console.error("Failed to load most wrong exercises:", error);
+        if (!cancelled) setMostWrongExercises([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingMostWrong(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen, lessonId]);
-
-  async function loadAttempts() {
-    setIsLoadingAttempts(true);
-    setExpandedAttemptId(null);
-    setAttemptDetails(null);
-    try {
-      const data = await getUserLessonAttempts(lessonId);
-      setAttempts(data);
-    } catch (error) {
-      console.error("Failed to load attempts:", error);
-    } finally {
-      setIsLoadingAttempts(false);
-    }
-  }
-
-  async function loadMostWrongExercises() {
-    setIsLoadingMostWrong(true);
-    try {
-      const data = await getMostWrongExercisesByLesson(lessonId);
-      setMostWrongExercises(data);
-    } catch (error) {
-      console.error("Failed to load most wrong exercises:", error);
-      setMostWrongExercises([]);
-    } finally {
-      setIsLoadingMostWrong(false);
-    }
-  }
 
   async function handleAttemptClick(attemptId: number) {
     if (expandedAttemptId === attemptId) {
@@ -138,10 +135,7 @@ export function LessonHistoryContent({
     if (completedAttempts.length === 0) return null;
     return completedAttempts.reduce((best, current) => {
       if (current.totalScore > best.totalScore) return current;
-      if (
-        current.totalScore === best.totalScore &&
-        current.accuracyPct > best.accuracyPct
-      )
+      if (current.totalScore === best.totalScore && current.accuracyPct > best.accuracyPct)
         return current;
       return best;
     });
@@ -152,9 +146,7 @@ export function LessonHistoryContent({
    */
   function getCorrectOnSecondAttemptCount(attempt: Attempt): number {
     if (!attempt.details || attempt.details.length === 0) return 0;
-    return attempt.details.filter(
-      (detail) => detail.isCorrect && detail.attempts === 2
-    ).length;
+    return attempt.details.filter((detail) => detail.isCorrect && detail.attempts === 2).length;
   }
 
   /**
@@ -163,8 +155,7 @@ export function LessonHistoryContent({
   function getCorrectOnSecondAttemptWith5PointsCount(attempt: Attempt): number {
     if (!attempt.details || attempt.details.length === 0) return 0;
     return attempt.details.filter(
-      (detail) =>
-        detail.isCorrect && detail.attempts === 2 && detail.maxPoints === 5
+      (detail) => detail.isCorrect && detail.attempts === 2 && detail.maxPoints === 5,
     ).length;
   }
 
@@ -189,37 +180,19 @@ export function LessonHistoryContent({
     }
 
     const completedAttempts = attempts?.filter((a) => a.isCompleted);
-    const totalScore = completedAttempts?.reduce(
-      (sum, a) => sum + a.totalScore,
-      0
-    );
-    const totalAccuracy = completedAttempts?.reduce(
-      (sum, a) => sum + a.accuracyPct,
-      0
-    );
-    const totalTimeSpent = attempts?.reduce(
-      (sum, a) => sum + (a.durationSec || 0),
-      0
-    );
-    const totalCorrectCount = attempts?.reduce(
-      (sum, a) => sum + a.correctCount,
-      0
-    );
+    const totalScore = completedAttempts?.reduce((sum, a) => sum + a.totalScore, 0);
+    const totalAccuracy = completedAttempts?.reduce((sum, a) => sum + a.accuracyPct, 0);
+    const totalTimeSpent = attempts?.reduce((sum, a) => sum + (a.durationSec || 0), 0);
+    const totalCorrectCount = attempts?.reduce((sum, a) => sum + a.correctCount, 0);
     const totalCorrectOnSecondCount = attempts?.reduce(
       (sum, a) => sum + getCorrectOnSecondAttemptCount(a),
-      0
+      0,
     );
-    const totalIncorrectCount = attempts?.reduce(
-      (sum, a) => sum + a.incorrectCount,
-      0
-    );
+    const totalIncorrectCount = attempts?.reduce((sum, a) => sum + a.incorrectCount, 0);
 
-    const averageScore =
-      completedAttempts.length > 0 ? totalScore / completedAttempts.length : 0;
+    const averageScore = completedAttempts.length > 0 ? totalScore / completedAttempts.length : 0;
     const averageAccuracy =
-      completedAttempts.length > 0
-        ? totalAccuracy / completedAttempts.length
-        : 0;
+      completedAttempts.length > 0 ? totalAccuracy / completedAttempts.length : 0;
     const completionRate = (completedAttempts.length / attempts.length) * 100;
 
     return {
@@ -239,16 +212,10 @@ export function LessonHistoryContent({
 
   // Load details for best attempt if not already loaded
   useEffect(() => {
-    if (
-      bestAttempt &&
-      isOpen &&
-      (!bestAttempt.details || bestAttempt.details.length === 0)
-    ) {
+    if (bestAttempt && isOpen && (!bestAttempt.details || bestAttempt.details.length === 0)) {
       getAttemptById(bestAttempt.id)
         .then((data) => {
-          setAttempts((prev) =>
-            prev.map((a) => (a.id === bestAttempt.id ? data : a))
-          );
+          setAttempts((prev) => prev.map((a) => (a.id === bestAttempt.id ? data : a)));
         })
         .catch((error) => {
           console.error("Failed to load best attempt details:", error);
@@ -260,9 +227,7 @@ export function LessonHistoryContent({
     <SheetContent className="sm:max-w-4xl w-full">
       <SheetHeader>
         <SheetTitle>Lịch sử luyện tập</SheetTitle>
-        <SheetDescription className="text-lg font-bold">
-          {lesson.title}
-        </SheetDescription>
+        <SheetDescription className="text-lg font-bold">{lesson.title}</SheetDescription>
       </SheetHeader>
 
       <div className="space-y-4 m-4 overflow-y-auto">
@@ -279,9 +244,7 @@ export function LessonHistoryContent({
                     <History className="h-4 w-4" />
                     <span>Tổng số lần</span>
                   </div>
-                  <p className="font-bold text-xl">
-                    {statistics.totalAttempts}
-                  </p>
+                  <p className="font-bold text-xl">{statistics.totalAttempts}</p>
                 </div>
 
                 <div className="space-y-1">
@@ -302,9 +265,7 @@ export function LessonHistoryContent({
                     <Trophy className="h-4 w-4" />
                     <span>Điểm trung bình</span>
                   </div>
-                  <p className="font-bold text-xl">
-                    {statistics.averageScore.toFixed(1)}
-                  </p>
+                  <p className="font-bold text-xl">{statistics.averageScore.toFixed(1)}</p>
                 </div>
 
                 <div className="space-y-1">
@@ -312,9 +273,7 @@ export function LessonHistoryContent({
                     <Clock className="h-4 w-4" />
                     <span>Tổng thời gian</span>
                   </div>
-                  <p className="font-bold text-xl">
-                    {formatDuration(statistics.totalTimeSpent)}
-                  </p>
+                  <p className="font-bold text-xl">{formatDuration(statistics.totalTimeSpent)}</p>
                 </div>
 
                 <div className="space-y-1">
@@ -322,9 +281,7 @@ export function LessonHistoryContent({
                     <Target className="h-4 w-4" />
                     <span>Tỷ lệ đúng</span>
                   </div>
-                  <p className="font-bold text-xl">
-                    {statistics.averageAccuracy.toFixed(1)}%
-                  </p>
+                  <p className="font-bold text-xl">{statistics.averageAccuracy.toFixed(1)}%</p>
                 </div>
 
                 <div className="space-y-1">
@@ -332,9 +289,7 @@ export function LessonHistoryContent({
                     <CheckCircle2 className="h-4 w-4 " />
                     <span>Đúng lần 1</span>
                   </div>
-                  <p className="font-bold text-xl text-green-600">
-                    {statistics.totalCorrectCount}
-                  </p>
+                  <p className="font-bold text-xl text-green-600">{statistics.totalCorrectCount}</p>
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-1 text-muted-foreground">
@@ -350,9 +305,7 @@ export function LessonHistoryContent({
                     <XCircle className="h-4 w-4" />
                     <span>Sai</span>
                   </div>
-                  <p className="font-bold text-xl text-red-600">
-                    {statistics.totalIncorrectCount}
-                  </p>
+                  <p className="font-bold text-xl text-red-600">{statistics.totalIncorrectCount}</p>
                 </div>
               </div>
             </div>
@@ -367,9 +320,7 @@ export function LessonHistoryContent({
           >
             <div className="flex items-center gap-2">
               <Trophy className="h-5 w-5 text-red-500" />
-              <h3 className="font-semibold text-lg">
-                Các câu hỏi sai nhiều nhất
-              </h3>
+              <h3 className="font-semibold text-lg">Các câu hỏi sai nhiều nhất</h3>
             </div>
             {isWrongSectionOpen ? (
               <ChevronUp className="h-4 w-4 text-muted-foreground" />
@@ -394,13 +345,9 @@ export function LessonHistoryContent({
             <div className="border-2 border-yellow-400 rounded-lg bg-gradient-to-br from-yellow-50 to-amber-50 p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold">
-                    Lần {bestAttempt.attemptNumber}
-                  </span>
+                  <span className="font-semibold">Lần {bestAttempt.attemptNumber}</span>
                 </div>
-                <Badge className="bg-yellow-500 hover:bg-yellow-600">
-                  Xuất sắc
-                </Badge>
+                <Badge className="bg-yellow-500 hover:bg-yellow-600">Xuất sắc</Badge>
               </div>
 
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
@@ -412,16 +359,14 @@ export function LessonHistoryContent({
                 </div>
                 <div>
                   <span className="text-muted-foreground">Tỷ lệ đúng</span>
-                  <p className="font-bold text-lg">
-                    {bestAttempt.accuracyPct.toFixed(1)}%
-                  </p>
+                  <p className="font-bold text-lg">{bestAttempt.accuracyPct.toFixed(1)}%</p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Đúng lần 1</span>
                   <p className="font-bold text-green-600 text-lg">
                     {bestAttempt.details
                       ? bestAttempt.details.filter(
-                          (detail) => detail.isCorrect && detail.attempts === 1
+                          (detail) => detail.isCorrect && detail.attempts === 1,
                         ).length
                       : bestAttempt.correctCount}
                   </p>
@@ -429,22 +374,16 @@ export function LessonHistoryContent({
                 <div>
                   <span className="text-muted-foreground">Đúng lần 2</span>
                   <p className="font-bold text-yellow-600 text-lg">
-                    {bestAttempt.details
-                      ? getCorrectOnSecondAttemptCount(bestAttempt)
-                      : 0}
+                    {bestAttempt.details ? getCorrectOnSecondAttemptCount(bestAttempt) : 0}
                   </p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Sai</span>
-                  <p className="font-bold text-red-600 text-lg">
-                    {bestAttempt.incorrectCount}
-                  </p>
+                  <p className="font-bold text-red-600 text-lg">{bestAttempt.incorrectCount}</p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Thời gian</span>
-                  <p className="font-bold text-lg">
-                    {formatDuration(bestAttempt.durationSec)}
-                  </p>
+                  <p className="font-bold text-lg">{formatDuration(bestAttempt.durationSec)}</p>
                 </div>
               </div>
 
@@ -473,28 +412,21 @@ export function LessonHistoryContent({
             {attempts.map((attempt) => {
               const isExpanded = expandedAttemptId === attempt.id;
               return (
-                <div
-                  key={attempt.id}
-                  className="border rounded-lg overflow-hidden mx-4"
-                >
+                <div key={attempt.id} className="border rounded-lg overflow-hidden mx-4">
                   <div
                     className="p-4 space-y-2 hover:bg-gray-50 cursor-pointer transition-colors"
                     onClick={() => handleAttemptClick(attempt.id)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold">
-                          Lần {attempt.attemptNumber}
-                        </span>
+                        <span className="font-semibold">Lần {attempt.attemptNumber}</span>
                         {isExpanded ? (
                           <ChevronUp className="h-4 w-4 text-muted-foreground" />
                         ) : (
                           <ChevronDown className="h-4 w-4 text-muted-foreground" />
                         )}
                       </div>
-                      <Badge
-                        variant={attempt.isCompleted ? "default" : "outline"}
-                      >
+                      <Badge variant={attempt.isCompleted ? "default" : "outline"}>
                         {attempt.isCompleted ? "Hoàn thành" : "Chưa hoàn thành"}
                       </Badge>
                     </div>
@@ -507,66 +439,46 @@ export function LessonHistoryContent({
                         </p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">
-                          Tỷ lệ đúng
-                        </span>
-                        <p className="font-bold text-lg">
-                          {attempt.accuracyPct.toFixed(1)}%
-                        </p>
+                        <span className="text-muted-foreground">Tỷ lệ đúng</span>
+                        <p className="font-bold text-lg">{attempt.accuracyPct.toFixed(1)}%</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">
-                          Đúng lần 1
-                        </span>
+                        <span className="text-muted-foreground">Đúng lần 1</span>
                         <p className="font-bold text-green-600 text-lg">
                           {attempt.details
                             ? attempt.details.filter(
-                                (detail) =>
-                                  detail.isCorrect && detail.attempts === 1
+                                (detail) => detail.isCorrect && detail.attempts === 1,
                               ).length
                             : attempt.correctCount}
                         </p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">
-                          Đúng lần 2
-                        </span>
+                        <span className="text-muted-foreground">Đúng lần 2</span>
                         <p className="font-bold text-yellow-600 text-lg">
-                          {attempt.details
-                            ? getCorrectOnSecondAttemptCount(attempt)
-                            : 0}
+                          {attempt.details ? getCorrectOnSecondAttemptCount(attempt) : 0}
                         </p>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Sai</span>
-                        <p className="font-bold text-red-600 text-lg">
-                          {attempt.incorrectCount}
-                        </p>
+                        <p className="font-bold text-red-600 text-lg">{attempt.incorrectCount}</p>
                       </div>
 
                       <div>
                         <span className="text-muted-foreground">Thời gian</span>
-                        <p className="font-bold text-lg">
-                          {formatDuration(attempt.durationSec)}
-                        </p>
+                        <p className="font-bold text-lg">{formatDuration(attempt.durationSec)}</p>
                       </div>
                     </div>
 
-                    <div className="text-muted-foreground">
-                      {formatDate(attempt.createdAt)}
-                    </div>
+                    <div className="text-muted-foreground">{formatDate(attempt.createdAt)}</div>
                   </div>
 
                   {isExpanded && (
                     <div className="border-t bg-gray-50 p-4">
                       {isLoadingDetails ? (
                         <div className="flex items-center justify-center py-4">
-                          <p className="text-sm text-muted-foreground">
-                            Đang tải chi tiết...
-                          </p>
+                          <p className="text-sm text-muted-foreground">Đang tải chi tiết...</p>
                         </div>
-                      ) : attemptDetails?.details &&
-                        attemptDetails.details.length > 0 ? (
+                      ) : attemptDetails?.details && attemptDetails.details.length > 0 ? (
                         <div className="grid grid-cols-1 gap-2">
                           {attemptDetails.details.map((detail, index) => {
                             const isCorrectOnSecondAttempt =
@@ -579,16 +491,14 @@ export function LessonHistoryContent({
                                   isCorrectOnSecondAttempt
                                     ? "bg-yellow-50 border-yellow-200"
                                     : detail.isCorrect
-                                    ? "bg-green-50 border-green-200"
-                                    : "bg-red-50 border-red-200"
+                                      ? "bg-green-50 border-green-200"
+                                      : "bg-red-50 border-red-200",
                                 )}
                               >
                                 <div className="flex items-center justify-between">
                                   <div className="font-medium text-md">
                                     Câu hỏi #{index + 1}:{" "}
-                                    <span className="font-bold">
-                                      {detail.exercise?.prompt}
-                                    </span>
+                                    <span className="font-bold">{detail.exercise?.prompt}</span>
                                     <div>
                                       {detail.exercise?.imageUrl ? (
                                         <Image
@@ -602,32 +512,18 @@ export function LessonHistoryContent({
                                     </div>
                                     {detail.exercise?.type === "LISTENING" &&
                                     detail.exercise?.audioUrl ? (
-                                      <AudioControl
-                                        audioUrl={detail.exercise.audioUrl}
-                                      />
-                                    ) : detail.exercise?.type ===
-                                        "PRONUNCIATION" &&
+                                      <AudioControl audioUrl={detail.exercise.audioUrl} />
+                                    ) : detail.exercise?.type === "PRONUNCIATION" &&
                                       detail.exercise?.audioUrl ? (
                                       <>
-                                        <p className="">
-                                          {detail.exercise.targetText}
-                                        </p>
-                                        <AudioControl
-                                          audioUrl={detail.exercise.audioUrl}
-                                        />
+                                        <p className="">{detail.exercise.targetText}</p>
+                                        <AudioControl audioUrl={detail.exercise.audioUrl} />
                                       </>
                                     ) : null}
                                   </div>
 
-                                  <Badge
-                                    variant="outline"
-                                    className="bg-white text-gray-600"
-                                  >
-                                    {
-                                      EXERCISE_TYPE_LABELS[
-                                        detail.exercise?.type ?? "SELECT_IMAGE"
-                                      ]
-                                    }
+                                  <Badge variant="outline" className="bg-white text-gray-600">
+                                    {EXERCISE_TYPE_LABELS[detail.exercise?.type ?? "SELECT_IMAGE"]}
                                   </Badge>
                                 </div>
 
@@ -640,18 +536,13 @@ export function LessonHistoryContent({
                                         Đáp án chọn lần 1
                                       </span>
                                       <p className="font-bold text-lg">
-                                        {detail.attempts === 2 &&
-                                        detail.selectedOption2Id
-                                          ? detail.exercise?.options.find(
-                                              (option) =>
-                                                option.id ===
-                                                detail.selectedOption2Id
-                                            )?.text ?? ""
-                                          : detail.exercise?.options.find(
-                                              (option) =>
-                                                option.id ===
-                                                detail.selectedOptionId
-                                            )?.text ?? ""}
+                                        {detail.attempts === 2 && detail.selectedOption2Id
+                                          ? (detail.exercise?.options.find(
+                                              (option) => option.id === detail.selectedOption2Id,
+                                            )?.text ?? "")
+                                          : (detail.exercise?.options.find(
+                                              (option) => option.id === detail.selectedOptionId,
+                                            )?.text ?? "")}
                                       </p>
                                     </div>
 
@@ -661,23 +552,18 @@ export function LessonHistoryContent({
                                       </span>
                                       <p className="font-bold text-lg">
                                         {detail.attempts === 2
-                                          ? detail.exercise?.options.find(
-                                              (option) =>
-                                                option.id ===
-                                                detail.selectedOptionId
-                                            )?.text ?? ""
+                                          ? (detail.exercise?.options.find(
+                                              (option) => option.id === detail.selectedOptionId,
+                                            )?.text ?? "")
                                           : ""}
                                       </p>
                                     </div>
 
                                     <div>
-                                      <span className="text-muted-foreground">
-                                        Đáp án đúng
-                                      </span>
+                                      <span className="text-muted-foreground">Đáp án đúng</span>
                                       <p className="font-bold text-lg">
-                                        {detail.exercise?.options.find(
-                                          (option) => option.isCorrect
-                                        )?.text ?? ""}
+                                        {detail.exercise?.options.find((option) => option.isCorrect)
+                                          ?.text ?? ""}
                                       </p>
                                     </div>
                                   </div>
@@ -688,15 +574,11 @@ export function LessonHistoryContent({
                                         Đáp án chọn lần 1
                                       </span>
                                       <div className="mt-1">
-                                        {detail.attempts === 2 &&
-                                        detail.selectedOption2Id
+                                        {detail.attempts === 2 && detail.selectedOption2Id
                                           ? (() => {
-                                              const option =
-                                                detail.exercise?.options.find(
-                                                  (option) =>
-                                                    option.id ===
-                                                    detail.selectedOption2Id
-                                                );
+                                              const option = detail.exercise?.options.find(
+                                                (option) => option.id === detail.selectedOption2Id,
+                                              );
                                               return option?.imageUrl ? (
                                                 <Image
                                                   width={100}
@@ -712,12 +594,9 @@ export function LessonHistoryContent({
                                               );
                                             })()
                                           : (() => {
-                                              const option =
-                                                detail.exercise?.options.find(
-                                                  (option) =>
-                                                    option.id ===
-                                                    detail.selectedOptionId
-                                                );
+                                              const option = detail.exercise?.options.find(
+                                                (option) => option.id === detail.selectedOptionId,
+                                              );
                                               return option?.imageUrl ? (
                                                 <Image
                                                   width={100}
@@ -742,12 +621,9 @@ export function LessonHistoryContent({
                                       <div className="mt-1">
                                         {detail.attempts === 2
                                           ? (() => {
-                                              const option =
-                                                detail.exercise?.options.find(
-                                                  (option) =>
-                                                    option.id ===
-                                                    detail.selectedOptionId
-                                                );
+                                              const option = detail.exercise?.options.find(
+                                                (option) => option.id === detail.selectedOptionId,
+                                              );
                                               return option?.imageUrl ? (
                                                 <Image
                                                   width={100}
@@ -767,15 +643,12 @@ export function LessonHistoryContent({
                                     </div>
 
                                     <div>
-                                      <span className="text-muted-foreground">
-                                        Đáp án đúng
-                                      </span>
+                                      <span className="text-muted-foreground">Đáp án đúng</span>
                                       <div className="mt-1">
                                         {(() => {
-                                          const correctOption =
-                                            detail.exercise?.options.find(
-                                              (option) => option.isCorrect
-                                            );
+                                          const correctOption = detail.exercise?.options.find(
+                                            (option) => option.isCorrect,
+                                          );
                                           return correctOption?.imageUrl ? (
                                             <img
                                               src={correctOption.imageUrl}
@@ -783,9 +656,7 @@ export function LessonHistoryContent({
                                               className="w-full h-20 object-contain rounded border-2 border-green-500 bg-green-50"
                                             />
                                           ) : (
-                                            <p className="font-bold text-lg">
-                                              Không có hình ảnh
-                                            </p>
+                                            <p className="font-bold text-lg">Không có hình ảnh</p>
                                           );
                                         })()}
                                       </div>
@@ -795,9 +666,7 @@ export function LessonHistoryContent({
 
                                 <div className="grid grid-cols-3 gap-2">
                                   <div>
-                                    <span className="text-muted-foreground">
-                                      Điểm
-                                    </span>
+                                    <span className="text-muted-foreground">Điểm</span>
                                     <p className="font-bold text-lg">
                                       {detail.points}/{detail.maxPoints}
                                     </p>
@@ -805,13 +674,9 @@ export function LessonHistoryContent({
                                   {detail.exercise?.type === "PRONUNCIATION" &&
                                     detail.pronunciation && (
                                       <div>
-                                        <span className="text-muted-foreground">
-                                          Điểm phát âm:
-                                        </span>
+                                        <span className="text-muted-foreground">Điểm phát âm:</span>
                                         <p className="font-bold text-lg">
-                                          {detail.pronunciation.overall?.toFixed(
-                                            1
-                                          ) ?? "N/A"}
+                                          {detail.pronunciation.overall?.toFixed(1) ?? "N/A"}
                                         </p>
                                       </div>
                                     )}
@@ -821,55 +686,41 @@ export function LessonHistoryContent({
                                   detail.pronunciation && (
                                     <div className="pt-2 border-t space-y-1">
                                       <div className="grid grid-cols-3 gap-1">
-                                        {detail.pronunciation.accuracy !==
-                                          undefined && (
+                                        {detail.pronunciation.accuracy !== undefined && (
                                           <div>
                                             <span className="text-muted-foreground">
                                               Độ chính xác:
                                             </span>
                                             <span className="ml-1 font-medium">
-                                              {detail.pronunciation.accuracy.toFixed(
-                                                1
-                                              )}
+                                              {detail.pronunciation.accuracy.toFixed(1)}
                                             </span>
                                           </div>
                                         )}
-                                        {detail.pronunciation.fluency !==
-                                          undefined && (
+                                        {detail.pronunciation.fluency !== undefined && (
                                           <div>
                                             <span className="text-muted-foreground">
                                               Độ trôi chảy:
                                             </span>
                                             <span className="ml-1 font-medium">
-                                              {detail.pronunciation.fluency.toFixed(
-                                                1
-                                              )}
+                                              {detail.pronunciation.fluency.toFixed(1)}
                                             </span>
                                           </div>
                                         )}
-                                        {detail.pronunciation.completeness !==
-                                          undefined && (
+                                        {detail.pronunciation.completeness !== undefined && (
                                           <div>
                                             <span className="text-muted-foreground">
                                               Độ hoàn thành:
                                             </span>
                                             <span className="ml-1 font-medium">
-                                              {detail.pronunciation.completeness.toFixed(
-                                                1
-                                              )}
+                                              {detail.pronunciation.completeness.toFixed(1)}
                                             </span>
                                           </div>
                                         )}
-                                        {detail.pronunciation.prosody !==
-                                          undefined && (
+                                        {detail.pronunciation.prosody !== undefined && (
                                           <div>
-                                            <span className="text-muted-foreground">
-                                              Ngữ điệu:
-                                            </span>
+                                            <span className="text-muted-foreground">Ngữ điệu:</span>
                                             <span className="ml-1 font-medium">
-                                              {detail.pronunciation.prosody.toFixed(
-                                                1
-                                              )}
+                                              {detail.pronunciation.prosody.toFixed(1)}
                                             </span>
                                           </div>
                                         )}

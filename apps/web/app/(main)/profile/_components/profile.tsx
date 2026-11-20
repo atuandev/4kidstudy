@@ -17,7 +17,7 @@ import {
   Target,
   Trophy,
   User,
-  UserIcon
+  UserIcon,
 } from "lucide-react";
 import { redirect } from "next/navigation";
 import { useState } from "react";
@@ -56,11 +56,7 @@ export default function Profile({ profile }: ProfileProps) {
   };
 
   const genderLabel =
-    profile.gender === "MALE"
-      ? "Nam"
-      : profile.gender === "FEMALE"
-      ? "Nữ"
-      : "Chưa xác định";
+    profile.gender === "MALE" ? "Nam" : profile.gender === "FEMALE" ? "Nữ" : "Chưa xác định";
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
@@ -84,9 +80,7 @@ export default function Profile({ profile }: ProfileProps) {
             <div className="flex-1 space-y-2">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-foreground">
-                    {profile.name}
-                  </h1>
+                  <h1 className="text-3xl font-bold text-foreground">{profile.name}</h1>
                   <div className="flex items-center gap-2 text-muted-foreground mt-1">
                     <Mail className="h-4 w-4" />
                     <span className="text-sm">{profile.email}</span>
@@ -157,9 +151,7 @@ export default function Profile({ profile }: ProfileProps) {
                   <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                     {profile.xp.toLocaleString()}
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    Tổng kinh nghiệm
-                  </div>
+                  <div className="text-sm text-muted-foreground">Tổng kinh nghiệm</div>
                 </div>
 
                 <div className="text-center p-4 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900">
@@ -169,9 +161,7 @@ export default function Profile({ profile }: ProfileProps) {
                   <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                     {profile.streakDays}
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    Chuỗi ngày
-                  </div>
+                  <div className="text-sm text-muted-foreground">Chuỗi ngày</div>
                 </div>
               </div>
             </CardContent>
@@ -208,9 +198,7 @@ export default function Profile({ profile }: ProfileProps) {
                     <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                     <span className="font-medium">Thành viên từ</span>
                   </div>
-                  <span className="text-sm font-semibold">
-                    {formatDate(profile.createdAt)}
-                  </span>
+                  <span className="text-sm font-semibold">{formatDate(profile.createdAt)}</span>
                 </div>
               </div>
             </CardContent>
@@ -229,22 +217,16 @@ export default function Profile({ profile }: ProfileProps) {
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Khối học
-                  </label>
+                  <label className="text-sm font-medium text-muted-foreground">Khối học</label>
                   <div className="mt-1">
-                    <span className="">
-                      {GRADE_LABELS[profile.grade as GradeValue]}
-                    </span>
+                    <span className="">{GRADE_LABELS[profile.grade as GradeValue]}</span>
                   </div>
                 </div>
 
                 <Separator />
 
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Ngày sinh
-                  </label>
+                  <label className="text-sm font-medium text-muted-foreground">Ngày sinh</label>
                   <div className="mt-1 flex items-center gap-2 text-sm">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     {profile.dob ? formatDate(profile.dob) : "Chưa thiết lập"}
@@ -254,12 +236,8 @@ export default function Profile({ profile }: ProfileProps) {
                 <Separator />
 
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Giới tính
-                  </label>
-                  <div className="mt-1 text-sm font-medium capitalize">
-                    {genderLabel}
-                  </div>
+                  <label className="text-sm font-medium text-muted-foreground">Giới tính</label>
+                  <div className="mt-1 text-sm font-medium capitalize">{genderLabel}</div>
                 </div>
 
                 <Separator />
@@ -268,9 +246,7 @@ export default function Profile({ profile }: ProfileProps) {
                   <label className="text-sm font-medium text-muted-foreground">
                     Cập nhật lần cuối
                   </label>
-                  <div className="mt-1 text-sm">
-                    {formatDate(profile.updatedAt)}
-                  </div>
+                  <div className="mt-1 text-sm">{formatDate(profile.updatedAt)}</div>
                 </div>
               </div>
             </CardContent>

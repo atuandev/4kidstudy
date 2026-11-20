@@ -61,10 +61,7 @@ export function StreakChart() {
             <TrendingUp className="h-5 w-5 text-primary" />
             <CardTitle>Chuỗi ngày học</CardTitle>
           </div>
-          <Select
-            value={days.toString()}
-            onValueChange={(value) => setDays(parseInt(value))}
-          >
+          <Select value={days.toString()} onValueChange={(value) => setDays(parseInt(value))}>
             <SelectTrigger className="w-[140px]">
               <SelectValue />
             </SelectTrigger>
@@ -79,9 +76,7 @@ export function StreakChart() {
         </div>
         <div className="mt-2">
           <p className="text-2xl font-bold text-primary">{totalXP} XP</p>
-          <p className="text-sm text-muted-foreground">
-            Tổng điểm kiếm được từ streak
-          </p>
+          <p className="text-sm text-muted-foreground">Tổng điểm kiếm được từ streak</p>
         </div>
       </CardHeader>
       <CardContent>

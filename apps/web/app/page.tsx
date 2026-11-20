@@ -3,6 +3,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
+  // Server Component: rendered once per request/build, so reading the clock is fine.
+  // oxlint-disable-next-line react/purity
+  const year = new Date().getFullYear();
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur">
@@ -12,12 +15,16 @@ export default function Home() {
             <span className="font-semibold tracking-tight">4KisStudy</span>
           </Link>
           <nav className="hidden gap-6 text-sm font-medium sm:flex">
-            <Link href="#features" className="hover:underline underline-offset-4">Features</Link>
-            <Link href="#method" className="hover:underline underline-offset-4">Method</Link>
+            <Link href="#features" className="hover:underline underline-offset-4">
+              Features
+            </Link>
+            <Link href="#method" className="hover:underline underline-offset-4">
+              Method
+            </Link>
           </nav>
           <div className="flex items-center gap-2">
-            <Button asChild variant='secondary'>
-              <Link href="/login" >Get started</Link>
+            <Button asChild variant="secondary">
+              <Link href="/login">Get started</Link>
             </Button>
           </div>
         </div>
@@ -30,11 +37,11 @@ export default function Home() {
               English for Vietnamese Kids
             </h1>
             <p className="mt-4 text-muted-foreground">
-              4KisStudy helps Vietnamese children learn English with interactive lessons,
-              playful games, and daily micro-practice designed for ages 5-11.
+              4KisStudy helps Vietnamese children learn English with interactive lessons, playful
+              games, and daily micro-practice designed for ages 5-11.
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Button asChild size="lg" variant='secondary'>
+              <Button asChild size="lg" variant="secondary">
                 <Link href="/login">Start learning now</Link>
               </Button>
             </div>
@@ -70,20 +77,37 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="method" className="container mx-auto grid gap-8 px-4 py-16 md:grid-cols-2 md:items-center">
+        <section
+          id="method"
+          className="container mx-auto grid gap-8 px-4 py-16 md:grid-cols-2 md:items-center"
+        >
           <div className="relative mx-auto aspect-video w-full max-w-xl overflow-hidden rounded-xl border bg-background">
-            <Image src="/mascot.svg" alt="Method illustration" fill className="object-contain p-8" />
+            <Image
+              src="/mascot.svg"
+              alt="Method illustration"
+              fill
+              className="object-contain p-8"
+            />
           </div>
           <div>
             <h2 className="text-3xl font-semibold tracking-tight">Method that works</h2>
             <p className="mt-4 text-muted-foreground">
-              We combine phonics, listening, and playful quizzes. Parents get weekly reports in Vietnamese,
-              while kids enjoy rewards that keep motivation high.
+              We combine phonics, listening, and playful quizzes. Parents get weekly reports in
+              Vietnamese, while kids enjoy rewards that keep motivation high.
             </p>
             <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-primary" />Phonics-first approach</li>
-              <li className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-primary" />Adaptive difficulty</li>
-              <li className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-primary" />Parent-friendly insights</li>
+              <li className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-primary" />
+                Phonics-first approach
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-primary" />
+                Adaptive difficulty
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-primary" />
+                Parent-friendly insights
+              </li>
             </ul>
           </div>
         </section>
@@ -91,11 +115,17 @@ export default function Home() {
 
       <footer className="border-t">
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row">
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} 4KisStudy. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">© {year} 4KisStudy. All rights reserved.</p>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <Link href="#privacy" className="hover:underline">Privacy</Link>
-            <Link href="#terms" className="hover:underline">Terms</Link>
-            <Link href="#contact" className="hover:underline">Contact</Link>
+            <Link href="#privacy" className="hover:underline">
+              Privacy
+            </Link>
+            <Link href="#terms" className="hover:underline">
+              Terms
+            </Link>
+            <Link href="#contact" className="hover:underline">
+              Contact
+            </Link>
           </div>
         </div>
       </footer>

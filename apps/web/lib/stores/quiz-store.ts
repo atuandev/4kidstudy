@@ -1,9 +1,9 @@
-import { create } from 'zustand';
-import { Exercise, ExerciseOption } from '@/types';
+import { create } from "zustand";
+import { Exercise, ExerciseOption } from "@/types";
 
-type QuizStatus = 'none' | 'wrong' | 'correct';
+type QuizStatus = "none" | "wrong" | "correct";
 
-interface PronunciationScore {
+export interface PronunciationScore {
   accuracy?: number;
   fluency?: number;
   completeness?: number;
@@ -21,21 +21,21 @@ type QuizState = {
   activeIndex: number;
   exercises: Exercise[];
   lessonId: number;
-  
+
   // Attempt tracking
   attemptId: number | null;
-  
+
   // Selection state
   selectedOption: number | undefined;
   selectedOption2: number | undefined;
   status: QuizStatus;
-  
+
   // Pronunciation state
   pronunciation: PronunciationState;
-  
+
   // Transition state
   isPending: boolean;
-  
+
   // Attempt count per exercise (exerciseId -> attempt count)
   exerciseAttempts: Record<number, number>;
 };
@@ -44,32 +44,32 @@ type QuizActions = {
   // Initialize quiz
   initializeQuiz: (lessonId: number, exercises: Exercise[]) => void;
   resetQuiz: () => void;
-  
+
   // Attempt tracking
   setAttemptId: (attemptId: number) => void;
-  
+
   // Navigation
   nextExercise: () => void;
-  
+
   // Selection
   selectOption: (optionId: number) => void;
   selectOptions: (optionId: number, optionId2?: number) => void;
   clearSelection: () => void;
-  
+
   // Status
   setStatus: (status: QuizStatus) => void;
-  
+
   // Pronunciation
-  updatePronunciation: (state: string, score?: PronunciationScore) => void;
+  updatePronunciation: (state: string, score?: PronunciationScore | null) => void;
   resetPronunciation: () => void;
-  
+
   // Pending state
   setPending: (isPending: boolean) => void;
-  
+
   // Exercise attempts
   getExerciseAttemptCount: (exerciseId: number) => number;
   incrementExerciseAttempt: (exerciseId: number) => void;
-  
+
   // Getters
   getCurrentExercise: () => Exercise | undefined;
   getOptions: () => ExerciseOption[];
@@ -85,9 +85,9 @@ const initialState: QuizState = {
   attemptId: null,
   selectedOption: undefined,
   selectedOption2: undefined,
-  status: 'none',
+  status: "none",
   pronunciation: {
-    state: 'idle',
+    state: "idle",
     score: null,
   },
   isPending: false,
@@ -106,9 +106,9 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
       attemptId: null,
       selectedOption: undefined,
       selectedOption2: undefined,
-      status: 'none',
+      status: "none",
       pronunciation: {
-        state: 'idle',
+        state: "idle",
         score: null,
       },
       isPending: false,
@@ -132,9 +132,9 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
       activeIndex: state.activeIndex + 1,
       selectedOption: undefined,
       selectedOption2: undefined,
-      status: 'none',
+      status: "none",
       pronunciation: {
-        state: 'idle',
+        state: "idle",
         score: null,
       },
     });
@@ -143,23 +143,23 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
   // Selection
   selectOption: (optionId: number) => {
     const state = get();
-    if (state.status !== 'none') return;
-    
+    if (state.status !== "none") return;
+
     set({ selectedOption: optionId, selectedOption2: undefined });
   },
 
   selectOptions: (optionId: number, optionId2?: number) => {
     const state = get();
-    if (state.status !== 'none') return;
-    
+    if (state.status !== "none") return;
+
     set({ selectedOption: optionId, selectedOption2: optionId2 });
   },
 
   clearSelection: () => {
-    set({ 
+    set({
       selectedOption: undefined,
       selectedOption2: undefined,
-      status: 'none',
+      status: "none",
     });
   },
 
@@ -169,7 +169,7 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
   },
 
   // Pronunciation
-  updatePronunciation: (state: string, score?: PronunciationScore) => {
+  updatePronunciation: (state: string, score?: PronunciationScore | null) => {
     set({
       pronunciation: {
         state,
@@ -181,7 +181,7 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
   resetPronunciation: () => {
     set({
       pronunciation: {
-        state: 'idle',
+        state: "idle",
         score: null,
       },
     });
@@ -225,4 +225,3 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
     return state.activeIndex >= state.exercises.length;
   },
 }));
-

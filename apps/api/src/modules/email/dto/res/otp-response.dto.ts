@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class OTPResponseDto {
   @ApiProperty({ example: true })
@@ -20,4 +20,10 @@ export class VerifyOTPResponseDto {
 
   @ApiProperty({ example: 'Xác thực OTP thành công' })
   message: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Short-lived (10 min) token for POST /users/reset-password. Present when the email belongs to an existing user.',
+  })
+  resetToken?: string;
 }

@@ -1,7 +1,7 @@
-'use server'
+"use server";
 
-import http from '@/lib/http'
-import { RegisterSchemaType } from '@/schemas/auth'
+import http from "@/lib/http";
+import { RegisterSchemaType } from "@/schemas/auth";
 
 interface RegisterResponse {
   user: {
@@ -30,20 +30,24 @@ interface RegisterResult {
 
 export const register = async (data: RegisterSchemaType): Promise<RegisterResult> => {
   try {
-    const { status, payload } = await http.post<RegisterResponse | ErrorResponse>(`/auth/register`, JSON.stringify({
-      email: data.email,
-      name: data.name,
-      password: data.password,
-      grade: data.grade,
-    }), {
-      noAuth: true,
-    })
+    const { status, payload } = await http.post<RegisterResponse | ErrorResponse>(
+      `/auth/register`,
+      JSON.stringify({
+        email: data.email,
+        name: data.name,
+        password: data.password,
+        grade: data.grade,
+      }),
+      {
+        noAuth: true,
+      },
+    );
 
     // Handle conflict (email already exists)
     if (status === 409) {
       return {
         success: false,
-        error: 'Email đã được sử dụng. Vui lòng sử dụng email khác.'
+        error: "Email đã được sử dụng. Vui lòng sử dụng email khác.",
       };
     }
 
@@ -52,7 +56,7 @@ export const register = async (data: RegisterSchemaType): Promise<RegisterResult
       const errorPayload = payload as ErrorResponse;
       return {
         success: false,
-        error: errorPayload.message || 'Đăng ký thất bại'
+        error: errorPayload.message || "Đăng ký thất bại",
       };
     }
 
@@ -62,23 +66,23 @@ export const register = async (data: RegisterSchemaType): Promise<RegisterResult
     if (!registerPayload.user) {
       return {
         success: false,
-        error: 'Phản hồi từ máy chủ không hợp lệ'
+        error: "Phản hồi từ máy chủ không hợp lệ",
       };
     }
 
     return {
       success: true,
-      data: registerPayload
+      data: registerPayload,
     };
   } catch (error) {
     // Log error only in development
     if (process.env.NODE_ENV === "development") {
       console.error("Register error:", error);
     }
-    
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Đăng ký thất bại'
+      error: error instanceof Error ? error.message : "Đăng ký thất bại",
     };
   }
-}
+};

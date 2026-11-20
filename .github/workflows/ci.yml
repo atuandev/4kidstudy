@@ -41,8 +41,8 @@ jobs:
       - name: Typecheck, build, test
         run: pnpm turbo run typecheck build test ${{ github.event_name == 'pull_request' && '--affected' || '' }}
 
-      # Both apps had lint errors before the monorepo migration (web 35, api 108).
-      # Non-blocking until those are fixed; then delete continue-on-error.
-      - name: Lint
-        continue-on-error: true
+      - name: Format check (oxfmt)
+        run: pnpm turbo run format:check ${{ github.event_name == 'pull_request' && '--affected' || '' }}
+
+      - name: Lint (oxlint)
         run: pnpm turbo run lint ${{ github.event_name == 'pull_request' && '--affected' || '' }}

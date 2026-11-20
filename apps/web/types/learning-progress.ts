@@ -1,4 +1,4 @@
-import type { LearningContentType } from '@4kidstudy/contracts';
+import type { LearningContentType } from "@4kidstudy/contracts";
 
 export interface LearningProgress {
   id: number;

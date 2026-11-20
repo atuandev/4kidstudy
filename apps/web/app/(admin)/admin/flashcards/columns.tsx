@@ -78,8 +78,7 @@ function DeleteFlashcardDialog({ flashcard }: { flashcard: Flashcard }) {
         <AlertDialogHeader>
           <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
           <AlertDialogDescription>
-            Hành động này không thể hoàn tác. Flashcard này sẽ bị xóa vĩnh viễn
-            khỏi hệ thống.
+            Hành động này không thể hoàn tác. Flashcard này sẽ bị xóa vĩnh viễn khỏi hệ thống.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -97,8 +96,7 @@ export const columns: ColumnDef<Flashcard>[] = [
     header: ({ table }) => (
       <Checkbox
         checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
+          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
@@ -116,9 +114,7 @@ export const columns: ColumnDef<Flashcard>[] = [
   },
   {
     accessorKey: "id",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="ID" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
     cell: ({ row }) => <div className="w-[60px]">{row.getValue("id")}</div>,
     filterFn: (row, id, value) => {
       const rowId = String(row.getValue(id));
@@ -127,9 +123,7 @@ export const columns: ColumnDef<Flashcard>[] = [
   },
   {
     accessorKey: "imageUrl",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Hình ảnh" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Hình ảnh" />,
     cell: ({ row }) => {
       const imageUrl = row.getValue("imageUrl") as string;
       return (
@@ -148,9 +142,7 @@ export const columns: ColumnDef<Flashcard>[] = [
   },
   {
     accessorKey: "term",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Từ vựng" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Từ vựng" />,
     cell: ({ row }) => {
       const term = row.getValue("term") as string;
       return (
@@ -162,23 +154,15 @@ export const columns: ColumnDef<Flashcard>[] = [
   },
   {
     accessorKey: "phonetic",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Phiên âm" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Phiên âm" />,
     cell: ({ row }) => {
       const phonetic = row.getValue("phonetic") as string;
-      return (
-        <div className="max-w-[150px] truncate text-muted-foreground">
-          {phonetic || "-"}
-        </div>
-      );
+      return <div className="max-w-[150px] truncate text-muted-foreground">{phonetic || "-"}</div>;
     },
   },
   {
     accessorKey: "meaningVi",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Nghĩa" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Nghĩa" />,
     cell: ({ row }) => {
       const meaning = row.getValue("meaningVi") as string;
       return (
@@ -191,9 +175,7 @@ export const columns: ColumnDef<Flashcard>[] = [
   {
     accessorKey: "topicId",
     id: "topicId",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Unit" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Unit" />,
     cell: ({ row }) => {
       const topicTitle = row.original.topic?.title || "-";
       return (
@@ -209,9 +191,7 @@ export const columns: ColumnDef<Flashcard>[] = [
   {
     accessorKey: "topic.grade",
     id: "grade",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Lớp" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Lớp" />,
     cell: ({ row }) => {
       const grade = row.original.topic?.grade;
       if (!grade) return <div>-</div>;
@@ -227,18 +207,12 @@ export const columns: ColumnDef<Flashcard>[] = [
   },
   {
     accessorKey: "order",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Thứ tự" />
-    ),
-    cell: ({ row }) => (
-      <div className="text-center">{row.getValue("order")}</div>
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Thứ tự" />,
+    cell: ({ row }) => <div className="text-center">{row.getValue("order")}</div>,
   },
   {
     accessorKey: "isActive",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Trạng thái" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Trạng thái" />,
     cell: ({ row }) => {
       const isActive = row.getValue("isActive") as boolean;
       return (
@@ -253,9 +227,7 @@ export const columns: ColumnDef<Flashcard>[] = [
   },
   {
     accessorKey: "createdAt",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Ngày tạo" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Ngày tạo" />,
     cell: ({ row }) => {
       const date = new Date(row.getValue("createdAt"));
       return <div>{date.toLocaleDateString("vi-VN")}</div>;
@@ -282,9 +254,7 @@ export const columns: ColumnDef<Flashcard>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem
-              onClick={() =>
-                navigator.clipboard.writeText(flashcard.id.toString())
-              }
+              onClick={() => navigator.clipboard.writeText(flashcard.id.toString())}
             >
               <CopyIcon className="mr-2 h-4 w-4" />
               Copy ID

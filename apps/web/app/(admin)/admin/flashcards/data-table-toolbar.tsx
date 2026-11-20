@@ -50,9 +50,7 @@ const statuses = [
   },
 ];
 
-export function DataTableToolbar<TData>({
-  table,
-}: DataTableToolbarProps<TData>) {
+export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
   const [isLoadingTopics, setIsLoadingTopics] = useState(false);
@@ -100,7 +98,7 @@ export function DataTableToolbar<TData>({
         }
 
         const uniqueTopics = Array.from(
-          new Map(allTopics.map((topic) => [topic.id, topic])).values()
+          new Map(allTopics.map((topic) => [topic.id, topic])).values(),
         );
         setFilteredTopics(uniqueTopics);
       } catch (error) {
@@ -131,25 +129,17 @@ export function DataTableToolbar<TData>({
         <Input
           placeholder="Tìm kiếm ID..."
           value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("id")?.setFilterValue(event.target.value)
-          }
+          onChange={(event) => table.getColumn("id")?.setFilterValue(event.target.value)}
           className="h-8 w-[100px] lg:w-[150px]"
         />
         <Input
           placeholder="Tìm kiếm từ vựng..."
           value={(table.getColumn("term")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("term")?.setFilterValue(event.target.value)
-          }
+          onChange={(event) => table.getColumn("term")?.setFilterValue(event.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
         />
         {table.getColumn("grade") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("grade")}
-            title="Lớp"
-            options={grades}
-          />
+          <DataTableFacetedFilter column={table.getColumn("grade")} title="Lớp" options={grades} />
         )}
         {table.getColumn("topicId") && (
           <DataTableFacetedFilter
@@ -167,11 +157,7 @@ export function DataTableToolbar<TData>({
           />
         )}
         {isFiltered && (
-          <Button
-            variant="dangerOutline"
-            onClick={handleResetFilters}
-            className="h-8 px-2 lg:px-3"
-          >
+          <Button variant="dangerOutline" onClick={handleResetFilters} className="h-8 px-2 lg:px-3">
             Xoá bộ lọc
             <X className="ml-2 h-4 w-4" />
           </Button>

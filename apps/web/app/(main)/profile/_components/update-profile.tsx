@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useTransition } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -19,22 +19,22 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { FormError } from '@/components/form/form-error';
-import { FormSuccess } from '@/components/form/form-success';
-import { UpdateProfileSchema, UpdateProfileSchemaType } from '@/schemas/user';
-import { updateProfile } from '@/actions/user/user';
-import { GRADES } from '@/types/grade';
-import { User, Gender } from '@/types';
-import { Upload } from 'lucide-react';
+} from "@/components/ui/select";
+import { FormError } from "@/components/form/form-error";
+import { FormSuccess } from "@/components/form/form-success";
+import { UpdateProfileSchema, UpdateProfileSchemaType } from "@/schemas/user";
+import { updateProfile } from "@/actions/user/user";
+import { GRADES } from "@/types/grade";
+import { User, Gender } from "@/types";
+import { Upload } from "lucide-react";
 
 interface UpdateProfileDialogProps {
   open: boolean;
@@ -49,19 +49,17 @@ export function UpdateProfileDialog({
   profile,
   onSuccess,
 }: UpdateProfileDialogProps) {
-  const [error, setError] = useState<string | undefined>('');
-  const [success, setSuccess] = useState<string | undefined>('');
+  const [error, setError] = useState<string | undefined>("");
+  const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
-  const [avatarPreview, setAvatarPreview] = useState<string | undefined>(
-    profile.avatarUrl
-  );
+  const [avatarPreview, setAvatarPreview] = useState<string | undefined>(profile.avatarUrl);
 
   const form = useForm<UpdateProfileSchemaType>({
     resolver: zodResolver(UpdateProfileSchema),
     defaultValues: {
       name: profile.name,
       grade: profile.grade,
-      dob: profile.dob ? new Date(profile.dob).toISOString().split('T')[0] : '',
+      dob: profile.dob ? new Date(profile.dob).toISOString().split("T")[0] : "",
       gender: profile.gender,
     },
   });
@@ -69,7 +67,7 @@ export function UpdateProfileDialog({
   const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      form.setValue('avatar', file);
+      form.setValue("avatar", file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarPreview(reader.result as string);
@@ -80,13 +78,13 @@ export function UpdateProfileDialog({
 
   const onSubmit = (values: UpdateProfileSchemaType) => {
     startTransition(async () => {
-      setError('');
-      setSuccess('');
+      setError("");
+      setSuccess("");
 
       try {
         await updateProfile(values);
-        setSuccess('Cập nhật thông tin thành công');
-        
+        setSuccess("Cập nhật thông tin thành công");
+
         // Close dialog after 1.5 seconds
         setTimeout(() => {
           onOpenChange(false);
@@ -100,7 +98,7 @@ export function UpdateProfileDialog({
         if (err instanceof Error) {
           setError(err.message);
         } else {
-          setError('Cập nhật thông tin thất bại');
+          setError("Cập nhật thông tin thất bại");
         }
       }
     });
@@ -108,9 +106,9 @@ export function UpdateProfileDialog({
 
   const getInitials = (name: string) => {
     return name
-      .split(' ')
+      .split(" ")
       .map((part) => part.charAt(0))
-      .join('')
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
@@ -172,11 +170,7 @@ export function UpdateProfileDialog({
                 <FormItem>
                   <FormLabel>Họ và tên</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="Nhập họ và tên"
-                      disabled={isPending}
-                    />
+                    <Input {...field} placeholder="Nhập họ và tên" disabled={isPending} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -221,11 +215,7 @@ export function UpdateProfileDialog({
                 <FormItem>
                   <FormLabel>Ngày sinh</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      type="date"
-                      disabled={isPending}
-                    />
+                    <Input {...field} type="date" disabled={isPending} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -274,7 +264,7 @@ export function UpdateProfileDialog({
                 Hủy
               </Button>
               <Button type="submit" variant="primary" className="flex-1" disabled={isPending}>
-                {isPending ? 'Đang lưu...' : 'Lưu thay đổi'}
+                {isPending ? "Đang lưu..." : "Lưu thay đổi"}
               </Button>
             </div>
           </form>
@@ -283,4 +273,3 @@ export function UpdateProfileDialog({
     </Dialog>
   );
 }
-

@@ -1,8 +1,8 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 /**
@@ -11,10 +11,10 @@ export function cn(...inputs: ClassValue[]) {
  * @returns true if valid URL, false otherwise
  */
 export function isValidUrl(urlString: string | undefined | null): boolean {
-  if (!urlString || typeof urlString !== 'string') {
+  if (!urlString || typeof urlString !== "string") {
     return false;
   }
-  
+
   try {
     new URL(urlString);
     return true;

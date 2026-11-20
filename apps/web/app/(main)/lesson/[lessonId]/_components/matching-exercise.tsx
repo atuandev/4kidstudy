@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { cn, shuffleArray } from "@/lib/utils";
 import { ExerciseOption } from "@/types";
 import { useQuizStore } from "@/lib/stores/quiz-store";
@@ -19,12 +19,7 @@ type MatchPair = {
   matchKey: string;
 };
 
-export function MatchingExercise({
-  options,
-  onSelect,
-  status,
-  disabled,
-}: MatchingExerciseProps) {
+export function MatchingExercise({ options, onSelect, status, disabled }: MatchingExerciseProps) {
   const { selectOptions } = useQuizStore();
   const [selectedLeft, setSelectedLeft] = useState<number | null>(null);
   const [selectedRight, setSelectedRight] = useState<number | null>(null);
@@ -37,8 +32,19 @@ export function MatchingExercise({
     leftId: number;
     rightId: number;
   } | null>(null);
-  const [hasNotifiedCompletion, setHasNotifiedCompletion] = useState(false);
+  // Which exercise (options array) completion was already reported for.
+  const notifiedForRef = useRef<ExerciseOption[] | null>(null);
 
+  // Reset state when options change (new exercise), during render.
+  const [optionsForState, setOptionsForState] = useState(options);
+  if (options !== optionsForState) {
+    setOptionsForState(options);
+    setMatches(new Map());
+    setSelectedLeft(null);
+    setSelectedRight(null);
+    setWrongMatch(null);
+    setLastMatchedPair(null);
+  }
 
   // Group options by matchKey to create pairs
   const { leftOptions, rightOptions, pairs } = useMemo(() => {
@@ -76,10 +82,8 @@ export function MatchingExercise({
       const hasImage = !!option.imageUrl;
       const isVietnamese =
         option.text &&
-        /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/.test(
-          option.text
-        );
-      
+        /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/.test(option.text);
+
       // Left column: Options with images OR Vietnamese text
       if (hasImage || isVietnamese) {
         leftOpts.push(option);
@@ -94,7 +98,7 @@ export function MatchingExercise({
       const allOpts = [...options];
       leftOpts.length = 0;
       rightOpts.length = 0;
-      
+
       allOpts.forEach((option, index) => {
         if (index % 2 === 0) {
           leftOpts.push(option);
@@ -181,8 +185,8 @@ export function MatchingExercise({
 
   // Notify parent when all matches are complete, but only once
   useEffect(() => {
-    if (isAllMatched && matches.size > 0 && !hasNotifiedCompletion && lastMatchedPair) {
-      setHasNotifiedCompletion(true);
+    if (isAllMatched && matches.size > 0 && notifiedForRef.current !== options && lastMatchedPair) {
+      notifiedForRef.current = options;
       // Use a small delay to ensure the last match animation completes
       setTimeout(() => {
         // Store both matched option IDs in the quiz store
@@ -191,17 +195,7 @@ export function MatchingExercise({
         onSelect(lastMatchedPair.leftId);
       }, 300);
     }
-  }, [isAllMatched, matches.size, hasNotifiedCompletion, lastMatchedPair, options, onSelect, selectOptions]);
-
-  // Reset state when options change (new exercise)
-  useEffect(() => {
-    setHasNotifiedCompletion(false);
-    setMatches(new Map());
-    setSelectedLeft(null);
-    setSelectedRight(null);
-    setWrongMatch(null);
-    setLastMatchedPair(null);
-  }, [options]);
+  }, [isAllMatched, matches.size, lastMatchedPair, options, onSelect, selectOptions]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -214,10 +208,9 @@ export function MatchingExercise({
             className={cn(
               "p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-blue-50 h-24 flex items-center justify-center",
               selectedLeft === option.id && "border-blue-300 bg-blue-100",
-              isMatched(option) &&
-                "border-green-300 bg-green-100 cursor-default",
+              isMatched(option) && "border-green-300 bg-green-100 cursor-default",
               wrongMatch?.leftId === option.id && "border-red-300 bg-red-100",
-              disabled && "pointer-events-none opacity-50"
+              disabled && "pointer-events-none opacity-50",
             )}
           >
             {option.imageUrl ? (
@@ -232,7 +225,7 @@ export function MatchingExercise({
                   "font-semibold text-neutral-600 text-xl text-center",
                   selectedLeft === option.id && "text-blue-600",
                   isMatched(option) && "text-green-600",
-                  wrongMatch?.leftId === option.id && "text-red-600"
+                  wrongMatch?.leftId === option.id && "text-red-600",
                 )}
               >
                 {option.text}
@@ -251,10 +244,9 @@ export function MatchingExercise({
             className={cn(
               "p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-blue-50 h-24 flex items-center justify-center",
               selectedRight === option.id && "border-blue-300 bg-blue-100",
-              isMatched(option) &&
-                "border-green-300 bg-green-100 cursor-default",
+              isMatched(option) && "border-green-300 bg-green-100 cursor-default",
               wrongMatch?.rightId === option.id && "border-red-300 bg-red-100",
-              disabled && "pointer-events-none opacity-50"
+              disabled && "pointer-events-none opacity-50",
             )}
           >
             <p
@@ -262,7 +254,7 @@ export function MatchingExercise({
                 "font-semibold text-neutral-600 text-xl text-center",
                 selectedRight === option.id && "text-blue-600",
                 isMatched(option) && "text-green-600",
-                wrongMatch?.rightId === option.id && "text-red-600"
+                wrongMatch?.rightId === option.id && "text-red-600",
               )}
             >
               {option.text}

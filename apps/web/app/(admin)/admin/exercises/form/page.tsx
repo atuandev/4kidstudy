@@ -1,10 +1,16 @@
-
 "use client";
 
-
-
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronDown, ChevronUp, Edit2, ImageIcon, Loader2, Plus, Trash2, Upload } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Edit2,
+  ImageIcon,
+  Loader2,
+  Plus,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -54,7 +60,12 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 
-import { createManyExercises, getExerciseByLessonId, updateExercise, deleteExercise } from "@/actions/exercise";
+import {
+  createManyExercises,
+  getExerciseByLessonId,
+  updateExercise,
+  deleteExercise,
+} from "@/actions/exercise";
 import { getLessons } from "@/actions/lesson";
 import { RequiredField } from "@/components/form/required-field";
 import { TypographyH3, TypographyH4 } from "@/components/typography";
@@ -72,9 +83,7 @@ export default function ExerciseFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableLessons, setAvailableLessons] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [exerciseForms, setExerciseForms] = useState<CreateExerciseFormData[]>(
-    []
-  );
+  const [exerciseForms, setExerciseForms] = useState<CreateExerciseFormData[]>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [existingExercisesCount, setExistingExercisesCount] = useState(0);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
@@ -161,15 +170,16 @@ export default function ExerciseFormPage() {
               hintVi: ex.hintVi || "",
               points: ex.points,
               difficulty: ex.difficulty || 1,
-              options: ex.options?.map((opt) => ({
-                id: opt.id,
-                text: opt.text,
-                imageUrl: opt.imageUrl || "",
-                audioUrl: opt.audioUrl || "",
-                isCorrect: opt.isCorrect,
-                order: opt.order,
-                matchKey: opt.matchKey || "",
-              })) || [],
+              options:
+                ex.options?.map((opt) => ({
+                  id: opt.id,
+                  text: opt.text,
+                  imageUrl: opt.imageUrl || "",
+                  audioUrl: opt.audioUrl || "",
+                  isCorrect: opt.isCorrect,
+                  order: opt.order,
+                  matchKey: opt.matchKey || "",
+                })) || [],
             })) as CreateExerciseFormData[];
 
             setExerciseForms(convertedExercises);
@@ -205,11 +215,8 @@ export default function ExerciseFormPage() {
   }, [storeLessonId, availableLessons, isLoading, form]);
 
   const validateExercise = (values: CreateExerciseFormData) => {
-    if (
-      ["MULTIPLE_CHOICE", "SELECT_IMAGE", "LISTENING"].includes(values.type)
-    ) {
-      const correctAnswersCount =
-        values.options?.filter((opt) => opt.isCorrect).length ?? 0;
+    if (["MULTIPLE_CHOICE", "SELECT_IMAGE", "LISTENING"].includes(values.type)) {
+      const correctAnswersCount = values.options?.filter((opt) => opt.isCorrect).length ?? 0;
 
       if (correctAnswersCount === 0) {
         toast.error("Vui lòng chọn một đáp án đúng");
@@ -242,31 +249,24 @@ export default function ExerciseFormPage() {
     }
 
     if (values.type === "MATCHING" && values.options && values.options.length > 0) {
-      const matchKeyCounts = values.options.reduce<Map<string, number>>(
-        (counts, option) => {
-          const key = option.matchKey?.trim();
-          if (!key) {
-            return counts;
-          }
-          const currentCount = counts.get(key) ?? 0;
-          counts.set(key, currentCount + 1);
+      const matchKeyCounts = values.options.reduce<Map<string, number>>((counts, option) => {
+        const key = option.matchKey?.trim();
+        if (!key) {
           return counts;
-        },
-        new Map<string, number>()
-      );
+        }
+        const currentCount = counts.get(key) ?? 0;
+        counts.set(key, currentCount + 1);
+        return counts;
+      }, new Map<string, number>());
 
-      const invalidMatchKey = Array.from(matchKeyCounts.entries()).find(
-        ([, count]) => count < 2
-      );
+      const invalidMatchKey = Array.from(matchKeyCounts.entries()).find(([, count]) => count < 2);
 
       if (invalidMatchKey) {
         toast.error(`Match Key "${invalidMatchKey[0]}" cần hai đáp án`);
         return false;
       }
 
-      const excessiveMatchKey = Array.from(matchKeyCounts.entries()).find(
-        ([, count]) => count > 2
-      );
+      const excessiveMatchKey = Array.from(matchKeyCounts.entries()).find(([, count]) => count > 2);
 
       if (excessiveMatchKey) {
         toast.error(`Match Key "${excessiveMatchKey[0]}" chỉ được tối đa hai đáp án`);
@@ -296,21 +296,14 @@ export default function ExerciseFormPage() {
     if (editingIndex !== null) {
       // Update existing exercise
       setExerciseForms((prev) =>
-        prev.map((ex, idx) =>
-          idx === editingIndex ? (createData as CreateExerciseFormData) : ex
-        )
+        prev.map((ex, idx) => (idx === editingIndex ? (createData as CreateExerciseFormData) : ex)),
       );
       toast.success("Đã cập nhật câu hỏi");
       setEditingIndex(null);
     } else {
       // Add new exercise
-      setExerciseForms((prev) => [
-        ...prev,
-        createData as CreateExerciseFormData,
-      ]);
-      toast.success(
-        `Đã thêm câu hỏi ${exerciseForms.length + 1}. Tiếp tục tạo câu hỏi mới.`
-      );
+      setExerciseForms((prev) => [...prev, createData as CreateExerciseFormData]);
+      toast.success(`Đã thêm câu hỏi ${exerciseForms.length + 1}. Tiếp tục tạo câu hỏi mới.`);
     }
 
     const currentLessonId = form.getValues("lessonId");
@@ -356,7 +349,7 @@ export default function ExerciseFormPage() {
   };
 
   const toggleCardExpanded = (index: number) => {
-    setExpandedCards(prev => {
+    setExpandedCards((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(index)) {
         newSet.delete(index);
@@ -375,7 +368,7 @@ export default function ExerciseFormPage() {
       try {
         await deleteExercise(exercise.id);
         toast.success("Đã xóa câu hỏi khỏi hệ thống");
-        setExistingExercisesCount(prev => prev - 1);
+        setExistingExercisesCount((prev) => prev - 1);
       } catch {
         toast.error("Không thể xóa câu hỏi");
         return;
@@ -540,8 +533,8 @@ export default function ExerciseFormPage() {
     setIsSubmitting(true);
     try {
       // Separate existing exercises (with id) from new exercises (without id)
-      const existingExercises = exerciseForms.filter(ex => ex.id);
-      const newExercises = exerciseForms.filter(ex => !ex.id);
+      const existingExercises = exerciseForms.filter((ex) => ex.id);
+      const newExercises = exerciseForms.filter((ex) => !ex.id);
 
       let updatedCount = 0;
       let createdCount = 0;
@@ -554,7 +547,7 @@ export default function ExerciseFormPage() {
         });
 
         const updateResults = await Promise.all(updatePromises);
-        updatedCount = updateResults.filter(result => result.status === 200).length;
+        updatedCount = updateResults.filter((result) => result.status === 200).length;
 
         if (updatedCount < existingExercises.length) {
           toast.warning(`Chỉ cập nhật được ${updatedCount}/${existingExercises.length} câu hỏi`);
@@ -602,11 +595,7 @@ export default function ExerciseFormPage() {
 
   const handleCancel = () => {
     if (exerciseForms.length > 0) {
-      if (
-        confirm(
-          `Bạn có ${exerciseForms.length} câu hỏi chưa lưu. Bạn có chắc muốn hủy?`
-        )
-      ) {
+      if (confirm(`Bạn có ${exerciseForms.length} câu hỏi chưa lưu. Bạn có chắc muốn hủy?`)) {
         setExerciseForms([]);
         clearSelection();
         router.back();
@@ -632,24 +621,37 @@ export default function ExerciseFormPage() {
 
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const workbook = XLSX.read(arrayBuffer, { type: "array" });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json<Record<string, string>>(worksheet, {
-        defval: '',
+        defval: "",
       });
 
       const neededFiles = new Set<string>();
 
       jsonData.forEach((row: Record<string, string>) => {
         const extractFilename = (path: string | undefined) => {
-          if (!path || typeof path !== 'string') return null;
+          if (!path || typeof path !== "string") return null;
           const trimmed = path.trim();
-          if (trimmed === '\\n' || trimmed === '\n' || !trimmed) return null;
-          return trimmed.split('\\').pop()?.split('/').pop() || null;
+          if (trimmed === "\\n" || trimmed === "\n" || !trimmed) return null;
+          return trimmed.split("\\").pop()?.split("/").pop() || null;
         };
 
-        ['img', 'audio', 'optT', 'optF1', 'optF2', 'optF3', 'opt1', 'opt2', 'opt3', 'opt4', 'opt5', 'opt6'].forEach((key) => {
+        [
+          "img",
+          "audio",
+          "optT",
+          "optF1",
+          "optF2",
+          "optF3",
+          "opt1",
+          "opt2",
+          "opt3",
+          "opt4",
+          "opt5",
+          "opt6",
+        ].forEach((key) => {
           const filename = extractFilename(row[key]);
           if (filename) neededFiles.add(filename);
         });
@@ -660,8 +662,8 @@ export default function ExerciseFormPage() {
         matchedFiles: [],
       });
     } catch (error) {
-      console.error('Failed to read Excel:', error);
-      toast.error('Không thể đọc file Excel');
+      console.error("Failed to read Excel:", error);
+      toast.error("Không thể đọc file Excel");
     }
   };
 
@@ -682,14 +684,14 @@ export default function ExerciseFormPage() {
   };
 
   const handleConfirmImport = async () => {
-    const lessonId = form.getValues('lessonId') || storeLessonId;
+    const lessonId = form.getValues("lessonId") || storeLessonId;
     if (!lessonId) {
-      toast.error('Vui lòng chọn bài luyện tập');
+      toast.error("Vui lòng chọn bài luyện tập");
       return;
     }
 
     if (!selectedExcelFile) {
-      toast.error('Vui lòng chọn file Excel');
+      toast.error("Vui lòng chọn file Excel");
       return;
     }
 
@@ -697,32 +699,29 @@ export default function ExerciseFormPage() {
 
     try {
       const formData = new FormData();
-      formData.append('excelFile', selectedExcelFile);
+      formData.append("excelFile", selectedExcelFile);
 
       if (selectedFolderFiles && importPreview) {
         const matchedFileNames = new Set(importPreview.matchedFiles);
         Array.from(selectedFolderFiles).forEach((file) => {
           if (matchedFileNames.has(file.name)) {
-            formData.append('assets', file);
+            formData.append("assets", file);
           }
         });
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_ENDPOINT || 'http://localhost:3001/api';
-      const response = await fetch(
-        `${apiUrl}/exercises/import-excel/${lessonId}`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
+      // Same-origin route adds the admin's access token (httpOnly cookie).
+      const response = await fetch(`/api/admin-import/exercises/import-excel/${lessonId}`, {
+        method: "POST",
+        body: formData,
+      });
 
-      const contentType = response.headers.get('content-type');
+      const contentType = response.headers.get("content-type");
 
       if (!response.ok) {
         let errorMessage = `Server returned ${response.status}: ${response.statusText}`;
 
-        if (contentType?.includes('application/json')) {
+        if (contentType?.includes("application/json")) {
           try {
             const error = await response.json();
             errorMessage = error.message || errorMessage;
@@ -732,17 +731,17 @@ export default function ExerciseFormPage() {
         } else {
           // Get text response for debugging
           const text = await response.text();
-          console.error('Server error response:', text.substring(0, 500));
+          console.error("Server error response:", text.substring(0, 500));
           errorMessage = `Server error: ${response.statusText}`;
         }
 
         throw new Error(errorMessage);
       }
 
-      if (!contentType?.includes('application/json')) {
+      if (!contentType?.includes("application/json")) {
         const text = await response.text();
-        console.error('Unexpected response type:', contentType, text.substring(0, 500));
-        throw new Error('Server returned unexpected response format');
+        console.error("Unexpected response type:", contentType, text.substring(0, 500));
+        throw new Error("Server returned unexpected response format");
       }
 
       const result = await response.json();
@@ -769,21 +768,22 @@ export default function ExerciseFormPage() {
           hintVi: ex.hintVi || "",
           points: ex.points,
           difficulty: ex.difficulty || 1,
-          options: ex.options?.map((opt) => ({
-            id: opt.id,
-            text: opt.text,
-            imageUrl: opt.imageUrl || "",
-            audioUrl: opt.audioUrl || "",
-            isCorrect: opt.isCorrect,
-            order: opt.order,
-            matchKey: opt.matchKey || "",
-          })) || [],
+          options:
+            ex.options?.map((opt) => ({
+              id: opt.id,
+              text: opt.text,
+              imageUrl: opt.imageUrl || "",
+              audioUrl: opt.audioUrl || "",
+              isCorrect: opt.isCorrect,
+              order: opt.order,
+              matchKey: opt.matchKey || "",
+            })) || [],
         })) as CreateExerciseFormData[];
         setExerciseForms(convertedExercises);
       }
     } catch (error) {
-      console.error('Import error:', error);
-      toast.error(`Import thất bại: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Import error:", error);
+      toast.error(`Import thất bại: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       setIsImporting(false);
     }
@@ -841,10 +841,7 @@ export default function ExerciseFormPage() {
       {/* Header */}
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-1" />
-        <Separator
-          orientation="vertical"
-          className="mr-2 data-[orientation=vertical]:h-4"
-        />
+        <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -896,10 +893,13 @@ export default function ExerciseFormPage() {
                 return (
                   <Card
                     key={index}
-                    className={`${editingIndex === index
-                      ? "border-blue-500 ring-2 ring-blue-200"
-                      : isExisting ? "border-green-300" : ""
-                      }`}
+                    className={`${
+                      editingIndex === index
+                        ? "border-blue-500 ring-2 ring-blue-200"
+                        : isExisting
+                          ? "border-green-300"
+                          : ""
+                    }`}
                   >
                     <CardContent className="p-4">
                       {/* Header - Always visible */}
@@ -911,7 +911,10 @@ export default function ExerciseFormPage() {
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary">#{index + 1}</Badge>
                             {isExisting && (
-                              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+                              <Badge
+                                variant="outline"
+                                className="bg-green-50 text-green-700 border-green-300"
+                              >
                                 Đã lưu
                               </Badge>
                             )}
@@ -1018,19 +1021,21 @@ export default function ExerciseFormPage() {
                                 {exercise.options.map((option, optIndex) => (
                                   <div
                                     key={optIndex}
-                                    className={`p-2 rounded border ${option.isCorrect
-                                      ? "bg-green-50 border-green-300"
-                                      : "bg-gray-50"
-                                      }`}
+                                    className={`p-2 rounded border ${
+                                      option.isCorrect
+                                        ? "bg-green-50 border-green-300"
+                                        : "bg-gray-50"
+                                    }`}
                                   >
                                     <div className="flex items-start gap-2">
-                                      <Badge variant={option.isCorrect ? "default" : "secondary"} className="shrink-0">
+                                      <Badge
+                                        variant={option.isCorrect ? "default" : "secondary"}
+                                        className="shrink-0"
+                                      >
                                         {optIndex + 1}
                                       </Badge>
                                       <div className="flex-1 space-y-1">
-                                        {option.text && (
-                                          <p className="text-sm">{option.text}</p>
-                                        )}
+                                        {option.text && <p className="text-sm">{option.text}</p>}
                                         {option.imageUrl && (
                                           <img
                                             src={option.imageUrl}
@@ -1078,12 +1083,7 @@ export default function ExerciseFormPage() {
                     : `Câu hỏi ${exerciseForms.length + 1}`}
                 </TypographyH3>
                 {editingIndex !== null && (
-                  <Button
-                    type="button"
-                    variant="super"
-                    size="sm"
-                    onClick={handleCancelEdit}
-                  >
+                  <Button type="button" variant="super" size="sm" onClick={handleCancelEdit}>
                     Hủy chỉnh sửa
                   </Button>
                 )}
@@ -1107,9 +1107,7 @@ export default function ExerciseFormPage() {
                               label: `${lesson.id} - ${lesson.title}`,
                             }))}
                             value={field.value?.toString()}
-                            onValueChange={(value) =>
-                              field.onChange(parseInt(value))
-                            }
+                            onValueChange={(value) => field.onChange(parseInt(value))}
                             placeholder="Chọn bài luyện tập"
                             searchPlaceholder="Tìm kiếm bài luyện tập..."
                             emptyText="Không tìm thấy bài luyện tập."
@@ -1130,23 +1128,18 @@ export default function ExerciseFormPage() {
                         <FormLabel>
                           Loại câu hỏi <RequiredField />
                         </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Chọn loại câu hỏi" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {Object.entries(exerciseTypeLabels).map(
-                              ([value, label]) => (
-                                <SelectItem key={value} value={value}>
-                                  {label}
-                                </SelectItem>
-                              )
-                            )}
+                            {Object.entries(exerciseTypeLabels).map(([value, label]) => (
+                              <SelectItem key={value} value={value}>
+                                {label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormDescription>
@@ -1154,10 +1147,8 @@ export default function ExerciseFormPage() {
                             "Học viên sẽ chọn hình ảnh đúng với câu hỏi"}
                           {exerciseType === "MULTIPLE_CHOICE" &&
                             "Học viên sẽ chọn câu trả lời đúng"}
-                          {exerciseType === "MATCHING" &&
-                            "Học viên sẽ nối các cặp với nhau"}
-                          {exerciseType === "LISTENING" &&
-                            "Học viên sẽ nghe và chọn đáp án"}
+                          {exerciseType === "MATCHING" && "Học viên sẽ nối các cặp với nhau"}
+                          {exerciseType === "LISTENING" && "Học viên sẽ nghe và chọn đáp án"}
                           {exerciseType === "PRONUNCIATION" &&
                             "Học viên sẽ phát âm và được AI đánh giá"}
                         </FormDescription>
@@ -1176,10 +1167,7 @@ export default function ExerciseFormPage() {
                           Câu hỏi <RequiredField />
                         </FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Nhập câu hỏi hoặc hướng dẫn"
-                          />
+                          <Input {...field} placeholder="Nhập câu hỏi hoặc hướng dẫn" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1194,10 +1182,7 @@ export default function ExerciseFormPage() {
                       <FormItem>
                         <FormLabel>Đáp án (Tiếng Anh)</FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Nhập đáp án bằng tiếng Anh"
-                          />
+                          <Input {...field} placeholder="Nhập đáp án bằng tiếng Anh" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1212,10 +1197,7 @@ export default function ExerciseFormPage() {
                       <FormItem>
                         <FormLabel>Đáp án (Tiếng Việt)</FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Nhập đáp án bằng tiếng Việt"
-                          />
+                          <Input {...field} placeholder="Nhập đáp án bằng tiếng Việt" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1234,10 +1216,7 @@ export default function ExerciseFormPage() {
                               Văn bản cần đọc <RequiredField />
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Nhập văn bản học viên cần phát âm"
-                              />
+                              <Input {...field} placeholder="Nhập văn bản học viên cần phát âm" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -1259,11 +1238,7 @@ export default function ExerciseFormPage() {
                                   onSuccess={handleAudioUpload}
                                 >
                                   {({ open }) => (
-                                    <Button
-                                      type="button"
-                                      size="icon"
-                                      onClick={() => open()}
-                                    >
+                                    <Button type="button" size="icon" onClick={() => open()}>
                                       <Upload className="h-4 w-4" />
                                     </Button>
                                   )}
@@ -1293,11 +1268,7 @@ export default function ExerciseFormPage() {
                                 onSuccess={handleImageUpload}
                               >
                                 {({ open }) => (
-                                  <Button
-                                    type="button"
-                                    size="icon"
-                                    onClick={() => open()}
-                                  >
+                                  <Button type="button" size="icon" onClick={() => open()}>
                                     <ImageIcon className="h-4 w-4" />
                                   </Button>
                                 )}
@@ -1328,11 +1299,7 @@ export default function ExerciseFormPage() {
                                 onSuccess={handleAudioUpload}
                               >
                                 {({ open }) => (
-                                  <Button
-                                    type="button"
-                                    size="icon"
-                                    onClick={() => open()}
-                                  >
+                                  <Button type="button" size="icon" onClick={() => open()}>
                                     <Upload className="h-4 w-4" />
                                   </Button>
                                 )}
@@ -1363,7 +1330,7 @@ export default function ExerciseFormPage() {
                                 const parsed = parseInt(e.target.value || "0");
                                 const clamped = Math.max(
                                   1,
-                                  Math.min(100, isNaN(parsed) ? 1 : parsed)
+                                  Math.min(100, isNaN(parsed) ? 1 : parsed),
                                 );
                                 field.onChange(clamped);
                               }}
@@ -1381,9 +1348,7 @@ export default function ExerciseFormPage() {
                         <FormItem>
                           <FormLabel>Độ khó</FormLabel>
                           <Select
-                            onValueChange={(value) =>
-                              field.onChange(parseInt(value))
-                            }
+                            onValueChange={(value) => field.onChange(parseInt(value))}
                             value={field.value?.toString()}
                           >
                             <FormControl>
@@ -1412,12 +1377,7 @@ export default function ExerciseFormPage() {
                 <div className="flex items-center justify-between">
                   <TypographyH3>Đáp án</TypographyH3>
                   {exerciseType !== "PRONUNCIATION" && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={addOption}
-                    >
+                    <Button type="button" variant="secondary" size="sm" onClick={addOption}>
                       <Plus className="mr-2 h-4 w-4" />
                       Thêm đáp án
                     </Button>
@@ -1461,22 +1421,13 @@ export default function ExerciseFormPage() {
                                 </FormLabel>
                                 <FormControl>
                                   <div className="flex gap-2">
-                                    <Input
-                                      {...field}
-                                      placeholder="URL hình ảnh"
-                                    />
+                                    <Input {...field} placeholder="URL hình ảnh" />
                                     <CldUploadWidget
                                       uploadPreset={UPLOAD_PRESET}
-                                      onSuccess={(result) =>
-                                        handleOptionImageUpload(result, index)
-                                      }
+                                      onSuccess={(result) => handleOptionImageUpload(result, index)}
                                     >
                                       {({ open }) => (
-                                        <Button
-                                          type="button"
-                                          size="icon"
-                                          onClick={() => open()}
-                                        >
+                                        <Button type="button" size="icon" onClick={() => open()}>
                                           <Upload className="h-4 w-4" />
                                         </Button>
                                       )}
@@ -1500,10 +1451,7 @@ export default function ExerciseFormPage() {
                                       if (checked) {
                                         fields.forEach((_, i) => {
                                           if (i !== index) {
-                                            form.setValue(
-                                              `options.${i}.isCorrect`,
-                                              false
-                                            );
+                                            form.setValue(`options.${i}.isCorrect`, false);
                                           }
                                         });
                                       }
@@ -1511,9 +1459,7 @@ export default function ExerciseFormPage() {
                                     }}
                                   />
                                 </FormControl>
-                                <FormLabel className="font-normal">
-                                  Đáp án đúng
-                                </FormLabel>
+                                <FormLabel className="font-normal">Đáp án đúng</FormLabel>
                               </FormItem>
                             )}
                           />
@@ -1528,9 +1474,7 @@ export default function ExerciseFormPage() {
                       <CardContent>
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <Badge variant="secondary">
-                              Đáp án {index + 1}
-                            </Badge>
+                            <Badge variant="secondary">Đáp án {index + 1}</Badge>
                             <Button
                               type="button"
                               variant="ghost"
@@ -1550,10 +1494,7 @@ export default function ExerciseFormPage() {
                                   Nội dung <RequiredField />
                                 </FormLabel>
                                 <FormControl>
-                                  <Input
-                                    {...field}
-                                    placeholder="Nội dung đáp án"
-                                  />
+                                  <Input {...field} placeholder="Nội dung đáp án" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1572,10 +1513,7 @@ export default function ExerciseFormPage() {
                                       if (checked) {
                                         fields.forEach((_, i) => {
                                           if (i !== index) {
-                                            form.setValue(
-                                              `options.${i}.isCorrect`,
-                                              false
-                                            );
+                                            form.setValue(`options.${i}.isCorrect`, false);
                                           }
                                         });
                                       }
@@ -1583,9 +1521,7 @@ export default function ExerciseFormPage() {
                                     }}
                                   />
                                 </FormControl>
-                                <FormLabel className="font-normal">
-                                  Đáp án đúng
-                                </FormLabel>
+                                <FormLabel className="font-normal">Đáp án đúng</FormLabel>
                               </FormItem>
                             )}
                           />
@@ -1620,10 +1556,7 @@ export default function ExerciseFormPage() {
                                   Khóa ghép nối <RequiredField />
                                 </FormLabel>
                                 <FormControl>
-                                  <Input
-                                    {...field}
-                                    placeholder="Ví dụ: pair_1"
-                                  />
+                                  <Input {...field} placeholder="Ví dụ: pair_1" />
                                 </FormControl>
                                 <FormDescription>
                                   Các mục có cùng matchKey sẽ được ghép với nhau
@@ -1640,10 +1573,7 @@ export default function ExerciseFormPage() {
                               <FormItem>
                                 <FormLabel>Văn bản</FormLabel>
                                 <FormControl>
-                                  <Input
-                                    {...field}
-                                    placeholder="Nội dung văn bản"
-                                  />
+                                  <Input {...field} placeholder="Nội dung văn bản" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1658,22 +1588,13 @@ export default function ExerciseFormPage() {
                                 <FormLabel>Hình ảnh</FormLabel>
                                 <FormControl>
                                   <div className="flex gap-2">
-                                    <Input
-                                      {...field}
-                                      placeholder="URL hình ảnh"
-                                    />
+                                    <Input {...field} placeholder="URL hình ảnh" />
                                     <CldUploadWidget
                                       uploadPreset={UPLOAD_PRESET}
-                                      onSuccess={(result) =>
-                                        handleOptionImageUpload(result, index)
-                                      }
+                                      onSuccess={(result) => handleOptionImageUpload(result, index)}
                                     >
                                       {({ open }) => (
-                                        <Button
-                                          type="button"
-                                          size="icon"
-                                          onClick={() => open()}
-                                        >
+                                        <Button type="button" size="icon" onClick={() => open()}>
                                           <Upload className="h-4 w-4" />
                                         </Button>
                                       )}
@@ -1695,9 +1616,7 @@ export default function ExerciseFormPage() {
                       <CardContent>
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <Badge variant="secondary">
-                              Đáp án {index + 1}
-                            </Badge>
+                            <Badge variant="secondary">Đáp án {index + 1}</Badge>
                             <Button
                               type="button"
                               variant="ghost"
@@ -1717,10 +1636,7 @@ export default function ExerciseFormPage() {
                                   Nội dung <RequiredField />
                                 </FormLabel>
                                 <FormControl>
-                                  <Input
-                                    {...field}
-                                    placeholder="Nội dung đáp án"
-                                  />
+                                  <Input {...field} placeholder="Nội dung đáp án" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1739,10 +1655,7 @@ export default function ExerciseFormPage() {
                                       if (checked) {
                                         fields.forEach((_, i) => {
                                           if (i !== index) {
-                                            form.setValue(
-                                              `options.${i}.isCorrect`,
-                                              false
-                                            );
+                                            form.setValue(`options.${i}.isCorrect`, false);
                                           }
                                         });
                                       }
@@ -1750,9 +1663,7 @@ export default function ExerciseFormPage() {
                                     }}
                                   />
                                 </FormControl>
-                                <FormLabel className="font-normal">
-                                  Đáp án đúng
-                                </FormLabel>
+                                <FormLabel className="font-normal">Đáp án đúng</FormLabel>
                               </FormItem>
                             )}
                           />
@@ -1764,8 +1675,8 @@ export default function ExerciseFormPage() {
                 {exerciseType === "PRONUNCIATION" && (
                   <div className="rounded-lg border p-4 bg-muted/50">
                     <p className="text-sm text-muted-foreground">
-                      Bài tập phát âm không cần đáp án. Học viên sẽ đọc văn bản
-                      và được đánh giá bằng AI.
+                      Bài tập phát âm không cần đáp án. Học viên sẽ đọc văn bản và được đánh giá
+                      bằng AI.
                     </p>
                   </div>
                 )}
@@ -1785,12 +1696,7 @@ export default function ExerciseFormPage() {
 
           {/* Form Actions */}
           <div className="flex justify-between gap-2 sticky bottom-0 bg-background pt-4 pb-2 border-t">
-            <Button
-              type="button"
-              variant="default"
-              onClick={handleCancel}
-              disabled={isSubmitting}
-            >
+            <Button type="button" variant="default" onClick={handleCancel} disabled={isSubmitting}>
               Hủy
             </Button>
             <div className="flex gap-2">
@@ -1801,9 +1707,7 @@ export default function ExerciseFormPage() {
                   onClick={handleSaveAll}
                   disabled={isSubmitting || editingIndex !== null}
                 >
-                  {isSubmitting && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Lưu tất cả ({exerciseForms.length})
                 </Button>
               )}
@@ -1871,16 +1775,13 @@ export default function ExerciseFormPage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>Files cần thiết từ Excel:</span>
-                    <Badge variant="secondary">
-                      {importPreview.neededFiles.length}
-                    </Badge>
+                    <Badge variant="secondary">{importPreview.neededFiles.length}</Badge>
                   </div>
                   <div className="flex justify-between">
                     <span>Files đã khớp trong thư mục:</span>
                     <Badge
                       variant={
-                        importPreview.matchedFiles.length ===
-                          importPreview.neededFiles.length
+                        importPreview.matchedFiles.length === importPreview.neededFiles.length
                           ? "default"
                           : "outline"
                       }

@@ -1,7 +1,7 @@
-import { getUsers } from '@/actions/user/user';
-import { TypographyH3 } from '@/components/typography';
-import { columns } from './columns';
-import { DataTable } from './data-table';
+import { getUsers } from "@/actions/user/user";
+import { TypographyH3 } from "@/components/typography";
+import { columns } from "./columns";
+import { DataTable } from "./data-table";
 import {
   Breadcrumb,
   BreadcrumbSeparator,
@@ -9,14 +9,14 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbLink,
-} from '@/components/ui/breadcrumb';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
-import { PlusIcon } from 'lucide-react';
-import Link from 'next/link';
+} from "@/components/ui/breadcrumb";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { PlusIcon } from "lucide-react";
+import Link from "next/link";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function UsersPage() {
   const users = await getUsers();
@@ -26,10 +26,7 @@ export default async function UsersPage() {
       <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
         <div className="flex items-center gap-2 px-4">
           <SidebarTrigger className="-ml-1" />
-          <Separator
-            orientation="vertical"
-            className="mr-2 data-[orientation=vertical]:h-4"
-          />
+          <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>

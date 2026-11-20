@@ -35,9 +35,7 @@ const grades = [
   { value: "GRADE_5", label: "Lớp 5" },
 ];
 
-export function DataTableToolbar<TData>({
-  table,
-}: DataTableToolbarProps<TData>) {
+export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
   const [isLoadingTopics, setIsLoadingTopics] = useState(false);
@@ -83,10 +81,8 @@ export function DataTableToolbar<TData>({
           const response = await getTopicsByGrade(grade);
           allTopics.push(...response.payload);
         }
-        
-        const uniqueTopics = Array.from(
-          new Map(allTopics.map((t) => [t.id, t])).values()
-        );
+
+        const uniqueTopics = Array.from(new Map(allTopics.map((t) => [t.id, t])).values());
         setFilteredTopics(uniqueTopics);
       } catch (err) {
         console.error("Error fetching topics by grade:", err);
@@ -117,17 +113,11 @@ export function DataTableToolbar<TData>({
         <Input
           placeholder="Tìm kiếm ID..."
           value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("id")?.setFilterValue(event.target.value)
-          }
+          onChange={(event) => table.getColumn("id")?.setFilterValue(event.target.value)}
           className="h-8 w-[100px] lg:w-[150px]"
         />
         {table.getColumn("grade") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("grade")}
-            title="Lớp"
-            options={grades}
-          />
+          <DataTableFacetedFilter column={table.getColumn("grade")} title="Lớp" options={grades} />
         )}
         {table.getColumn("topicId") && (
           <DataTableFacetedFilter
@@ -145,11 +135,7 @@ export function DataTableToolbar<TData>({
           />
         )}
         {isFiltered && (
-          <Button
-            variant="dangerOutline"
-            onClick={handleResetFilters}
-            className="h-8 px-2 lg:px-3"
-          >
+          <Button variant="dangerOutline" onClick={handleResetFilters} className="h-8 px-2 lg:px-3">
             Xoá bộ lọc
             <X className="ml-2 h-4 w-4" />
           </Button>

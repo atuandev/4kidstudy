@@ -1,59 +1,56 @@
-import { getAccessToken, getRefreshToken } from "./get-token"
+import { getAccessToken, getRefreshToken } from "./get-token";
 
-type CustomOptions = Omit<RequestInit, 'method'> & {
-  baseUrl?: string
-  noAuth?: boolean
-  isFileUpload?: boolean
-}
+type CustomOptions = Omit<RequestInit, "method"> & {
+  baseUrl?: string;
+  noAuth?: boolean;
+  isFileUpload?: boolean;
+};
 
-type CustomBody = FormData | string | undefined
+type CustomBody = FormData | string | undefined;
 
 const formatUrl = (url: string, baseUrl: string): string => {
-  const cleanUrl = url.startsWith('/') ? url : `/${url}`
-  return `${baseUrl}${cleanUrl}`
-}
+  const cleanUrl = url.startsWith("/") ? url : `/${url}`;
+  return `${baseUrl}${cleanUrl}`;
+};
 
 const request = async <Response>(
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
   url: string,
-  options?: CustomOptions
+  options?: CustomOptions,
 ) => {
-  let body: CustomBody = undefined
+  let body: CustomBody = undefined;
 
   if (options?.body instanceof FormData) {
-    body = options.body
-  } else if (options?.body && typeof options.body === 'object') {
-    body = JSON.stringify(options.body)
-  } else if (typeof options?.body === 'string') {
-    body = options.body
+    body = options.body;
+  } else if (options?.body && typeof options.body === "object") {
+    body = JSON.stringify(options.body);
+  } else if (typeof options?.body === "string") {
+    body = options.body;
   }
 
   const baseHeaders: {
-    [key: string]: string
+    [key: string]: string;
   } =
     body instanceof FormData
       ? {}
       : {
-          'Content-Type': 'application/json',
-          credentials: 'include',
-        }
+          "Content-Type": "application/json",
+          credentials: "include",
+        };
 
   // Get both tokens using server actions
-  const [accessToken, refreshToken] = await Promise.all([
-    getAccessToken(),
-    getRefreshToken(),
-  ])
+  const [accessToken, refreshToken] = await Promise.all([getAccessToken(), getRefreshToken()]);
 
   // Add Authorization header if token exists and auth is not disabled
   if (accessToken && !options?.noAuth) {
-    baseHeaders.Authorization = `Bearer ${accessToken}`
+    baseHeaders.Authorization = `Bearer ${accessToken}`;
   }
 
   if (options?.isFileUpload) {
-    delete baseHeaders['Content-Type']
+    delete baseHeaders["Content-Type"];
   }
 
-  const baseUrl = options?.baseUrl ?? process.env.NEXT_PUBLIC_API_ENDPOINT ?? ''
+  const baseUrl = options?.baseUrl ?? process.env.NEXT_PUBLIC_API_ENDPOINT ?? "";
 
   try {
     const res = await fetch(formatUrl(url, baseUrl), {
@@ -64,8 +61,8 @@ const request = async <Response>(
       } as Headers,
       body,
       method,
-      credentials: 'include', // Always include credentials
-    })
+      credentials: "include", // Always include credentials
+    });
 
     // Handle 401 errors by attempting to refresh token
     // if (res.status === 401 && !url.includes('/auth/refresh')) {
@@ -108,46 +105,46 @@ const request = async <Response>(
     //   }
     // }
 
-    const responseText = await res.text()
-    const contentType = res.headers.get('content-type') ?? ''
+    const responseText = await res.text();
+    const contentType = res.headers.get("content-type") ?? "";
     const payload: Response =
       res.status === 204 ||
       responseText.trim().length === 0 ||
-      !contentType.includes('application/json')
+      !contentType.includes("application/json")
         ? (null as Response)
-        : (JSON.parse(responseText) as Response)
-    
+        : (JSON.parse(responseText) as Response);
+
     // Log error responses for debugging (only in development)
-    if (!res.ok && process.env.NODE_ENV === 'development') {
-      console.error(`HTTP ${res.status} error for ${url}:`, payload)
+    if (!res.ok && process.env.NODE_ENV === "development") {
+      console.error(`HTTP ${res.status} error for ${url}:`, payload);
     }
-    
-    return { status: res.status, payload }
+
+    return { status: res.status, payload };
   } catch (error) {
     // Log errors only in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`Request failed for ${url}:`, error)
+    if (process.env.NODE_ENV === "development") {
+      console.error(`Request failed for ${url}:`, error);
     }
-    throw error
+    throw error;
   }
-}
+};
 
 const http = {
-  get<Response>(url: string, options?: Omit<CustomOptions, 'body'>) {
-    return request<Response>('GET', url, options)
+  get<Response>(url: string, options?: Omit<CustomOptions, "body">) {
+    return request<Response>("GET", url, options);
   },
-  post<Response>(url: string, body: CustomBody, options?: Omit<CustomOptions, 'body'>) {
-    return request<Response>('POST', url, { ...options, body })
+  post<Response>(url: string, body: CustomBody, options?: Omit<CustomOptions, "body">) {
+    return request<Response>("POST", url, { ...options, body });
   },
-  put<Response>(url: string, body: CustomBody, options?: Omit<CustomOptions, 'body'>) {
-    return request<Response>('PUT', url, { ...options, body })
+  put<Response>(url: string, body: CustomBody, options?: Omit<CustomOptions, "body">) {
+    return request<Response>("PUT", url, { ...options, body });
   },
-  delete<Response>(url: string, body?: CustomBody, options?: Omit<CustomOptions, 'body'>) {
-    return request<Response>('DELETE', url, { ...options, body })
+  delete<Response>(url: string, body?: CustomBody, options?: Omit<CustomOptions, "body">) {
+    return request<Response>("DELETE", url, { ...options, body });
   },
-  patch<Response>(url: string, body: CustomBody, options?: Omit<CustomOptions, 'body'>) {
-    return request<Response>('PATCH', url, { ...options, body })
+  patch<Response>(url: string, body: CustomBody, options?: Omit<CustomOptions, "body">) {
+    return request<Response>("PATCH", url, { ...options, body });
   },
-}
+};
 
-export default http
+export default http;

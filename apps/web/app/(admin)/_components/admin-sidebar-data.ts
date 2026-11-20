@@ -30,13 +30,13 @@ export const sidebarData = {
       icon: NotebookIcon,
     },
     {
-      title: 'Thẻ từ vựng',
-      url: '/admin/flashcards',
+      title: "Thẻ từ vựng",
+      url: "/admin/flashcards",
       icon: LibraryIcon,
     },
     {
-      title: 'Thẻ câu',
-      url: '/admin/sentences',
+      title: "Thẻ câu",
+      url: "/admin/sentences",
       icon: LibrarySquareIcon,
     },
     {

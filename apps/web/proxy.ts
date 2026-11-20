@@ -15,7 +15,7 @@ interface AuthToken extends JwtPayload {
   role: string;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get("accessToken")?.value;
   const refreshToken = request.cookies.get("refreshToken")?.value;
@@ -45,9 +45,7 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL(redirectParam, request.url));
       }
       // Redirect admin to /admin, regular users to /learn
-      return NextResponse.redirect(
-        new URL(isAdmin ? "/admin" : "/learn", request.url)
-      );
+      return NextResponse.redirect(new URL(isAdmin ? "/admin" : "/learn", request.url));
     }
 
     // Restrict admin routes to admin users
@@ -78,7 +76,7 @@ export async function middleware(request: NextRequest) {
 async function handleTokenRefresh(
   accessToken: string,
   refreshToken: string,
-  response: NextResponse
+  response: NextResponse,
 ) {
   try {
     const decoded = decodeToken(accessToken);
@@ -111,7 +109,7 @@ async function handleTokenRefresh(
 const checkExpiredToken = (
   token: string | undefined,
   request: NextRequest,
-  response: NextResponse
+  response: NextResponse,
 ) => {
   if (!token) {
     return;

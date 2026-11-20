@@ -5,10 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Medal, Award } from "lucide-react";
-import {
-  getWeeklyLeaderboard,
-  LeaderboardEntry,
-} from "@/actions/leaderboard";
+import { getWeeklyLeaderboard, LeaderboardEntry } from "@/actions/leaderboard";
 
 const GRADE_LABELS: Record<string, string> = {
   GRADE_1: "Lớp 1",
@@ -19,8 +16,7 @@ const GRADE_LABELS: Record<string, string> = {
 };
 
 const getRankIcon = (rank: number) => {
-  if (rank === 1)
-    return <Trophy className="h-5 w-5 text-yellow-500" />;
+  if (rank === 1) return <Trophy className="h-5 w-5 text-yellow-500" />;
   if (rank === 2) return <Medal className="h-5 w-5 text-gray-400" />;
   if (rank === 3) return <Award className="h-5 w-5 text-orange-500" />;
   return null;
@@ -50,11 +46,9 @@ export function WeeklyLeaderboard() {
         setCurrentUserRank(result.currentUserRank);
         setGrade(result.grade);
         setWeekStart(result.weekStart);
-        
+
         // Find current user entry
-        const userEntry = result.entries.find(
-          (entry) => entry.rank === result.currentUserRank
-        );
+        const userEntry = result.entries.find((entry) => entry.rank === result.currentUserRank);
         setCurrentUserEntry(userEntry || null);
       }
       setLoading(false);
@@ -114,10 +108,7 @@ export function WeeklyLeaderboard() {
                   {/* Rank */}
                   <div className="flex-shrink-0 w-12 flex items-center justify-center">
                     {getRankIcon(entry.rank) || (
-                      <Badge
-                        variant="outline"
-                        className={getRankBadgeColor(entry.rank)}
-                      >
+                      <Badge variant="outline" className={getRankBadgeColor(entry.rank)}>
                         #{entry.rank}
                       </Badge>
                     )}
@@ -126,9 +117,7 @@ export function WeeklyLeaderboard() {
                   {/* Avatar */}
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={entry.avatarUrl || undefined} />
-                    <AvatarFallback>
-                      {entry.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
+                    <AvatarFallback>{entry.name.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
 
                   {/* Name */}
@@ -138,9 +127,7 @@ export function WeeklyLeaderboard() {
 
                   {/* Score */}
                   <div className="text-right">
-                    <p className="text-lg font-bold text-primary">
-                      {entry.totalScore}
-                    </p>
+                    <p className="text-lg font-bold text-primary">{entry.totalScore}</p>
                     <p className="text-xs text-muted-foreground">điểm</p>
                   </div>
                 </div>
@@ -157,16 +144,11 @@ export function WeeklyLeaderboard() {
             {/* Current User Ranking - Fixed at bottom */}
             {currentUserEntry && (
               <div className="mt-4 pt-4 border-t">
-                <p className="text-xs text-muted-foreground mb-2 text-center">
-                  Hạng của bạn
-                </p>
+                <p className="text-xs text-muted-foreground mb-2 text-center">Hạng của bạn</p>
                 <div className="flex items-center gap-3 p-3 rounded-lg border bg-blue-50 border-blue-200">
                   {/* Rank */}
                   <div className="flex-shrink-0 w-12 flex items-center justify-center">
-                    <Badge
-                      variant="outline"
-                      className="bg-blue-100 text-blue-800 border-blue-300"
-                    >
+                    <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
                       #{currentUserEntry.rank}
                     </Badge>
                   </div>
@@ -181,16 +163,12 @@ export function WeeklyLeaderboard() {
 
                   {/* Name */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold truncate text-blue-900">
-                      {currentUserEntry.name}
-                    </p>
+                    <p className="font-bold truncate text-blue-900">{currentUserEntry.name}</p>
                   </div>
 
                   {/* Score */}
                   <div className="text-right">
-                    <p className="text-lg font-bold text-blue-700">
-                      {currentUserEntry.totalScore}
-                    </p>
+                    <p className="text-lg font-bold text-blue-700">{currentUserEntry.totalScore}</p>
                     <p className="text-xs text-blue-600">điểm</p>
                   </div>
                 </div>

@@ -1,7 +1,4 @@
-
 "use client";
-
-
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -70,10 +67,7 @@ import {
 import { getTopics } from "@/actions/topic";
 import { RequiredField } from "@/components/form/required-field";
 import { TypographyH3 } from "@/components/typography";
-import {
-  CreateSentenceImageFormData,
-  CreateSentenceImageSchema,
-} from "@/schemas/sentence";
+import { CreateSentenceImageFormData, CreateSentenceImageSchema } from "@/schemas/sentence";
 import { Topic } from "@/types";
 import { UPLOAD_PRESET } from "@/lib/constants";
 import { useSentenceFormStore } from "@/lib/stores/sentence-form-store";
@@ -120,7 +114,7 @@ export default function SentenceFormPage() {
   const [sentenceImageGroups, setSentenceImageGroups] = useState<SentenceImageGroup[]>([]);
   const existingSentencesCount: number = sentenceImageGroups.reduce(
     (total: number, group: SentenceImageGroup) => total + group.sentences.length,
-    0
+    0,
   );
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
@@ -192,9 +186,7 @@ export default function SentenceFormPage() {
           }
 
           // Fetch existing sentence images for this topic
-          const existingSentenceImages = await getSentenceImagesByTopicId(
-            parsedTopicId
-          );
+          const existingSentenceImages = await getSentenceImagesByTopicId(parsedTopicId);
 
           // Map to SentenceImageGroup structure
           const groups: SentenceImageGroup[] = existingSentenceImages.map((img) => ({
@@ -215,16 +207,12 @@ export default function SentenceFormPage() {
           }));
 
           setSentenceImageGroups(groups);
-          
+
           // Set topic in form for submission
           form.setValue("topicId", parsedTopicId);
         } else if (isEditMode) {
-          const sentenceImage = await getSentenceImage(
-            parseInt(sentenceImageId)
-          );
-          const topic = fetchedTopics.find(
-            (t) => t.id === sentenceImage.topicId
-          );
+          const sentenceImage = await getSentenceImage(parseInt(sentenceImageId));
+          const topic = fetchedTopics.find((t) => t.id === sentenceImage.topicId);
           if (topic?.grade) {
             setSelectedGrade(topic.grade);
           }
@@ -276,7 +264,7 @@ export default function SentenceFormPage() {
     setIsSubmitting(true);
     try {
       const topicId = form.getValues("topicId");
-      
+
       // Process each SentenceImageGroup
       for (const group of sentenceImageGroups) {
         if (group.id) {
@@ -328,10 +316,7 @@ export default function SentenceFormPage() {
     setIsSubmitting(true);
     try {
       if (isEditMode) {
-        const updated = await updateSentenceImage(
-          parseInt(sentenceImageId),
-          data
-        );
+        const updated = await updateSentenceImage(parseInt(sentenceImageId), data);
         if (updated) {
           toast.success("Cập nhật thành công");
         } else {
@@ -345,9 +330,7 @@ export default function SentenceFormPage() {
         const { order: _order, ...createData } = data;
 
         // Remove 'id' field from all sentences
-        const cleanedSentences = createData.sentences.map(
-          ({ id: _id, ...sentence }) => sentence
-        );
+        const cleanedSentences = createData.sentences.map(({ id: _id, ...sentence }) => sentence);
         const finalData = {
           ...createData,
           sentences: cleanedSentences,
@@ -366,9 +349,8 @@ export default function SentenceFormPage() {
     } catch (error) {
       console.error("Failed to save sentence image:", error);
 
-      const errorMessage = (
-        error as { payload?: { message?: string | string[] } }
-      )?.payload?.message;
+      const errorMessage = (error as { payload?: { message?: string | string[] } })?.payload
+        ?.message;
 
       if (typeof errorMessage === "string") {
         toast.error(errorMessage);
@@ -506,10 +488,7 @@ export default function SentenceFormPage() {
     });
   }
 
-  async function handleRemoveSentenceFromGroup(
-    groupIndex: number,
-    sentenceIndex: number
-  ) {
+  async function handleRemoveSentenceFromGroup(groupIndex: number, sentenceIndex: number) {
     const sentence = sentenceImageGroups[groupIndex].sentences[sentenceIndex];
 
     if (sentence.id) {
@@ -520,9 +499,7 @@ export default function SentenceFormPage() {
           const updated = [...prev];
           updated[groupIndex] = {
             ...updated[groupIndex],
-            sentences: updated[groupIndex].sentences.filter(
-              (_, i) => i !== sentenceIndex
-            ),
+            sentences: updated[groupIndex].sentences.filter((_, i) => i !== sentenceIndex),
           };
           return updated;
         });
@@ -535,9 +512,7 @@ export default function SentenceFormPage() {
         const updated = [...prev];
         updated[groupIndex] = {
           ...updated[groupIndex],
-          sentences: updated[groupIndex].sentences.filter(
-            (_, i) => i !== sentenceIndex
-          ),
+          sentences: updated[groupIndex].sentences.filter((_, i) => i !== sentenceIndex),
         };
         return updated;
       });
@@ -547,7 +522,7 @@ export default function SentenceFormPage() {
   function handleUpdateSentenceImageGroup(
     groupIndex: number,
     field: keyof Pick<SentenceImageGroup, "imageUrl" | "audioUrl" | "isActive">,
-    value: string | boolean
+    value: string | boolean,
   ) {
     setSentenceImageGroups((prev) => {
       const updated = [...prev];
@@ -563,7 +538,7 @@ export default function SentenceFormPage() {
     groupIndex: number,
     sentenceIndex: number,
     field: keyof SentenceImageGroup["sentences"][0],
-    value: string | boolean | number
+    value: string | boolean | number,
   ) {
     setSentenceImageGroups((prev) => {
       const updated = [...prev];
@@ -609,10 +584,12 @@ export default function SentenceFormPage() {
           return trimmed.split("\\").pop()?.split("/").pop() || null;
         };
 
-        ["imgSentence", "audioImg", "sen01audio", "sen02audio", "sen03audio", "sen04audio"].forEach((key) => {
-          const filename = extractFilename(row[key]);
-          if (filename) neededFiles.add(filename);
-        });
+        ["imgSentence", "audioImg", "sen01audio", "sen02audio", "sen03audio", "sen04audio"].forEach(
+          (key) => {
+            const filename = extractFilename(row[key]);
+            if (filename) neededFiles.add(filename);
+          },
+        );
       });
 
       setImportPreview({
@@ -668,8 +645,8 @@ export default function SentenceFormPage() {
         });
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_ENDPOINT || "http://localhost:3001/api";
-      const response = await fetch(`${apiUrl}/sentences/import-excel/${topicId}`, {
+      // Same-origin route adds the admin's access token (httpOnly cookie).
+      const response = await fetch(`/api/admin-import/sentences/import-excel/${topicId}`, {
         method: "POST",
         body: formData,
       });
@@ -751,10 +728,7 @@ export default function SentenceFormPage() {
       {/* Header */}
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-1" />
-        <Separator
-          orientation="vertical"
-          className="mr-2 data-[orientation=vertical]:h-4"
-        />
+        <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -762,15 +736,11 @@ export default function SentenceFormPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/admin/sentences">
-                Câu với hình ảnh
-              </BreadcrumbLink>
+              <BreadcrumbLink href="/admin/sentences">Câu với hình ảnh</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>
-                {isEditMode ? "Chỉnh sửa" : "Thêm mới"}
-              </BreadcrumbPage>
+              <BreadcrumbPage>{isEditMode ? "Chỉnh sửa" : "Thêm mới"}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -780,8 +750,8 @@ export default function SentenceFormPage() {
         {isEditMode
           ? "Chỉnh sửa câu với hình ảnh"
           : isTopicLocked
-          ? "Quản lý nhiều thẻ câu"
-          : "Thêm câu với hình ảnh mới"}
+            ? "Quản lý nhiều thẻ câu"
+            : "Thêm câu với hình ảnh mới"}
       </TypographyH3>
 
       {/* Bulk Mode - Manage Multiple SentenceImage Groups */}
@@ -801,9 +771,8 @@ export default function SentenceFormPage() {
                 <div className="text-sm">
                   <span className="font-medium">Chủ đề: </span>
                   <span>
-                    {availableTopics.find(
-                      (t) => t.id === form.getValues("topicId")
-                    )?.title || "Chưa chọn"}
+                    {availableTopics.find((t) => t.id === form.getValues("topicId"))?.title ||
+                      "Chưa chọn"}
                   </span>
                 </div>
               </div>
@@ -844,9 +813,7 @@ export default function SentenceFormPage() {
                 <CardContent className="py-12 text-center">
                   <div className="flex flex-col items-center gap-2">
                     <ImageIcon className="h-12 w-12 text-muted-foreground/50" />
-                    <p className="text-muted-foreground">
-                      Chưa có thẻ câu nào trong chủ đề này.
-                    </p>
+                    <p className="text-muted-foreground">Chưa có thẻ câu nào trong chủ đề này.</p>
                     <p className="text-sm text-muted-foreground">
                       Nhấn &quot;Thêm thẻ mới&quot; để bắt đầu tạo.
                     </p>
@@ -856,11 +823,9 @@ export default function SentenceFormPage() {
             )}
 
             {sentenceImageGroups.map((group, groupIndex) => (
-              <Card 
-                key={groupIndex} 
-                className={`overflow-hidden ${
-                  group.id ? "border-green-300" : ""
-                }`}
+              <Card
+                key={groupIndex}
+                className={`overflow-hidden ${group.id ? "border-green-300" : ""}`}
               >
                 <CardHeader className={`${group.id ? "bg-green-50" : "bg-muted/50"}`}>
                   <div className="flex items-center justify-between">
@@ -890,9 +855,7 @@ export default function SentenceFormPage() {
                             </span>
                           )}
                           {!group.id && (
-                            <span className="ml-2 text-xs text-amber-600 font-normal">
-                              (Mới)
-                            </span>
+                            <span className="ml-2 text-xs text-amber-600 font-normal">(Mới)</span>
                           )}
                         </CardTitle>
                       </div>
@@ -918,11 +881,7 @@ export default function SentenceFormPage() {
                           <Input
                             value={group.imageUrl}
                             onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                              handleUpdateSentenceImageGroup(
-                                groupIndex,
-                                "imageUrl",
-                                e.target.value
-                              )
+                              handleUpdateSentenceImageGroup(groupIndex, "imageUrl", e.target.value)
                             }
                             placeholder="URL hình ảnh"
                           />
@@ -937,7 +896,7 @@ export default function SentenceFormPage() {
                                 handleUpdateSentenceImageGroup(
                                   groupIndex,
                                   "imageUrl",
-                                  result.info.secure_url as string
+                                  result.info.secure_url as string,
                                 );
                               }
                             }}
@@ -965,11 +924,7 @@ export default function SentenceFormPage() {
                           <Input
                             value={group.audioUrl}
                             onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                              handleUpdateSentenceImageGroup(
-                                groupIndex,
-                                "audioUrl",
-                                e.target.value
-                              )
+                              handleUpdateSentenceImageGroup(groupIndex, "audioUrl", e.target.value)
                             }
                             placeholder="URL audio"
                           />
@@ -984,7 +939,7 @@ export default function SentenceFormPage() {
                                 handleUpdateSentenceImageGroup(
                                   groupIndex,
                                   "audioUrl",
-                                  result.info.secure_url as string
+                                  result.info.secure_url as string,
                                 );
                               }
                             }}
@@ -1022,8 +977,8 @@ export default function SentenceFormPage() {
                       </div>
 
                       {group.sentences.map((sentence, sentenceIndex) => (
-                        <Card 
-                          key={sentenceIndex} 
+                        <Card
+                          key={sentenceIndex}
                           className={`border-dashed ${
                             sentence.id ? "border-green-200 bg-green-50/30" : ""
                           }`}
@@ -1035,9 +990,7 @@ export default function SentenceFormPage() {
                                   {sentenceIndex + 1}
                                 </span>
                                 {sentence.text ? (
-                                  <span className="truncate max-w-[300px]">
-                                    {sentence.text}
-                                  </span>
+                                  <span className="truncate max-w-[300px]">{sentence.text}</span>
                                 ) : (
                                   <span className="text-muted-foreground italic">
                                     Câu mới chưa có nội dung
@@ -1062,9 +1015,7 @@ export default function SentenceFormPage() {
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle>
-                                      Xác nhận xóa
-                                    </AlertDialogTitle>
+                                    <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
                                     <AlertDialogDescription>
                                       Bạn có chắc chắn muốn xóa câu này?
                                       {sentence.id &&
@@ -1075,10 +1026,7 @@ export default function SentenceFormPage() {
                                     <AlertDialogCancel>Hủy</AlertDialogCancel>
                                     <AlertDialogAction
                                       onClick={() =>
-                                        handleRemoveSentenceFromGroup(
-                                          groupIndex,
-                                          sentenceIndex
-                                        )
+                                        handleRemoveSentenceFromGroup(groupIndex, sentenceIndex)
                                       }
                                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                     >
@@ -1102,7 +1050,7 @@ export default function SentenceFormPage() {
                                       groupIndex,
                                       sentenceIndex,
                                       "text",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   placeholder="Nhập câu tiếng Anh"
@@ -1121,7 +1069,7 @@ export default function SentenceFormPage() {
                                       groupIndex,
                                       sentenceIndex,
                                       "meaningVi",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   placeholder="Nhập nghĩa tiếng Việt"
@@ -1140,7 +1088,7 @@ export default function SentenceFormPage() {
                                       groupIndex,
                                       sentenceIndex,
                                       "hintVi",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   placeholder="Nhập gợi ý"
@@ -1159,7 +1107,7 @@ export default function SentenceFormPage() {
                                         groupIndex,
                                         sentenceIndex,
                                         "audioUrl",
-                                        e.target.value
+                                        e.target.value,
                                       )
                                     }
                                     placeholder="URL audio"
@@ -1176,7 +1124,7 @@ export default function SentenceFormPage() {
                                           groupIndex,
                                           sentenceIndex,
                                           "audioUrl",
-                                          result.info.secure_url as string
+                                          result.info.secure_url as string,
                                         );
                                       }
                                     }}
@@ -1228,9 +1176,7 @@ export default function SentenceFormPage() {
                   Đang lưu...
                 </>
               ) : (
-                <>
-                  Lưu tất cả ({sentenceImageGroups.length} thẻ)
-                </>
+                <>Lưu tất cả ({sentenceImageGroups.length} thẻ)</>
               )}
             </Button>
           </div>
@@ -1251,11 +1197,7 @@ export default function SentenceFormPage() {
                   <label className="block text-sm font-medium mb-2">
                     File Excel <RequiredField />
                   </label>
-                  <Input
-                    type="file"
-                    accept=".xlsx,.xls"
-                    onChange={handleExcelFileSelect}
-                  />
+                  <Input type="file" accept=".xlsx,.xls" onChange={handleExcelFileSelect} />
                   {selectedExcelFile && (
                     <p className="text-sm text-muted-foreground mt-1">
                       Đã chọn: {selectedExcelFile.name}
@@ -1325,452 +1267,391 @@ export default function SentenceFormPage() {
       ) : (
         /* Single Mode Form */
         <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
-          className="space-y-6"
-        >
-          {/* Grade and Topic Selection */}
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* Grade Selection */}
-            <FormItem>
-              <FormLabel>
-                Khối lớp <RequiredField />
-              </FormLabel>
-              <FormControl>
-                <Combobox
-                  options={GRADES.map((g) => ({
-                    value: g.value,
-                    label: g.label,
-                  }))}
-                  value={selectedGrade}
-                  onValueChange={(value) => {
-                    setSelectedGrade(value);
-                    form.setValue("topicId", 0);
-                  }}
-                  placeholder="Chọn khối lớp"
-                  searchPlaceholder="Tìm kiếm khối lớp..."
-                  emptyText="Không tìm thấy khối lớp."
-                  disabled={isTopicLocked}
-                />
-              </FormControl>
-              {isTopicLocked && (
-                <FormDescription>
-                  Khối lớp đã được chọn và không thể thay đổi
-                </FormDescription>
-              )}
-              <FormMessage />
-            </FormItem>
+          <form
+            onSubmit={form.handleSubmit(onSubmit as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
+            className="space-y-6"
+          >
+            {/* Grade and Topic Selection */}
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* Grade Selection */}
+              <FormItem>
+                <FormLabel>
+                  Khối lớp <RequiredField />
+                </FormLabel>
+                <FormControl>
+                  <Combobox
+                    options={GRADES.map((g) => ({
+                      value: g.value,
+                      label: g.label,
+                    }))}
+                    value={selectedGrade}
+                    onValueChange={(value) => {
+                      setSelectedGrade(value);
+                      form.setValue("topicId", 0);
+                    }}
+                    placeholder="Chọn khối lớp"
+                    searchPlaceholder="Tìm kiếm khối lớp..."
+                    emptyText="Không tìm thấy khối lớp."
+                    disabled={isTopicLocked}
+                  />
+                </FormControl>
+                {isTopicLocked && (
+                  <FormDescription>Khối lớp đã được chọn và không thể thay đổi</FormDescription>
+                )}
+                <FormMessage />
+              </FormItem>
 
-            {/* Topic Selection */}
+              {/* Topic Selection */}
+              <FormField
+                control={formControl}
+                name="topicId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Chủ đề <RequiredField />
+                    </FormLabel>
+                    <FormControl>
+                      <Combobox
+                        options={filteredTopics.map((topic) => ({
+                          value: topic.id.toString(),
+                          label: topic.title,
+                        }))}
+                        value={field.value?.toString()}
+                        onValueChange={(value) => field.onChange(parseInt(value))}
+                        placeholder={selectedGrade ? "Chọn chủ đề" : "Vui lòng chọn khối lớp trước"}
+                        searchPlaceholder="Tìm kiếm chủ đề..."
+                        emptyText={selectedGrade ? "Không tìm thấy chủ đề." : "Chưa chọn khối lớp."}
+                        disabled={isTopicLocked}
+                      />
+                    </FormControl>
+                    {isTopicLocked && (
+                      <FormDescription>Chủ đề đã được chọn và không thể thay đổi</FormDescription>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Image URL */}
             <FormField
               control={formControl}
-              name="topicId"
+              name="imageUrl"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Chủ đề <RequiredField />
+                    Hình ảnh <RequiredField />
                   </FormLabel>
                   <FormControl>
-                    <Combobox
-                      options={filteredTopics.map((topic) => ({
-                        value: topic.id.toString(),
-                        label: topic.title,
-                      }))}
-                      value={field.value?.toString()}
-                      onValueChange={(value) => field.onChange(parseInt(value))}
-                      placeholder={
-                        selectedGrade
-                          ? "Chọn chủ đề"
-                          : "Vui lòng chọn khối lớp trước"
-                      }
-                      searchPlaceholder="Tìm kiếm chủ đề..."
-                      emptyText={
-                        selectedGrade
-                          ? "Không tìm thấy chủ đề."
-                          : "Chưa chọn khối lớp."
-                      }
-                      disabled={isTopicLocked}
-                    />
+                    <div className="flex gap-2">
+                      <Input {...field} placeholder="URL hình ảnh" />
+                      <CldUploadWidget uploadPreset={UPLOAD_PRESET} onSuccess={handleImageUpload}>
+                        {({ open }) => (
+                          <Button type="button" size="icon" onClick={() => open()}>
+                            <ImageIcon className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </CldUploadWidget>
+                    </div>
                   </FormControl>
-                  {isTopicLocked && (
-                    <FormDescription>
-                      Chủ đề đã được chọn và không thể thay đổi
-                    </FormDescription>
-                  )}
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
 
-          {/* Image URL */}
-          <FormField
-            control={formControl}
-            name="imageUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Hình ảnh <RequiredField />
-                </FormLabel>
-                <FormControl>
-                  <div className="flex gap-2">
-                    <Input {...field} placeholder="URL hình ảnh" />
-                    <CldUploadWidget
-                      uploadPreset={UPLOAD_PRESET}
-                      onSuccess={handleImageUpload}
-                    >
-                      {({ open }) => (
-                        <Button
-                          type="button"
-                          size="icon"
-                          onClick={() => open()}
-                        >
-                          <ImageIcon className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </CldUploadWidget>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Audio URL */}
-          <FormField
-            control={formControl}
-            name="audioUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>File âm thanh chính (tùy chọn)</FormLabel>
-                <FormControl>
-                  <div className="flex gap-2">
-                    <Input {...field} placeholder="URL âm thanh" />
-                    <CldUploadWidget
-                      uploadPreset={UPLOAD_PRESET}
-                      onSuccess={handleMainAudioUpload}
-                    >
-                      {({ open }) => (
-                        <Button
-                          type="button"
-                          size="icon"
-                          onClick={() => open()}
-                        >
-                          <Upload className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </CldUploadWidget>
-                  </div>
-                </FormControl>
-                <FormDescription>
-                  File âm thanh phát âm mẫu cho toàn bộ hình ảnh
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Order and Active Status */}
-          <div className="grid gap-4 md:grid-cols-2">
-            {isEditMode && (
-              <FormField
-                control={formControl}
-                name="order"
-                render={({ field }) => {
-                  const { value, ...restField } = field;
-                  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-                    if (event.target.value === "") {
-                      field.onChange(undefined);
-                      return;
-                    }
-                    field.onChange(parseInt(event.target.value, 10));
-                  };
-                  return (
-                    <FormItem>
-                      <FormLabel>Thứ tự</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...restField}
-                          value={value ?? ""}
-                          type="number"
-                          min="1"
-                          onChange={handleChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-            )}
-
+            {/* Audio URL */}
             <FormField
               control={formControl}
-              name="isActive"
+              name="audioUrl"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormItem>
+                  <FormLabel>File âm thanh chính (tùy chọn)</FormLabel>
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <div className="flex gap-2">
+                      <Input {...field} placeholder="URL âm thanh" />
+                      <CldUploadWidget
+                        uploadPreset={UPLOAD_PRESET}
+                        onSuccess={handleMainAudioUpload}
+                      >
+                        {({ open }) => (
+                          <Button type="button" size="icon" onClick={() => open()}>
+                            <Upload className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </CldUploadWidget>
+                    </div>
                   </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Trạng thái hoạt động</FormLabel>
-                  </div>
+                  <FormDescription>File âm thanh phát âm mẫu cho toàn bộ hình ảnh</FormDescription>
+                  <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
 
-          <Separator />
+            {/* Order and Active Status */}
+            <div className="grid gap-4 md:grid-cols-2">
+              {isEditMode && (
+                <FormField
+                  control={formControl}
+                  name="order"
+                  render={({ field }) => {
+                    const { value, ...restField } = field;
+                    const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+                      if (event.target.value === "") {
+                        field.onChange(undefined);
+                        return;
+                      }
+                      field.onChange(parseInt(event.target.value, 10));
+                    };
+                    return (
+                      <FormItem>
+                        <FormLabel>Thứ tự</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...restField}
+                            value={value ?? ""}
+                            type="number"
+                            min="1"
+                            onChange={handleChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
+                />
+              )}
 
-          {/* Sentences Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <TypographyH3>Danh sách câu</TypographyH3>
-                <p className="text-sm text-muted-foreground">
-                  {isTopicLocked && existingSentencesCount > 0
-                    ? `Đang hiển thị ${existingSentencesCount} câu có sẵn của chủ đề này. Bạn có thể chỉnh sửa hoặc thêm câu mới.`
-                    : isTopicLocked
-                    ? "Chủ đề này chưa có câu nào. Hãy thêm các câu mới."
-                    : "Thêm các câu liên quan đến hình ảnh (tối thiểu 1 câu)"}
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={handleAddSentence}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Thêm câu
-              </Button>
+              <FormField
+                control={formControl}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Trạng thái hoạt động</FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
             </div>
 
-            {fields.map((field, index) => {
-              const isExpanded = expandedCards.has(field.id);
-              const sentenceText = form.watch(`sentences.${index}.text`);
-              const previewText = sentenceText || `Câu ${index + 1}`;
+            <Separator />
 
-              return (
-                <Card key={field.id}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between text-base">
-                      <button
-                        type="button"
-                        onClick={() => toggleCardExpanded(field.id)}
-                        className="flex items-center gap-2 hover:text-primary transition-colors"
-                      >
-                        {isExpanded ? (
-                          <ChevronDown className="h-4 w-4" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4" />
-                        )}
-                        <span className="truncate max-w-md">{previewText}</span>
-                      </button>
-                      {fields.length > 1 && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              type="button"
-                              variant="dangerOutline"
-                              size="sm"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Bạn có chắc chắn muốn xóa?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Hành động này sẽ xóa câu vĩnh viễn.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Hủy</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleRemoveSentence(index)}
-                              >
-                                Xóa
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
-                    </CardTitle>
-                  </CardHeader>
-                  {isExpanded && (
-                    <CardContent className="space-y-4">
-                      {/* Sentence Text */}
-                      <FormField
-                        control={formControl}
-                        name={`sentences.${index}.text`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>
-                              Câu tiếng Anh <RequiredField />
-                            </FormLabel>
-                            <FormControl>
-                              <Textarea
-                                {...field}
-                                placeholder="Nhập câu tiếng Anh"
-                                rows={2}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+            {/* Sentences Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <TypographyH3>Danh sách câu</TypographyH3>
+                  <p className="text-sm text-muted-foreground">
+                    {isTopicLocked && existingSentencesCount > 0
+                      ? `Đang hiển thị ${existingSentencesCount} câu có sẵn của chủ đề này. Bạn có thể chỉnh sửa hoặc thêm câu mới.`
+                      : isTopicLocked
+                        ? "Chủ đề này chưa có câu nào. Hãy thêm các câu mới."
+                        : "Thêm các câu liên quan đến hình ảnh (tối thiểu 1 câu)"}
+                  </p>
+                </div>
+                <Button type="button" variant="secondary" size="sm" onClick={handleAddSentence}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Thêm câu
+                </Button>
+              </div>
 
-                      {/* Meaning in Vietnamese */}
-                      <FormField
-                        control={formControl}
-                        name={`sentences.${index}.meaningVi`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>
-                              Nghĩa tiếng Việt <RequiredField />
-                            </FormLabel>
-                            <FormControl>
-                              <Textarea
-                                {...field}
-                                placeholder="Nhập nghĩa tiếng Việt"
-                                rows={2}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+              {fields.map((field, index) => {
+                const isExpanded = expandedCards.has(field.id);
+                const sentenceText = form.watch(`sentences.${index}.text`);
+                const previewText = sentenceText || `Câu ${index + 1}`;
 
-                      {/* Audio URL */}
-                      <FormField
-                        control={formControl}
-                        name={`sentences.${index}.audioUrl`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>
-                              File âm thanh <RequiredField />
-                            </FormLabel>
-                            <FormControl>
-                              <div className="flex gap-2">
-                                <Input {...field} placeholder="URL âm thanh" />
-                                <CldUploadWidget
-                                  uploadPreset={UPLOAD_PRESET}
-                                  onSuccess={(result) =>
-                                    handleSentenceAudioUpload(index, result)
-                                  }
-                                >
-                                  {({ open }) => (
-                                    <Button
-                                      type="button"
-                                      size="icon"
-                                      onClick={() => open()}
-                                    >
-                                      <Upload className="h-4 w-4" />
-                                    </Button>
-                                  )}
-                                </CldUploadWidget>
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
+                return (
+                  <Card key={field.id}>
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between text-base">
+                        <button
+                          type="button"
+                          onClick={() => toggleCardExpanded(field.id)}
+                          className="flex items-center gap-2 hover:text-primary transition-colors"
+                        >
+                          {isExpanded ? (
+                            <ChevronDown className="h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
+                          <span className="truncate max-w-md">{previewText}</span>
+                        </button>
+                        {fields.length > 1 && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button type="button" variant="dangerOutline" size="sm">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Hành động này sẽ xóa câu vĩnh viễn.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleRemoveSentence(index)}>
+                                  Xóa
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         )}
-                      />
-
-                      {/* Hint in Vietnamese */}
-                      <FormField
-                        control={formControl}
-                        name={`sentences.${index}.hintVi`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Gợi ý</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="Nhập gợi ý" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      {/* Order and Active Status for each sentence */}
-                      <div className="grid gap-4 md:grid-cols-2">
+                      </CardTitle>
+                    </CardHeader>
+                    {isExpanded && (
+                      <CardContent className="space-y-4">
+                        {/* Sentence Text */}
                         <FormField
                           control={formControl}
-                          name={`sentences.${index}.order`}
-                          render={({ field }) => {
-                            const { value, ...restField } = field;
-                            const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-                              if (event.target.value === "") {
-                                field.onChange(undefined);
-                                return;
-                              }
-                              field.onChange(parseInt(event.target.value, 10));
-                            };
-                            return (
-                              <FormItem>
-                                <FormLabel>Thứ tự</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    {...restField}
-                                    value={value ?? ""}
-                                    type="number"
-                                    onChange={handleChange}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            );
-                          }}
-                        />
-
-                        <FormField
-                          control={formControl}
-                          name={`sentences.${index}.isActive`}
+                          name={`sentences.${index}.text`}
                           render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                            <FormItem>
+                              <FormLabel>
+                                Câu tiếng Anh <RequiredField />
+                              </FormLabel>
                               <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
+                                <Textarea {...field} placeholder="Nhập câu tiếng Anh" rows={2} />
                               </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel>Trạng thái hoạt động</FormLabel>
-                              </div>
+                              <FormMessage />
                             </FormItem>
                           )}
                         />
-                      </div>
-                    </CardContent>
-                  )}
-                </Card>
-              );
-            })}
-          </div>
 
-          {/* Form Actions */}
-          <div className="flex justify-end gap-2 sticky bottom-0 bg-background pt-4 pb-2">
-            <Button
-              type="button"
-              onClick={handleCancel}
-              disabled={isSubmitting}
-            >
-              Hủy
-            </Button>
-            <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {isEditMode ? "Cập nhật" : "Tạo mới"}
-            </Button>
-          </div>
-        </form>
-      </Form>
+                        {/* Meaning in Vietnamese */}
+                        <FormField
+                          control={formControl}
+                          name={`sentences.${index}.meaningVi`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>
+                                Nghĩa tiếng Việt <RequiredField />
+                              </FormLabel>
+                              <FormControl>
+                                <Textarea {...field} placeholder="Nhập nghĩa tiếng Việt" rows={2} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Audio URL */}
+                        <FormField
+                          control={formControl}
+                          name={`sentences.${index}.audioUrl`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>
+                                File âm thanh <RequiredField />
+                              </FormLabel>
+                              <FormControl>
+                                <div className="flex gap-2">
+                                  <Input {...field} placeholder="URL âm thanh" />
+                                  <CldUploadWidget
+                                    uploadPreset={UPLOAD_PRESET}
+                                    onSuccess={(result) => handleSentenceAudioUpload(index, result)}
+                                  >
+                                    {({ open }) => (
+                                      <Button type="button" size="icon" onClick={() => open()}>
+                                        <Upload className="h-4 w-4" />
+                                      </Button>
+                                    )}
+                                  </CldUploadWidget>
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Hint in Vietnamese */}
+                        <FormField
+                          control={formControl}
+                          name={`sentences.${index}.hintVi`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Gợi ý</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Nhập gợi ý" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Order and Active Status for each sentence */}
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <FormField
+                            control={formControl}
+                            name={`sentences.${index}.order`}
+                            render={({ field }) => {
+                              const { value, ...restField } = field;
+                              const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+                                if (event.target.value === "") {
+                                  field.onChange(undefined);
+                                  return;
+                                }
+                                field.onChange(parseInt(event.target.value, 10));
+                              };
+                              return (
+                                <FormItem>
+                                  <FormLabel>Thứ tự</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      {...restField}
+                                      value={value ?? ""}
+                                      type="number"
+                                      onChange={handleChange}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              );
+                            }}
+                          />
+
+                          <FormField
+                            control={formControl}
+                            name={`sentences.${index}.isActive`}
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel>Trạng thái hoạt động</FormLabel>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </CardContent>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+
+            {/* Form Actions */}
+            <div className="flex justify-end gap-2 sticky bottom-0 bg-background pt-4 pb-2">
+              <Button type="button" onClick={handleCancel} disabled={isSubmitting}>
+                Hủy
+              </Button>
+              <Button type="submit" variant="primary" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isEditMode ? "Cập nhật" : "Tạo mới"}
+              </Button>
+            </div>
+          </form>
+        </Form>
       )}
     </div>
   );

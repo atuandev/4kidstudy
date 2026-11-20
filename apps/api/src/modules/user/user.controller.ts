@@ -35,15 +35,19 @@ import {
   ChangePasswordDto,
 } from './dto/index';
 import { UpdateUserStatusDto } from './dto/req/update-user-status.dto';
+import { AdminOnly } from '../auth/decorators/auth.decorator';
+import { PasswordResetTokenService } from '../auth/password-reset-token.service';
 
 @ApiTags('users')
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly passwordResetTokens: PasswordResetTokenService,
+  ) {}
 
   @Get()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Get all users' })
   @ApiQuery({
     name: 'isActive',
@@ -95,8 +99,7 @@ export class UserController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Get user by ID' })
   @ApiParam({
     name: 'id',
@@ -123,8 +126,7 @@ export class UserController {
   }
 
   @Get(':id/stats')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Get user learning statistics' })
   @ApiParam({
     name: 'id',
@@ -151,8 +153,7 @@ export class UserController {
   }
 
   @Put(':id/status')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Update user active status' })
   @ApiParam({ name: 'id', description: 'User ID', type: 'number' })
   @ApiBody({ type: UpdateUserStatusDto })
@@ -196,6 +197,10 @@ export class UserController {
     description: 'User not found',
   })
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    await this.passwordResetTokens.verify(
+      resetPasswordDto.resetToken,
+      resetPasswordDto.email,
+    );
     return this.userService.resetPassword(
       resetPasswordDto.email,
       resetPasswordDto.newPassword,
