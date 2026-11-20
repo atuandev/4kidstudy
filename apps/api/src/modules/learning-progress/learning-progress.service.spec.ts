@@ -104,3 +104,92 @@ describe('LearningProgressService topic progress', () => {
     });
   });
 });
+
+describe('LearningProgressService grade learning stats', () => {
+  const prisma = {
+    topic: { findMany: jest.fn() },
+    learningProgress: { findMany: jest.fn() },
+    flashcard: { findMany: jest.fn() },
+    sentence: { findMany: jest.fn() },
+  };
+  const service = new LearningProgressService(
+    prisma as unknown as PrismaService,
+  );
+
+  it('summarises mastered items, completed topics and top topics', async () => {
+    prisma.topic.findMany.mockResolvedValue([
+      { id: 1, title: 'Animals' },
+      { id: 2, title: 'Colors' },
+    ]);
+    // Most recently reviewed first, as the query orders them.
+    prisma.learningProgress.findMany.mockResolvedValue([
+      {
+        contentType: FLASHCARD,
+        isMastered: true,
+        reviewCount: 2,
+        flashcard: { id: 10, term: 'cat', topicId: 1 },
+        sentence: null,
+      },
+      {
+        contentType: FLASHCARD,
+        isMastered: true,
+        reviewCount: 5,
+        flashcard: { id: 20, term: 'red', topicId: 2 },
+        sentence: null,
+      },
+      {
+        contentType: SENTENCE,
+        isMastered: true,
+        reviewCount: 1,
+        flashcard: null,
+        sentence: {
+          id: 100,
+          text: 'I see a cat.',
+          sentenceImage: { topicId: 1 },
+        },
+      },
+      // Not mastered: counts toward top topics only.
+      {
+        contentType: FLASHCARD,
+        isMastered: false,
+        reviewCount: 9,
+        flashcard: { id: 21, term: 'blue', topicId: 2 },
+        sentence: null,
+      },
+    ]);
+    prisma.flashcard.findMany.mockResolvedValue([
+      { id: 10, topicId: 1 },
+      { id: 20, topicId: 2 },
+      { id: 21, topicId: 2 },
+    ]);
+    prisma.sentence.findMany.mockResolvedValue([
+      { id: 100, sentenceImage: { topicId: 1 } },
+      { id: 200, sentenceImage: { topicId: 2 } },
+    ]);
+
+    const stats = await service.getGradeLearningStats(7, GradeLevel.GRADE_1);
+
+    expect(stats.totalReviewed).toBe(3);
+    expect(stats.flashcardStats).toMatchObject({ reviewed: 2, total: 3 });
+    expect(stats.flashcardStats.percentage).toBeCloseTo(66.67, 1);
+    expect(stats.flashcardStats.allItems.map((i) => i.name)).toEqual([
+      'red',
+      'cat',
+    ]);
+    expect(stats.sentenceStats).toMatchObject({
+      reviewed: 1,
+      total: 2,
+      percentage: 50,
+    });
+    // Topic 1 is fully mastered; topic 2 still has 'blue' and sentence 200.
+    expect(stats.topicCount).toBe(1);
+    expect(stats.topTopics).toEqual([
+      { id: 1, name: 'Animals', reviewCount: 2 },
+      { id: 2, name: 'Colors', reviewCount: 2 },
+    ]);
+    expect(stats.topics).toEqual([
+      { id: 1, name: 'Animals' },
+      { id: 2, name: 'Colors' },
+    ]);
+  });
+});

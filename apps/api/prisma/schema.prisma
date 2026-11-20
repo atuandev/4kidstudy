@@ -273,6 +273,7 @@ model Attempt {
   @@index([userId])
   @@index([lessonId])
   @@index([userId, lessonId])
+  @@index([isCompleted, createdAt])
 }
 
 model AttemptDetail {

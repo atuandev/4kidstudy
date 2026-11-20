@@ -321,50 +321,48 @@ export class LeaderboardService {
     const nextMonday = new Date(monday);
     nextMonday.setDate(nextMonday.getDate() + 7);
 
-    // Get all users in same grade
-    const users = await this.prisma.user.findMany({
-      where: {
-        grade: currentUser.grade,
-        isActive: true,
-      },
-      select: {
-        id: true,
-        name: true,
-        avatarUrl: true,
-      },
-    });
-
-    // Calculate scores for each user based on completed attempts this week
-    const leaderboardEntries: LeaderboardEntryDto[] = [];
-
-    for (const user of users) {
-      const attempts = await this.prisma.attempt.findMany({
+    // Users in the grade and their summed scores for this week, in one
+    // round-trip instead of one query per user.
+    const [users, weeklyScores] = await Promise.all([
+      this.prisma.user.findMany({
         where: {
-          userId: user.id,
+          grade: currentUser.grade,
+          isActive: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          avatarUrl: true,
+        },
+      }),
+      this.prisma.attempt.groupBy({
+        by: ['userId'],
+        where: {
           isCompleted: true,
           createdAt: {
             gte: monday,
             lt: nextMonday,
           },
+          user: {
+            grade: currentUser.grade,
+            isActive: true,
+          },
         },
-        select: {
-          totalScore: true,
-        },
-      });
+        _sum: { totalScore: true },
+      }),
+    ]);
 
-      const totalScore = attempts.reduce(
-        (sum, attempt) => sum + attempt.totalScore,
-        0,
-      );
+    const scoreByUserId = new Map(
+      weeklyScores.map((row) => [row.userId, row._sum.totalScore ?? 0]),
+    );
 
-      leaderboardEntries.push({
-        userId: user.id,
-        name: user.name,
-        avatarUrl: user.avatarUrl,
-        totalScore,
-        rank: 0, // Will be calculated after sorting
-      });
-    }
+    const leaderboardEntries: LeaderboardEntryDto[] = users.map((user) => ({
+      userId: user.id,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      totalScore: scoreByUserId.get(user.id) ?? 0,
+      rank: 0, // Will be calculated after sorting
+    }));
 
     // Sort by totalScore descending and assign ranks
     leaderboardEntries.sort((a, b) => b.totalScore - a.totalScore);

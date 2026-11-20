@@ -18,3 +18,4 @@ export * from './req/review-content.dto';
 
 export * from './res/learning-progress-response.dto';
 export * from './res/topic-progress-response.dto';
+export * from './res/grade-learning-stats-response.dto';

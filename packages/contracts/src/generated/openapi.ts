@@ -769,6 +769,22 @@ export interface paths {
         patch: operations["LearningProgressController_updateProgress"];
         trace?: never;
     };
+    "/api/learning-progress/grade-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["LearningProgressController_getGradeLearningStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/learning-progress/last-topic": {
         parameters: {
             query?: never;
@@ -2217,6 +2233,77 @@ export interface components {
             topicId: number;
             /** Format: date-time */
             updatedAt: string;
+        };
+        GradeContentStatsDto: {
+            /** @description Mastered items, most-reviewed first */
+            allItems: components["schemas"]["GradeStatsItemDto"][];
+            /**
+             * @description reviewed / total * 100
+             * @example 12.5
+             */
+            percentage: number;
+            /**
+             * @description Mastered items in the grade
+             * @example 15
+             */
+            reviewed: number;
+            /** @description Five most-reviewed items */
+            topItems: components["schemas"]["GradeStatsItemDto"][];
+            /**
+             * @description All items in the grade
+             * @example 120
+             */
+            total: number;
+        };
+        GradeLearningStatsResponseDto: {
+            flashcardStats: components["schemas"]["GradeContentStatsDto"];
+            sentenceStats: components["schemas"]["GradeContentStatsDto"];
+            /**
+             * @description Topics where every flashcard and sentence is mastered
+             * @example 2
+             */
+            topicCount: number;
+            /** @description All topics in the grade, in display order */
+            topics: components["schemas"]["GradeStatsTopicDto"][];
+            /** @description Five topics with the most progress rows */
+            topTopics: components["schemas"]["GradeStatsTopTopicDto"][];
+            /**
+             * @description Mastered flashcards plus mastered sentences
+             * @example 23
+             */
+            totalReviewed: number;
+        };
+        GradeStatsItemDto: {
+            /** @example 12 */
+            id: number;
+            /**
+             * @description Flashcard term or sentence text
+             * @example apple
+             */
+            name: string;
+            /** @example 3 */
+            reviewCount: number;
+            /** @example 19 */
+            topicId: number;
+            /** @example Unit 1: Hello */
+            topicName: string;
+        };
+        GradeStatsTopicDto: {
+            /** @example 19 */
+            id: number;
+            /** @example Unit 1: Hello */
+            name: string;
+        };
+        GradeStatsTopTopicDto: {
+            /** @example 19 */
+            id: number;
+            /** @example Unit 1: Hello */
+            name: string;
+            /**
+             * @description Progress rows the user has in the topic
+             * @example 8
+             */
+            reviewCount: number;
         };
         ImportCsvResponseDto: {
             /** @description Import statistics for exercises */
@@ -4770,6 +4857,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LearningProgressResponseDto"];
+                };
+            };
+        };
+    };
+    LearningProgressController_getGradeLearningStats: {
+        parameters: {
+            query: {
+                /** @description Grade whose topics to return progress for */
+                grade: "GRADE_1" | "GRADE_2" | "GRADE_3" | "GRADE_4" | "GRADE_5";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GradeLearningStatsResponseDto"];
                 };
             };
         };

@@ -23,6 +23,7 @@ import {
   LearningProgressStatsResponseDto,
   TopicProgressResponseDto,
   GetTopicsProgressQueryDto,
+  GradeLearningStatsResponseDto,
 } from './dtos';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
@@ -88,6 +89,23 @@ export class LearningProgressController {
   ): Promise<TopicProgressResponseDto[]> {
     const userId = req.user.id;
     return this.learningProgressService.getTopicsProgressByGrade(
+      userId,
+      query.grade,
+    );
+  }
+
+  /**
+   * Get learning statistics for a grade (learning history dialog)
+   * GET /learning-progress/grade-stats?grade=GRADE_1
+   */
+  @Get('grade-stats')
+  @ApiOkResponse({ type: GradeLearningStatsResponseDto })
+  async getGradeLearningStats(
+    @Request() req: any,
+    @Query() query: GetTopicsProgressQueryDto,
+  ): Promise<GradeLearningStatsResponseDto> {
+    const userId = req.user.id;
+    return this.learningProgressService.getGradeLearningStats(
       userId,
       query.grade,
     );

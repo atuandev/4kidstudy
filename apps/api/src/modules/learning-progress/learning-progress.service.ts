@@ -14,6 +14,9 @@ import {
   PaginatedLearningProgressResponseDto,
   LearningProgressStatsResponseDto,
   TopicProgressResponseDto,
+  GradeLearningStatsResponseDto,
+  GradeContentStatsDto,
+  GradeStatsItemDto,
 } from './dtos';
 
 /**
@@ -505,6 +508,132 @@ export class LearningProgressService {
     grade: GradeLevel,
   ): Promise<TopicProgressResponseDto[]> {
     return this.computeTopicProgress(userId, { grade });
+  }
+
+  /**
+   * Learning statistics for one grade, for the learning history dialog.
+   * Totals include inactive content, matching what the dialog has always shown.
+   */
+  async getGradeLearningStats(
+    userId: number,
+    grade: GradeLevel,
+  ): Promise<GradeLearningStatsResponseDto> {
+    const [topics, progresses, flashcards, sentences] = await Promise.all([
+      this.prisma.topic.findMany({
+        where: { grade },
+        orderBy: [{ order: 'asc' }],
+        select: { id: true, title: true },
+      }),
+      this.prisma.learningProgress.findMany({
+        where: {
+          userId,
+          OR: [
+            {
+              contentType: LearningContentType.FLASHCARD,
+              flashcard: { topic: { grade } },
+            },
+            {
+              contentType: LearningContentType.SENTENCE,
+              sentence: { sentenceImage: { topic: { grade } } },
+            },
+          ],
+        },
+        orderBy: { lastReviewedAt: 'desc' },
+        select: {
+          contentType: true,
+          isMastered: true,
+          reviewCount: true,
+          flashcard: { select: { id: true, term: true, topicId: true } },
+          sentence: {
+            select: {
+              id: true,
+              text: true,
+              sentenceImage: { select: { topicId: true } },
+            },
+          },
+        },
+      }),
+      this.prisma.flashcard.findMany({
+        where: { topic: { grade } },
+        select: { id: true, topicId: true },
+      }),
+      this.prisma.sentence.findMany({
+        where: { sentenceImage: { topic: { grade } } },
+        select: { id: true, sentenceImage: { select: { topicId: true } } },
+      }),
+    ]);
+
+    const topicTitle = new Map(topics.map((t) => [t.id, t.title]));
+    const flashcardItems: GradeStatsItemDto[] = [];
+    const sentenceItems: GradeStatsItemDto[] = [];
+    const rowsPerTopic = new Map<number, number>();
+
+    for (const p of progresses) {
+      const isFlashcard = p.contentType === LearningContentType.FLASHCARD;
+      const topicId = isFlashcard
+        ? p.flashcard?.topicId
+        : p.sentence?.sentenceImage.topicId;
+      if (topicId === undefined) continue;
+
+      rowsPerTopic.set(topicId, (rowsPerTopic.get(topicId) ?? 0) + 1);
+      if (!p.isMastered) continue;
+
+      const item = {
+        id: isFlashcard ? p.flashcard!.id : p.sentence!.id,
+        name: (isFlashcard ? p.flashcard!.term : p.sentence!.text) ?? '',
+        reviewCount: p.reviewCount,
+        topicName: topicTitle.get(topicId) ?? '',
+        topicId,
+      };
+      (isFlashcard ? flashcardItems : sentenceItems).push(item);
+    }
+
+    // Array.prototype.sort is stable, so ties keep most-recently-reviewed first.
+    flashcardItems.sort((a, b) => b.reviewCount - a.reviewCount);
+    sentenceItems.sort((a, b) => b.reviewCount - a.reviewCount);
+
+    const masteredFlashcards = new Set(flashcardItems.map((i) => i.id));
+    const masteredSentences = new Set(sentenceItems.map((i) => i.id));
+    const completedTopics = topics.filter((topic) => {
+      const topicFlashcards = flashcards.filter((f) => f.topicId === topic.id);
+      const topicSentences = sentences.filter(
+        (s) => s.sentenceImage.topicId === topic.id,
+      );
+      return (
+        topicFlashcards.length > 0 &&
+        topicSentences.length > 0 &&
+        topicFlashcards.every((f) => masteredFlashcards.has(f.id)) &&
+        topicSentences.every((s) => masteredSentences.has(s.id))
+      );
+    });
+
+    const contentStats = (
+      items: GradeStatsItemDto[],
+      total: number,
+    ): GradeContentStatsDto => ({
+      reviewed: items.length,
+      total,
+      percentage: total > 0 ? (items.length / total) * 100 : 0,
+      topItems: items.slice(0, 5),
+      allItems: items,
+    });
+
+    return {
+      totalReviewed: flashcardItems.length + sentenceItems.length,
+      flashcardStats: contentStats(flashcardItems, flashcards.length),
+      sentenceStats: contentStats(sentenceItems, sentences.length),
+      topicCount: completedTopics.length,
+      topTopics: [...rowsPerTopic.entries()]
+        .filter(([id]) => topicTitle.get(id))
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([id, reviewCount]) => ({
+          id,
+          name: topicTitle.get(id)!,
+          reviewCount,
+        })),
+      topics: topics.map((t) => ({ id: t.id, name: t.title })),
+    };
   }
 
   private async computeTopicProgress(
