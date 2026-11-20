@@ -211,38 +211,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/chat": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["ChatController_sendMessage"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/chat/history": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["ChatController_getHistory"];
-        put?: never;
-        post?: never;
-        delete: operations["ChatController_clearHistory"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/email/send-otp": {
         parameters: {
             query?: never;
@@ -1558,19 +1526,6 @@ export interface components {
              * @example NewPassword123
              */
             newPassword: string;
-        };
-        ChatRequestDto: {
-            isTranslation?: boolean;
-            message: string;
-        };
-        ChatResponseDto: {
-            response: string;
-            translation?: {
-                examples?: string[];
-                meaning: string;
-                phonetic?: string;
-                word: string;
-            };
         };
         CompleteAttemptDto: {
             durationSec?: number;
@@ -3623,63 +3578,6 @@ export interface operations {
             };
             /** @description Conflict - email already exists */
             409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ChatController_sendMessage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ChatRequestDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChatResponseDto"];
-                };
-            };
-        };
-    };
-    ChatController_getHistory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ChatController_clearHistory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
                 headers: {
                     [name: string]: unknown;
                 };

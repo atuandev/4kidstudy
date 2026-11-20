@@ -14,14 +14,13 @@ const SidebarNav = () => (
     <SidebarItem label="Học" href="/learn/units" iconSrc="/learn.svg" />
     <SidebarItem label="Luyện tập" href="/practice" iconSrc="/practice.svg" />
     <SidebarItem label="Bảng xếp hạng" href="/leaderboard" iconSrc="/leaderboard.svg" />
-    <SidebarItem label="Hội thoại với AI" href="/chat" iconSrc="/chat.svg" />
     <SidebarItem label="Hồ sơ" href="/profile" iconSrc="/profile.svg" />
   </div>
 );
 
 const SidebarNavFallback = () => (
   <div className="flex flex-1 flex-col gap-y-2">
-    {Array.from({ length: 5 }).map((_, index) => (
+    {Array.from({ length: 4 }).map((_, index) => (
       <div
         key={`sidebar-fallback-${index}`}
         className="h-[52px] w-full animate-pulse rounded-md bg-muted"

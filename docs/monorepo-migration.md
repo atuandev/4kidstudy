@@ -84,7 +84,7 @@ Both original repos and their GitHub history are unchanged until step 5.
 
 1. **Lint errors existed in both apps before the migration:** web 35, API 108 (94 of them auto-fixable formatting). CI runs lint as non-blocking until they're fixed.
 2. **`apps/api/docker-compose.yml`** hardcodes the local Postgres password `123456`. Fine for local dev; don't reuse it anywhere else.
-3. **Stray scripts in `apps/api`:** `check-api-direct.js`, `check-key.js` and `test-models.js` are ad-hoc Gemini key checkers that print the first 10 characters of `GEMINI_API_KEY`. Move them to `apps/api/scripts/` or delete them.
+3. **Stray scripts in `apps/api`:** the ad-hoc Gemini key checkers were deleted along with the AI chat feature (2026-11-20).
 4. **`xlsx@0.18.5`** (both apps) is the last npm release of SheetJS and has public advisories (prototype pollution, ReDoS). Maintained builds ship from the SheetJS CDN.
 5. **CORS origins** in `apps/api/src/main.ts` are an exact allowlist covering both the old `4kidstudy-frontend*` and the new `4kidstudy*` Vercel aliases. Add more with the `CORS_ORIGINS` env var (comma-separated). Hash-based preview URLs (`4kidstudy-<hash>-atuandev-projects.vercel.app`) are not allowed.
 6. **Model types:** the UI's hand-written types use `field?: T` where the API returns `T | null`. The compat check only verifies field names. Moving the UI types onto `@4kidstudy/contracts` model types is the next step, file by file.
