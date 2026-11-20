@@ -437,9 +437,6 @@ importers:
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.1.2(react@19.1.2))(react@19.1.2)
-      nuqs:
-        specifier: ^2.5.2
-        version: 2.5.2(next@16.4.6(@babel/core@7.28.3(supports-color@10.2.2))(@types/node@22.18.0)(react-dom@19.1.2(react@19.1.2))(react@19.1.2))(react@19.1.2)
       react:
         specifier: 19.1.2
         version: 19.1.2
@@ -5360,27 +5357,6 @@ packages:
 
   nth-check@2.1.1:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
-
-  nuqs@2.5.2:
-    resolution: {integrity: sha512-vzKeoYlMRmNYPWECdn53Nmh/jM+r/iSezEin342EVXPogT6KzALwdnYbZxASE5vTdXRUtOymtPkgsarLipKetg==}
-    peerDependencies:
-      '@remix-run/react': '>=2'
-      '@tanstack/react-router': ^1
-      next: '>=14.2.0'
-      react: '>=18.2.0 || ^19.0.0-0'
-      react-router: ^6 || ^7
-      react-router-dom: ^6 || ^7
-    peerDependenciesMeta:
-      '@remix-run/react':
-        optional: true
-      '@tanstack/react-router':
-        optional: true
-      next:
-        optional: true
-      react-router:
-        optional: true
-      react-router-dom:
-        optional: true
 
   nypm@0.6.1:
     resolution: {integrity: sha512-hlacBiRiv1k9hZFiphPUkfSQ/ZfQzZDzC+8z0wL3lvDAOUu/2NnChkKuMoMjNur/9OpKuz2QsIeiPVN0xM5Q0w==}
@@ -12363,13 +12339,6 @@ snapshots:
     dependencies:
       boolbase: 1.0.0
     optional: true
-
-  nuqs@2.5.2(next@16.4.6(@babel/core@7.28.3(supports-color@10.2.2))(@types/node@22.18.0)(react-dom@19.1.2(react@19.1.2))(react@19.1.2))(react@19.1.2):
-    dependencies:
-      '@standard-schema/spec': 1.0.0
-      react: 19.1.2
-    optionalDependencies:
-      next: 16.4.6(@babel/core@7.28.3(supports-color@10.2.2))(@types/node@22.18.0)(react-dom@19.1.2(react@19.1.2))(react@19.1.2)
 
   nypm@0.6.1:
     dependencies:
