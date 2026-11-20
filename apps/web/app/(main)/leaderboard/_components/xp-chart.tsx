@@ -1,26 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { BarChart as BarChartIcon } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { getTopicXPStats } from "@/actions/leaderboard";
+import { AXIS_TICK, ChartSheet, GRID_STROKE, TOOLTIP_PROPS } from "./chart-sheet";
 
 interface TopicXPDataPoint {
   topicId: number;
@@ -28,14 +11,10 @@ interface TopicXPDataPoint {
   xpEarned: number;
 }
 
-const TIME_RANGES = [
-  { value: "1", label: "Hôm nay" },
-  { value: "3", label: "3 ngày" },
-  { value: "7", label: "7 ngày" },
-  { value: "14", label: "14 ngày" },
-  { value: "30", label: "30 ngày" },
-];
+/** Row height per topic: a 24px bar plus air. */
+const ROW_HEIGHT = 44;
 
+/** XP per topic over the chosen range, as horizontal bars so long topic names stay readable. */
 export function XPChart() {
   const [days, setDays] = useState<number>(7);
   const [data, setData] = useState<TopicXPDataPoint[]>([]);
@@ -55,62 +34,75 @@ export function XPChart() {
   }, [days]);
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <BarChartIcon className="h-5 w-5 text-primary" />
-            <CardTitle>Điểm XP theo chủ đề</CardTitle>
-          </div>
-          <Select value={days.toString()} onValueChange={(value) => setDays(parseInt(value))}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {TIME_RANGES.map((range) => (
-                <SelectItem key={range.value} value={range.value}>
-                  {range.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="mt-2">
-          <p className="text-2xl font-bold text-primary">{totalXP} XP</p>
-          <p className="text-sm text-muted-foreground">Tổng điểm kiếm được từ bài học</p>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="h-[300px] flex items-center justify-center">
-            <p className="text-muted-foreground">Đang tải...</p>
-          </div>
-        ) : data.length === 0 ? (
-          <div className="h-[300px] flex items-center justify-center">
-            <p className="text-muted-foreground">Chưa có dữ liệu</p>
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="topicTitle"
-                tick={{ fontSize: 12 }}
-                angle={-45}
-                textAnchor="end"
-                height={100}
-              />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip
-                formatter={(value: number) => [`${value} XP`, "Điểm"]}
-                labelFormatter={(label) => `Chủ đề: ${label}`}
-              />
-              <Legend />
-              <Bar dataKey="xpEarned" fill="#8b5cf6" name="XP kiếm được" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </CardContent>
-    </Card>
+    <ChartSheet
+      titleId="xp-chart-title"
+      title="Điểm XP theo chủ đề"
+      echo="XP by topic"
+      totalXP={totalXP}
+      totalLabel="Tổng điểm kiếm được từ bài học"
+      days={days}
+      onDaysChange={setDays}
+      loading={loading}
+      isEmpty={data.length === 0}
+    >
+      <div aria-hidden="true">
+        <ResponsiveContainer width="100%" height={Math.max(120, data.length * ROW_HEIGHT + 40)}>
+          <BarChart
+            data={data}
+            layout="vertical"
+            margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
+          >
+            <CartesianGrid horizontal={false} stroke={GRID_STROKE} />
+            <XAxis
+              type="number"
+              tick={AXIS_TICK}
+              tickLine={false}
+              axisLine={false}
+              allowDecimals={false}
+            />
+            <YAxis
+              type="category"
+              dataKey="topicTitle"
+              width={150}
+              tick={{ ...AXIS_TICK, fill: "#3D465D" }}
+              tickLine={false}
+              axisLine={{ stroke: GRID_STROKE }}
+              tickFormatter={(value: string) =>
+                value.length > 20 ? `${value.slice(0, 19)}…` : value
+              }
+            />
+            <Tooltip
+              {...TOOLTIP_PROPS}
+              formatter={(value: number) => [`${value} XP`, "Điểm"]}
+              labelFormatter={(label) => `Chủ đề: ${label}`}
+            />
+            <Bar
+              dataKey="xpEarned"
+              fill="#0284C7"
+              radius={[0, 4, 4, 0]}
+              maxBarSize={24}
+              animationDuration={500}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <table className="sr-only">
+        <caption>XP kiếm được theo chủ đề</caption>
+        <thead>
+          <tr>
+            <th scope="col">Chủ đề</th>
+            <th scope="col">XP</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((point) => (
+            <tr key={point.topicId}>
+              <td>{point.topicTitle}</td>
+              <td>{point.xpEarned}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </ChartSheet>
   );
 }

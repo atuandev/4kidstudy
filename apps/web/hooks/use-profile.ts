@@ -13,25 +13,36 @@ interface UseProfileResult {
 
 /**
  * Provides the authenticated profile from the profile store and fetches it on first access.
+ * Several shell components use this at once, so the in-flight check reads the store directly
+ * (not a render-time snapshot), and a failed automatic fetch is not retried until
+ * `fetchProfile` is called explicitly.
  */
 export function useProfile(): UseProfileResult {
-  const { profile, isLoadingProfile, setProfile, setLoadingProfile } = useProfileStore();
+  const profile = useProfileStore((state) => state.profile);
+  const isLoadingProfile = useProfileStore((state) => state.isLoadingProfile);
+  const profileFetchFailed = useProfileStore((state) => state.profileFetchFailed);
+
   const fetchProfile = useCallback(async () => {
-    if (isLoadingProfile) return;
+    const store = useProfileStore.getState();
+    if (store.isLoadingProfile) return;
     try {
-      setLoadingProfile(true);
+      store.setLoadingProfile(true);
       const profileData = await getProfile();
-      setProfile(profileData);
+      store.setProfile(profileData);
+      store.setProfileFetchFailed(false);
     } catch (error) {
       console.error("Failed to fetch profile", error);
-      setProfile(null);
+      store.setProfile(null);
+      store.setProfileFetchFailed(true);
     } finally {
-      setLoadingProfile(false);
+      store.setLoadingProfile(false);
     }
-  }, [isLoadingProfile, setLoadingProfile, setProfile]);
+  }, []);
+
   useEffect(() => {
-    if (profile !== null || isLoadingProfile) return;
+    if (profile !== null || isLoadingProfile || profileFetchFailed) return;
     void fetchProfile();
-  }, [fetchProfile, isLoadingProfile, profile]);
+  }, [fetchProfile, isLoadingProfile, profile, profileFetchFailed]);
+
   return { profile, isLoadingProfile, fetchProfile };
 }

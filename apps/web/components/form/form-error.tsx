@@ -8,8 +8,11 @@ export function FormError({ message }: FormErrorProps) {
   if (!message) return null;
 
   return (
-    <div className="flex items-center space-x-3 text-destructive text-sm bg-destructive/15 p-3 rounded-md">
-      <CircleAlert className="size-5" />
+    <div
+      role="alert"
+      className="flex items-center gap-3 rounded-2xl bg-cherry-wash px-4 py-3 text-sm font-bold text-cherry-deep"
+    >
+      <CircleAlert className="size-5 shrink-0" aria-hidden="true" />
       <span>{message}</span>
     </div>
   );

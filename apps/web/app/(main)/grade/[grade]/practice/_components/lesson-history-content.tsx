@@ -1,21 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  ChevronDown,
-  ChevronUp,
-  History,
-  Trophy,
-  Clock,
-  Target,
-  CheckCircle2,
-  XCircle,
-} from "lucide-react";
+import { Check, ChevronDown, History, Trophy, X } from "lucide-react";
 
 import { SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Lesson, Attempt, ExerciseType, MostWrongExerciseStats } from "@/types";
+import { Lesson, Attempt, AttemptDetail, ExerciseType, MostWrongExerciseStats } from "@/types";
 import {
   getUserLessonAttempts,
   getAttemptById,
@@ -224,526 +214,448 @@ export function LessonHistoryContent({ lesson, lessonId, isOpen }: LessonHistory
   }, [bestAttempt, isOpen]);
 
   return (
-    <SheetContent className="sm:max-w-4xl w-full">
-      <SheetHeader>
-        <SheetTitle>Lịch sử luyện tập</SheetTitle>
-        <SheetDescription className="text-lg font-bold">{lesson.title}</SheetDescription>
+    <SheetContent className="w-full gap-0 sm:max-w-3xl">
+      <SheetHeader className="border-b-2 border-wash px-5 pb-4 pt-5 pr-14 sm:px-6">
+        <SheetTitle className="text-2xl font-black text-ink">Lịch sử luyện tập</SheetTitle>
+        <SheetDescription className="text-base font-extrabold text-sky-ink">
+          {lesson.title}
+        </SheetDescription>
       </SheetHeader>
 
-      <div className="space-y-4 m-4 overflow-y-auto">
+      <div className="flex flex-col gap-7 overflow-y-auto px-5 pb-10 pt-5 sm:px-6">
         {!isLoadingAttempts && attempts.length > 0 && (
-          <div className="mx-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Target className="h-5 w-5 text-blue-500" />
-              <h3 className="font-semibold text-lg">Thống kê luyện tập</h3>
-            </div>
-            <div className="border rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <History className="h-4 w-4" />
-                    <span>Tổng số lần</span>
-                  </div>
-                  <p className="font-bold text-xl">{statistics.totalAttempts}</p>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <Target className="h-4 w-4" />
-                    <span>Hoàn thành</span>
-                  </div>
-                  <p className="font-bold text-xl">
-                    {statistics.completedAttempts}
-                    <span className="font-normal text-muted-foreground ml-1">
-                      ({statistics.completionRate.toFixed(0)}%)
-                    </span>
-                  </p>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <Trophy className="h-4 w-4" />
-                    <span>Điểm trung bình</span>
-                  </div>
-                  <p className="font-bold text-xl">{statistics.averageScore.toFixed(1)}</p>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <Clock className="h-4 w-4" />
-                    <span>Tổng thời gian</span>
-                  </div>
-                  <p className="font-bold text-xl">{formatDuration(statistics.totalTimeSpent)}</p>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <Target className="h-4 w-4" />
-                    <span>Tỷ lệ đúng</span>
-                  </div>
-                  <p className="font-bold text-xl">{statistics.averageAccuracy.toFixed(1)}%</p>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <CheckCircle2 className="h-4 w-4 " />
-                    <span>Đúng lần 1</span>
-                  </div>
-                  <p className="font-bold text-xl text-green-600">{statistics.totalCorrectCount}</p>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <CheckCircle2 className="h-4 w-4" />
-                    <span>Đúng lần 2</span>
-                  </div>
-                  <p className="font-bold text-xl text-yellow-600">
-                    {statistics.totalCorrectOnSecondCount}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <XCircle className="h-4 w-4" />
-                    <span>Sai</span>
-                  </div>
-                  <p className="font-bold text-xl text-red-600">{statistics.totalIncorrectCount}</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <section aria-labelledby="history-overview">
+            <SectionTitle id="history-overview">Tổng quan</SectionTitle>
+            <dl className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+              <Tile label="Số lần luyện" value={statistics.totalAttempts} />
+              <Tile
+                label="Hoàn thành"
+                value={statistics.completedAttempts}
+                note={`${statistics.completionRate.toFixed(0)}%`}
+              />
+              <Tile label="Điểm trung bình" value={statistics.averageScore.toFixed(1)} />
+              <Tile
+                label="Tổng thời gian"
+                value={formatDuration(statistics.totalTimeSpent) || "–"}
+              />
+              <Tile label="Tỷ lệ đúng" value={`${statistics.averageAccuracy.toFixed(1)}%`} />
+              <Tile label="Đúng lần 1" value={statistics.totalCorrectCount} tone="text-forest" />
+              <Tile
+                label="Đúng lần 2"
+                value={statistics.totalCorrectOnSecondCount}
+                tone="text-sun-ink"
+              />
+              <Tile label="Sai" value={statistics.totalIncorrectCount} tone="text-cherry-deep" />
+            </dl>
+          </section>
         )}
 
         {/* Most wrong exercises */}
-        <div className="mx-4">
-          <div
-            className="flex w-full items-center justify-between gap-2 mb-3 cursor-pointer hover:bg-gray-50 py-2"
-            onClick={() => setIsWrongSectionOpen((prev) => !prev)}
-          >
-            <div className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-red-500" />
-              <h3 className="font-semibold text-lg">Các câu hỏi sai nhiều nhất</h3>
-            </div>
-            {isWrongSectionOpen ? (
-              <ChevronUp className="h-4 w-4 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-            )}
-          </div>
+        <section>
+          <h3>
+            <button
+              type="button"
+              aria-expanded={isWrongSectionOpen}
+              onClick={() => setIsWrongSectionOpen((prev) => !prev)}
+              className="-mx-2 flex w-[calc(100%+1rem)] items-center justify-between gap-2 rounded-xl px-2 py-1.5 text-left text-lg font-black text-ink outline-none transition-colors hover:bg-wash focus-visible:ring-4 focus-visible:ring-sky/50"
+            >
+              Câu hay sai nhất
+              <ChevronDown
+                aria-hidden="true"
+                className={cn(
+                  "size-5 text-ink-body transition-transform duration-200 ease-peel",
+                  isWrongSectionOpen && "rotate-180",
+                )}
+              />
+            </button>
+          </h3>
           {isWrongSectionOpen && (
-            <LessonWrongSection
-              isLoadingMostWrong={isLoadingMostWrong}
-              mostWrongExercises={mostWrongExercises}
-            />
+            <div className="mt-2.5">
+              <LessonWrongSection
+                isLoadingMostWrong={isLoadingMostWrong}
+                mostWrongExercises={mostWrongExercises}
+              />
+            </div>
           )}
-        </div>
+        </section>
 
         {!isLoadingAttempts && bestAttempt && (
-          <div className="mx-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Trophy className="h-5 w-5 text-yellow-500" />
-              <h3 className="font-semibold text-lg">Kết quả tốt nhất</h3>
+          <section aria-labelledby="history-best">
+            <SectionTitle id="history-best">Kết quả tốt nhất</SectionTitle>
+            <div className="rounded-[22px] bg-sun-wash p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="flex items-center gap-2 text-base font-black text-sun-body">
+                  <span className="flex size-8 items-center justify-center rounded-full bg-sun text-ink">
+                    <Trophy className="size-4" aria-hidden="true" />
+                  </span>
+                  Lần {bestAttempt.attemptNumber}
+                </p>
+                <p className="text-sm font-bold text-sun-body">
+                  {formatDate(bestAttempt.createdAt)}
+                </p>
+              </div>
+              <AttemptMetrics
+                attempt={bestAttempt}
+                secondCount={bestAttempt.details ? getCorrectOnSecondAttemptCount(bestAttempt) : 0}
+                duration={formatDuration(bestAttempt.durationSec)}
+                className="mt-3"
+                tileClassName="bg-white/70"
+              />
             </div>
-            <div className="border-2 border-yellow-400 rounded-lg bg-gradient-to-br from-yellow-50 to-amber-50 p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">Lần {bestAttempt.attemptNumber}</span>
-                </div>
-                <Badge className="bg-yellow-500 hover:bg-yellow-600">Xuất sắc</Badge>
-              </div>
-
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                <div>
-                  <span className="text-muted-foreground">Điểm</span>
-                  <p className="font-bold text-lg">
-                    {bestAttempt.totalScore}/{bestAttempt.maxScore}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Tỷ lệ đúng</span>
-                  <p className="font-bold text-lg">{bestAttempt.accuracyPct.toFixed(1)}%</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Đúng lần 1</span>
-                  <p className="font-bold text-green-600 text-lg">
-                    {bestAttempt.details
-                      ? bestAttempt.details.filter(
-                          (detail) => detail.isCorrect && detail.attempts === 1,
-                        ).length
-                      : bestAttempt.correctCount}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Đúng lần 2</span>
-                  <p className="font-bold text-yellow-600 text-lg">
-                    {bestAttempt.details ? getCorrectOnSecondAttemptCount(bestAttempt) : 0}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Sai</span>
-                  <p className="font-bold text-red-600 text-lg">{bestAttempt.incorrectCount}</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Thời gian</span>
-                  <p className="font-bold text-lg">{formatDuration(bestAttempt.durationSec)}</p>
-                </div>
-              </div>
-
-              <div className="text-sm text-muted-foreground">
-                {formatDate(bestAttempt.createdAt)}
-              </div>
-            </div>
-          </div>
+          </section>
         )}
 
         {isLoadingAttempts ? (
-          <div className="flex items-center justify-center py-8">
-            <p className="text-muted-foreground">Đang tải...</p>
-          </div>
+          <p role="status" className="py-8 text-center text-base font-bold text-ink-body">
+            Đang tải...
+          </p>
         ) : attempts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <History className="h-12 w-12 text-muted-foreground mb-2" />
-            <p className="text-muted-foreground">Chưa có lịch sử luyện tập</p>
+          <div className="flex flex-col items-center py-8 text-center">
+            <span className="flex size-14 items-center justify-center rounded-full bg-wash text-ink-body">
+              <History className="size-7" aria-hidden="true" />
+            </span>
+            <p className="mt-3 text-lg font-black text-ink">Chưa có lịch sử luyện tập</p>
+            <p className="text-base text-ink-body">Làm bài này một lần là kết quả sẽ hiện ở đây.</p>
           </div>
         ) : (
-          <>
-            <div className="flex items-center gap-2 mb-2 mx-4">
-              <History className="h-5 w-5 text-muted-foreground" />
-              <h3 className="font-semibold text-lg">Tất cả lần luyện tập</h3>
-            </div>
-            {attempts.map((attempt) => {
-              const isExpanded = expandedAttemptId === attempt.id;
-              return (
-                <div key={attempt.id} className="border rounded-lg overflow-hidden mx-4">
-                  <div
-                    className="p-4 space-y-2 hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() => handleAttemptClick(attempt.id)}
+          <section aria-labelledby="history-all">
+            <SectionTitle id="history-all">Tất cả lần luyện tập</SectionTitle>
+            <ul className="flex flex-col gap-3">
+              {attempts.map((attempt) => {
+                const isExpanded = expandedAttemptId === attempt.id;
+                const panelId = `attempt-${attempt.id}-details`;
+                return (
+                  <li
+                    key={attempt.id}
+                    className="overflow-hidden rounded-[22px] border-2 border-edge"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">Lần {attempt.attemptNumber}</span>
-                        {isExpanded ? (
-                          <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                    <button
+                      type="button"
+                      aria-expanded={isExpanded}
+                      aria-controls={panelId}
+                      onClick={() => handleAttemptClick(attempt.id)}
+                      className="w-full px-4 pb-3 pt-4 text-left outline-none transition-colors hover:bg-wash/60 focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-sky/50"
+                    >
+                      <span className="flex items-start gap-3">
+                        <span className="flex flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+                          <span className="text-lg font-black text-ink">
+                            Lần {attempt.attemptNumber}
+                          </span>
+                          <span
+                            className={cn(
+                              "rounded-full px-2.5 py-0.5 text-sm font-extrabold",
+                              attempt.isCompleted
+                                ? "bg-leaf-wash text-forest"
+                                : "bg-wash text-ink-body",
+                            )}
+                          >
+                            {attempt.isCompleted ? "Hoàn thành" : "Chưa hoàn thành"}
+                          </span>
+                          <span className="text-sm font-bold text-ink-body">
+                            {formatDate(attempt.createdAt)}
+                          </span>
+                        </span>
+                        <ChevronDown
+                          aria-hidden="true"
+                          className={cn(
+                            "mt-1 size-5 shrink-0 text-ink-body transition-transform duration-200 ease-peel",
+                            isExpanded && "rotate-180",
+                          )}
+                        />
+                      </span>
+                    </button>
+                    <AttemptMetrics
+                      attempt={attempt}
+                      secondCount={attempt.details ? getCorrectOnSecondAttemptCount(attempt) : 0}
+                      duration={formatDuration(attempt.durationSec)}
+                      className="px-4 pb-4"
+                    />
+
+                    {isExpanded && (
+                      <div id={panelId} className="border-t-2 border-edge bg-wash/60 p-3 sm:p-4">
+                        {isLoadingDetails ? (
+                          <p
+                            role="status"
+                            className="py-4 text-center text-sm font-bold text-ink-body"
+                          >
+                            Đang tải chi tiết...
+                          </p>
+                        ) : attemptDetails?.details && attemptDetails.details.length > 0 ? (
+                          <ol className="flex flex-col gap-2.5">
+                            {attemptDetails.details.map((detail, index) => (
+                              <li key={detail.id}>
+                                <DetailCard detail={detail} position={index + 1} />
+                              </li>
+                            ))}
+                          </ol>
                         ) : (
-                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          <p className="py-4 text-center text-sm font-bold text-ink-body">
+                            Không có chi tiết bài tập
+                          </p>
                         )}
                       </div>
-                      <Badge variant={attempt.isCompleted ? "default" : "outline"}>
-                        {attempt.isCompleted ? "Hoàn thành" : "Chưa hoàn thành"}
-                      </Badge>
-                    </div>
-
-                    <div className="grid grid-cols-6 gap-2">
-                      <div>
-                        <span className="text-muted-foreground">Điểm</span>
-                        <p className="font-bold text-lg">
-                          {attempt.totalScore}/{attempt.maxScore}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Tỷ lệ đúng</span>
-                        <p className="font-bold text-lg">{attempt.accuracyPct.toFixed(1)}%</p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Đúng lần 1</span>
-                        <p className="font-bold text-green-600 text-lg">
-                          {attempt.details
-                            ? attempt.details.filter(
-                                (detail) => detail.isCorrect && detail.attempts === 1,
-                              ).length
-                            : attempt.correctCount}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Đúng lần 2</span>
-                        <p className="font-bold text-yellow-600 text-lg">
-                          {attempt.details ? getCorrectOnSecondAttemptCount(attempt) : 0}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Sai</span>
-                        <p className="font-bold text-red-600 text-lg">{attempt.incorrectCount}</p>
-                      </div>
-
-                      <div>
-                        <span className="text-muted-foreground">Thời gian</span>
-                        <p className="font-bold text-lg">{formatDuration(attempt.durationSec)}</p>
-                      </div>
-                    </div>
-
-                    <div className="text-muted-foreground">{formatDate(attempt.createdAt)}</div>
-                  </div>
-
-                  {isExpanded && (
-                    <div className="border-t bg-gray-50 p-4">
-                      {isLoadingDetails ? (
-                        <div className="flex items-center justify-center py-4">
-                          <p className="text-sm text-muted-foreground">Đang tải chi tiết...</p>
-                        </div>
-                      ) : attemptDetails?.details && attemptDetails.details.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-2">
-                          {attemptDetails.details.map((detail, index) => {
-                            const isCorrectOnSecondAttempt =
-                              detail.isCorrect && detail.points === 5;
-                            return (
-                              <div
-                                key={detail.id}
-                                className={cn(
-                                  "border rounded-md p-3 space-y-2",
-                                  isCorrectOnSecondAttempt
-                                    ? "bg-yellow-50 border-yellow-200"
-                                    : detail.isCorrect
-                                      ? "bg-green-50 border-green-200"
-                                      : "bg-red-50 border-red-200",
-                                )}
-                              >
-                                <div className="flex items-center justify-between">
-                                  <div className="font-medium text-md">
-                                    Câu hỏi #{index + 1}:{" "}
-                                    <span className="font-bold">{detail.exercise?.prompt}</span>
-                                    <div>
-                                      {detail.exercise?.imageUrl ? (
-                                        <Image
-                                          width={50}
-                                          height={50}
-                                          src={detail.exercise.imageUrl}
-                                          alt="Exercise image"
-                                          className="w-full h-20 object-contain rounded border-2 border-gray-300 bg-gray-50"
-                                        />
-                                      ) : null}
-                                    </div>
-                                    {detail.exercise?.type === "LISTENING" &&
-                                    detail.exercise?.audioUrl ? (
-                                      <AudioControl audioUrl={detail.exercise.audioUrl} />
-                                    ) : detail.exercise?.type === "PRONUNCIATION" &&
-                                      detail.exercise?.audioUrl ? (
-                                      <>
-                                        <p className="">{detail.exercise.targetText}</p>
-                                        <AudioControl audioUrl={detail.exercise.audioUrl} />
-                                      </>
-                                    ) : null}
-                                  </div>
-
-                                  <Badge variant="outline" className="bg-white text-gray-600">
-                                    {EXERCISE_TYPE_LABELS[detail.exercise?.type ?? "SELECT_IMAGE"]}
-                                  </Badge>
-                                </div>
-
-                                {/* Only show answer details for LISTENING and MULTIPLE_CHOICE */}
-                                {detail.exercise?.type === "LISTENING" ||
-                                detail.exercise?.type === "MULTIPLE_CHOICE" ? (
-                                  <div className="grid grid-cols-3 gap-2">
-                                    <div>
-                                      <span className="text-muted-foreground">
-                                        Đáp án chọn lần 1
-                                      </span>
-                                      <p className="font-bold text-lg">
-                                        {detail.attempts === 2 && detail.selectedOption2Id
-                                          ? (detail.exercise?.options.find(
-                                              (option) => option.id === detail.selectedOption2Id,
-                                            )?.text ?? "")
-                                          : (detail.exercise?.options.find(
-                                              (option) => option.id === detail.selectedOptionId,
-                                            )?.text ?? "")}
-                                      </p>
-                                    </div>
-
-                                    <div>
-                                      <span className="text-muted-foreground">
-                                        Đáp án chọn lần 2
-                                      </span>
-                                      <p className="font-bold text-lg">
-                                        {detail.attempts === 2
-                                          ? (detail.exercise?.options.find(
-                                              (option) => option.id === detail.selectedOptionId,
-                                            )?.text ?? "")
-                                          : ""}
-                                      </p>
-                                    </div>
-
-                                    <div>
-                                      <span className="text-muted-foreground">Đáp án đúng</span>
-                                      <p className="font-bold text-lg">
-                                        {detail.exercise?.options.find((option) => option.isCorrect)
-                                          ?.text ?? ""}
-                                      </p>
-                                    </div>
-                                  </div>
-                                ) : detail.exercise?.type === "SELECT_IMAGE" ? (
-                                  <div className="grid grid-cols-3 gap-2">
-                                    <div>
-                                      <span className="text-muted-foreground">
-                                        Đáp án chọn lần 1
-                                      </span>
-                                      <div className="mt-1">
-                                        {detail.attempts === 2 && detail.selectedOption2Id
-                                          ? (() => {
-                                              const option = detail.exercise?.options.find(
-                                                (option) => option.id === detail.selectedOption2Id,
-                                              );
-                                              return option?.imageUrl ? (
-                                                <Image
-                                                  width={100}
-                                                  height={100}
-                                                  src={option.imageUrl}
-                                                  alt="Selected answer 1"
-                                                  className="w-full h-20 object-contain rounded border-2 border-gray-300 bg-gray-50"
-                                                />
-                                              ) : (
-                                                <p className="font-bold text-lg">
-                                                  Không có hình ảnh
-                                                </p>
-                                              );
-                                            })()
-                                          : (() => {
-                                              const option = detail.exercise?.options.find(
-                                                (option) => option.id === detail.selectedOptionId,
-                                              );
-                                              return option?.imageUrl ? (
-                                                <Image
-                                                  width={100}
-                                                  height={100}
-                                                  src={option.imageUrl}
-                                                  alt="Selected answer 1"
-                                                  className="w-full h-20 object-contain rounded border-2 border-gray-300 bg-gray-50"
-                                                />
-                                              ) : (
-                                                <p className="font-bold text-lg">
-                                                  Không có hình ảnh
-                                                </p>
-                                              );
-                                            })()}
-                                      </div>
-                                    </div>
-
-                                    <div>
-                                      <span className="text-muted-foreground">
-                                        Đáp án chọn lần 2
-                                      </span>
-                                      <div className="mt-1">
-                                        {detail.attempts === 2
-                                          ? (() => {
-                                              const option = detail.exercise?.options.find(
-                                                (option) => option.id === detail.selectedOptionId,
-                                              );
-                                              return option?.imageUrl ? (
-                                                <Image
-                                                  width={100}
-                                                  height={100}
-                                                  src={option.imageUrl}
-                                                  alt="Selected answer 2"
-                                                  className="w-full h-20 object-contain rounded border-2 border-gray-300 bg-gray-50"
-                                                />
-                                              ) : (
-                                                <p className="font-bold text-lg">
-                                                  Không có hình ảnh
-                                                </p>
-                                              );
-                                            })()
-                                          : null}
-                                      </div>
-                                    </div>
-
-                                    <div>
-                                      <span className="text-muted-foreground">Đáp án đúng</span>
-                                      <div className="mt-1">
-                                        {(() => {
-                                          const correctOption = detail.exercise?.options.find(
-                                            (option) => option.isCorrect,
-                                          );
-                                          return correctOption?.imageUrl ? (
-                                            <img
-                                              src={correctOption.imageUrl}
-                                              alt="Correct answer"
-                                              className="w-full h-20 object-contain rounded border-2 border-green-500 bg-green-50"
-                                            />
-                                          ) : (
-                                            <p className="font-bold text-lg">Không có hình ảnh</p>
-                                          );
-                                        })()}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ) : null}
-
-                                <div className="grid grid-cols-3 gap-2">
-                                  <div>
-                                    <span className="text-muted-foreground">Điểm</span>
-                                    <p className="font-bold text-lg">
-                                      {detail.points}/{detail.maxPoints}
-                                    </p>
-                                  </div>
-                                  {detail.exercise?.type === "PRONUNCIATION" &&
-                                    detail.pronunciation && (
-                                      <div>
-                                        <span className="text-muted-foreground">Điểm phát âm:</span>
-                                        <p className="font-bold text-lg">
-                                          {detail.pronunciation.overall?.toFixed(1) ?? "N/A"}
-                                        </p>
-                                      </div>
-                                    )}
-                                </div>
-
-                                {detail.exercise?.type === "PRONUNCIATION" &&
-                                  detail.pronunciation && (
-                                    <div className="pt-2 border-t space-y-1">
-                                      <div className="grid grid-cols-3 gap-1">
-                                        {detail.pronunciation.accuracy !== undefined && (
-                                          <div>
-                                            <span className="text-muted-foreground">
-                                              Độ chính xác:
-                                            </span>
-                                            <span className="ml-1 font-medium">
-                                              {detail.pronunciation.accuracy.toFixed(1)}
-                                            </span>
-                                          </div>
-                                        )}
-                                        {detail.pronunciation.fluency !== undefined && (
-                                          <div>
-                                            <span className="text-muted-foreground">
-                                              Độ trôi chảy:
-                                            </span>
-                                            <span className="ml-1 font-medium">
-                                              {detail.pronunciation.fluency.toFixed(1)}
-                                            </span>
-                                          </div>
-                                        )}
-                                        {detail.pronunciation.completeness !== undefined && (
-                                          <div>
-                                            <span className="text-muted-foreground">
-                                              Độ hoàn thành:
-                                            </span>
-                                            <span className="ml-1 font-medium">
-                                              {detail.pronunciation.completeness.toFixed(1)}
-                                            </span>
-                                          </div>
-                                        )}
-                                        {detail.pronunciation.prosody !== undefined && (
-                                          <div>
-                                            <span className="text-muted-foreground">Ngữ điệu:</span>
-                                            <span className="ml-1 font-medium">
-                                              {detail.pronunciation.prosody.toFixed(1)}
-                                            </span>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground text-center py-4">
-                          Không có chi tiết bài tập
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
         )}
       </div>
     </SheetContent>
+  );
+}
+
+function SectionTitle({
+  id,
+  children,
+}: {
+  readonly id: string;
+  readonly children: React.ReactNode;
+}) {
+  return (
+    <h3 id={id} className="mb-2.5 text-lg font-black text-ink">
+      {children}
+    </h3>
+  );
+}
+
+interface TileProps {
+  readonly label: string;
+  readonly value: React.ReactNode;
+  readonly note?: string;
+  readonly tone?: string;
+  readonly className?: string;
+}
+
+function Tile({ label, value, note, tone = "text-ink", className }: TileProps) {
+  return (
+    <div
+      className={cn("flex flex-col-reverse gap-0.5 rounded-2xl bg-wash px-3.5 py-2.5", className)}
+    >
+      <dt className="text-sm font-bold leading-tight text-ink-body">{label}</dt>
+      <dd className={cn("text-xl font-black tabular-nums", tone)}>
+        {value}
+        {note ? <span className="ml-1 text-sm font-bold text-ink-body">({note})</span> : null}
+      </dd>
+    </div>
+  );
+}
+
+interface AttemptMetricsProps {
+  readonly attempt: Attempt;
+  readonly secondCount: number;
+  readonly duration: string;
+  readonly className?: string;
+  readonly tileClassName?: string;
+}
+
+/** Score, accuracy, right first/second time, wrong, time for one attempt. */
+function AttemptMetrics({
+  attempt,
+  secondCount,
+  duration,
+  className,
+  tileClassName,
+}: AttemptMetricsProps) {
+  const firstCount = attempt.details
+    ? attempt.details.filter((detail) => detail.isCorrect && detail.attempts === 1).length
+    : attempt.correctCount;
+  return (
+    <dl className={cn("grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-6", className)}>
+      <Tile
+        className={tileClassName}
+        label="Điểm"
+        value={`${attempt.totalScore}/${attempt.maxScore}`}
+      />
+      <Tile
+        className={tileClassName}
+        label="Tỷ lệ đúng"
+        value={`${attempt.accuracyPct.toFixed(1)}%`}
+      />
+      <Tile className={tileClassName} label="Đúng lần 1" value={firstCount} tone="text-forest" />
+      <Tile className={tileClassName} label="Đúng lần 2" value={secondCount} tone="text-sun-ink" />
+      <Tile
+        className={tileClassName}
+        label="Sai"
+        value={attempt.incorrectCount}
+        tone="text-cherry-deep"
+      />
+      <Tile className={tileClassName} label="Thời gian" value={duration || "–"} />
+    </dl>
+  );
+}
+
+function findOption(detail: AttemptDetail, optionId?: number) {
+  return detail.exercise?.options.find((option) => option.id === optionId);
+}
+
+function AnswerImage({
+  src,
+  alt,
+  correct,
+}: {
+  readonly src?: string;
+  readonly alt: string;
+  readonly correct?: boolean;
+}) {
+  if (!src) return <p className="text-sm font-bold text-ink-body">Không có hình ảnh</p>;
+  return (
+    <Image
+      width={120}
+      height={120}
+      src={src}
+      alt={alt}
+      className={cn(
+        "h-20 w-full rounded-xl border-2 bg-white object-contain",
+        correct ? "border-leaf" : "border-edge",
+      )}
+    />
+  );
+}
+
+/** One exercise inside an attempt: what was asked, what the learner picked, the points. */
+function DetailCard({
+  detail,
+  position,
+}: {
+  readonly detail: AttemptDetail;
+  readonly position: number;
+}) {
+  const isCorrectOnSecondAttempt = detail.isCorrect && detail.points === 5;
+  const type = detail.exercise?.type;
+  // The first pick is stored in selectedOption2Id when a second try happened.
+  const firstPickId =
+    detail.attempts === 2 && detail.selectedOption2Id
+      ? detail.selectedOption2Id
+      : detail.selectedOptionId;
+  const secondPickId = detail.attempts === 2 ? detail.selectedOptionId : undefined;
+  const correctOption = detail.exercise?.options.find((option) => option.isCorrect);
+
+  const verdict = isCorrectOnSecondAttempt
+    ? { label: "Đúng lần 2", icon: Check, disc: "bg-sun text-ink", border: "border-sun" }
+    : detail.isCorrect
+      ? { label: "Đúng", icon: Check, disc: "bg-leaf-deep text-white", border: "border-leaf" }
+      : { label: "Sai", icon: X, disc: "bg-cherry text-white", border: "border-cherry" };
+  const VerdictIcon = verdict.icon;
+
+  return (
+    <div className={cn("rounded-2xl border-2 bg-white p-3.5", verdict.border)}>
+      <div>
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={cn(
+                "flex size-7 shrink-0 items-center justify-center rounded-full",
+                verdict.disc,
+              )}
+            >
+              <VerdictIcon className="size-4" strokeWidth={3} aria-label={verdict.label} />
+            </span>
+            <p className="text-sm font-extrabold text-ink-body">Câu {position}</p>
+            <span className="rounded-full bg-wash px-2 py-0.5 text-xs font-extrabold text-ink-body">
+              {EXERCISE_TYPE_LABELS[type ?? "SELECT_IMAGE"]}
+            </span>
+            <span className="ml-auto text-sm font-black tabular-nums text-ink">
+              {detail.points}/{detail.maxPoints} điểm
+            </span>
+          </div>
+          <p className="mt-1.5 text-base font-black text-ink">{detail.exercise?.prompt}</p>
+
+          {detail.exercise?.imageUrl ? (
+            <div className="mt-2 w-32">
+              <AnswerImage src={detail.exercise.imageUrl} alt="Hình của câu hỏi" />
+            </div>
+          ) : null}
+          {type === "LISTENING" && detail.exercise?.audioUrl ? (
+            <AudioControl
+              audioUrl={detail.exercise.audioUrl}
+              className="mt-2 h-10 w-full max-w-sm"
+            />
+          ) : type === "PRONUNCIATION" && detail.exercise?.audioUrl ? (
+            <>
+              <p className="mt-1 text-base font-bold text-ink">{detail.exercise.targetText}</p>
+              <AudioControl
+                audioUrl={detail.exercise.audioUrl}
+                className="mt-2 h-10 w-full max-w-sm"
+              />
+            </>
+          ) : null}
+
+          {type === "LISTENING" || type === "MULTIPLE_CHOICE" ? (
+            <dl className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <Tile
+                label="Chọn lần 1"
+                value={findOption(detail, firstPickId)?.text ?? ""}
+                className="[&_dd]:text-base"
+              />
+              <Tile
+                label="Chọn lần 2"
+                value={secondPickId ? (findOption(detail, secondPickId)?.text ?? "") : "–"}
+                className="[&_dd]:text-base"
+              />
+              <Tile
+                label="Đáp án đúng"
+                value={correctOption?.text ?? ""}
+                tone="text-forest"
+                className="bg-leaf-wash [&_dd]:text-base"
+              />
+            </dl>
+          ) : type === "SELECT_IMAGE" ? (
+            <dl className="mt-3 grid grid-cols-3 gap-2">
+              <div className="flex flex-col gap-1">
+                <dt className="text-sm font-bold text-ink-body">Chọn lần 1</dt>
+                <dd>
+                  <AnswerImage
+                    src={findOption(detail, firstPickId)?.imageUrl}
+                    alt="Hình bé chọn lần 1"
+                  />
+                </dd>
+              </div>
+              <div className="flex flex-col gap-1">
+                <dt className="text-sm font-bold text-ink-body">Chọn lần 2</dt>
+                <dd>
+                  {secondPickId ? (
+                    <AnswerImage
+                      src={findOption(detail, secondPickId)?.imageUrl}
+                      alt="Hình bé chọn lần 2"
+                    />
+                  ) : (
+                    <p className="text-sm font-bold text-ink-body">–</p>
+                  )}
+                </dd>
+              </div>
+              <div className="flex flex-col gap-1">
+                <dt className="text-sm font-bold text-forest">Đáp án đúng</dt>
+                <dd>
+                  <AnswerImage src={correctOption?.imageUrl} alt="Hình đúng" correct />
+                </dd>
+              </div>
+            </dl>
+          ) : null}
+
+          {type === "PRONUNCIATION" && detail.pronunciation ? (
+            <dl className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+              <Tile
+                label="Điểm phát âm"
+                value={detail.pronunciation.overall?.toFixed(1) ?? "N/A"}
+              />
+              {detail.pronunciation.accuracy !== undefined && (
+                <Tile label="Chính xác" value={detail.pronunciation.accuracy.toFixed(1)} />
+              )}
+              {detail.pronunciation.fluency !== undefined && (
+                <Tile label="Trôi chảy" value={detail.pronunciation.fluency.toFixed(1)} />
+              )}
+              {detail.pronunciation.completeness !== undefined && (
+                <Tile label="Đầy đủ" value={detail.pronunciation.completeness.toFixed(1)} />
+              )}
+              {detail.pronunciation.prosody !== undefined && (
+                <Tile label="Ngữ điệu" value={detail.pronunciation.prosody.toFixed(1)} />
+              )}
+            </dl>
+          ) : null}
+        </div>
+      </div>
+    </div>
   );
 }

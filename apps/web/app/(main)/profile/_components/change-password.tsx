@@ -19,12 +19,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { FormError } from "@/components/form/form-error";
 import { FormSuccess } from "@/components/form/form-success";
 import { ChangePasswordSchema, ChangePasswordSchemaType } from "@/schemas/auth";
 import { changePassword } from "@/actions/user/change-password";
-import { Eye, EyeOff } from "lucide-react";
 
 interface ChangePasswordDialogProps {
   open: boolean;
@@ -35,9 +34,6 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const form = useForm<ChangePasswordSchemaType>({
     resolver: zodResolver(ChangePasswordSchema),
@@ -81,7 +77,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Đổi mật khẩu</DialogTitle>
+          <DialogTitle className="text-2xl font-black text-ink">Đổi mật khẩu</DialogTitle>
           <DialogDescription>
             Nhập mật khẩu hiện tại và mật khẩu mới của bạn. Mật khẩu phải có ít nhất 8 ký tự.
           </DialogDescription>
@@ -97,28 +93,11 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
                 <FormItem>
                   <FormLabel>Mật khẩu hiện tại</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <Input
-                        {...field}
-                        type={showCurrentPassword ? "text" : "password"}
-                        placeholder="Nhập mật khẩu hiện tại"
-                        disabled={isPending}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                        disabled={isPending}
-                      >
-                        {showCurrentPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </div>
+                    <PasswordInput
+                      {...field}
+                      placeholder="Nhập mật khẩu hiện tại"
+                      disabled={isPending}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -133,28 +112,11 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
                 <FormItem>
                   <FormLabel>Mật khẩu mới</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <Input
-                        {...field}
-                        type={showNewPassword ? "text" : "password"}
-                        placeholder="Nhập mật khẩu mới"
-                        disabled={isPending}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowNewPassword(!showNewPassword)}
-                        disabled={isPending}
-                      >
-                        {showNewPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </div>
+                    <PasswordInput
+                      {...field}
+                      placeholder="Nhập mật khẩu mới"
+                      disabled={isPending}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -169,28 +131,11 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
                 <FormItem>
                   <FormLabel>Xác nhận mật khẩu mới</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <Input
-                        {...field}
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Nhập lại mật khẩu mới"
-                        disabled={isPending}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        disabled={isPending}
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </div>
+                    <PasswordInput
+                      {...field}
+                      placeholder="Nhập lại mật khẩu mới"
+                      disabled={isPending}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -210,7 +155,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
               >
                 Hủy
               </Button>
-              <Button type="submit" variant="primary" className="flex-1" disabled={isPending}>
+              <Button type="submit" variant="secondary" className="flex-1" disabled={isPending}>
                 {isPending ? "Đang xử lý..." : "Đổi mật khẩu"}
               </Button>
             </div>

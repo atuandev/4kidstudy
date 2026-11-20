@@ -1,24 +1,12 @@
 "use client";
 
 import { logout } from "@/actions/auth/logout";
+import { PageHeading } from "@/components/page-heading";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import { GRADE_LABELS, GradeValue, User as UserType } from "@/types";
-import {
-  Calendar,
-  Crown,
-  Flame,
-  KeyRoundIcon,
-  LogOutIcon,
-  Mail,
-  Target,
-  Trophy,
-  User,
-  UserIcon,
-} from "lucide-react";
+import { FireIcon, TrophyIcon } from "@phosphor-icons/react";
+import { KeyRoundIcon, LogOutIcon, UserIcon } from "lucide-react";
 import { redirect } from "next/navigation";
 import { useState } from "react";
 import { UpdateProfileDialog } from "./update-profile";
@@ -38,7 +26,7 @@ export default function Profile({ profile }: ProfileProps) {
 
   // Format date
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+    return new Date(dateString).toLocaleDateString("vi-VN", {
       year: "numeric",
       month: "numeric",
       day: "numeric",
@@ -58,200 +46,147 @@ export default function Profile({ profile }: ProfileProps) {
   const genderLabel =
     profile.gender === "MALE" ? "Nam" : profile.gender === "FEMALE" ? "Nữ" : "Chưa xác định";
 
+  const details: { label: string; value: React.ReactNode }[] = [
+    { label: "Khối học", value: GRADE_LABELS[profile.grade as GradeValue] },
+    { label: "Ngày sinh", value: profile.dob ? formatDate(profile.dob) : "Chưa thiết lập" },
+    { label: "Giới tính", value: genderLabel },
+    {
+      label: "Trạng thái tài khoản",
+      value: (
+        <span
+          className={
+            profile.isActive
+              ? "rounded-full bg-leaf-wash px-2.5 py-0.5 text-sm font-extrabold text-forest"
+              : "rounded-full bg-cherry-wash px-2.5 py-0.5 text-sm font-extrabold text-cherry-deep"
+          }
+        >
+          {profile.isActive ? "Hoạt động" : "Không hoạt động"}
+        </span>
+      ),
+    },
+    { label: "Thành viên từ", value: formatDate(profile.createdAt) },
+    { label: "Cập nhật lần cuối", value: formatDate(profile.updatedAt) },
+  ];
+
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      {/* Profile Header */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-            <div className="relative">
-              <Avatar className="h-24 w-24 ring-4 ring-primary/10">
-                <AvatarImage src={profile.avatarUrl} alt={profile.name} />
-                <AvatarFallback className="text-lg font-semibold bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
-                  {getInitials(profile.name)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
-                <Crown className="h-3 w-3" />
-                {level}
-              </div>
-            </div>
+    <div className="flex flex-col gap-6 pb-10">
+      <PageHeading title="Hồ sơ của bé" echo="Your profile" />
+      {/* Profile header */}
+      <section className="rounded-[28px] bg-white p-5 shadow-sheet-lime sm:p-7">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-6">
+          <div className="relative w-fit">
+            <Avatar className="size-24 -rotate-3 border-[5px] border-white shadow-sticker">
+              <AvatarImage src={profile.avatarUrl} alt="" />
+              <AvatarFallback className="bg-leaf-deep text-2xl font-black text-white">
+                {getInitials(profile.name)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="absolute -bottom-1 -right-3 rounded-full bg-sun px-2.5 py-0.5 text-sm font-black text-ink shadow-[0_3px_0_#B78A00]">
+              Cấp {level}
+            </span>
+          </div>
 
-            <div className="flex-1 space-y-2">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <h1 className="text-3xl font-bold text-foreground">{profile.name}</h1>
-                  <div className="flex items-center gap-2 text-muted-foreground mt-1">
-                    <Mail className="h-4 w-4" />
-                    <span className="text-sm">{profile.email}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="primary"
-                    size="icon"
-                    className="self-start sm:self-center"
-                    onClick={() => setIsUpdateDialogOpen(true)}
-                  >
-                    <UserIcon className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="primary"
-                    size="icon"
-                    className="self-start sm:self-center"
-                    onClick={() => setIsChangePasswordDialogOpen(true)}
-                  >
-                    <KeyRoundIcon className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="self-start sm:self-center"
-                    onClick={async () => {
-                      await logout();
-                      redirect("/login");
-                    }}
-                  >
-                    <LogOutIcon className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="truncate text-3xl font-black text-ink">{profile.name}</h2>
+            <p className="truncate text-base font-bold text-ink-body">{profile.email}</p>
 
-              {/* XP Progress */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-primary">
-                    {currentLevelXP}/100 Kinh nghiệm
-                  </span>
-                </div>
-                <Progress value={xpProgress} className="h-3" />
+            <div className="mt-3">
+              <p className="flex justify-between text-sm font-extrabold text-ink-body">
+                <span>Lên cấp {level + 1}</span>
+                <span className="tabular-nums text-ink">{currentLevelXP}/100 XP</span>
+              </p>
+              <div
+                role="progressbar"
+                aria-label={`Kinh nghiệm để lên cấp ${level + 1}`}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={currentLevelXP}
+                className="mt-1.5 h-3 overflow-hidden rounded-full bg-wash"
+              >
+                <div className="h-full rounded-full bg-leaf" style={{ width: `${xpProgress}%` }} />
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Stats Cards */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Gamification Stats */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-primary" />
-                Thống kê luyện tập
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="text-center p-4 rounded-lg bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900">
-                  <div className="flex items-center justify-center w-12 h-12 mx-auto mb-2 bg-yellow-500 rounded-full">
-                    <Trophy className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                    {profile.xp.toLocaleString()}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Tổng kinh nghiệm</div>
-                </div>
-
-                <div className="text-center p-4 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900">
-                  <div className="flex items-center justify-center w-12 h-12 mx-auto mb-2 bg-orange-500 rounded-full">
-                    <Flame className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                    {profile.streakDays}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Chuỗi ngày</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Activity Overview */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                Tổng quan hoạt động
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="font-medium">Trạng thái tài khoản</span>
-                  </div>
-                  <span
-                    className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      profile.isActive
-                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                        : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-                    }`}
-                  >
-                    {profile.isActive ? "Hoạt động" : "Không hoạt động"}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    <span className="font-medium">Thành viên từ</span>
-                  </div>
-                  <span className="text-sm font-semibold">{formatDate(profile.createdAt)}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
-        {/* Profile Info */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5 text-primary" />
-                Thông tin hồ sơ
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Khối học</label>
-                  <div className="mt-1">
-                    <span className="">{GRADE_LABELS[profile.grade as GradeValue]}</span>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Ngày sinh</label>
-                  <div className="mt-1 flex items-center gap-2 text-sm">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    {profile.dob ? formatDate(profile.dob) : "Chưa thiết lập"}
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Giới tính</label>
-                  <div className="mt-1 text-sm font-medium capitalize">{genderLabel}</div>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Cập nhật lần cuối
-                  </label>
-                  <div className="mt-1 text-sm">{formatDate(profile.updatedAt)}</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="mt-5 flex flex-wrap gap-2 border-t-2 border-wash pt-5">
+          <Button size="lg" onClick={() => setIsUpdateDialogOpen(true)}>
+            <UserIcon aria-hidden="true" />
+            Sửa hồ sơ
+          </Button>
+          <Button size="lg" onClick={() => setIsChangePasswordDialogOpen(true)}>
+            <KeyRoundIcon aria-hidden="true" />
+            Đổi mật khẩu
+          </Button>
+          <Button
+            size="lg"
+            variant="dangerOutline"
+            className="sm:ml-auto"
+            onClick={async () => {
+              await logout();
+              redirect("/login");
+            }}
+          >
+            <LogOutIcon aria-hidden="true" />
+            Đăng xuất
+          </Button>
         </div>
+      </section>
+
+      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
+        {/* Gamification stats */}
+        <section
+          aria-labelledby="profile-stats"
+          className="rounded-[28px] bg-white p-5 shadow-sheet-lime sm:p-6"
+        >
+          <h2 id="profile-stats" className="text-xl font-black text-ink">
+            Thành tích
+          </h2>
+          <p className="text-sm font-extrabold text-sky-ink">Your progress</p>
+          <dl className="mt-4 grid grid-cols-2 gap-3">
+            <div className="flex flex-col-reverse items-center rounded-2xl bg-sun-wash px-3 py-4 text-center">
+              <dt className="text-sm font-bold text-sun-body">Tổng kinh nghiệm</dt>
+              <dd className="flex flex-col items-center gap-2">
+                <span className="flex size-12 -rotate-6 items-center justify-center rounded-2xl bg-sun text-ink shadow-[0_4px_0_#B78A00]">
+                  <TrophyIcon size={28} weight="fill" aria-hidden="true" />
+                </span>
+                <span className="text-3xl font-black tabular-nums text-ink">
+                  {profile.xp.toLocaleString("vi-VN")}
+                </span>
+              </dd>
+            </div>
+            <div className="flex flex-col-reverse items-center rounded-2xl bg-cherry-wash/70 px-3 py-4 text-center">
+              <dt className="text-sm font-bold text-ink-body">Chuỗi ngày học</dt>
+              <dd className="flex flex-col items-center gap-2">
+                <span className="flex size-12 rotate-6 items-center justify-center rounded-2xl bg-tangerine text-white shadow-[0_4px_0_#C2410C]">
+                  <FireIcon size={28} weight="fill" aria-hidden="true" />
+                </span>
+                <span className="text-3xl font-black tabular-nums text-ink">
+                  {profile.streakDays}
+                </span>
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        {/* Profile info */}
+        <section
+          aria-labelledby="profile-info"
+          className="rounded-[28px] bg-white p-5 shadow-sheet-lime sm:p-6"
+        >
+          <h2 id="profile-info" className="text-xl font-black text-ink">
+            Thông tin hồ sơ
+          </h2>
+          <p className="text-sm font-extrabold text-sky-ink">About you</p>
+          <dl className="mt-3 divide-y-2 divide-wash">
+            {details.map((item) => (
+              <div key={item.label} className="flex items-center justify-between gap-4 py-2.5">
+                <dt className="text-sm font-bold text-ink-body">{item.label}</dt>
+                <dd className="text-right text-base font-extrabold text-ink">{item.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
       </div>
 
       <UpdateProfileDialog

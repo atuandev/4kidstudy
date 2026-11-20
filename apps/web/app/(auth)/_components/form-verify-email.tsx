@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthCard } from "./auth-card";
 import { useForm } from "react-hook-form";
 import { useEffect, useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,8 +17,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { VerifyEmailSchema, VerifyEmailSchemaType } from "@/schemas/auth";
-import { TypographyH3 } from "@/components/typography";
-import { Logo } from "@/components/common/logo";
 import { verifyOTP } from "@/actions/auth/verify-otp";
 import { useRouter } from "next/navigation";
 import { useOtpStore } from "@/stores/otpStore";
@@ -87,13 +86,11 @@ export function FormVerifyEmail() {
   };
 
   return (
-    <div className="p-6 rounded-lg min-w-[480px] max-w-[600px] bg-background space-y-4 shadow border">
-      <div className="w-fit">
-        <Logo />
-      </div>
-
-      <TypographyH3>Xác thực OTP</TypographyH3>
-
+    <AuthCard
+      title="Xác thực email"
+      echo="Check your email"
+      description="Nhập mã OTP vừa được gửi tới email của bạn."
+    >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4 w-full">
@@ -126,11 +123,18 @@ export function FormVerifyEmail() {
           </div>
           <FormError message={error} />
           <FormSuccess message={success} />
-          <Button loading={isSpending} disabled={isSpending} type="submit" className="w-full">
+          <Button
+            loading={isSpending}
+            disabled={isSpending}
+            type="submit"
+            size="lg"
+            className="h-12 w-full uppercase"
+            variant="secondary"
+          >
             Xác thực
           </Button>
         </form>
       </Form>
-    </div>
+    </AuthCard>
   );
 }

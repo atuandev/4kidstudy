@@ -4,36 +4,28 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
+// Badges are not pressable, so they never wear a ledge: a tinted pill with deep text.
 const badgeVariants = cva(
-  "inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
+  "inline-flex items-center justify-center rounded-full border-2 border-transparent px-2.5 py-0.5 text-xs font-black w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:ring-sky/50 focus-visible:ring-4 transition-[color,box-shadow] overflow-hidden",
   {
     variants: {
       variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
-        destructive:
-          "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
-        outline:
-          "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
-        warning:
-          "border-transparent bg-yellow-500 text-white [a&]:hover:bg-yellow-500/90",
-        danger:
-          "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90",
-        purple:
-          "border-transparent bg-purple-500 text-white [a&]:hover:bg-purple-500/90",
-        sky: "border-transparent bg-sky-500 text-white [a&]:hover:bg-sky-500/90",
-        yellow:
-          "border-transparent bg-yellow-500 text-white [a&]:hover:bg-yellow-500/90",
-        orange:
-          "border-transparent bg-orange-500 text-white [a&]:hover:bg-orange-500/90",
+        default: "bg-leaf-wash text-forest",
+        secondary: "bg-wash text-ink-body",
+        destructive: "bg-cherry-wash text-cherry-deep",
+        outline: "border-edge bg-white text-ink-body",
+        warning: "bg-sun-wash text-sun-ink",
+        danger: "bg-cherry-wash text-cherry-deep",
+        purple: "bg-[#F3E8FF] text-[#7E22CE]",
+        sky: "bg-sky-wash text-sky-ink",
+        yellow: "bg-sun-wash text-sun-ink",
+        orange: "bg-[#FFEDD5] text-[#C2410C]",
       },
     },
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
 function Badge({

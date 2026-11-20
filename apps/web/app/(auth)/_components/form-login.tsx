@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthCard } from "./auth-card";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,8 +22,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { TypographyH3 } from "@/components/typography";
-import Image from "next/image";
 
 interface FormLoginProps {
   redirect: string;
@@ -64,14 +63,21 @@ export function FormLogin({ redirect }: FormLoginProps) {
   };
 
   return (
-    <div className="p-6 rounded-lg min-w-[480px] max-w-[600px] bg-background space-y-4 shadow border">
-      <div className="w-fit flex items-center gap-2">
-        <Image src="/mascot.svg" alt="Logo" width={40} height={40} />
-        <span className="text-2xl font-bold">4KisStudy</span>
-      </div>
-
-      <TypographyH3>Đăng nhập</TypographyH3>
-
+    <AuthCard
+      title="Đăng nhập"
+      echo="Welcome back!"
+      footer={
+        <>
+          Chưa có tài khoản?{" "}
+          <Link
+            href="/register"
+            className="font-black text-sky-ink underline-offset-4 hover:underline"
+          >
+            Đăng ký ngay
+          </Link>
+        </>
+      }
+    >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4 w-full">
@@ -101,25 +107,28 @@ export function FormLogin({ redirect }: FormLoginProps) {
                 </FormItem>
               )}
             />
-            <Button
-              size="sm"
-              variant="link"
-              asChild
-              className="px-0 font-normal justify-end w-full text-gray-700"
-            >
-              <Link href="/forget-password">Quên mật khẩu?</Link>
-            </Button>
+            <div className="flex justify-end">
+              <Link
+                href="/forget-password"
+                className="rounded-lg px-1 text-sm font-extrabold text-sky-ink underline-offset-4 outline-none hover:underline focus-visible:ring-4 focus-visible:ring-sky/50"
+              >
+                Quên mật khẩu?
+              </Link>
+            </div>
           </div>
           <FormError message={error} />
           <FormSuccess message={success} />
-          <Button loading={isPending} type="submit" className="w-full" variant="secondary">
+          <Button
+            loading={isPending}
+            type="submit"
+            size="lg"
+            className="h-12 w-full uppercase"
+            variant="secondary"
+          >
             Đăng nhập
-          </Button>
-          <Button asChild size="sm" variant="link" className="font-normal w-full text-gray-700">
-            <Link href="/register">Chưa có tài khoản? Đăng ký ngay</Link>
           </Button>
         </form>
       </Form>
-    </div>
+    </AuthCard>
   );
 }

@@ -2,14 +2,13 @@
 
 import Image from "next/image";
 import { SentenceImage } from "@/types";
-import { Card, CardContent } from "@/components/ui/card";
-import { Volume2, Lightbulb, CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Check, Lightbulb, Volume2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AudioRecord } from "./audio-record";
 import { AudioControl } from "@/components/audio-control";
+import { RoundButton } from "@/components/learn/round-button";
 import { ReviewContentFormData } from "@/schemas/learning-progress";
-import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface SentenceCardProps {
   sentenceImage: SentenceImage;
@@ -55,116 +54,116 @@ export function SentenceCard({
     }
   };
 
+  const activeSentences = sentenceImage.sentences
+    .filter((sentence) => sentence.isActive)
+    .sort((a, b) => a.order - b.order);
+
   return (
-    <Card className="w-full overflow-hidden mx-auto">
-      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-4">
-          {/* Audio Player */}
-          {sentenceImage.audioUrl && (
-            <AudioControl audioUrl={sentenceImage.audioUrl} className="w-full px-4" />
-          )}
-          {/* Image Section */}
-          <div className="relative aspect-video w-full">
-            <Image
-              src={sentenceImage.imageUrl}
-              alt="Sentence illustration"
-              fill
-              className="object-contain"
-              priority
-            />
-          </div>
+    <section className="grid grid-cols-1 gap-5 rounded-[28px] bg-white p-4 shadow-sheet-lime sm:p-6 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] md:gap-7">
+      <div className="flex flex-col gap-4">
+        <div className="-rotate-1 overflow-hidden rounded-[22px] border-[5px] border-white bg-wash shadow-sticker">
+          {/* Natural aspect: these pictures range from square panels to wide comic strips. */}
+          <Image
+            src={sentenceImage.imageUrl}
+            alt="Hình minh hoạ cho các câu"
+            width={1200}
+            height={800}
+            sizes="(min-width: 768px) 420px, 100vw"
+            className="block h-auto max-h-[28rem] w-full object-contain"
+            priority
+          />
         </div>
-
-        <div className="space-y-3">
-          {sentenceImage.sentences
-            .filter((sentence) => sentence.isActive)
-            .sort((a, b) => a.order - b.order)
-            .map((sentence) => {
-              // Check if sentence is mastered (isMastered = true from backend)
-              const isMastered = masteredSentenceIds.has(sentence.id);
-
-              return (
-                <div
-                  key={sentence.id}
-                  className="group rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-blue-300 hover:shadow-md"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 space-y-2">
-                      {/* English sentence with mastered indicator */}
-                      <div className="flex items-center gap-2">
-                        <p className="text-xl sm:text-2xl font-bold leading-relaxed text-gray-900">
-                          {sentence.text}
-                        </p>
-                        {isMastered && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <CheckCircle2 className="h-6 w-6 text-green-500 shrink-0" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Đã hoàn thành</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                      </div>
-
-                      {/* Vietnamese meaning */}
-                      {sentence.meaningVi && (
-                        <p className="text-lg sm:text-xl text-gray-600">{sentence.meaningVi}</p>
-                      )}
-                    </div>
-
-                    {/* Audio button */}
-                    {sentence.audioUrl && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-10 w-10 shrink-0 bg-blue-50 hover:bg-blue-100 rounded-full"
-                        onClick={() => handlePlayAudio(sentence.audioUrl!)}
-                      >
-                        <Volume2 className="h-5 w-5 text-blue-600" />
-                      </Button>
-                    )}
-
-                    <AudioRecord
-                      onStopPropagation={(e) => e.stopPropagation()}
-                      resetTrigger={sentence.id}
-                      targetText={sentence.text}
-                      onAssessmentComplete={handleAssessmentComplete(sentence.id)}
-                    />
-
-                    {/* Hint button */}
-                    {sentence.hintVi && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-10 w-10 shrink-0 bg-yellow-50 hover:bg-yellow-100 rounded-full"
-                            >
-                              <Lightbulb className="h-5 w-5 text-yellow-600" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom" className="max-w-xs">
-                            <p className="text-lg mt-1">{sentence.hintVi}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-        </div>
-
-        {sentenceImage.sentences.filter((s) => s.isActive).length === 0 && (
-          <div className="py-8 text-center text-gray-500">
-            <p>Không có câu học</p>
+        {sentenceImage.audioUrl && (
+          <div className="rounded-2xl bg-wash p-3">
+            <p className="mb-2 px-1 text-sm font-black text-ink">Nghe cả đoạn</p>
+            <AudioControl audioUrl={sentenceImage.audioUrl} className="h-10 w-full" />
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+
+      {activeSentences.length === 0 ? (
+        <p className="self-center py-8 text-center text-base font-bold text-ink-body">
+          Hình này chưa có câu học.
+        </p>
+      ) : (
+        <ol className="flex flex-col gap-3">
+          {activeSentences.map((sentence, position) => {
+            // Check if sentence is mastered (isMastered = true from backend)
+            const isMastered = masteredSentenceIds.has(sentence.id);
+
+            return (
+              <li
+                key={sentence.id}
+                className={cn(
+                  "rounded-[22px] border-2 bg-white p-4 transition-colors",
+                  isMastered ? "border-leaf" : "border-edge",
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "mt-1 flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-black",
+                      isMastered ? "bg-leaf-deep text-white" : "bg-sky-wash text-sky-ink",
+                    )}
+                  >
+                    {isMastered ? <Check className="size-4" strokeWidth={3} /> : position + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xl font-black leading-snug text-ink sm:text-2xl">
+                      {sentence.text}
+                    </p>
+                    {sentence.meaningVi && (
+                      <p className="mt-1 text-base font-semibold text-ink-body sm:text-lg">
+                        {sentence.meaningVi}
+                      </p>
+                    )}
+                    {isMastered ? (
+                      <p className="mt-1 text-sm font-black text-forest">Đã đọc đúng</p>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2.5 pl-11">
+                  {sentence.audioUrl && (
+                    <RoundButton
+                      aria-label="Nghe câu này"
+                      onClick={() => handlePlayAudio(sentence.audioUrl!)}
+                    >
+                      <Volume2 aria-hidden="true" />
+                    </RoundButton>
+                  )}
+
+                  {sentence.hintVi && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label="Xem gợi ý"
+                          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-sun-wash text-sun-ink shadow-[0_4px_0_#F5D77A] outline-none transition-[translate,box-shadow] duration-150 ease-peel active:translate-y-1 active:shadow-none focus-visible:ring-4 focus-visible:ring-sky/50"
+                        >
+                          <Lightbulb className="size-5" aria-hidden="true" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent side="bottom" className="max-w-xs">
+                        <p className="text-sm font-black text-sun-ink">Gợi ý</p>
+                        <p className="mt-1 text-base font-semibold text-ink">{sentence.hintVi}</p>
+                      </PopoverContent>
+                    </Popover>
+                  )}
+
+                  <AudioRecord
+                    onStopPropagation={(e) => e.stopPropagation()}
+                    resetTrigger={sentence.id}
+                    targetText={sentence.text}
+                    onAssessmentComplete={handleAssessmentComplete(sentence.id)}
+                  />
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </section>
   );
 }

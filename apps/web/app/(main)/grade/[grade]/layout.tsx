@@ -11,7 +11,7 @@ interface GradeLayoutProps {
 }
 
 const GradeSelectorFallback = () => (
-  <div className="mx-6 mb-4 h-10 animate-pulse rounded-md bg-muted" />
+  <div className="mb-6 h-11 animate-pulse rounded-chip bg-white/70 sm:mb-8" />
 );
 
 /**

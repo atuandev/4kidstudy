@@ -8,8 +8,11 @@ export function FormSuccess({ message }: FormSuccessProps) {
   if (!message) return null;
 
   return (
-    <div className="flex items-center space-x-3 text-emerald-500 text-sm bg-emerald-500/15 p-3 rounded-md">
-      <CircleCheck className="size-5" />
+    <div
+      role="status"
+      className="flex items-center gap-3 rounded-2xl bg-leaf-wash px-4 py-3 text-sm font-bold text-forest"
+    >
+      <CircleCheck className="size-5 shrink-0" aria-hidden="true" />
       <span>{message}</span>
     </div>
   );

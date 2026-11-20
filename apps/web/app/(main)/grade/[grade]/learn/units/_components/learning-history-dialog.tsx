@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,8 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
-import { History, BookOpen, MessageSquare, Target, TrendingUp } from "lucide-react";
+import { History, BookOpen, MessageSquare, Target } from "lucide-react";
 import { GradeValue } from "@/types/grade";
 import { FlashcardDetailDialog } from "./flashcard-detail-dialog";
 import { SentenceDetailDialog } from "./sentence-detail-dialog";
@@ -84,116 +83,127 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary" onClick={handleOpen}>
-          <History className="h-4 w-4 mr-2" />
+        <Button variant="default" size="lg" onClick={handleOpen}>
+          <History className="size-5 text-sky-deep" />
           Tiến trình học
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Lịch sử học - {getGradeName(grade)}</DialogTitle>
-          <DialogDescription>Thống kê tổng quan về quá trình học tập của bạn</DialogDescription>
+          <DialogTitle className="text-2xl">Tiến trình học · {getGradeName(grade)}</DialogTitle>
+          <DialogDescription>
+            Những thẻ từ, thẻ câu và chủ đề bé đã học ở lớp này.
+          </DialogDescription>
         </DialogHeader>
 
         {loading ? (
-          <div className="py-8 text-center">
-            <p className="text-muted-foreground">Đang tải dữ liệu...</p>
+          <div className="space-y-3 py-2" aria-busy="true">
+            <div className="h-20 animate-pulse rounded-2xl bg-wash" />
+            <div className="h-16 animate-pulse rounded-2xl bg-wash" />
+            <div className="h-16 animate-pulse rounded-2xl bg-wash" />
           </div>
         ) : !stats ? (
-          <div className="py-8 text-center">
-            <p className="text-muted-foreground">Không có dữ liệu thống kê</p>
-          </div>
+          <p className="py-8 text-center text-base text-ink-body">
+            Chưa có số liệu. Học vài thẻ từ hoặc thẻ câu rồi quay lại xem nhé.
+          </p>
         ) : (
-          <div className="space-y-4">
-            {/* Overall Stats */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <TrendingUp className="h-5 w-5 text-primary" />
-                  </div>
-                  <h3 className="text-lg font-semibold">Tổng quan</h3>
-                </div>
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <p className="text-3xl font-bold text-blue-600">{stats.totalReviewed}</p>
-                  <p className="text-sm text-muted-foreground mt-1">Tổng số đã học</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Flashcard Stats */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-orange-100 rounded-lg">
-                    <Target className="h-5 w-5 text-orange-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold">Flashcard</h3>
-                </div>
-                <div className="text-center p-4 bg-orange-50 rounded-lg">
-                  <p className="text-3xl font-bold text-orange-600">
-                    {stats.flashcardStats.reviewed} / {stats.flashcardStats.total}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Đã học ({stats.flashcardStats.percentage.toFixed(1)}%)
-                  </p>
-                </div>
-                <div className="mt-3 flex justify-center">
+          <div>
+            <div className="flex items-baseline gap-3 rounded-2xl bg-sky-wash px-5 py-4">
+              <span className="text-4xl font-black tabular-nums text-sky-ink">
+                {stats.totalReviewed}
+              </span>
+              <span className="text-base font-extrabold text-ink">thẻ đã học</span>
+            </div>
+            <ul className="mt-2 divide-y-2 divide-wash">
+              <HistoryRow
+                icon={<Target />}
+                color="#1CB0F6"
+                shade="#0284C7"
+                name="Thẻ từ vựng"
+                en="Words"
+                value={`${stats.flashcardStats.reviewed} / ${stats.flashcardStats.total}`}
+                percentage={stats.flashcardStats.percentage}
+                detail={
                   <FlashcardDetailDialog
                     topItems={stats.flashcardStats.allItems}
                     topics={stats.topics}
                   />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Sentence Stats */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <MessageSquare className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold">Câu học</h3>
-                </div>
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <p className="text-3xl font-bold text-blue-600">
-                    {stats.sentenceStats.reviewed} / {stats.sentenceStats.total}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Đã học ({stats.sentenceStats.percentage.toFixed(1)}%)
-                  </p>
-                </div>
-                <div className="mt-3 flex justify-center">
+                }
+              />
+              <HistoryRow
+                icon={<MessageSquare />}
+                color="#22C55E"
+                shade="#15803D"
+                name="Thẻ câu"
+                en="Sentences"
+                value={`${stats.sentenceStats.reviewed} / ${stats.sentenceStats.total}`}
+                percentage={stats.sentenceStats.percentage}
+                detail={
                   <SentenceDetailDialog
                     topItems={stats.sentenceStats.allItems}
                     topics={stats.topics}
                   />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Topic Count */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-indigo-100 rounded-lg">
-                    <BookOpen className="h-5 w-5 text-indigo-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold">Chủ đề</h3>
-                </div>
-                <div className="text-center p-4 bg-indigo-50 rounded-lg">
-                  <p className="text-3xl font-bold text-indigo-600">{stats.topicCount}</p>
-                  <p className="text-sm text-muted-foreground mt-1">Chủ đề đã hoàn thành</p>
-                </div>
-                <div className="mt-3 flex justify-center">
-                  <TopicDetailDialog topTopics={stats.topTopics} />
-                </div>
-              </CardContent>
-            </Card>
+                }
+              />
+              <HistoryRow
+                icon={<BookOpen />}
+                color="#A855F7"
+                shade="#7E22CE"
+                name="Chủ đề đã xong"
+                en="Topics done"
+                value={String(stats.topicCount)}
+                detail={<TopicDetailDialog topTopics={stats.topTopics} />}
+              />
+            </ul>
           </div>
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+interface HistoryRowProps {
+  readonly icon: ReactNode;
+  readonly color: string;
+  readonly shade: string;
+  readonly name: string;
+  readonly en: string;
+  readonly value: string;
+  readonly percentage?: number;
+  readonly detail: ReactNode;
+}
+
+/** One kind of content: an exercise-style tile, the count, an optional bar, and its detail list. */
+function HistoryRow({ icon, color, shade, name, en, value, percentage, detail }: HistoryRowProps) {
+  return (
+    <li className="flex items-center gap-4 py-4">
+      <span
+        className="flex size-12 shrink-0 items-center justify-center rounded-tile border-4 border-white text-white [&_svg]:size-5"
+        style={{ backgroundColor: color, boxShadow: `0 0 0 2px #E2E8F0, 0 8px 14px -6px ${shade}` }}
+        aria-hidden="true"
+      >
+        {icon}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-base font-black text-ink">
+          {name} <span className="text-sm font-bold text-ink-meta">{en}</span>
+        </p>
+        <p className="text-lg font-black tabular-nums text-ink">
+          {value}
+          {percentage !== undefined ? (
+            <span className="ml-2 text-sm font-bold text-ink-meta">{percentage.toFixed(0)}%</span>
+          ) : null}
+        </p>
+        {percentage !== undefined ? (
+          <div className="mt-1.5 h-2.5 rounded-full bg-wash" aria-hidden="true">
+            <div
+              className="h-full rounded-full bg-leaf"
+              style={{ width: `${Math.min(100, percentage)}%` }}
+            />
+          </div>
+        ) : null}
+      </div>
+      <div className="shrink-0">{detail}</div>
+    </li>
   );
 }

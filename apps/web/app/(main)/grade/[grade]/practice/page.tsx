@@ -22,5 +22,5 @@ export default async function PracticePage({ params }: PracticePageProps) {
     getPracticeStatistics(),
     getTopicsWithProgress(selectedGrade.value),
   ]);
-  return <Units stats={stats} topics={topics} />;
+  return <Units stats={stats} topics={topics} gradeLabel={selectedGrade.label} />;
 }

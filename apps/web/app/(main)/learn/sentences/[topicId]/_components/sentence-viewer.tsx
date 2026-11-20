@@ -1,9 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SentenceImage } from "@/types";
-import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { StudyEmpty, StudyHeader, StudyNav } from "@/components/learn/study-shell";
 import { useState } from "react";
 import { SentenceCard } from "./sentence-card";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -77,17 +75,12 @@ export function SentenceViewer({
 
   if (sentenceImages.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-md mx-auto">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <BookOpen className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Không có câu học</h3>
-              <p className="text-muted-foreground">Chủ đề này chưa có câu học nào.</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <StudyEmpty
+        title="Chủ đề này chưa có thẻ câu"
+        echo="No sentence cards here yet."
+        body="Bé hãy chọn một chủ đề khác nhé."
+        backHref={`${buildGradeHref(topicGrade, "learn/units")}#topic-${topicId}`}
+      />
     );
   }
 
@@ -98,93 +91,36 @@ export function SentenceViewer({
   const allCompleted = currentSentences.every(
     (s) => masteredSentenceIds.has(s.id) || pronunciationPassedIds.has(s.id),
   );
-  const hasIncomplete = currentSentences.some(
-    (s) => !masteredSentenceIds.has(s.id) && !pronunciationPassedIds.has(s.id),
-  );
 
   return (
-    <div className="container mx-auto px-4 py-4">
-      {/* Header */}
-      <Card className="mb-8 bg-primary">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <Button
-              size="sm"
-              variant="default"
-              onClick={() => {
-                router.push(`${buildGradeHref(topicGrade, "learn/units")}#topic-${topicId}`);
-              }}
-            >
-              <ArrowLeft className="size-8" />
-            </Button>
+    <div className="mx-auto flex max-w-5xl flex-col gap-6 pb-10">
+      <StudyHeader
+        title={topicTitle}
+        kind={{ vi: "Thẻ câu", en: "Sentence cards" }}
+        backHref={`${buildGradeHref(topicGrade, "learn/units")}#topic-${topicId}`}
+        index={currentIndex}
+        total={sentenceImages.length}
+        onReset={handleReset}
+      />
 
-            <CardTitle className="text-2xl font-bold text-primary-foreground">
-              {topicTitle}
-            </CardTitle>
+      <SentenceCard
+        sentenceImage={currentSentenceImage}
+        onRecordReview={onRecordReview}
+        onPronunciationAssessed={handlePronunciationAssessed}
+        masteredSentenceIds={masteredSentenceIds}
+      />
 
-            <Button
-              variant="default"
-              size="sm"
-              onClick={handleReset}
-              className="flex items-center gap-2"
-            >
-              <RotateCcw className="h-4 w-4" />
-              Học lại
-            </Button>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Sentence Card */}
-      <div className="mb-8">
-        <SentenceCard
-          sentenceImage={currentSentenceImage}
-          onRecordReview={onRecordReview}
-          onPronunciationAssessed={handlePronunciationAssessed}
-          masteredSentenceIds={masteredSentenceIds}
+      <div className="mx-auto w-full max-w-2xl">
+        <StudyNav
+          isFirst={currentIndex === 0}
+          isLast={currentIndex === sentenceImages.length - 1}
+          isDone={allCompleted}
+          doneLabel="Bé đã đọc đúng tất cả câu trong hình này"
+          todoLabel="Đọc to từng câu và chấm điểm. Đạt trên 50% mỗi câu là mở hình tiếp theo."
+          onPrevious={handlePrevious}
+          onNext={handleNext}
         />
       </div>
-
-      {/* Navigation Controls */}
-      <Card>
-        <CardContent>
-          {/* Warning message if not all completed */}
-          {hasIncomplete && (
-            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-sm text-yellow-800 text-center">
-                ⚠️ Bấm &quot;Kiểm tra&quot; cho tất cả các câu để tiếp tục (cần ≥ 50% để tiếp tục)
-              </p>
-            </div>
-          )}
-          {allCompleted && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-sm text-green-800 text-center">
-                ✓ Tất cả câu trong hình này đã hoàn thành
-              </p>
-            </div>
-          )}
-
-          <div className="flex items-center justify-center gap-4">
-            <Button variant="secondary" onClick={handlePrevious} disabled={currentIndex === 0}>
-              <ChevronLeft className="h-4 w-4" />
-              Quay lại
-            </Button>
-
-            <p className="text-xl font-semibold">
-              {currentIndex + 1} / {sentenceImages.length}
-            </p>
-
-            <Button
-              variant="secondary"
-              onClick={handleNext}
-              disabled={currentIndex === sentenceImages.length - 1 || !allCompleted}
-            >
-              Tiếp tục
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

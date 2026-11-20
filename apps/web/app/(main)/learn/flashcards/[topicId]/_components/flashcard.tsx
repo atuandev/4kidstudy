@@ -2,9 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Volume2, RotateCcw } from "lucide-react";
+import { RoundButton } from "@/components/learn/round-button";
 import { cn } from "@/lib/utils";
 import { Flashcard } from "@/types";
 import { AudioRecord } from "./audio-record";
@@ -191,107 +190,116 @@ export function FlashcardComponent({
     [flashcard.id, onRecordReview, onPronunciationAssessed],
   );
 
+  const face =
+    "backface-hidden absolute inset-0 flex flex-col items-center rounded-sheet border-[6px] border-white bg-white px-5 pb-4 pt-6 text-center shadow-sheet-lime sm:px-8";
+
+  const flipHint = (
+    <button
+      type="button"
+      className="mt-auto inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-extrabold text-ink-body outline-none transition-colors hover:bg-wash focus-visible:ring-4 focus-visible:ring-sky/50"
+    >
+      <RotateCcw className="size-4" aria-hidden="true" />
+      {isFlipped ? "Lật lại mặt trước" : "Chạm vào thẻ để xem nghĩa"}
+    </button>
+  );
+
   return (
     <>
       <audio ref={audioRef} preload="none" />
-      <div className={cn("relative w-full max-w-md mx-auto perspective-1000", className)}>
-        <Card
+      <div className={cn("perspective-1000 relative mx-auto w-full max-w-md", className)}>
+        <div
           className={cn(
-            "relative w-full h-128 cursor-pointer transition-transform duration-500 preserve-3d",
+            "preserve-3d relative h-[30rem] w-full cursor-pointer transition-transform duration-500 ease-peel motion-reduce:transition-none sm:h-[32rem]",
             isFlipped && "rotate-y-180",
           )}
           onClick={handleFlip}
         >
-          {/* Front of the card */}
-          <CardContent
-            className={cn(
-              "absolute inset-0 w-full h-full backface-hidden flex flex-col items-center justify-center p-6",
-              "bg-gradient-to-br from-blue-50 to-indigo-100",
+          {/* Front: picture, word, listen and record */}
+          <div className={face} inert={isFlipped}>
+            {flashcard.imageUrl && (
+              <div className="relative aspect-square w-[min(15rem,62%)] -rotate-1 overflow-hidden rounded-[22px] border-[5px] border-white bg-wash shadow-sticker">
+                <Image
+                  src={flashcard.imageUrl}
+                  alt={flashcard.term}
+                  fill
+                  sizes="240px"
+                  loading="eager"
+                  className="object-cover"
+                />
+              </div>
             )}
-          >
-            <div className="flex flex-col items-center space-y-4 text-center">
-              {flashcard.imageUrl && (
-                <div className="relative w-64 h-64 rounded-lg overflow-hidden shadow-md">
-                  <Image
-                    src={flashcard.imageUrl}
-                    alt={flashcard.term}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
+
+            <h2 className="mt-5 text-4xl font-black leading-tight text-ink sm:text-5xl">
+              {flashcard.term}
+            </h2>
+            {flashcard.phonetic ? (
+              <p className="mt-1 text-xl font-bold text-ink-body">{flashcard.phonetic}</p>
+            ) : null}
+
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+              <RoundButton
+                size="lg"
+                aria-label={`Nghe từ ${flashcard.term}`}
+                className={cn(
+                  autoplayFailed &&
+                    !hasUserInteracted &&
+                    "ring-4 ring-sky/50 motion-safe:animate-pulse",
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  playAudio(true);
+                }}
+                disabled={isLoading || !flashcard.audioUrl}
+              >
+                <Volume2 aria-hidden="true" />
+              </RoundButton>
+
+              <AudioRecord
+                onStopPropagation={(e) => e.stopPropagation()}
+                resetTrigger={flashcard.id}
+                targetText={flashcard.term}
+                onAssessmentComplete={handleAssessmentComplete}
+              />
+            </div>
+
+            {flipHint}
+          </div>
+
+          {/* Back: the Vietnamese meaning and examples */}
+          <div className={cn(face, "rotate-y-180 justify-center")} inert={!isFlipped}>
+            {flashcard.imageUrl ? (
+              <div className="relative mt-auto size-24 rotate-2 overflow-hidden rounded-[18px] border-4 border-white bg-wash shadow-sticker">
+                <Image src={flashcard.imageUrl} alt="" fill sizes="96px" className="object-cover" />
+              </div>
+            ) : null}
+            <p
+              className={cn(
+                "text-xl font-black text-ink-body",
+                flashcard.imageUrl ? "mt-4" : "mt-auto",
               )}
+            >
+              {flashcard.term}
+            </p>
+            <h3 className="mt-1 text-4xl font-black leading-tight text-forest sm:text-5xl">
+              {flashcard.meaningVi}
+            </h3>
 
-              <div className="flex flex-col items-center gap-2">
-                <h2 className="text-5xl font-bold text-gray-800">{flashcard.term}</h2>
-
-                <p className="text-2xl text-gray-600 font-medium">{flashcard.phonetic}</p>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className={cn(
-                      "p-2 rounded-full hover:bg-blue-300 bg-blue-200",
-                      autoplayFailed && !hasUserInteracted && "animate-pulse ring-2 ring-blue-400",
-                    )}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      playAudio(true);
-                    }}
-                    disabled={isLoading || !flashcard.audioUrl}
-                  >
-                    <Volume2
-                      className={cn("h-6 w-6 text-blue-600", isLoading && "animate-pulse")}
-                    />
-                  </Button>
-
-                  <AudioRecord
-                    onStopPropagation={(e) => e.stopPropagation()}
-                    resetTrigger={flashcard.id}
-                    targetText={flashcard.term}
-                    onAssessmentComplete={handleAssessmentComplete}
-                  />
-                </div>
+            {flashcard.exampleEn || flashcard.exampleVi ? (
+              <div className="mt-6 w-full rounded-[22px] bg-wash px-5 py-4 text-left">
+                {flashcard.exampleEn ? (
+                  <p className="text-lg font-extrabold text-ink">{flashcard.exampleEn}</p>
+                ) : null}
+                {flashcard.exampleVi ? (
+                  <p className="mt-1 text-base font-semibold text-ink-body">
+                    {flashcard.exampleVi}
+                  </p>
+                ) : null}
               </div>
-            </div>
+            ) : null}
 
-            <div className="absolute bottom-4 text-gray-500 flex items-center gap-1">
-              <RotateCcw className="w-4 h-4" />
-              Nhấn để lật
-            </div>
-          </CardContent>
-
-          {/* Back of the card */}
-          <CardContent
-            className={cn(
-              "absolute inset-0 w-full h-full backface-hidden rotate-y-180 flex flex-col items-center justify-center p-6",
-              "bg-gradient-to-br from-green-50 to-emerald-100",
-            )}
-          >
-            <div className="flex flex-col items-center space-y-6 text-center">
-              <h3 className="text-4xl font-bold text-gray-800">{flashcard.meaningVi}</h3>
-
-              <div className="space-y-2">
-                {flashcard.exampleEn && (
-                  <div className="p-2 bg-white rounded-lg shadow-sm">
-                    <p className="text-gray-600 italic">&quot;{flashcard.exampleEn}&quot;</p>
-                  </div>
-                )}
-
-                {flashcard.exampleVi && (
-                  <div className="p-2 bg-white rounded-lg shadow-sm">
-                    <p className="text-gray-600 italic">&quot;{flashcard.exampleVi}&quot;</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="absolute bottom-4 text-gray-500 flex items-center gap-1">
-              <RotateCcw className="w-4 h-4" />
-              Nhấn để lật
-            </div>
-          </CardContent>
-        </Card>
+            {flipHint}
+          </div>
+        </div>
       </div>
     </>
   );

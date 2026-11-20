@@ -1,13 +1,8 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Mic, Square, AudioLines, RotateCcw, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { assessPronunciation, PronunciationAssessmentResponse } from "@/actions/pronunciation";
-import { Progress } from "@/components/ui/progress";
-
-type RecordingState = "idle" | "recording" | "recorded" | "analyzing" | "completed";
+import { assessPronunciation } from "@/actions/pronunciation";
+import { RecorderControls, type RecordingState } from "@/components/learn/recorder-controls";
 
 interface AudioRecordProps {
   className?: string;
@@ -65,11 +60,13 @@ export function AudioRecord({
       };
 
       recorder.start();
+      setErrorMessage(null);
       setMediaRecorder(recorder);
       setRecordingState("recording");
       // console.log("Recording started, state set to 'recording'");
     } catch (error) {
       console.error("Error accessing microphone:", error);
+      setErrorMessage("Bé chưa bật được micro. Hãy cho phép trình duyệt dùng micro rồi thử lại.");
     }
   }, []);
 
@@ -209,120 +206,21 @@ export function AudioRecord({
     action();
   };
 
-  console.log(
-    "AudioRecord render, recordingState:",
-    recordingState,
-    "recordedAudioUrl:",
-    !!recordedAudioUrl,
-  );
-
   return (
-    <div className={cn("flex items-center justify-center gap-2 min-h-[44px]", className)}>
-      {/* Recording Controls */}
-      {recordingState === "idle" && (
-        <Button
-          size="sm"
-          variant="ghost"
-          className="p-2 rounded-full hover:bg-gray-200 bg-gray-100"
-          onClick={(e) => handleClick(e, startRecording)}
-        >
-          <Mic className="w-6 h-6 text-gray-600" />
-        </Button>
-      )}
-
-      {recordingState === "recording" && (
-        <Button
-          size="sm"
-          variant="ghost"
-          className="p-2 rounded-full hover:bg-red-400 bg-red-300 animate-pulse"
-          onClick={(e) => handleClick(e, stopRecording)}
-        >
-          <Square className="w-6 h-6 text-red-700" />
-        </Button>
-      )}
-
-      {recordingState === "recorded" && (
-        <>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="p-2 rounded-full hover:bg-green-300 bg-green-200"
-            onClick={(e) => handleClick(e, playRecordedAudio)}
-          >
-            <AudioLines className="w-6 h-6 text-green-700" />
-          </Button>
-          <Button
-            size="sm"
-            variant="primary"
-            className="text-xs px-3 py-1 h-9"
-            onClick={(e) => handleClick(e, analyzeRecording)}
-            disabled={!targetText}
-          >
-            Phân tích
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="p-2 rounded-full hover:bg-gray-200 bg-gray-100"
-            onClick={(e) => handleClick(e, resetRecording)}
-          >
-            <RotateCcw className="w-4 h-4 text-gray-600" />
-          </Button>
-          {errorMessage && (
-            <p className="text-xs text-red-600 font-medium max-w-[150px]">{errorMessage}</p>
-          )}
-        </>
-      )}
-
-      {recordingState === "analyzing" && (
-        <div
-          className="flex items-center gap-3 min-w-[250px]"
-          onClick={(e) => onStopPropagation?.(e)}
-        >
-          <Loader2 className="w-5 h-5 animate-spin text-blue-600 flex-shrink-0" />
-          <div className="flex-1">
-            <Progress value={analysisProgress} className="h-2" />
-          </div>
-          <p className="text-xs text-blue-600 font-medium whitespace-nowrap">Đang phân tích...</p>
-        </div>
-      )}
-
-      {recordingState === "completed" && assessmentScore !== null && (
-        <>
-          <div
-            className={cn(
-              "text-xl font-bold min-w-[60px] text-center",
-              assessmentPassed ? "text-green-600" : "text-red-600",
-            )}
-          >
-            {assessmentScore}%
-          </div>
-          <p
-            className={cn(
-              "text-xs font-medium whitespace-nowrap",
-              assessmentPassed ? "text-green-600" : "text-red-600",
-            )}
-          >
-            {assessmentPassed ? "✓ Đạt" : "✗ Chưa đạt"}
-          </p>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="p-2 rounded-full hover:bg-green-300 bg-green-200"
-            onClick={(e) => handleClick(e, playRecordedAudio)}
-          >
-            <AudioLines className="w-5 h-5 text-green-700" />
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="p-2 rounded-full hover:bg-gray-200 bg-gray-100"
-            onClick={(e) => handleClick(e, resetRecording)}
-          >
-            <RotateCcw className="w-4 h-4 text-gray-600" />
-          </Button>
-        </>
-      )}
-    </div>
+    <RecorderControls
+      className={className}
+      state={recordingState}
+      score={assessmentScore}
+      passed={assessmentPassed}
+      progress={analysisProgress}
+      errorMessage={errorMessage}
+      canAnalyze={Boolean(targetText)}
+      onStart={(e) => handleClick(e, startRecording)}
+      onStop={(e) => handleClick(e, stopRecording)}
+      onPlayback={(e) => handleClick(e, playRecordedAudio)}
+      onAnalyze={(e) => handleClick(e, analyzeRecording)}
+      onReset={(e) => handleClick(e, resetRecording)}
+      onSurfaceClick={(e) => onStopPropagation?.(e)}
+    />
   );
 }
