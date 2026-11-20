@@ -6,7 +6,11 @@ interface OTPData {
   code: string;
   createdAt: Date;
   expiresAt: Date;
+  failedAttempts: number;
 }
+
+/** Wrong guesses allowed before the OTP is discarded. */
+const MAX_OTP_ATTEMPTS = 5;
 
 @Injectable()
 export class EmailService {
@@ -35,7 +39,12 @@ export class EmailService {
       const expiresAt = new Date(Date.now() + 180 * 1000); // 3 minutes
 
       // Store OTP in memory
-      this.otpStore.set(email, { code, createdAt, expiresAt });
+      this.otpStore.set(email, {
+        code,
+        createdAt,
+        expiresAt,
+        failedAttempts: 0,
+      });
 
       // Auto delete after 3 minutes
       setTimeout(() => {
@@ -132,6 +141,13 @@ export class EmailService {
 
     // Verify code
     if (otpData.code !== code) {
+      otpData.failedAttempts += 1;
+      if (otpData.failedAttempts >= MAX_OTP_ATTEMPTS) {
+        this.otpStore.delete(email);
+        throw new BadRequestException(
+          'Nhập sai mã OTP quá nhiều lần. Vui lòng yêu cầu mã mới.',
+        );
+      }
       throw new BadRequestException('Mã OTP không chính xác');
     }
 

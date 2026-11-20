@@ -1,6 +1,7 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { EmailService } from './email.service';
+import { PasswordResetTokenService } from '../auth/password-reset-token.service';
 import {
   SendOTPDto,
   VerifyOTPDto,
@@ -11,7 +12,10 @@ import {
 @ApiTags('Email')
 @Controller('email')
 export class EmailController {
-  constructor(private readonly emailService: EmailService) {}
+  constructor(
+    private readonly emailService: EmailService,
+    private readonly passwordResetTokens: PasswordResetTokenService,
+  ) {}
 
   @Post('send-otp')
   @HttpCode(HttpStatus.OK)
@@ -60,6 +64,8 @@ export class EmailController {
     return {
       success: true,
       message: 'Xác thực OTP thành công',
+      // Proof of the verified email, required by POST /users/reset-password.
+      resetToken: await this.passwordResetTokens.issue(dto.email),
     };
   }
 }

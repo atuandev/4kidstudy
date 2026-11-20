@@ -8,7 +8,6 @@ import {
   Body,
   Query,
   Res,
-  // UseGuards,
   ParseIntPipe,
   UseInterceptors,
   UploadedFiles,
@@ -17,7 +16,6 @@ import {
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import {
-  // ApiBearerAuth,
   ApiTags,
   ApiOperation,
   ApiResponse,
@@ -40,17 +38,15 @@ import {
   ImportCsvDto,
   ImportCsvResponseDto,
 } from './dto/index';
-// import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ExerciseType } from '@prisma/client';
+import { AdminOnly } from '../auth/decorators/auth.decorator';
 
 @ApiTags('exercises')
 @Controller('exercises')
 export class ExerciseController {
-  constructor(private readonly exerciseService: ExerciseService) { }
+  constructor(private readonly exerciseService: ExerciseService) {}
 
   @Get()
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get all exercises, optionally filtered by lessonId or type',
   })
@@ -78,6 +74,7 @@ export class ExerciseController {
   }
 
   @Get('export')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Export exercises to Excel',
     description: 'Exports exercises to Excel file (limited to 20 for demo)',
@@ -107,7 +104,8 @@ export class ExerciseController {
     const buffer = await this.exerciseService.exportToExcel(lessonId);
 
     res.set({
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'Content-Disposition': 'attachment; filename="exercises-export.xlsx"',
       'Content-Length': buffer.length,
     });
@@ -116,8 +114,6 @@ export class ExerciseController {
   }
 
   @Get(':id')
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get an exercise by ID' })
   @ApiParam({ name: 'id', description: 'Exercise ID' })
   @ApiResponse({
@@ -134,8 +130,6 @@ export class ExerciseController {
   }
 
   @Get(':id/options')
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all options for an exercise by exercise ID' })
   @ApiParam({ name: 'id', description: 'Exercise ID' })
   @ApiResponse({
@@ -152,8 +146,7 @@ export class ExerciseController {
   }
 
   @Post()
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Create a new exercise' })
   @ApiResponse({
     status: 201,
@@ -169,8 +162,7 @@ export class ExerciseController {
   }
 
   @Post('bulk')
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Create multiple exercises at once' })
   @ApiResponse({
     status: 201,
@@ -190,8 +182,7 @@ export class ExerciseController {
   }
 
   @Put(':id')
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Update an exercise by ID' })
   @ApiParam({ name: 'id', description: 'Exercise ID' })
   @ApiResponse({
@@ -211,8 +202,7 @@ export class ExerciseController {
   }
 
   @Delete(':id')
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Delete an exercise by ID' })
   @ApiParam({ name: 'id', description: 'Exercise ID' })
   @ApiResponse({
@@ -228,8 +218,7 @@ export class ExerciseController {
   }
 
   @Post(':id/options')
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Add a new option to an exercise' })
   @ApiParam({ name: 'id', description: 'Exercise ID' })
   @ApiResponse({
@@ -248,8 +237,7 @@ export class ExerciseController {
   }
 
   @Put('options/:id')
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Update an option by ID' })
   @ApiParam({ name: 'id', description: 'Option ID' })
   @ApiResponse({
@@ -268,8 +256,7 @@ export class ExerciseController {
   }
 
   @Delete('options/:id')
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Delete an option by ID' })
   @ApiParam({ name: 'id', description: 'Option ID' })
   @ApiResponse({
@@ -285,8 +272,7 @@ export class ExerciseController {
   }
 
   @Put('lessons/:lessonId/reorder')
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Reorder exercises within a lesson' })
   @ApiParam({ name: 'lessonId', description: 'Lesson ID' })
   @ApiResponse({
@@ -308,8 +294,7 @@ export class ExerciseController {
   }
 
   @Put(':id/options/reorder')
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Reorder options within an exercise' })
   @ApiParam({ name: 'id', description: 'Exercise ID' })
   @ApiResponse({
@@ -328,8 +313,7 @@ export class ExerciseController {
   }
 
   @Post('import')
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({
     summary:
       'Import exercises and/or exercise options from CSV files for a lesson',
@@ -404,8 +388,7 @@ export class ExerciseController {
   }
 
   @Post('import-excel/:lessonId')
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({
     summary: 'Import exercises from Excel file with asset uploads',
   })

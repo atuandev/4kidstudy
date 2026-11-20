@@ -19,6 +19,7 @@ import {
 import { PronunciationService } from './pronunciation.service';
 import { AssessmentDto } from './dto/req/pronunciation';
 import { PronunciationAssessmentResponseDto } from './dto/res/pronunciation';
+import { Authenticated } from '../auth/decorators/auth.decorator';
 
 @ApiTags('Pronunciation')
 @Controller('pronunciation')
@@ -26,6 +27,7 @@ export class PronunciationController {
   constructor(private readonly pronunciationService: PronunciationService) {}
 
   @Post('assess')
+  @Authenticated()
   @ApiOperation({
     summary: 'Assess pronunciation from audio file',
     description:

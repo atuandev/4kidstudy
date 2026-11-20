@@ -8,12 +8,10 @@ import {
   Param,
   Query,
   ParseIntPipe,
-  UseGuards,
   HttpStatus,
   HttpCode,
 } from '@nestjs/common';
 import {
-  ApiBearerAuth,
   ApiOperation,
   ApiParam,
   ApiQuery,
@@ -29,7 +27,7 @@ import {
   UpdateLessonDto,
   LessonBulkCreateDto,
 } from './dto/index';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminOnly } from '../auth/decorators/auth.decorator';
 
 @ApiTags('lessons')
 @Controller('lessons')
@@ -67,8 +65,7 @@ export class LessonController {
   }
 
   @Post()
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Create a new lesson' })
   @ApiResponse({
     status: 201,
@@ -82,6 +79,7 @@ export class LessonController {
   }
 
   @Post('bulk')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Create multiple lessons',
     description:
@@ -107,8 +105,7 @@ export class LessonController {
   }
 
   @Put(':id')
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Update a lesson' })
   @ApiParam({ name: 'id', description: 'Lesson ID' })
   @ApiResponse({
@@ -127,8 +124,7 @@ export class LessonController {
   }
 
   @Delete(':id')
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Delete a lesson' })
   @ApiParam({ name: 'id', description: 'Lesson ID' })
   @ApiResponse({

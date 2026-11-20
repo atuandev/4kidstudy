@@ -19,4 +19,11 @@ export class ResetPasswordDto {
   @IsNotEmpty({ message: 'Mật khẩu mới là bắt buộc' })
   @MinLength(6, { message: 'Mật khẩu phải có ít nhất 6 ký tự' })
   newPassword: string;
+
+  @ApiProperty({
+    description: 'The resetToken returned by POST /email/verify-otp',
+  })
+  @IsString({ message: 'Phiên đặt lại mật khẩu không hợp lệ' })
+  @IsNotEmpty({ message: 'Phiên đặt lại mật khẩu là bắt buộc' })
+  resetToken: string;
 }
