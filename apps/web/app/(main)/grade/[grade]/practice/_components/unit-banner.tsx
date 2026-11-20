@@ -1,6 +1,6 @@
 import { Topic } from "@/types";
 import Image from "next/image";
-import { ChevronDown } from "lucide-react";
+import { CaretDownIcon } from "@/components/icons";
 
 import { cn } from "@/lib/utils";
 
@@ -51,7 +51,7 @@ export const UnitBanner = ({
         </span>
       </span>
       <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-wash text-ink-body transition-colors group-hover:bg-sky-wash group-hover:text-sky-ink">
-        <ChevronDown
+        <CaretDownIcon
           aria-hidden="true"
           className={cn(
             "size-5 transition-transform duration-200 ease-peel",

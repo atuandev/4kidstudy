@@ -1,7 +1,14 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Check, Headphones, ImageIcon, ListChecks, Mic, Puzzle } from "lucide-react";
+import {
+  CheckIcon,
+  HeadphonesIcon,
+  ImageIcon,
+  ListChecksIcon,
+  MicrophoneIcon,
+  PuzzlePieceIcon,
+} from "@/components/icons";
 
 import { Button } from "@/components/ui/button";
 import { GradePicker } from "./_components/home/grade-picker";
@@ -102,7 +109,7 @@ export default function Home() {
                 Đọc hoặc nghe một từ, rồi chọn hình đúng với từ đó.
               </ExerciseRow>
               <ExerciseRow
-                icon={<ListChecks />}
+                icon={<ListChecksIcon />}
                 color="#A855F7"
                 shade="#7E22CE"
                 name="Trắc nghiệm"
@@ -112,7 +119,7 @@ export default function Home() {
                 Chọn đáp án đúng cho câu hỏi về từ và câu.
               </ExerciseRow>
               <ExerciseRow
-                icon={<Puzzle />}
+                icon={<PuzzlePieceIcon />}
                 color="#FF9600"
                 shade="#C2410C"
                 name="Ghép cặp"
@@ -122,7 +129,7 @@ export default function Home() {
                 Nối từ tiếng Anh với hình hoặc nghĩa của nó.
               </ExerciseRow>
               <ExerciseRow
-                icon={<Headphones />}
+                icon={<HeadphonesIcon />}
                 color="#14B8A6"
                 shade="#0F766E"
                 name="Nghe và chọn"
@@ -132,7 +139,7 @@ export default function Home() {
                 Nghe giọng đọc, rồi chọn đáp án bé nghe được.
               </ExerciseRow>
               <ExerciseRow
-                icon={<Mic />}
+                icon={<MicrophoneIcon />}
                 color="#FF4B4B"
                 shade="#BE123C"
                 name="Luyện phát âm"
@@ -304,7 +311,7 @@ function ParentPoint({ children }: { readonly children: ReactNode }) {
         className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-sun text-ink"
         aria-hidden="true"
       >
-        <Check className="size-4" strokeWidth={3.5} />
+        <CheckIcon className="size-4" />
       </span>
       {children}
     </li>
@@ -382,7 +389,7 @@ function ScoreSticker() {
           className="ml-auto flex size-14 shrink-0 items-center justify-center rounded-full bg-cherry text-white shadow-[0_5px_0_#BE123C]"
           aria-hidden="true"
         >
-          <Mic className="size-7" />
+          <MicrophoneIcon className="size-7" />
         </span>
       </div>
       <dl className="mt-7 space-y-4">

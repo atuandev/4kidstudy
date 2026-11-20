@@ -1,6 +1,6 @@
 "use client";
 
-import { FireIcon, TrophyIcon } from "@phosphor-icons/react";
+import { FireIcon, TrophyIcon } from "@/components/icons";
 
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/use-profile";

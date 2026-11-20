@@ -1,19 +1,19 @@
 import {
-  BookAIcon,
-  ChartNoAxesCombinedIcon,
-  LibraryIcon,
-  LibrarySquareIcon,
-  LucideIcon,
+  BookIcon,
+  CardsIcon,
+  ChartLineUpIcon,
+  ChatTextIcon,
+  GearIcon,
   NotebookIcon,
-  NotebookTextIcon,
-  SettingsIcon,
+  NotepadIcon,
   UsersIcon,
-} from "lucide-react";
+  type Icon,
+} from "@/components/icons";
 
 export type MainNavType = {
   title: string;
   url: string;
-  icon: LucideIcon;
+  icon: Icon;
 };
 
 // Data for the sidebar
@@ -22,7 +22,7 @@ export const sidebarData = {
     {
       title: "Trang chủ",
       url: "/admin",
-      icon: ChartNoAxesCombinedIcon,
+      icon: ChartLineUpIcon,
     },
     {
       title: "Chủ đề",
@@ -32,22 +32,22 @@ export const sidebarData = {
     {
       title: "Thẻ từ vựng",
       url: "/admin/flashcards",
-      icon: LibraryIcon,
+      icon: CardsIcon,
     },
     {
       title: "Thẻ câu",
       url: "/admin/sentences",
-      icon: LibrarySquareIcon,
+      icon: ChatTextIcon,
     },
     {
       title: "Bài luyện tập",
       url: "/admin/lessons",
-      icon: BookAIcon,
+      icon: BookIcon,
     },
     {
       title: "Câu hỏi luyện tập",
       url: "/admin/exercises",
-      icon: NotebookTextIcon,
+      icon: NotepadIcon,
     },
     {
       title: "Người dùng",

@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { Volume2 } from "lucide-react";
+import { SpeakerHighIcon } from "@/components/icons";
 import { useAudio } from "react-use";
 
 import { cn } from "@/lib/utils";
@@ -40,7 +40,7 @@ export default function AudioPlayer({
           isFull ? "size-20 [&_svg]:size-9" : "size-14 [&_svg]:size-7",
         )}
       >
-        <Volume2 aria-hidden="true" />
+        <SpeakerHighIcon aria-hidden="true" />
       </button>
       {isFull ? (
         <p className="text-left">

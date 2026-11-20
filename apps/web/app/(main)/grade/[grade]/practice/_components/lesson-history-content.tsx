@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Check, ChevronDown, History, Trophy, X } from "lucide-react";
+import {
+  CaretDownIcon,
+  CheckIcon,
+  ClockCounterClockwiseIcon,
+  TrophyIcon,
+  XIcon,
+} from "@/components/icons";
 
 import { SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -260,7 +266,7 @@ export function LessonHistoryContent({ lesson, lessonId, isOpen }: LessonHistory
               className="-mx-2 flex w-[calc(100%+1rem)] items-center justify-between gap-2 rounded-xl px-2 py-1.5 text-left text-lg font-black text-ink outline-none transition-colors hover:bg-wash focus-visible:ring-4 focus-visible:ring-sky/50"
             >
               Câu hay sai nhất
-              <ChevronDown
+              <CaretDownIcon
                 aria-hidden="true"
                 className={cn(
                   "size-5 text-ink-body transition-transform duration-200 ease-peel",
@@ -286,7 +292,7 @@ export function LessonHistoryContent({ lesson, lessonId, isOpen }: LessonHistory
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="flex items-center gap-2 text-base font-black text-sun-body">
                   <span className="flex size-8 items-center justify-center rounded-full bg-sun text-ink">
-                    <Trophy className="size-4" aria-hidden="true" />
+                    <TrophyIcon className="size-4" aria-hidden="true" />
                   </span>
                   Lần {bestAttempt.attemptNumber}
                 </p>
@@ -312,7 +318,7 @@ export function LessonHistoryContent({ lesson, lessonId, isOpen }: LessonHistory
         ) : attempts.length === 0 ? (
           <div className="flex flex-col items-center py-8 text-center">
             <span className="flex size-14 items-center justify-center rounded-full bg-wash text-ink-body">
-              <History className="size-7" aria-hidden="true" />
+              <ClockCounterClockwiseIcon className="size-7" aria-hidden="true" />
             </span>
             <p className="mt-3 text-lg font-black text-ink">Chưa có lịch sử luyện tập</p>
             <p className="text-base text-ink-body">Làm bài này một lần là kết quả sẽ hiện ở đây.</p>
@@ -355,7 +361,7 @@ export function LessonHistoryContent({ lesson, lessonId, isOpen }: LessonHistory
                             {formatDate(attempt.createdAt)}
                           </span>
                         </span>
-                        <ChevronDown
+                        <CaretDownIcon
                           aria-hidden="true"
                           className={cn(
                             "mt-1 size-5 shrink-0 text-ink-body transition-transform duration-200 ease-peel",
@@ -533,10 +539,10 @@ function DetailCard({
   const correctOption = detail.exercise?.options.find((option) => option.isCorrect);
 
   const verdict = isCorrectOnSecondAttempt
-    ? { label: "Đúng lần 2", icon: Check, disc: "bg-sun text-ink", border: "border-sun" }
+    ? { label: "Đúng lần 2", icon: CheckIcon, disc: "bg-sun text-ink", border: "border-sun" }
     : detail.isCorrect
-      ? { label: "Đúng", icon: Check, disc: "bg-leaf-deep text-white", border: "border-leaf" }
-      : { label: "Sai", icon: X, disc: "bg-cherry text-white", border: "border-cherry" };
+      ? { label: "Đúng", icon: CheckIcon, disc: "bg-leaf-deep text-white", border: "border-leaf" }
+      : { label: "Sai", icon: XIcon, disc: "bg-cherry text-white", border: "border-cherry" };
   const VerdictIcon = verdict.icon;
 
   return (
@@ -550,7 +556,7 @@ function DetailCard({
                 verdict.disc,
               )}
             >
-              <VerdictIcon className="size-4" strokeWidth={3} aria-label={verdict.label} />
+              <VerdictIcon className="size-4" aria-label={verdict.label} />
             </span>
             <p className="text-sm font-extrabold text-ink-body">Câu {position}</p>
             <span className="rounded-full bg-wash px-2 py-0.5 text-xs font-extrabold text-ink-body">

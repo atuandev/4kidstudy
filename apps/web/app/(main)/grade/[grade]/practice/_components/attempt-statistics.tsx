@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, GraduationCap, XCircle } from "lucide-react";
+import { CheckCircleIcon, ClockIcon, GraduationCapIcon, XCircleIcon } from "@/components/icons";
 
 import { PracticeStatistics } from "@/types";
 import { cn } from "@/lib/utils";
@@ -47,7 +47,7 @@ export function AttemptStatistics({ stats }: AttemptStatisticsProps) {
 
       <div className="mt-4 rounded-2xl bg-leaf-wash px-4 py-3">
         <p className="flex items-center gap-2 text-sm font-bold text-forest">
-          <GraduationCap className="size-4" aria-hidden="true" />
+          <GraduationCapIcon className="size-4" aria-hidden="true" />
           Bài đã hoàn thành
         </p>
         <p className="mt-1 text-2xl font-black tabular-nums text-ink">
@@ -70,19 +70,19 @@ export function AttemptStatistics({ stats }: AttemptStatisticsProps) {
         <StatTile
           label="Thời gian"
           value={formatDuration(stats.totalDurationSec)}
-          icon={Clock}
+          icon={ClockIcon}
           tone="bg-sky-wash text-sky-ink"
         />
         <StatTile
           label="Câu đúng"
           value={stats.totalCorrectCount}
-          icon={CheckCircle2}
+          icon={CheckCircleIcon}
           tone="bg-leaf-wash text-forest"
         />
         <StatTile
           label="Câu sai"
           value={stats.totalIncorrectCount}
-          icon={XCircle}
+          icon={XCircleIcon}
           tone="bg-cherry-wash text-cherry-deep"
         />
       </dl>

@@ -2,15 +2,15 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  ChevronDown,
-  ChevronUp,
-  Edit2,
+  CaretDownIcon,
+  CaretUpIcon,
   ImageIcon,
-  Loader2,
-  Plus,
-  Trash2,
-  Upload,
-} from "lucide-react";
+  PencilSimpleIcon,
+  PlusIcon,
+  SpinnerGapIcon,
+  TrashIcon,
+  UploadSimpleIcon,
+} from "@/components/icons";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -831,7 +831,7 @@ export default function ExerciseFormPage() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <SpinnerGapIcon className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -867,7 +867,7 @@ export default function ExerciseFormPage() {
           onClick={handleImportExcel}
           className="gap-2"
         >
-          <Upload className="h-4 w-4" />
+          <UploadSimpleIcon className="h-4 w-4" />
           Import từ Excel
         </Button>
       </div>
@@ -945,7 +945,7 @@ export default function ExerciseFormPage() {
                             onClick={() => handleEditExercise(index)}
                             disabled={editingIndex === index}
                           >
-                            <Edit2 className="h-4 w-4" />
+                            <PencilSimpleIcon className="h-4 w-4" />
                           </Button>
                           <Button
                             type="button"
@@ -953,7 +953,7 @@ export default function ExerciseFormPage() {
                             size="sm"
                             onClick={() => handleDeleteExercise(index)}
                           >
-                            <Trash2 className="h-4 w-4 text-red-600" />
+                            <TrashIcon className="h-4 w-4 text-red-600" />
                           </Button>
                           <Button
                             type="button"
@@ -962,9 +962,9 @@ export default function ExerciseFormPage() {
                             onClick={() => toggleCardExpanded(index)}
                           >
                             {isExpanded ? (
-                              <ChevronUp className="h-4 w-4" />
+                              <CaretUpIcon className="h-4 w-4" />
                             ) : (
-                              <ChevronDown className="h-4 w-4" />
+                              <CaretDownIcon className="h-4 w-4" />
                             )}
                           </Button>
                         </div>
@@ -1239,7 +1239,7 @@ export default function ExerciseFormPage() {
                                 >
                                   {({ open }) => (
                                     <Button type="button" size="icon" onClick={() => open()}>
-                                      <Upload className="h-4 w-4" />
+                                      <UploadSimpleIcon className="h-4 w-4" />
                                     </Button>
                                   )}
                                 </CldUploadWidget>
@@ -1300,7 +1300,7 @@ export default function ExerciseFormPage() {
                               >
                                 {({ open }) => (
                                   <Button type="button" size="icon" onClick={() => open()}>
-                                    <Upload className="h-4 w-4" />
+                                    <UploadSimpleIcon className="h-4 w-4" />
                                   </Button>
                                 )}
                               </CldUploadWidget>
@@ -1378,7 +1378,7 @@ export default function ExerciseFormPage() {
                   <TypographyH3>Đáp án</TypographyH3>
                   {exerciseType !== "PRONUNCIATION" && (
                     <Button type="button" variant="secondary" size="sm" onClick={addOption}>
-                      <Plus className="mr-2 h-4 w-4" />
+                      <PlusIcon className="mr-2 h-4 w-4" />
                       Thêm đáp án
                     </Button>
                   )}
@@ -1407,7 +1407,7 @@ export default function ExerciseFormPage() {
                               size="icon"
                               onClick={() => remove(index)}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <TrashIcon className="h-4 w-4" />
                             </Button>
                           </div>
 
@@ -1428,7 +1428,7 @@ export default function ExerciseFormPage() {
                                     >
                                       {({ open }) => (
                                         <Button type="button" size="icon" onClick={() => open()}>
-                                          <Upload className="h-4 w-4" />
+                                          <UploadSimpleIcon className="h-4 w-4" />
                                         </Button>
                                       )}
                                     </CldUploadWidget>
@@ -1481,7 +1481,7 @@ export default function ExerciseFormPage() {
                               size="sm"
                               onClick={() => remove(index)}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <TrashIcon className="h-4 w-4" />
                             </Button>
                           </div>
 
@@ -1543,7 +1543,7 @@ export default function ExerciseFormPage() {
                               size="sm"
                               onClick={() => remove(index)}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <TrashIcon className="h-4 w-4" />
                             </Button>
                           </div>
 
@@ -1595,7 +1595,7 @@ export default function ExerciseFormPage() {
                                     >
                                       {({ open }) => (
                                         <Button type="button" size="icon" onClick={() => open()}>
-                                          <Upload className="h-4 w-4" />
+                                          <UploadSimpleIcon className="h-4 w-4" />
                                         </Button>
                                       )}
                                     </CldUploadWidget>
@@ -1623,7 +1623,7 @@ export default function ExerciseFormPage() {
                               size="sm"
                               onClick={() => remove(index)}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <TrashIcon className="h-4 w-4" />
                             </Button>
                           </div>
 
@@ -1689,7 +1689,7 @@ export default function ExerciseFormPage() {
               onClick={handleAddExerciseForm}
               disabled={isSubmitting}
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <PlusIcon className="mr-2 h-4 w-4" />
               {editingIndex !== null ? "Cập nhật câu hỏi" : "Thêm câu hỏi"}
             </Button>
           </div>
@@ -1707,7 +1707,7 @@ export default function ExerciseFormPage() {
                   onClick={handleSaveAll}
                   disabled={isSubmitting || editingIndex !== null}
                 >
-                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isSubmitting && <SpinnerGapIcon className="mr-2 h-4 w-4 animate-spin" />}
                   Lưu tất cả ({exerciseForms.length})
                 </Button>
               )}
@@ -1805,7 +1805,7 @@ export default function ExerciseFormPage() {
               onClick={handleConfirmImport}
               disabled={!selectedExcelFile || isImporting}
             >
-              {isImporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isImporting && <SpinnerGapIcon className="mr-2 h-4 w-4 animate-spin" />}
               Bắt đầu Import
             </AlertDialogAction>
           </AlertDialogFooter>

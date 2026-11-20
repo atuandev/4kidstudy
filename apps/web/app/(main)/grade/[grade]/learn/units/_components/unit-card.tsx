@@ -1,10 +1,9 @@
 "use client";
 
-import { BookOpenTextIcon } from "@phosphor-icons/react";
+import { BookOpenTextIcon, CardsIcon, ChatTextIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { TopicWithProgress } from "@/types/topic-with-progress";
 import Image from "next/image";
-import { LibraryIcon, LibrarySquareIcon } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -108,7 +107,7 @@ export function UnitCard({ topic }: UnitCardProps) {
       <div className="mt-auto flex flex-col gap-2.5 pt-5">
         <TopicAction
           variant="primary"
-          icon={<LibraryIcon />}
+          icon={<CardsIcon />}
           label="Thẻ từ vựng"
           echo="Words"
           progress={hasFlashcardProgress ? flashcardProgress : null}
@@ -116,7 +115,7 @@ export function UnitCard({ topic }: UnitCardProps) {
         />
         <TopicAction
           variant="secondary"
-          icon={<LibrarySquareIcon />}
+          icon={<ChatTextIcon />}
           label="Thẻ câu"
           echo="Sentences"
           progress={hasSentenceProgress ? sentenceProgress : null}

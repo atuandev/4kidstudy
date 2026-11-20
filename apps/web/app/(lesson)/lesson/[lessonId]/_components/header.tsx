@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Clock, Trophy, X, XCircle } from "lucide-react";
+import { CheckCircleIcon, ClockIcon, TrophyIcon, XCircleIcon, XIcon } from "@/components/icons";
 import { useState } from "react";
 
 import {
@@ -70,7 +70,7 @@ export const Header = ({
               aria-label="Thoát bài học"
               className="size-11 text-ink"
             >
-              <X className="size-6" />
+              <XIcon className="size-6" />
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
@@ -125,22 +125,22 @@ export const Header = ({
 
         <ul className="flex items-center gap-1.5 text-sm font-black tabular-nums">
           <li className="flex items-center gap-1 rounded-full bg-leaf-wash px-2.5 py-1 text-forest">
-            <CheckCircle2 className="size-4" aria-hidden="true" />
+            <CheckCircleIcon className="size-4" aria-hidden="true" />
             {correctCount}
             <span className="sr-only">câu đúng</span>
           </li>
           <li className="flex items-center gap-1 rounded-full bg-cherry-wash px-2.5 py-1 text-cherry-deep">
-            <XCircle className="size-4" aria-hidden="true" />
+            <XCircleIcon className="size-4" aria-hidden="true" />
             {wrongCount}
             <span className="sr-only">câu sai</span>
           </li>
           <li className="flex items-center gap-1 rounded-full bg-sun-wash px-2.5 py-1 text-sun-ink">
-            <Trophy className="size-4" aria-hidden="true" />
+            <TrophyIcon className="size-4" aria-hidden="true" />
             {totalPoints}
             <span className="sr-only">điểm</span>
           </li>
           <li className="flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-ink-body">
-            <Clock className="size-4" aria-hidden="true" />
+            <ClockIcon className="size-4" aria-hidden="true" />
             {formatTime(duration)}
             <span className="sr-only">thời gian</span>
           </li>

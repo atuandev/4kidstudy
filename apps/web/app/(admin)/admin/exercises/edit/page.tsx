@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ImageIcon, Loader2, Trash2, Upload } from "lucide-react";
+import { ImageIcon, SpinnerGapIcon, TrashIcon, UploadSimpleIcon } from "@/components/icons";
 import { CldUploadWidget, type CloudinaryUploadWidgetResults } from "next-cloudinary";
 import { getUploadedUrl } from "@/lib/cloudinary-upload";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -279,7 +279,7 @@ export default function EditExercisePage() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <SpinnerGapIcon className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -505,7 +505,7 @@ export default function EditExercisePage() {
                         <CldUploadWidget uploadPreset={UPLOAD_PRESET} onSuccess={handleAudioUpload}>
                           {({ open }) => (
                             <Button type="button" size="icon" onClick={() => open()}>
-                              <Upload className="h-4 w-4" />
+                              <UploadSimpleIcon className="h-4 w-4" />
                             </Button>
                           )}
                         </CldUploadWidget>
@@ -560,7 +560,7 @@ export default function EditExercisePage() {
                       <CldUploadWidget uploadPreset={UPLOAD_PRESET} onSuccess={handleAudioUpload}>
                         {({ open }) => (
                           <Button type="button" size="icon" onClick={() => open()}>
-                            <Upload className="h-4 w-4" />
+                            <UploadSimpleIcon className="h-4 w-4" />
                           </Button>
                         )}
                       </CldUploadWidget>
@@ -662,7 +662,7 @@ export default function EditExercisePage() {
               </div>
               {exerciseType !== "PRONUNCIATION" && (
                 <Button type="button" variant="secondary" size="sm" onClick={addOption}>
-                  <Upload className="mr-2 h-4 w-4" />
+                  <UploadSimpleIcon className="mr-2 h-4 w-4" />
                   Thêm đáp án
                 </Button>
               )}
@@ -691,7 +691,7 @@ export default function EditExercisePage() {
                           size="icon"
                           onClick={() => remove(index)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <TrashIcon className="h-4 w-4" />
                         </Button>
                       </div>
 
@@ -712,7 +712,7 @@ export default function EditExercisePage() {
                                 >
                                   {({ open }) => (
                                     <Button type="button" size="icon" onClick={() => open()}>
-                                      <Upload className="h-4 w-4" />
+                                      <UploadSimpleIcon className="h-4 w-4" />
                                     </Button>
                                   )}
                                 </CldUploadWidget>
@@ -765,7 +765,7 @@ export default function EditExercisePage() {
                           size="sm"
                           onClick={() => remove(index)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <TrashIcon className="h-4 w-4" />
                         </Button>
                       </div>
 
@@ -827,7 +827,7 @@ export default function EditExercisePage() {
                           size="sm"
                           onClick={() => remove(index)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <TrashIcon className="h-4 w-4" />
                         </Button>
                       </div>
 
@@ -879,7 +879,7 @@ export default function EditExercisePage() {
                                 >
                                   {({ open }) => (
                                     <Button type="button" size="icon" onClick={() => open()}>
-                                      <Upload className="h-4 w-4" />
+                                      <UploadSimpleIcon className="h-4 w-4" />
                                     </Button>
                                   )}
                                 </CldUploadWidget>
@@ -907,7 +907,7 @@ export default function EditExercisePage() {
                           size="sm"
                           onClick={() => remove(index)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <TrashIcon className="h-4 w-4" />
                         </Button>
                       </div>
 
@@ -972,7 +972,7 @@ export default function EditExercisePage() {
               Hủy
             </Button>
             <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting && <SpinnerGapIcon className="mr-2 h-4 w-4 animate-spin" />}
               Cập nhật
             </Button>
           </div>

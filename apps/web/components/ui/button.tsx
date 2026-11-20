@@ -3,7 +3,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { SpinnerGapIcon } from "@/components/icons";
 
 // Every pressable control stands on a darker ledge (border-b-4) that collapses on press
 // while the face moves down, so the bottom edge stays put. See DESIGN.md, "Buttons".
@@ -84,7 +84,7 @@ function Button({
       disabled={loading}
       {...props}
     >
-      {loading ? <Loader2 className={cn("h-4 w-4 animate-spin")} /> : children}
+      {loading ? <SpinnerGapIcon className={cn("h-4 w-4 animate-spin")} /> : children}
     </Comp>
   );
 }

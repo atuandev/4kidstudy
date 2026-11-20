@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { TrophyIcon } from "@phosphor-icons/react";
+import { TrophyIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { getWeeklyLeaderboard, LeaderboardEntry } from "@/actions/leaderboard";
 
