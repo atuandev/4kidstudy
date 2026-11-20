@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, History } from "lucide-react";
+import { CheckIcon, ClockCounterClockwiseIcon } from "@/components/icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -45,7 +45,7 @@ export const LessonButton = ({ id, lesson, position }: LessonButtonProps) => {
             )}
           >
             {hasBestAttempt ? (
-              <Check className="size-5" strokeWidth={3} aria-label="Đã hoàn thành" />
+              <CheckIcon className="size-5" aria-label="Đã hoàn thành" />
             ) : (
               <span aria-hidden="true">{position}</span>
             )}
@@ -61,7 +61,7 @@ export const LessonButton = ({ id, lesson, position }: LessonButtonProps) => {
 
         <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
           <Button onClick={() => setIsSheetOpen(true)}>
-            <History aria-hidden="true" />
+            <ClockCounterClockwiseIcon aria-hidden="true" />
             Lịch sử
           </Button>
           <Button asChild variant="secondary">

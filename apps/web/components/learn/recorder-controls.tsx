@@ -1,4 +1,11 @@
-import { AudioLines, Check, Mic, RotateCcw, Square, X } from "lucide-react";
+import {
+  ArrowCounterClockwiseIcon,
+  CheckIcon,
+  MicrophoneIcon,
+  SquareIcon,
+  WaveformIcon,
+  XIcon,
+} from "@/components/icons";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -47,7 +54,7 @@ export function RecorderControls({
       {state === "idle" ? (
         <>
           <RoundButton tone="cherry" size="lg" aria-label="Ghi âm giọng đọc" onClick={onStart}>
-            <Mic aria-hidden="true" />
+            <MicrophoneIcon aria-hidden="true" />
           </RoundButton>
           {errorMessage ? (
             <p role="alert" className="max-w-56 text-sm font-bold text-cherry-deep">
@@ -64,7 +71,7 @@ export function RecorderControls({
               aria-hidden="true"
               className="absolute inset-0 rounded-full bg-cherry/40 motion-safe:animate-ping"
             />
-            <Square aria-hidden="true" className="relative fill-white" />
+            <SquareIcon weight="fill" aria-hidden="true" className="relative" />
           </RoundButton>
           <p role="status" className="text-base font-black text-cherry-deep">
             Đang ghi âm…
@@ -75,13 +82,13 @@ export function RecorderControls({
       {state === "recorded" ? (
         <>
           <RoundButton tone="wash" aria-label="Nghe lại giọng của bé" onClick={onPlayback}>
-            <AudioLines aria-hidden="true" />
+            <WaveformIcon aria-hidden="true" />
           </RoundButton>
           <Button variant="primary" onClick={onAnalyze} disabled={!canAnalyze}>
             Chấm điểm
           </Button>
           <RoundButton tone="wash" aria-label="Ghi âm lại" onClick={onReset}>
-            <RotateCcw aria-hidden="true" />
+            <ArrowCounterClockwiseIcon aria-hidden="true" />
           </RoundButton>
           {errorMessage ? (
             <p role="alert" className="basis-full text-sm font-bold text-cherry-deep">
@@ -113,18 +120,18 @@ export function RecorderControls({
             )}
           >
             {passed ? (
-              <Check aria-hidden="true" className="size-5" strokeWidth={3} />
+              <CheckIcon aria-hidden="true" className="size-5" />
             ) : (
-              <X aria-hidden="true" className="size-5" strokeWidth={3} />
+              <XIcon aria-hidden="true" className="size-5" />
             )}
             {Math.round(score)}%
             <span className="font-extrabold">· {passed ? "Đạt" : "Chưa đạt"}</span>
           </p>
           <RoundButton tone="wash" aria-label="Nghe lại giọng của bé" onClick={onPlayback}>
-            <AudioLines aria-hidden="true" />
+            <WaveformIcon aria-hidden="true" />
           </RoundButton>
           <RoundButton tone="wash" aria-label="Ghi âm lại" onClick={onReset}>
-            <RotateCcw aria-hidden="true" />
+            <ArrowCounterClockwiseIcon aria-hidden="true" />
           </RoundButton>
         </>
       ) : null}

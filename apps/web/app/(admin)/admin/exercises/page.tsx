@@ -14,7 +14,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { PlusIcon } from "@/components/icons";
 import Link from "next/link";
 
 export default async function ExercisesPage({
@@ -55,7 +55,7 @@ export default async function ExercisesPage({
           <TypographyH3>Danh sách câu hỏi luyện tập</TypographyH3>
           <Link href="/admin/exercises/form">
             <Button variant="primary">
-              <Plus className="h-4 w-4" />
+              <PlusIcon className="h-4 w-4" />
               Thêm câu hỏi luyện tập
             </Button>
           </Link>

@@ -2,7 +2,7 @@ import { useCallback } from "react";
 
 import Image from "next/image";
 import { useAudio, useKey } from "react-use";
-import { Volume2, Mic } from "lucide-react";
+import { MicrophoneIcon, SpeakerHighIcon } from "@/components/icons";
 
 import { ExerciseType } from "@/types";
 import { cn } from "@/lib/utils";
@@ -139,7 +139,7 @@ export const Card = ({
                 className="mt-2 p-1"
                 disabled={disabled}
               >
-                <Volume2 className="h-4 w-4" />
+                <SpeakerHighIcon className="h-4 w-4" />
               </Button>
             )}
           </div>
@@ -182,7 +182,7 @@ export const Card = ({
                 className="flex items-center gap-2"
                 disabled={disabled}
               >
-                <Volume2 className="h-4 w-4" />
+                <SpeakerHighIcon className="h-4 w-4" />
                 Nghe mẫu
               </Button>
             )}
@@ -192,7 +192,7 @@ export const Card = ({
               className="flex items-center gap-2"
               disabled={disabled}
             >
-              <Mic className="h-4 w-4" />
+              <MicrophoneIcon className="h-4 w-4" />
               Ghi âm
             </Button>
           </div>

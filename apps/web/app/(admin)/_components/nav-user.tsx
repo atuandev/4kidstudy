@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronsUpDown, LogOut, UserIcon } from "lucide-react";
+import { CaretUpDownIcon, SignOutIcon, UserIcon } from "@/components/icons";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/sidebar";
 import { User } from "@/types";
 import { logout } from "@/actions/auth/logout";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 
 type NavUserType = {
@@ -49,7 +48,7 @@ export function NavUser({ user }: NavUserType) {
                 <span className="truncate font-semibold">{user?.name}</span>
                 <span className="truncate text-xs">{user?.email}</span>
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              <CaretUpDownIcon className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -81,12 +80,11 @@ export function NavUser({ user }: NavUserType) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={async () => {
-                await logout();
-                redirect("/login");
+              onClick={() => {
+                void logout();
               }}
             >
-              <LogOut />
+              <SignOutIcon />
               Đăng xuất
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { CaretRightIcon } from "@/components/icons";
 
 interface LearnCardProps {
   readonly title: string;
@@ -18,7 +18,7 @@ export const LearnCard = ({ title, description, href }: LearnCardProps) => {
         <span className="block text-xl font-black text-ink">{title}</span>
         <span className="mt-0.5 block text-base text-ink-body">{description}</span>
       </span>
-      <ChevronRight
+      <CaretRightIcon
         aria-hidden="true"
         className="size-6 shrink-0 text-ink-meta transition-colors group-hover:text-sky-ink"
       />

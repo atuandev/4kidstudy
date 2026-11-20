@@ -1,4 +1,4 @@
-import { Check, MicOff, X } from "lucide-react";
+import { CheckIcon, MicrophoneSlashIcon, XIcon } from "@/components/icons";
 import { useKey } from "react-use";
 
 import { Button } from "@/components/ui/button";
@@ -69,9 +69,9 @@ export const Footer = ({
                 aria-hidden="true"
               >
                 {isCorrect ? (
-                  <Check className="size-7 sm:size-8" strokeWidth={3.5} />
+                  <CheckIcon className="size-7 sm:size-8" />
                 ) : (
-                  <X className="size-7 sm:size-8" strokeWidth={3.5} />
+                  <XIcon className="size-7 sm:size-8" />
                 )}
               </span>
               <div className="min-w-0">
@@ -123,7 +123,7 @@ export const Footer = ({
               variant="default"
               className="order-last h-14 w-full text-base sm:order-none sm:w-auto"
             >
-              <MicOff className="size-5" aria-hidden="true" />
+              <MicrophoneSlashIcon className="size-5" aria-hidden="true" />
               Không có micro? Bỏ qua
             </Button>
           )}

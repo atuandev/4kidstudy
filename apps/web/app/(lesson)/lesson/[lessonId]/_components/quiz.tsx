@@ -1,6 +1,12 @@
 "use client";
 
-import { Headphones, ImageIcon, ListChecks, Mic, Puzzle } from "lucide-react";
+import {
+  HeadphonesIcon,
+  ImageIcon,
+  ListChecksIcon,
+  MicrophoneIcon,
+  PuzzlePieceIcon,
+} from "@/components/icons";
 
 import type { PronunciationScore } from "@/lib/stores/quiz-store";
 import { Exercise } from "./exercise";
@@ -32,22 +38,28 @@ const EXERCISE_TITLES = {
   MULTIPLE_CHOICE: {
     vi: "Chọn đáp án đúng",
     en: "Multiple choice",
-    icon: ListChecks,
+    icon: ListChecksIcon,
     color: "#A855F7",
     shade: "#7E22CE",
   },
-  MATCHING: { vi: "Ghép cặp", en: "Matching", icon: Puzzle, color: "#FF9600", shade: "#C2410C" },
+  MATCHING: {
+    vi: "Ghép cặp",
+    en: "Matching",
+    icon: PuzzlePieceIcon,
+    color: "#FF9600",
+    shade: "#C2410C",
+  },
   LISTENING: {
     vi: "Nghe và chọn",
     en: "Listening",
-    icon: Headphones,
+    icon: HeadphonesIcon,
     color: "#14B8A6",
     shade: "#0F766E",
   },
   PRONUNCIATION: {
     vi: "Luyện phát âm",
     en: "Pronunciation",
-    icon: Mic,
+    icon: MicrophoneIcon,
     color: "#FF4B4B",
     shade: "#BE123C",
   },

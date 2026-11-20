@@ -417,7 +417,7 @@ A 56px rounded square (`tile`) in a sticker hue with a 4px white border, a 2px S
 - **Do** give icon-only buttons an `aria-label`, and use Volume2 for model audio and AudioLines for the child's own recording.
 - **Do** keep charts to one series with no legend, bars at most 24px with 4px rounded data ends, a Slate Edge grid, and an `sr-only` table of the same data.
 - **Do** give stickers and framed pictures a white border and a soft, tinted drop shadow, and tilt them a few degrees.
-- **Do** use the illustrated icon set in `public/*.svg` for app navigation and flat 64×64-grid SVGs for word art.
+- **Do** take every interface icon from Phosphor via `components/icons.tsx` (bold by default; section icons duotone at rest and fill when active; achievement badges fill), and use flat 64×64-grid SVGs for word art.
 - **Do** format dates and numbers with `vi-VN`.
 - **Do** label example numbers in illustrative cards as samples (Ví dụ minh họa) so parents are never shown invented results as real.
 - **Do** wrap sticker, peel, flip and progress motion in `motion-safe` / `motion-reduce` guards.

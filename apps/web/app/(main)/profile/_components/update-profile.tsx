@@ -34,7 +34,7 @@ import { UpdateProfileSchema, UpdateProfileSchemaType } from "@/schemas/user";
 import { updateProfile } from "@/actions/user/user";
 import { GRADES } from "@/types/grade";
 import { User, Gender } from "@/types";
-import { Upload } from "lucide-react";
+import { UploadSimpleIcon } from "@/components/icons";
 
 interface UpdateProfileDialogProps {
   open: boolean;
@@ -145,7 +145,7 @@ export function UpdateProfileDialog({
                       htmlFor="avatar"
                       className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border-2 border-b-4 border-edge bg-white px-4 text-sm font-bold text-ink transition-colors hover:bg-wash active:translate-y-0.5 active:border-b-2 has-[+*:focus-visible]:ring-4 has-[+*:focus-visible]:ring-sky/50"
                     >
-                      <Upload className="size-4" aria-hidden="true" />
+                      <UploadSimpleIcon className="size-4" aria-hidden="true" />
                       Tải ảnh lên
                     </FormLabel>
                     <FormControl>

@@ -13,7 +13,7 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon } from "@/components/icons";
 import Link from "next/link";
 
 export default async function TopicsPage() {

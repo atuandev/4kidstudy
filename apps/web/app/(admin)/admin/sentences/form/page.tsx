@@ -2,15 +2,15 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  CaretDownIcon,
+  CaretRightIcon,
+  FileArrowUpIcon,
   ImageIcon,
-  Loader2,
-  Upload,
-  Plus,
-  Trash2,
-  ChevronDown,
-  ChevronRight,
-  FileUp,
-} from "lucide-react";
+  PlusIcon,
+  SpinnerGapIcon,
+  TrashIcon,
+  UploadSimpleIcon,
+} from "@/components/icons";
 import * as XLSX from "xlsx";
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -718,7 +718,7 @@ export default function SentenceFormPage() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <SpinnerGapIcon className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -794,7 +794,7 @@ export default function SentenceFormPage() {
                   }}
                   variant="secondary"
                 >
-                  <FileUp className="mr-2 h-4 w-4" />
+                  <FileArrowUpIcon className="mr-2 h-4 w-4" />
                   Import Excel
                 </Button>
                 <Button
@@ -802,7 +802,7 @@ export default function SentenceFormPage() {
                   onClick={handleAddSentenceImageGroup}
                   variant="secondaryOutline"
                 >
-                  <Plus className="mr-2 h-4 w-4" />
+                  <PlusIcon className="mr-2 h-4 w-4" />
                   Thêm thẻ mới
                 </Button>
               </div>
@@ -838,9 +838,9 @@ export default function SentenceFormPage() {
                         className="h-8 w-8 p-0"
                       >
                         {expandedGroups.has(groupIndex) ? (
-                          <ChevronDown className="h-4 w-4" />
+                          <CaretDownIcon className="h-4 w-4" />
                         ) : (
-                          <ChevronRight className="h-4 w-4" />
+                          <CaretRightIcon className="h-4 w-4" />
                         )}
                       </Button>
                       <div className="flex items-center gap-2">
@@ -907,7 +907,7 @@ export default function SentenceFormPage() {
                                 variant="secondaryOutline"
                                 onClick={() => open()}
                               >
-                                <Upload className="h-4 w-4" />
+                                <UploadSimpleIcon className="h-4 w-4" />
                               </Button>
                             )}
                           </CldUploadWidget>
@@ -950,7 +950,7 @@ export default function SentenceFormPage() {
                                 variant="secondaryOutline"
                                 onClick={() => open()}
                               >
-                                <Upload className="h-4 w-4" />
+                                <UploadSimpleIcon className="h-4 w-4" />
                               </Button>
                             )}
                           </CldUploadWidget>
@@ -971,7 +971,7 @@ export default function SentenceFormPage() {
                           size="sm"
                           onClick={() => handleAddSentenceToGroup(groupIndex)}
                         >
-                          <Plus className="mr-2 h-4 w-4" />
+                          <PlusIcon className="mr-2 h-4 w-4" />
                           Thêm câu
                         </Button>
                       </div>
@@ -1010,7 +1010,7 @@ export default function SentenceFormPage() {
                                     size="sm"
                                     className="h-8 text-destructive hover:text-destructive"
                                   >
-                                    <Trash2 className="h-4 w-4" />
+                                    <TrashIcon className="h-4 w-4" />
                                   </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
@@ -1135,7 +1135,7 @@ export default function SentenceFormPage() {
                                         variant="secondaryOutline"
                                         onClick={() => open()}
                                       >
-                                        <Upload className="h-4 w-4" />
+                                        <UploadSimpleIcon className="h-4 w-4" />
                                       </Button>
                                     )}
                                   </CldUploadWidget>
@@ -1172,7 +1172,7 @@ export default function SentenceFormPage() {
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <SpinnerGapIcon className="mr-2 h-4 w-4 animate-spin" />
                   Đang lưu...
                 </>
               ) : (
@@ -1257,7 +1257,7 @@ export default function SentenceFormPage() {
                   onClick={handleConfirmImport}
                   disabled={!selectedExcelFile || isImporting}
                 >
-                  {isImporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isImporting && <SpinnerGapIcon className="mr-2 h-4 w-4 animate-spin" />}
                   Import
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -1375,7 +1375,7 @@ export default function SentenceFormPage() {
                       >
                         {({ open }) => (
                           <Button type="button" size="icon" onClick={() => open()}>
-                            <Upload className="h-4 w-4" />
+                            <UploadSimpleIcon className="h-4 w-4" />
                           </Button>
                         )}
                       </CldUploadWidget>
@@ -1453,7 +1453,7 @@ export default function SentenceFormPage() {
                   </p>
                 </div>
                 <Button type="button" variant="secondary" size="sm" onClick={handleAddSentence}>
-                  <Plus className="mr-2 h-4 w-4" />
+                  <PlusIcon className="mr-2 h-4 w-4" />
                   Thêm câu
                 </Button>
               </div>
@@ -1473,9 +1473,9 @@ export default function SentenceFormPage() {
                           className="flex items-center gap-2 hover:text-primary transition-colors"
                         >
                           {isExpanded ? (
-                            <ChevronDown className="h-4 w-4" />
+                            <CaretDownIcon className="h-4 w-4" />
                           ) : (
-                            <ChevronRight className="h-4 w-4" />
+                            <CaretRightIcon className="h-4 w-4" />
                           )}
                           <span className="truncate max-w-md">{previewText}</span>
                         </button>
@@ -1483,7 +1483,7 @@ export default function SentenceFormPage() {
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button type="button" variant="dangerOutline" size="sm">
-                                <Trash2 className="h-4 w-4" />
+                                <TrashIcon className="h-4 w-4" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -1558,7 +1558,7 @@ export default function SentenceFormPage() {
                                   >
                                     {({ open }) => (
                                       <Button type="button" size="icon" onClick={() => open()}>
-                                        <Upload className="h-4 w-4" />
+                                        <UploadSimpleIcon className="h-4 w-4" />
                                       </Button>
                                     )}
                                   </CldUploadWidget>
@@ -1646,7 +1646,7 @@ export default function SentenceFormPage() {
                 Hủy
               </Button>
               <Button type="submit" variant="primary" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSubmitting && <SpinnerGapIcon className="mr-2 h-4 w-4 animate-spin" />}
                 {isEditMode ? "Cập nhật" : "Tạo mới"}
               </Button>
             </div>
