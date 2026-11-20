@@ -30,6 +30,18 @@ export function FlashcardComponent({
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [autoplayFailed, setAutoplayFailed] = useState(false);
   const [pronunciationPassed, setPronunciationPassed] = useState(isReviewed);
+
+  // Reset per-card state when the flashcard changes (during render, not in an effect).
+  const cardKey = `${flashcard.id}:${flashcard.audioUrl ?? ""}`;
+  const [resetCardKey, setResetCardKey] = useState(cardKey);
+  if (cardKey !== resetCardKey) {
+    setResetCardKey(cardKey);
+    setIsFlipped(false);
+    // Only reset pronunciation status if not already reviewed
+    if (!isReviewed) {
+      setPronunciationPassed(false);
+    }
+  }
   
   const audioRef = useRef<HTMLAudioElement>(null);
   const currentPlayPromiseRef = useRef<Promise<void> | null>(null);
@@ -122,13 +134,6 @@ export function FlashcardComponent({
         }, 300);
       }
     };
-
-    // Reset flip state when flashcard changes
-    setIsFlipped(false);
-    // Only reset pronunciation status if not already reviewed
-    if (!isReviewed) {
-      setPronunciationPassed(false);
-    }
 
     // Always try auto-play (will fail gracefully if user hasn't interacted)
     autoPlayAudio();

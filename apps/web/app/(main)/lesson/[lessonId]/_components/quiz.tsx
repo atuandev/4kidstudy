@@ -1,5 +1,6 @@
 "use client";
 
+import type { PronunciationScore } from "@/lib/stores/quiz-store";
 import { Exercise } from "./exercise";
 import { Footer } from "./footer";
 import { Header } from "./header";
@@ -69,7 +70,7 @@ export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
     useExerciseStatsStore();
   const { updatePronunciation, getExerciseAttemptCount } = useQuizStore();
 
-  const handlePronunciationStateChange = (state: string, score?: any) => {
+  const handlePronunciationStateChange = (state: string, score?: PronunciationScore | null) => {
     updatePronunciation(state, score);
   };
 

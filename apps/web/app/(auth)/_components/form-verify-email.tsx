@@ -27,7 +27,6 @@ export function FormVerifyEmail() {
   const [error, setError] = useState<string | undefined>('')
   const [success, setSuccess] = useState<string | undefined>('')
   const [isSpending, startTransition] = useTransition()
-  const [isPasswordReset, setIsPasswordReset] = useState(false)
   const { email, clearEmail } = useOtpStore()
 
   const form = useForm<VerifyEmailSchemaType>({
@@ -54,8 +53,7 @@ export function FormVerifyEmail() {
       return
     }
 
-    setIsPasswordReset(true)
-    // Store the flow type in case page refreshes
+    // Store the flow type in case page refreshes; onSubmit reads it back
     sessionStorage.setItem('flowType', 'password-reset')
   }, [email, router])
 
@@ -71,7 +69,9 @@ export function FormVerifyEmail() {
 
         setSuccess('Xác thực thành công.')
 
-        // Redirect based on the flow type
+        // Redirect based on the flow type (stored by the effect above)
+        const isPasswordReset =
+          sessionStorage.getItem('flowType') === 'password-reset'
         if (isPasswordReset) {
           // DON'T clear email yet - needed for new-password form
           // DON'T clear flowType yet - needed for new-password form

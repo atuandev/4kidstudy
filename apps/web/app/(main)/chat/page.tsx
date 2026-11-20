@@ -59,6 +59,8 @@ export default function ChatPage() {
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Latest handleSendMessage, for the speech-recognition callback set up once on mount.
+  const sendMessageRef = useRef<((text?: string) => Promise<void>) | null>(null);
 
   // Initialize Speech Recognition
   useEffect(() => {
@@ -80,7 +82,7 @@ export default function ChatPage() {
           if (lastResult.isFinal) {
             const transcript = lastResult[0].transcript;
             setInputText(transcript);
-            handleSendMessage(transcript);
+            void sendMessageRef.current?.(transcript);
           }
         };
 
@@ -95,52 +97,55 @@ export default function ChatPage() {
         };
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   // Load chat history on mount
   useEffect(() => {
-    loadHistory();
+    let cancelled = false;
+    const loadHistory = async () => {
+      try {
+        const history = await getChatHistory();
+        const loadedMessages: Message[] = [];
+
+        for (let i = 0; i < history.length; i += 2) {
+          const userMsg = history[i];
+          const aiMsg = history[i + 1];
+
+          if (userMsg) {
+            loadedMessages.push({
+              id: `${i}`,
+              text: userMsg.content,
+              type: "user",
+              timestamp: new Date(userMsg.createdAt),
+            });
+          }
+
+          if (aiMsg) {
+            loadedMessages.push({
+              id: `${i + 1}`,
+              text: aiMsg.content,
+              type: "ai",
+              timestamp: new Date(aiMsg.createdAt),
+            });
+          }
+        }
+
+        if (!cancelled) setMessages(loadedMessages);
+      } catch (error) {
+        console.error("Error loading history:", error);
+      }
+    };
+    void loadHistory();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Auto scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  const loadHistory = async () => {
-    try {
-      const history = await getChatHistory();
-      const loadedMessages: Message[] = [];
-
-      for (let i = 0; i < history.length; i += 2) {
-        const userMsg = history[i];
-        const aiMsg = history[i + 1];
-
-        if (userMsg) {
-          loadedMessages.push({
-            id: `${i}`,
-            text: userMsg.content,
-            type: "user",
-            timestamp: new Date(userMsg.createdAt),
-          });
-        }
-
-        if (aiMsg) {
-          loadedMessages.push({
-            id: `${i + 1}`,
-            text: aiMsg.content,
-            type: "ai",
-            timestamp: new Date(aiMsg.createdAt),
-          });
-        }
-      }
-
-      setMessages(loadedMessages);
-    } catch (error) {
-      console.error("Error loading history:", error);
-    }
-  };
 
   const handleClearHistory = async () => {
     try {
@@ -182,7 +187,7 @@ export default function ChatPage() {
     }
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       text: messageText,
       type: "user",
       timestamp: new Date(),
@@ -195,7 +200,7 @@ export default function ChatPage() {
       const response = await sendChatMessage(messageText);
 
       const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: crypto.randomUUID(),
         text: response.response,
         type: "ai",
         timestamp: new Date(),
@@ -219,7 +224,7 @@ export default function ChatPage() {
 
     try {
       // Clean text aggressively - remove ALL Vietnamese and special chars
-      let cleanText = text
+      const cleanText = text
         // Remove emoji and special unicode chars
         .replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu, '')
         // Remove Vietnamese text in parentheses (including the parentheses)
@@ -261,6 +266,11 @@ export default function ChatPage() {
       handleSendMessage();
     }
   };
+
+  // Keep the speech callback pointed at the latest handler.
+  useEffect(() => {
+    sendMessageRef.current = handleSendMessage;
+  });
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">

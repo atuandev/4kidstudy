@@ -22,27 +22,19 @@ export async function getExercise(id: number) {
   return payload;
 }
 
-function cleanExerciseData(data: CreateExerciseFormData) {
-  // Remove undefined values from the main object
-  const cleanedData: any = {};
-  
-  Object.entries(data).forEach(([key, value]) => {
-    if (value !== undefined) {
-      cleanedData[key] = value;
-    }
-  });
+/** Copy of `obj` without keys whose value is `undefined`. */
+function omitUndefined<T extends object>(obj: T): T {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, value]) => value !== undefined),
+  ) as T;
+}
+
+function cleanExerciseData(data: CreateExerciseFormData): CreateExerciseFormData {
+  const cleanedData = omitUndefined(data);
 
   // Clean options if they exist
-  if (cleanedData.options && Array.isArray(cleanedData.options)) {
-    cleanedData.options = cleanedData.options.map((option: any) => {
-      const cleanedOption: any = {};
-      Object.entries(option).forEach(([key, value]) => {
-        if (value !== undefined) {
-          cleanedOption[key] = value;
-        }
-      });
-      return cleanedOption;
-    });
+  if (Array.isArray(cleanedData.options)) {
+    cleanedData.options = cleanedData.options.map(omitUndefined);
   }
 
   return cleanedData;

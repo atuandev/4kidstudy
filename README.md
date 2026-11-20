@@ -8,7 +8,7 @@ English-learning platform for primary-school children (grades 1–5).
 | `apps/api` | `@4kidstudy/api` | NestJS 11 + Prisma 6 + PostgreSQL API |
 | `packages/contracts` | `@4kidstudy/contracts` | API contract generated from the Prisma schema and OpenAPI document |
 | `packages/tsconfig` | `@4kidstudy/tsconfig` | Shared TypeScript bases |
-| `packages/eslint-config` | `@4kidstudy/eslint-config` | Shared ESLint configs (`base`, `nest`, `next`) |
+| `packages/eslint-config` | `@4kidstudy/eslint-config` | Shared ESLint configs (`base`, `nest`) for the API and packages. The web app lints with [oxlint](https://oxc.rs) (`apps/web/.oxlintrc.json`) |
 
 ## Requirements
 

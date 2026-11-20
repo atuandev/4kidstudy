@@ -16,7 +16,7 @@ import {
 import { CldUploadWidget } from "next-cloudinary";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, type UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 
@@ -81,6 +81,7 @@ import {
   flashcardStatusLabels,
   CreateFlashcardsFormData,
   CreateFlashcardsSchema,
+  type NewFlashcardInput,
 } from "@/schemas/flashcard";
 import { Topic } from "@/types";
 import { UPLOAD_PRESET } from "@/lib/constants";
@@ -172,6 +173,8 @@ export default function FlashcardFormPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formControl = form.control as any;
+  // Typed view of the form for bulk (topic-locked) mode.
+  const bulkForm = form as unknown as UseFormReturn<CreateFlashcardsFormData>;
 
   // Fetch topics and flashcard data on mount
   useEffect(() => {
@@ -326,8 +329,7 @@ export default function FlashcardFormPage() {
         // Create new flashcards if any
         if (newFlashcards.length > 0) {
           const cleanedNewFlashcards = newFlashcards.map((flashcard) => {
-            const cleaned: Record<string, any> = {
-              // eslint-disable-line @typescript-eslint/no-explicit-any
+            const cleaned: NewFlashcardInput = {
               term: flashcard.term,
               phonetic: flashcard.phonetic,
               meaningVi: flashcard.meaningVi,
@@ -343,10 +345,7 @@ export default function FlashcardFormPage() {
 
             return cleaned;
           });
-          await bulkCreateFlashcards(
-            bulkData.topicId,
-            cleanedNewFlashcards as any
-          ); // eslint-disable-line @typescript-eslint/no-explicit-any
+          await bulkCreateFlashcards(bulkData.topicId, cleanedNewFlashcards);
         }
 
         toast.success("Cập nhật thành công");
@@ -474,7 +473,7 @@ export default function FlashcardFormPage() {
         const wb = XLSX.read(bstr, { type: "binary" });
         const wsname = wb.SheetNames[0];
         const ws = wb.Sheets[wsname];
-        const data: any[] = XLSX.utils.sheet_to_json(ws);
+        const data = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws);
 
         const extractFileName = (path: string): string | null => {
           if (!path || typeof path !== "string") return null;
@@ -487,7 +486,7 @@ export default function FlashcardFormPage() {
         data.forEach((row) => {
           ["img", "audio"].forEach((col) => {
             if (row[col]) {
-              const fileName = extractFileName(row[col].toString());
+              const fileName = extractFileName(String(row[col]));
               if (fileName && fileName.match(/\.(png|jpg|jpeg|mp3|mp4|wav)$/i)) {
                 neededFileNames.add(fileName);
               }
@@ -586,7 +585,7 @@ export default function FlashcardFormPage() {
         }));
 
         setExistingFlashcardsCount(allFlashcards.length);
-        form.setValue("flashcards", allFlashcards as any);
+        bulkForm.setValue("flashcards", allFlashcards);
       }
 
       // Close dialog and reset
@@ -795,9 +794,7 @@ export default function FlashcardFormPage() {
 
                 {fields.map((field, index) => {
                   const isExpanded = expandedCards.has(field.id);
-                  const flashcard = form.getValues(
-                    `flashcards.${index}` as any
-                  ); // eslint-disable-line @typescript-eslint/no-explicit-any
+                  const flashcard = bulkForm.getValues(`flashcards.${index}`);
                   const hasContent = flashcard?.term || flashcard?.meaningVi;
 
                   return (

@@ -26,9 +26,9 @@ export async function changePassword(data: ChangePasswordSchemaType) {
       success: true,
       message: payload?.message || 'Đổi mật khẩu thành công',
     };
-  } catch (error: any) {
+  } catch (error) {
     const errorMessage =
-      error?.message || 'Đổi mật khẩu thất bại';
+      (error instanceof Error && error.message) || 'Đổi mật khẩu thất bại';
 
     return {
       success: false,

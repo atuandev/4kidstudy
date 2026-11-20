@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { cn, shuffleArray } from "@/lib/utils";
 import { ExerciseOption } from "@/types";
 import { useQuizStore } from "@/lib/stores/quiz-store";
@@ -37,7 +37,19 @@ export function MatchingExercise({
     leftId: number;
     rightId: number;
   } | null>(null);
-  const [hasNotifiedCompletion, setHasNotifiedCompletion] = useState(false);
+  // Which exercise (options array) completion was already reported for.
+  const notifiedForRef = useRef<ExerciseOption[] | null>(null);
+
+  // Reset state when options change (new exercise), during render.
+  const [optionsForState, setOptionsForState] = useState(options);
+  if (options !== optionsForState) {
+    setOptionsForState(options);
+    setMatches(new Map());
+    setSelectedLeft(null);
+    setSelectedRight(null);
+    setWrongMatch(null);
+    setLastMatchedPair(null);
+  }
 
 
   // Group options by matchKey to create pairs
@@ -181,8 +193,8 @@ export function MatchingExercise({
 
   // Notify parent when all matches are complete, but only once
   useEffect(() => {
-    if (isAllMatched && matches.size > 0 && !hasNotifiedCompletion && lastMatchedPair) {
-      setHasNotifiedCompletion(true);
+    if (isAllMatched && matches.size > 0 && notifiedForRef.current !== options && lastMatchedPair) {
+      notifiedForRef.current = options;
       // Use a small delay to ensure the last match animation completes
       setTimeout(() => {
         // Store both matched option IDs in the quiz store
@@ -191,17 +203,8 @@ export function MatchingExercise({
         onSelect(lastMatchedPair.leftId);
       }, 300);
     }
-  }, [isAllMatched, matches.size, hasNotifiedCompletion, lastMatchedPair, options, onSelect, selectOptions]);
+  }, [isAllMatched, matches.size, lastMatchedPair, options, onSelect, selectOptions]);
 
-  // Reset state when options change (new exercise)
-  useEffect(() => {
-    setHasNotifiedCompletion(false);
-    setMatches(new Map());
-    setSelectedLeft(null);
-    setSelectedRight(null);
-    setWrongMatch(null);
-    setLastMatchedPair(null);
-  }, [options]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">

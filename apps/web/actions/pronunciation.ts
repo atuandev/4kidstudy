@@ -16,7 +16,7 @@ export type PronunciationAssessmentResponse = {
     accuracy: number;
     errorType?: string;
   }>;
-  rawResult?: Record<string, any>;
+  rawResult?: Record<string, unknown>;
 };
 
 /**

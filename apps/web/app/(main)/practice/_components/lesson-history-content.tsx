@@ -62,39 +62,49 @@ export function LessonHistoryContent({
   const [isLoadingMostWrong, setIsLoadingMostWrong] = useState(false);
   const [isWrongSectionOpen, setIsWrongSectionOpen] = useState(true);
 
+  // When the panel opens (or the lesson changes), reset and show loaders.
+  const loadKey = isOpen ? lessonId : null;
+  const [startedLoadKey, setStartedLoadKey] = useState<number | null>(null);
+  if (loadKey !== startedLoadKey) {
+    setStartedLoadKey(loadKey);
+    if (loadKey !== null) {
+      setIsLoadingAttempts(true);
+      setIsLoadingMostWrong(true);
+      setExpandedAttemptId(null);
+      setAttemptDetails(null);
+    }
+  }
+
+  // Fetch attempts and most-wrong exercises; ignore responses after close/change.
   useEffect(() => {
-    if (isOpen) {
-      loadAttempts();
-      loadMostWrongExercises();
-    }
+    if (!isOpen) return;
+    let cancelled = false;
+
+    getUserLessonAttempts(lessonId)
+      .then((data) => {
+        if (!cancelled) setAttempts(data);
+      })
+      .catch((error) => console.error("Failed to load attempts:", error))
+      .finally(() => {
+        if (!cancelled) setIsLoadingAttempts(false);
+      });
+
+    getMostWrongExercisesByLesson(lessonId)
+      .then((data) => {
+        if (!cancelled) setMostWrongExercises(data);
+      })
+      .catch((error) => {
+        console.error("Failed to load most wrong exercises:", error);
+        if (!cancelled) setMostWrongExercises([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingMostWrong(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen, lessonId]);
-
-  async function loadAttempts() {
-    setIsLoadingAttempts(true);
-    setExpandedAttemptId(null);
-    setAttemptDetails(null);
-    try {
-      const data = await getUserLessonAttempts(lessonId);
-      setAttempts(data);
-    } catch (error) {
-      console.error("Failed to load attempts:", error);
-    } finally {
-      setIsLoadingAttempts(false);
-    }
-  }
-
-  async function loadMostWrongExercises() {
-    setIsLoadingMostWrong(true);
-    try {
-      const data = await getMostWrongExercisesByLesson(lessonId);
-      setMostWrongExercises(data);
-    } catch (error) {
-      console.error("Failed to load most wrong exercises:", error);
-      setMostWrongExercises([]);
-    } finally {
-      setIsLoadingMostWrong(false);
-    }
-  }
 
   async function handleAttemptClick(attemptId: number) {
     if (expandedAttemptId === attemptId) {

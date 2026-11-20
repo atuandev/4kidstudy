@@ -3,6 +3,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
+  // Server Component: rendered once per request/build, so reading the clock is fine.
+  // oxlint-disable-next-line react/purity
+  const year = new Date().getFullYear();
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur">
@@ -91,7 +94,7 @@ export default function Home() {
 
       <footer className="border-t">
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row">
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} 4KisStudy. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">© {year} 4KisStudy. All rights reserved.</p>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <Link href="#privacy" className="hover:underline">Privacy</Link>
             <Link href="#terms" className="hover:underline">Terms</Link>

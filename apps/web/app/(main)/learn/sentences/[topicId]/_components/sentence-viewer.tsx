@@ -10,7 +10,7 @@ import {
   ChevronRight,
   RotateCcw,
 } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import { SentenceCard } from "./sentence-card";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReviewContentFormData } from '@/schemas/learning-progress';
@@ -34,18 +34,20 @@ export function SentenceViewer({
 }: SentenceViewerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialIndex = parseInt(searchParams.get('index') || '0', 10);
-  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const indexParam = searchParams.get('index');
+  const [currentIndex, setCurrentIndex] = useState(() => parseInt(indexParam || '0', 10));
   const [pronunciationPassedIds, setPronunciationPassedIds] = useState<Set<number>>(new Set());
   const [masteredSentenceIds, setMasteredSentenceIds] = useState<Set<number>>(new Set(initialMasteredIds));
 
-  // Update index when URL changes
-  useEffect(() => {
-    const index = parseInt(searchParams.get('index') || '0', 10);
+  // Follow the URL when ?index= changes (e.g. back/forward navigation).
+  const [syncedIndexParam, setSyncedIndexParam] = useState(indexParam);
+  if (indexParam !== syncedIndexParam) {
+    setSyncedIndexParam(indexParam);
+    const index = parseInt(indexParam || '0', 10);
     if (index >= 0 && index < sentenceImages.length) {
       setCurrentIndex(index);
     }
-  }, [searchParams, sentenceImages.length]);
+  }
 
   const handlePronunciationAssessed = (sentenceId: number, passed: boolean) => {
     // Track pronunciation passed in current session

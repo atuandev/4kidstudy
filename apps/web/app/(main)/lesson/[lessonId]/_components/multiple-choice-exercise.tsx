@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
+import { useIsClient } from "@/hooks/use-is-client";
 import { cn, isValidUrl, shuffleArray } from "@/lib/utils";
 import Image from "next/image";
 import { ExerciseOption } from "@/types";
@@ -22,11 +23,12 @@ export function MultipleChoiceExercise({
   disabled,
   imageUrl,
 }: MultipleChoiceExerciseProps) {
-  const [shuffledOptions, setShuffledOptions] = useState(options);
-
-  useEffect(() => {
-    setShuffledOptions(shuffleArray(options));
-  }, [options]);
+  // Shuffle on the client only, so the server and hydration render match.
+  const isClient = useIsClient();
+  const shuffledOptions = useMemo(
+    () => (isClient ? shuffleArray(options) : options),
+    [isClient, options],
+  );
 
   return (
     <div className="space-y-6">

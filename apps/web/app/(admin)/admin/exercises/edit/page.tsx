@@ -5,10 +5,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ImageIcon, Loader2, Trash2, Upload } from "lucide-react";
-import { CldUploadWidget } from "next-cloudinary";
+import { CldUploadWidget, type CloudinaryUploadWidgetResults } from "next-cloudinary";
+import { getUploadedUrl } from "@/lib/cloudinary-upload";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { type Resolver, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -71,7 +72,9 @@ export default function EditExercisePage() {
   const exerciseId = searchParams.get("id");
 
   const form = useForm<CreateExerciseFormData>({
-    resolver: zodResolver(CreateExerciseSchema) as any,
+    // The schema's z.preprocess fields make its input type `unknown`; the
+    // parsed output is what the form holds.
+    resolver: zodResolver(CreateExerciseSchema) as Resolver<CreateExerciseFormData>,
     defaultValues: {
       lessonId: 0,
       type: "MULTIPLE_CHOICE",
@@ -110,7 +113,7 @@ export default function EditExercisePage() {
   });
 
   const exerciseType = form.watch("type");
-  const formControl = form.control as any;
+  const formControl = form.control;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -219,10 +222,11 @@ export default function EditExercisePage() {
       }
 
       toast.success("Cập nhật câu hỏi thành công");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to save exercise:", error);
 
-      const errorMessage = error?.payload?.message;
+      const errorMessage = (error as { payload?: { message?: unknown } } | null)
+        ?.payload?.message;
 
       if (typeof errorMessage === "string") {
         if (
@@ -259,28 +263,24 @@ export default function EditExercisePage() {
     }
   };
 
-  const handleImageUpload = (result: any) => {
-    if (result?.info?.secure_url) {
-      form.setValue("imageUrl", result.info.secure_url);
-    }
+  const handleImageUpload = (result: CloudinaryUploadWidgetResults) => {
+    const url = getUploadedUrl(result);
+    if (url) form.setValue("imageUrl", url);
   };
 
-  const handleAudioUpload = (result: any) => {
-    if (result?.info?.secure_url) {
-      form.setValue("audioUrl", result.info.secure_url);
-    }
+  const handleAudioUpload = (result: CloudinaryUploadWidgetResults) => {
+    const url = getUploadedUrl(result);
+    if (url) form.setValue("audioUrl", url);
   };
 
-  const handleOptionImageUpload = (result: any, index: number) => {
-    if (result?.info?.secure_url) {
-      form.setValue(`options.${index}.imageUrl`, result.info.secure_url);
-    }
+  const handleOptionImageUpload = (result: CloudinaryUploadWidgetResults, index: number) => {
+    const url = getUploadedUrl(result);
+    if (url) form.setValue(`options.${index}.imageUrl`, url);
   };
 
-  const handleOptionAudioUpload = (result: any, index: number) => {
-    if (result?.info?.secure_url) {
-      form.setValue(`options.${index}.audioUrl`, result.info.secure_url);
-    }
+  const handleOptionAudioUpload = (result: CloudinaryUploadWidgetResults, index: number) => {
+    const url = getUploadedUrl(result);
+    if (url) form.setValue(`options.${index}.audioUrl`, url);
   };
 
   const addOption = () => {

@@ -3,7 +3,7 @@
 import http from '@/lib/http';
 import { Flashcard } from '@/types';
 import { revalidatePath } from 'next/cache';
-import { CreateFlashcardFormData } from '@/schemas/flashcard';
+import { CreateFlashcardFormData, NewFlashcardInput } from '@/schemas/flashcard';
 
 export async function getFlashcards() {
   const { payload } = await http.get<Flashcard[]>('/flashcards');
@@ -29,7 +29,7 @@ export async function createFlashcard(data: CreateFlashcardFormData) {
   return payload;
 }
 
-export async function bulkCreateFlashcards(topicId: number, flashcards: Omit<CreateFlashcardFormData, 'topicId'>[]) {
+export async function bulkCreateFlashcards(topicId: number, flashcards: NewFlashcardInput[]) {
   const { payload } = await http.post<Flashcard[]>(
     '/flashcards/bulk',
     JSON.stringify({ topicId, flashcards })

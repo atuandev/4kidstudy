@@ -3,7 +3,7 @@ import { Exercise, ExerciseOption } from '@/types';
 
 type QuizStatus = 'none' | 'wrong' | 'correct';
 
-interface PronunciationScore {
+export interface PronunciationScore {
   accuracy?: number;
   fluency?: number;
   completeness?: number;
@@ -60,7 +60,7 @@ type QuizActions = {
   setStatus: (status: QuizStatus) => void;
   
   // Pronunciation
-  updatePronunciation: (state: string, score?: PronunciationScore) => void;
+  updatePronunciation: (state: string, score?: PronunciationScore | null) => void;
   resetPronunciation: () => void;
   
   // Pending state
@@ -169,7 +169,7 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
   },
 
   // Pronunciation
-  updatePronunciation: (state: string, score?: PronunciationScore) => {
+  updatePronunciation: (state: string, score?: PronunciationScore | null) => {
     set({
       pronunciation: {
         state,
