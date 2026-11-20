@@ -1,4 +1,5 @@
 import http from "@/lib/http";
+import { TOPICS_CACHE_TAG, TOPICS_REVALIDATE_SECONDS } from "@/lib/data/topic-cache";
 import { GradeValue } from "@/types/grade";
 import { TopicWithProgress } from "@/types/topic-with-progress";
 import { Topic } from "@/types/topic";
@@ -40,7 +41,12 @@ export async function getTopicsWithProgress(
   // Both requests are independent, so run them together: two round-trips
   // in parallel instead of one request per topic.
   const [{ payload: topics }, { payload: progresses }] = await Promise.all([
-    http.get<Topic[]>(`/topics?grade=${grade}`),
+    // Public and the same for every user, so it is cached. It must be sent
+    // without the user's token: the token would become part of the cache key.
+    http.get<Topic[]>(`/topics?grade=${grade}`, {
+      noAuth: true,
+      next: { revalidate: TOPICS_REVALIDATE_SECONDS, tags: [TOPICS_CACHE_TAG] },
+    }),
     http.get<TopicProgress[]>(`/learning-progress/topics?grade=${grade}`),
   ]);
   if (!Array.isArray(topics) || topics.length === 0) {

@@ -3,6 +3,7 @@
 import http from "@/lib/http";
 import { Topic } from "@/types";
 import { revalidatePath } from "next/cache";
+import { expireTopicsCache } from "@/lib/data/topic-cache";
 import { CreateTopicFormData } from "@/schemas/topic";
 
 export const getTopicsByGrade = async (grade: string) => {
@@ -28,17 +29,20 @@ export const getTopics = async () => {
 export const createTopic = async (data: CreateTopicFormData) => {
   const { payload } = await http.post<Topic>("/topics", JSON.stringify(data));
   revalidatePath("/admin/topics");
+  expireTopicsCache();
   return payload;
 };
 
 export const updateTopic = async (id: number, data: CreateTopicFormData) => {
   const { payload } = await http.put<Topic>(`/topics/${id}`, JSON.stringify(data));
   revalidatePath("/admin/topics");
+  expireTopicsCache();
   return payload;
 };
 
 export const deleteTopic = async (id: number) => {
   const { payload } = await http.delete<Topic>(`/topics/${id}`);
   revalidatePath("/admin/topics");
+  expireTopicsCache();
   return payload;
 };
