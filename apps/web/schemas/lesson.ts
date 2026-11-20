@@ -59,6 +59,15 @@ export const CreateLessonSchema = z.object({
 
 export type CreateLessonFormData = z.infer<typeof CreateLessonSchema>;
 
+/** A new lesson for bulk create: no topicId/order; empty optional fields omitted. */
+export type NewLessonInput = Pick<CreateLessonFormData, "title" | "description" | "status"> &
+  Partial<
+    Pick<
+      CreateLessonFormData,
+      "theoryText" | "phoneticsNote" | "grammarNote" | "audioUrl" | "coverImage"
+    >
+  >;
+
 /**
  * Schema for lesson item in bulk create (without topicId, with optional id)
  */

@@ -72,6 +72,7 @@ import {
   lessonStatusLabels,
   CreateLessonsFormData,
   CreateLessonsSchema,
+  type NewLessonInput,
 } from "@/schemas/lesson";
 import { Topic } from "@/types";
 import { UPLOAD_PRESET } from "@/lib/constants";
@@ -300,7 +301,7 @@ export default function LessonFormPage() {
         // Create new lessons if any
         if (newLessons.length > 0) {
           const cleanedNewLessons = newLessons.map((lesson) => {
-            const cleaned: Record<string, any> = { // eslint-disable-line @typescript-eslint/no-explicit-any
+            const cleaned: NewLessonInput = {
               title: lesson.title,
               description: lesson.description,
               status: lesson.status,
@@ -316,7 +317,7 @@ export default function LessonFormPage() {
             
             return cleaned;
           });
-          await bulkCreateLessons(bulkData.topicId, cleanedNewLessons as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+          await bulkCreateLessons(bulkData.topicId, cleanedNewLessons);
         }
 
         toast.success("Cập nhật thành công");

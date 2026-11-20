@@ -2,7 +2,7 @@
 
 import http from "@/lib/http";
 import { Lesson } from "@/types";
-import { CreateLessonFormData } from "@/schemas/lesson";
+import { CreateLessonFormData, NewLessonInput } from "@/schemas/lesson";
 import { revalidatePath } from "next/cache";
 
 interface GetLessonsParams {
@@ -46,7 +46,7 @@ export async function createLesson(data: CreateLessonFormData) {
   return payload;
 }
 
-export async function bulkCreateLessons(topicId: number, lessons: Omit<CreateLessonFormData, 'topicId'>[]) {
+export async function bulkCreateLessons(topicId: number, lessons: NewLessonInput[]) {
   const { payload } = await http.post<Lesson[]>(
     "/lessons/bulk",
     JSON.stringify({ topicId, lessons })
