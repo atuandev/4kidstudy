@@ -8,6 +8,7 @@ import { FlashcardComponent } from "./flashcard";
 import { Flashcard } from "@/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReviewContentFormData } from "@/schemas/learning-progress";
+import { buildGradeHref } from "@/types/grade";
 
 interface FlashcardViewerProps {
   flashcards: Flashcard[];
@@ -106,7 +107,7 @@ export function FlashcardViewer({
                 // Navigate back to the correct grade/unit page and scroll to topic
                 const grade = currentFlashcard.topic.grade;
                 const topicId = currentFlashcard.topicId;
-                router.push(`/learn/units?grade=${grade}#topic-${topicId}`);
+                router.push(`${buildGradeHref(grade, "learn/units")}#topic-${topicId}`);
               }}
             >
               <ArrowLeft className="size-8" />

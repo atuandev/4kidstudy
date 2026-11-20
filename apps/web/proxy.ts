@@ -5,7 +5,7 @@ import { refreshAccessToken } from "./actions/auth/refresh";
 
 // Route configurations
 const ROUTES = {
-  protected: ["/learn", "/practice", "/leaderboard", "/profile"],
+  protected: ["/learn", "/practice", "/grade", "/leaderboard", "/profile"],
   admin: ["/admin"],
   auth: ["/login", "/register"],
 };

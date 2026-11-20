@@ -8,6 +8,7 @@ import { useState } from "react";
 import { SentenceCard } from "./sentence-card";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReviewContentFormData } from "@/schemas/learning-progress";
+import { buildGradeHref } from "@/types/grade";
 
 interface SentenceViewerProps {
   sentenceImages: SentenceImage[];
@@ -111,7 +112,7 @@ export function SentenceViewer({
               size="sm"
               variant="default"
               onClick={() => {
-                router.push(`/learn/units?grade=${topicGrade}#topic-${topicId}`);
+                router.push(`${buildGradeHref(topicGrade, "learn/units")}#topic-${topicId}`);
               }}
             >
               <ArrowLeft className="size-8" />

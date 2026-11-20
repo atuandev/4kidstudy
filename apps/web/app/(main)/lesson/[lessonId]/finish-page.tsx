@@ -10,12 +10,15 @@ import { useWindowSize } from "react-use";
 import { useRouter } from "next/navigation";
 import { useExerciseStatsStore } from "@/lib/stores/exercise-stats-store";
 import { useProfile } from "@/hooks/use-profile";
+import { buildGradeHref } from "@/types/grade";
 
 interface FinishPageProps {
   lessonId: number;
+  /** Grade of the finished lesson's topic, so "continue" returns to the same grade. */
+  grade?: string;
 }
 
-export default function FinishPage({ lessonId }: FinishPageProps) {
+export default function FinishPage({ lessonId, grade }: FinishPageProps) {
   const { width, height } = useWindowSize();
   const router = useRouter();
   const { getAccuracy } = useExerciseStatsStore();
@@ -85,7 +88,7 @@ export default function FinishPage({ lessonId }: FinishPageProps) {
       <Footer
         lessonId={lessonId}
         status="completed"
-        onCheck={() => router.push("/practice?grade=GRADE_1")}
+        onCheck={() => router.push(buildGradeHref(grade, "practice"))}
       />
     </div>
   );

@@ -2,8 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { parseAsString, useQueryState } from "nuqs";
+import { useParams, usePathname } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 
@@ -13,22 +12,18 @@ type SidebarItemProps = {
   href: string;
 };
 
-const buildRouteWithGrade = (href: string, grade: string) => {
-  const searchParams = new URLSearchParams();
-  searchParams.set("grade", grade);
-  return `${href}?${searchParams.toString()}`;
-};
+const GRADE_SCOPED_PREFIXES = ["/learn/units", "/practice"];
 
-const shouldAppendGrade = (href: string) => {
-  return href.startsWith("/learn") || href.startsWith("/practice");
-};
+const isGradeScoped = (href: string) =>
+  GRADE_SCOPED_PREFIXES.some((prefix) => href.startsWith(prefix));
 
 export const SidebarItem = ({ label, iconSrc, href }: SidebarItemProps) => {
   const pathname = usePathname();
-  const [selectedGrade] = useQueryState("grade", parseAsString.withDefault(""));
-  const targetHref =
-    selectedGrade && shouldAppendGrade(href) ? buildRouteWithGrade(href, selectedGrade) : href;
-  const isActive = pathname === href;
+  const { grade } = useParams<{ grade?: string }>();
+  // Keep the current grade when switching sections. Without one, the
+  // grade-less URL redirects to the student's own grade.
+  const targetHref = grade && isGradeScoped(href) ? `/grade/${grade}${href}` : href;
+  const isActive = pathname === targetHref || pathname === href;
 
   return (
     <Button

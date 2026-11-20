@@ -69,7 +69,7 @@ export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
         {incorrectAudio}
         {finishAudio}
         {correctAudio}
-        <FinishPage lessonId={lesson.id} />
+        <FinishPage lessonId={lesson.id} grade={lesson.topic.grade} />
       </>
     );
   }
@@ -95,6 +95,7 @@ export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
         unitTitle={lesson.topic.title}
         lessonTitle={lesson.title}
         profile={profile}
+        grade={lesson.topic.grade}
       />
 
       <div className="h-[calc(100vh-310px)]">

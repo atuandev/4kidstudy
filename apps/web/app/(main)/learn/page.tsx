@@ -1,6 +1,6 @@
 import { FeedWrapper } from "@/components/feed-wrapper";
 import { StickyWrapper } from "@/components/sticky-wrapper";
-import { LearnCard } from "./units/_components/learn-card";
+import { LearnCard } from "./_components/learn-card";
 
 export default function LearnPage() {
   return (
