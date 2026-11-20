@@ -4,6 +4,7 @@ import http from "@/lib/http";
 import { Sentence, SentenceImage } from "@/types";
 import { CreateSentenceImageFormData } from "@/schemas/sentence";
 import { revalidatePath } from "next/cache";
+import { expireTopicsCache } from "@/lib/data/topic-cache";
 
 export async function getSentenceImages() {
   const { payload } = await http.get<SentenceImage[]>("/sentences/images");
@@ -18,6 +19,7 @@ export async function getSentenceImagesByTopicId(topicId: number) {
 export async function deleteSentence(id: number) {
   const { payload } = await http.delete<Sentence>(`/sentences/${id}`);
   revalidatePath("/admin/sentences");
+  expireTopicsCache();
   return payload;
 }
 
@@ -29,6 +31,7 @@ export async function getSentenceImage(id: number) {
 export async function deleteSentenceImage(id: number) {
   const { payload } = await http.delete<SentenceImage>(`/sentences/images/${id}`);
   revalidatePath("/admin/sentences");
+  expireTopicsCache();
   return payload;
 }
 
@@ -59,6 +62,7 @@ export async function createSentenceImage(data: CreateSentenceImageFormData) {
     JSON.stringify(body),
   );
   revalidatePath("/admin/sentences");
+  expireTopicsCache();
   return payload;
 }
 
@@ -74,6 +78,7 @@ export async function bulkCreateSentences(
     JSON.stringify({ topicId, sentenceImages: cleanedSentenceImages }),
   );
   revalidatePath("/admin/sentences");
+  expireTopicsCache();
   return payload;
 }
 
@@ -84,6 +89,7 @@ export async function updateSentenceImage(id: number, data: Partial<CreateSenten
     JSON.stringify(body),
   );
   revalidatePath("/admin/sentences");
+  expireTopicsCache();
   return payload;
 }
 
@@ -97,5 +103,6 @@ export async function updateSentence(id: number, data: Partial<Sentence>) {
   });
   const { payload } = await http.put<Sentence>(`/sentences/${id}`, JSON.stringify(body));
   revalidatePath("/admin/sentences");
+  expireTopicsCache();
   return payload;
 }

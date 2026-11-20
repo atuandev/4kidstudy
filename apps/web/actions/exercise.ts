@@ -4,6 +4,7 @@ import http from "@/lib/http";
 import { Exercise } from "@/types";
 import { CreateExerciseFormData } from "@/schemas/exercise";
 import { revalidatePath } from "next/cache";
+import { expireTopicsCache } from "@/lib/data/topic-cache";
 
 export async function getExerciseByLessonId(lessonId: number) {
   const { payload } = await http.get<Exercise[]>(`/exercises/?lessonId=${lessonId}`);
@@ -40,6 +41,7 @@ export async function createExercise(data: CreateExerciseFormData) {
   const cleanedData = cleanExerciseData(data);
   const { payload, status } = await http.post<Exercise>("/exercises", JSON.stringify(cleanedData));
   revalidatePath("/admin/exercises");
+  expireTopicsCache();
   return { payload, status };
 }
 
@@ -50,6 +52,7 @@ export async function createManyExercises(exercises: CreateExerciseFormData[]) {
     JSON.stringify({ exercises: cleanedExercises }),
   );
   revalidatePath("/admin/exercises");
+  expireTopicsCache();
   return { payload, status };
 }
 
@@ -60,6 +63,7 @@ export async function updateExercise(id: number, data: Partial<CreateExerciseFor
     JSON.stringify(cleanedData),
   );
   revalidatePath("/admin/exercises");
+  expireTopicsCache();
   return { payload, status };
 }
 
@@ -67,6 +71,7 @@ export async function deleteExercise(id: number) {
   const payload = await http.delete<Exercise>(`/exercises/${id}`);
 
   revalidatePath("/admin/exercises");
+  expireTopicsCache();
   return payload;
 }
 
@@ -78,5 +83,6 @@ export async function importExercisesFromCsv(formData: FormData) {
 
   revalidatePath("/admin/exercises");
   revalidatePath("/admin/lessons");
+  expireTopicsCache();
   return payload;
 }

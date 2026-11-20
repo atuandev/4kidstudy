@@ -1,5 +1,8 @@
 import { cookies } from "next/headers";
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
+
+import { TOPICS_CACHE_TAG } from "@/lib/data/topic-cache";
 
 /**
  * Forwards admin Excel/asset imports to the API with the admin's access token.
@@ -38,6 +41,12 @@ export async function POST(
     // Stream the upload instead of buffering it.
     duplex: "half",
   } as RequestInit & { duplex: "half" });
+
+  // Imports add flashcards, sentences or exercises, which the cached topic
+  // list counts. Expire it now (route handlers can't use updateTag).
+  if (upstream.ok) {
+    revalidateTag(TOPICS_CACHE_TAG, { expire: 0 });
+  }
 
   return new NextResponse(upstream.body, {
     status: upstream.status,
