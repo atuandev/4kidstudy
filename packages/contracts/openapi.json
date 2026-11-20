@@ -3443,6 +3443,53 @@
         ]
       }
     },
+    "/api/learning-progress/topics": {
+      "get": {
+        "operationId": "LearningProgressController_getTopicsProgress",
+        "parameters": [
+          {
+            "name": "grade",
+            "required": true,
+            "in": "query",
+            "description": "Grade whose topics to return progress for",
+            "schema": {
+              "example": "GRADE_1",
+              "type": "string",
+              "enum": [
+                "GRADE_1",
+                "GRADE_2",
+                "GRADE_3",
+                "GRADE_4",
+                "GRADE_5"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TopicProgressResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Learning Progress"
+        ]
+      }
+    },
     "/api/learning-progress/topic/{topicId}": {
       "get": {
         "operationId": "LearningProgressController_getTopicProgress",

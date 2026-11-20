@@ -511,53 +511,51 @@ export class LearningProgressService {
     userId: number,
     topicWhere: Prisma.TopicWhereInput,
   ): Promise<TopicProgressResponseDto[]> {
-    const [topics, flashcards, sentenceImages, progresses] = await Promise.all(
-      [
-        this.prisma.topic.findMany({
-          where: topicWhere,
-          orderBy: [{ order: 'asc' }],
-          select: { id: true },
-        }),
-        this.prisma.flashcard.findMany({
-          where: { isActive: true, topic: topicWhere },
-          orderBy: [{ topicId: 'asc' }, { order: 'asc' }],
-          select: { id: true, topicId: true },
-        }),
-        this.prisma.sentenceImage.findMany({
-          where: { isActive: true, topic: topicWhere },
-          orderBy: [{ topicId: 'asc' }, { order: 'asc' }],
-          select: {
-            id: true,
-            topicId: true,
-            sentences: { where: { isActive: true }, select: { id: true } },
-          },
-        }),
-        this.prisma.learningProgress.findMany({
-          where: {
-            userId,
-            OR: [
-              {
-                contentType: LearningContentType.FLASHCARD,
-                flashcard: { isActive: true, topic: topicWhere },
+    const [topics, flashcards, sentenceImages, progresses] = await Promise.all([
+      this.prisma.topic.findMany({
+        where: topicWhere,
+        orderBy: [{ order: 'asc' }],
+        select: { id: true },
+      }),
+      this.prisma.flashcard.findMany({
+        where: { isActive: true, topic: topicWhere },
+        orderBy: [{ topicId: 'asc' }, { order: 'asc' }],
+        select: { id: true, topicId: true },
+      }),
+      this.prisma.sentenceImage.findMany({
+        where: { isActive: true, topic: topicWhere },
+        orderBy: [{ topicId: 'asc' }, { order: 'asc' }],
+        select: {
+          id: true,
+          topicId: true,
+          sentences: { where: { isActive: true }, select: { id: true } },
+        },
+      }),
+      this.prisma.learningProgress.findMany({
+        where: {
+          userId,
+          OR: [
+            {
+              contentType: LearningContentType.FLASHCARD,
+              flashcard: { isActive: true, topic: topicWhere },
+            },
+            {
+              contentType: LearningContentType.SENTENCE,
+              sentence: {
+                isActive: true,
+                sentenceImage: { isActive: true, topic: topicWhere },
               },
-              {
-                contentType: LearningContentType.SENTENCE,
-                sentence: {
-                  isActive: true,
-                  sentenceImage: { isActive: true, topic: topicWhere },
-                },
-              },
-            ],
-          },
-          select: {
-            contentType: true,
-            isMastered: true,
-            flashcardId: true,
-            sentenceId: true,
-          },
-        }),
-      ],
-    );
+            },
+          ],
+        },
+        select: {
+          contentType: true,
+          isMastered: true,
+          flashcardId: true,
+          sentenceId: true,
+        },
+      }),
+    ]);
 
     return topics.map((topic) =>
       buildTopicProgress(
