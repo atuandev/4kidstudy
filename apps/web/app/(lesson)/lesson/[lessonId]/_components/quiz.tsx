@@ -15,6 +15,7 @@ import { Header } from "./header";
 import { QuestionBubble } from "./question-bubble";
 import AudioPlayer from "./audio-player";
 import FinishPage from "../finish-page";
+import { ResumeDialog } from "./resume-dialog";
 import { useQuizAudio, useQuizLogic, useQuizSession, useQuizDuration } from "../_hooks";
 import { useQuizStore } from "@/lib/stores/quiz-store";
 import { useExerciseStatsStore } from "@/lib/stores/exercise-stats-store";
@@ -70,7 +71,8 @@ export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
   const { correctAudio, incorrectAudio, finishAudio, playCorrect, playIncorrect } = useQuizAudio();
 
   // Session management
-  const { isReady } = useQuizSession({
+  const { isReady, savedProgress, resume, restart } = useQuizSession({
+    userId: profile.id,
     lessonId: lesson.id,
     exercises: lessonExercises,
   });
@@ -120,7 +122,7 @@ export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
         {incorrectAudio}
         {finishAudio}
         {correctAudio}
-        <FinishPage lessonId={lesson.id} grade={lesson.topic.grade} />
+        <FinishPage userId={profile.id} lessonId={lesson.id} grade={lesson.topic.grade} />
       </>
     );
   }
@@ -136,6 +138,15 @@ export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
       {incorrectAudio}
       {correctAudio}
       {finishAudio}
+
+      {savedProgress && (
+        <ResumeDialog
+          progress={savedProgress}
+          totalExercises={exercises.length}
+          onResume={resume}
+          onRestart={restart}
+        />
+      )}
 
       <Header
         currentExercise={activeIndex + 1}

@@ -5,15 +5,18 @@ import { submitAttempt } from "@/actions/attempt";
 import { useProfile } from "@/hooks/use-profile";
 import { useQuizStore } from "@/lib/stores/quiz-store";
 import { useExerciseStatsStore } from "@/lib/stores/exercise-stats-store";
+import { clearLessonProgress } from "@/lib/lesson-progress";
 
 export type SaveStatus = "saving" | "saved" | "error";
 
 /**
  * Ends the session and saves the finished lesson in one request. Runs once
  * when the finish page mounts; `retry` sends the same answers again after a
- * failure. A saved attempt is never sent twice.
+ * failure. A saved attempt is never sent twice. Once saved, the lesson's
+ * resumable progress is cleared; until then it stays, so a learner who leaves
+ * after a failed save comes back to this page and it tries again.
  */
-export function useSaveAttempt(lessonId: number) {
+export function useSaveAttempt(userId: number, lessonId: number) {
   const { fetchProfile } = useProfile();
   // A lesson with no answers has nothing to save.
   const [status, setStatus] = useState<SaveStatus>(() =>
@@ -30,6 +33,7 @@ export function useSaveAttempt(lessonId: number) {
       answers: useQuizStore.getState().answers,
     }).then(
       () => {
+        clearLessonProgress(userId, lessonId);
         setStatus("saved");
         // XP and streak changed on the server.
         void fetchProfile();
@@ -40,7 +44,7 @@ export function useSaveAttempt(lessonId: number) {
         setStatus("error");
       },
     );
-  }, [lessonId, fetchProfile]);
+  }, [userId, lessonId, fetchProfile]);
 
   useEffect(() => {
     // Stop the clock once, before the first save.

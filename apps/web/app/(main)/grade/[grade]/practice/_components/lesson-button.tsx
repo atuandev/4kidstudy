@@ -9,6 +9,9 @@ import { Sheet } from "@/components/ui/sheet";
 import { Lesson } from "@/types";
 import { cn } from "@/lib/utils";
 import { getBestAttempt } from "@/actions/attempt";
+import { hasLessonProgress } from "@/lib/lesson-progress";
+import { useProfileStore } from "@/lib/profile-store";
+import { useIsClient } from "@/hooks/use-is-client";
 import { LessonHistoryContent } from "./lesson-history-content";
 
 type LessonButtonProps = {
@@ -21,6 +24,10 @@ type LessonButtonProps = {
 export const LessonButton = ({ id, lesson, position }: LessonButtonProps) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [hasBestAttempt, setHasBestAttempt] = useState(false);
+  const userId = useProfileStore((state) => state.profile?.id);
+  // Saved progress lives in this browser only, so read it after hydration.
+  const isClient = useIsClient();
+  const isInProgress = isClient && userId !== undefined && hasLessonProgress(userId, id);
 
   useEffect(() => {
     async function checkBestAttempt() {
@@ -54,7 +61,11 @@ export const LessonButton = ({ id, lesson, position }: LessonButtonProps) => {
             <p className="text-lg font-black leading-tight text-ink">{lesson.title}</p>
             <p className="text-sm font-bold text-ink-body">
               {lesson._count?.exercises ?? 0} câu hỏi
-              {hasBestAttempt ? <span className="text-forest"> · Đã hoàn thành</span> : null}
+              {isInProgress ? (
+                <span className="text-sun-ink"> · Đang làm dở</span>
+              ) : hasBestAttempt ? (
+                <span className="text-forest"> · Đã hoàn thành</span>
+              ) : null}
             </p>
           </div>
         </div>
@@ -65,7 +76,7 @@ export const LessonButton = ({ id, lesson, position }: LessonButtonProps) => {
             Lịch sử
           </Button>
           <Button asChild variant="secondary">
-            <Link href={`/lesson/${id}`}>Vào luyện tập</Link>
+            <Link href={`/lesson/${id}`}>{isInProgress ? "Làm tiếp" : "Vào luyện tập"}</Link>
           </Button>
         </div>
       </div>
