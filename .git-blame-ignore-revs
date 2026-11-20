@@ -1,0 +1,5 @@
+# Mechanical formatting commits. Use: git config blame.ignoreRevsFile .git-blame-ignore-revs
+# (GitHub applies this file automatically.)
+
+# style(web): format with oxfmt
+17ca56711b2c3fe9a89cfbcc60e3e8ae5b13e754
