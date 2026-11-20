@@ -19,7 +19,7 @@ export default async function PracticePage({ params }: PracticePageProps) {
   // Stats and topics are independent: fetch them together so the page
   // waits for one API round-trip, not two in a row.
   const [stats, { topics }] = await Promise.all([
-    getPracticeStatistics(),
+    getPracticeStatistics(selectedGrade.value),
     getTopicsWithProgress(selectedGrade.value),
   ]);
   return <Units stats={stats} topics={topics} gradeLabel={selectedGrade.label} />;

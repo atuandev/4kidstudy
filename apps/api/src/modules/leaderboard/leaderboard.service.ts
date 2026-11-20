@@ -49,20 +49,23 @@ export class LeaderboardService {
       select: { grade: true },
     });
 
-    // Get all streak logs for users in the same grade
-    const gradeStreakLogs = await this.prisma.streakLog.findMany({
-      where: {
-        day: {
-          gte: startDate,
+    // Active learners in the same grade (the weekly ranking's pool), and
+    // their streak logs, for the class average.
+    const gradeLearners = { grade: user?.grade, isActive: true };
+    const [gradeStreakLogs, gradeLearnerCount] = await Promise.all([
+      this.prisma.streakLog.findMany({
+        where: {
+          day: {
+            gte: startDate,
+          },
+          user: gradeLearners,
         },
-        user: {
-          grade: user?.grade,
+        orderBy: {
+          day: 'asc',
         },
-      },
-      orderBy: {
-        day: 'asc',
-      },
-    });
+      }),
+      this.prisma.user.count({ where: gradeLearners }),
+    ]);
 
     // Group by date and sum XP for each day
     const gradeXpByDate = gradeStreakLogs.reduce(
@@ -82,10 +85,20 @@ export class LeaderboardService {
       xpEarned,
     }));
 
+    const gradeTotalXP = gradeStreakLogs.reduce(
+      (sum, log) => sum + log.xpEarned,
+      0,
+    );
+
     return {
       data,
       gradeData,
       totalXP,
+      gradeLearnerCount,
+      gradeAverageXP:
+        gradeLearnerCount > 0
+          ? Math.round(gradeTotalXP / gradeLearnerCount)
+          : 0,
       days,
     };
   }
@@ -238,6 +251,7 @@ export class LeaderboardService {
         },
         user: {
           grade: user?.grade,
+          isActive: true,
         },
       },
     });
@@ -356,29 +370,45 @@ export class LeaderboardService {
       weeklyScores.map((row) => [row.userId, row._sum.totalScore ?? 0]),
     );
 
-    const leaderboardEntries: LeaderboardEntryDto[] = users.map((user) => ({
-      userId: user.id,
-      name: user.name,
-      avatarUrl: user.avatarUrl,
-      totalScore: scoreByUserId.get(user.id) ?? 0,
-      rank: 0, // Will be calculated after sorting
-    }));
+    // Only learners who scored this week are ranked; the rest are counted.
+    // Highest score first, then by name so equal scores keep a steady order.
+    const scored = users
+      .map((user) => ({
+        userId: user.id,
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+        totalScore: scoreByUserId.get(user.id) ?? 0,
+      }))
+      .filter((entry) => entry.totalScore > 0)
+      .sort(
+        (a, b) =>
+          b.totalScore - a.totalScore || a.name.localeCompare(b.name, 'vi'),
+      );
 
-    // Sort by totalScore descending and assign ranks
-    leaderboardEntries.sort((a, b) => b.totalScore - a.totalScore);
+    // Equal scores share a rank and the next rank skips: 100, 80, 80, 50
+    // ranks 1, 2, 2, 4.
+    const leaderboardEntries: LeaderboardEntryDto[] = scored.map(
+      (entry, index) => ({
+        ...entry,
+        rank:
+          index > 0 && entry.totalScore === scored[index - 1].totalScore
+            ? 0
+            : index + 1,
+      }),
+    );
     leaderboardEntries.forEach((entry, index) => {
-      entry.rank = index + 1;
+      if (entry.rank === 0) entry.rank = leaderboardEntries[index - 1].rank;
     });
 
-    // Find current user's rank
-    const currentUserEntry = leaderboardEntries.find(
-      (entry) => entry.userId === userId,
-    );
-    const currentUserRank = currentUserEntry?.rank || 0;
+    // 0 when the user has no points this week.
+    const currentUserRank =
+      leaderboardEntries.find((entry) => entry.userId === userId)?.rank ?? 0;
 
     return {
       entries: leaderboardEntries,
+      currentUserId: userId,
       currentUserRank,
+      unrankedCount: users.length - leaderboardEntries.length,
       weekStart: monday.toISOString(),
       weekEnd: nextMonday.toISOString(),
       grade: currentUser.grade,

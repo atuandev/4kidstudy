@@ -76,8 +76,9 @@ function RankRow({ entry, isYou }: RankRowProps) {
 
 export function WeeklyLeaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [currentUserRank, setCurrentUserRank] = useState<number>(0);
-  const [currentUserEntry, setCurrentUserEntry] = useState<LeaderboardEntry | null>(null);
+  const [unrankedCount, setUnrankedCount] = useState<number>(0);
   const [grade, setGrade] = useState<string>("");
   const [weekStart, setWeekStart] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -88,19 +89,22 @@ export function WeeklyLeaderboard() {
       const result = await getWeeklyLeaderboard();
       if (result) {
         setEntries(result.entries);
+        setCurrentUserId(result.currentUserId);
         setCurrentUserRank(result.currentUserRank);
+        setUnrankedCount(result.unrankedCount);
         setGrade(result.grade);
         setWeekStart(result.weekStart);
-
-        // Find current user entry
-        const userEntry = result.entries.find((entry) => entry.rank === result.currentUserRank);
-        setCurrentUserEntry(userEntry || null);
       }
       setLoading(false);
     };
 
     fetchData();
   }, []);
+
+  // Found by id, not rank: learners with equal scores share a rank.
+  const ownIndex = entries.findIndex((entry) => entry.userId === currentUserId);
+  const isRanked = ownIndex !== -1;
+  const othersUnranked = unrankedCount - (isRanked ? 0 : 1);
 
   const getWeekLabel = () => {
     if (!weekStart) return "";
@@ -152,35 +156,51 @@ export function WeeklyLeaderboard() {
           >
             Đang tải...
           </p>
-        ) : entries.length === 0 ? (
-          <div className="rounded-2xl bg-wash px-4 py-8 text-center">
-            <p className="text-base font-black text-ink">Tuần này chưa ai có điểm</p>
-            <p className="text-sm font-bold text-ink-body">Học một bài để đứng đầu bảng nhé!</p>
-          </div>
         ) : (
           <>
-            {/* Top 10 */}
-            <ol className="flex flex-col gap-1.5">
-              {entries.slice(0, 10).map((entry) => (
-                <li key={entry.userId}>
-                  <RankRow entry={entry} isYou={entry.rank === currentUserRank} />
-                </li>
-              ))}
-            </ol>
+            {entries.length === 0 ? (
+              <div className="rounded-2xl bg-wash px-4 py-8 text-center">
+                <p className="text-base font-black text-ink">Tuần này chưa ai có điểm</p>
+                <p className="text-sm font-bold text-ink-body">Học một bài để đứng đầu bảng nhé!</p>
+              </div>
+            ) : (
+              <ol className="flex flex-col gap-1.5">
+                {entries.slice(0, 10).map((entry) => (
+                  <li key={entry.userId}>
+                    <RankRow entry={entry} isYou={entry.userId === currentUserId} />
+                  </li>
+                ))}
+              </ol>
+            )}
 
-            {/* Show dots if there are more users */}
-            {entries.length > 10 && currentUserRank > 10 && (
+            {/* Dots when learners sit between the top 10 and the learner's own row. */}
+            {ownIndex > 10 && (
               <p aria-hidden="true" className="py-1 text-center text-lg font-black text-ink-body">
                 ⋮
               </p>
             )}
 
             {/* The learner's own row stays visible when they are below the top 10. */}
-            {currentUserEntry && currentUserRank > 10 && (
+            {ownIndex >= 10 && (
               <div className="mt-2 border-t-2 border-wash pt-3">
                 <p className="mb-1.5 px-3 text-sm font-extrabold text-ink-body">Hạng của bạn</p>
-                <RankRow entry={currentUserEntry} isYou />
+                <RankRow entry={entries[ownIndex]} isYou />
               </div>
+            )}
+
+            {/* No points this week: say so rather than rank the learner last. */}
+            {!isRanked && entries.length > 0 && (
+              <p className="mt-3 rounded-2xl bg-sun-wash px-3.5 py-2.5 text-sm font-bold text-sun-ink">
+                Bạn chưa có điểm tuần này. Học một bài để vào bảng nhé!
+              </p>
+            )}
+
+            {othersUnranked > 0 && (
+              <p className="mt-3 px-3 text-sm font-bold text-ink-body">
+                {entries.length > 0 ? "Còn " : ""}
+                {othersUnranked} bạn {isRanked || entries.length === 0 ? "" : "khác "}chưa luyện tập
+                tuần này
+              </p>
             )}
           </>
         )}

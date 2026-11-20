@@ -144,6 +144,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/attempts/statistics/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AttemptController_getDailyPracticeStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/attempts/statistics/most-wrong-exercises": {
         parameters: {
             query?: never;
@@ -1965,6 +1981,17 @@ export interface components {
              */
             title: string;
         };
+        DailyPracticeStatsDayDto: {
+            attemptCount: number;
+            correctCount: number;
+            date: string;
+            durationSec: number;
+            incorrectCount: number;
+        };
+        DailyPracticeStatsResponseDto: {
+            data: components["schemas"]["DailyPracticeStatsDayDto"][];
+            days: number;
+        };
         ExerciseDto: {
             /** @description URL to the audio for this exercise */
             audioUrl?: string;
@@ -2348,9 +2375,11 @@ export interface components {
             userId: number;
         };
         LeaderboardResponseDto: {
+            currentUserId: number;
             currentUserRank: number;
             entries: components["schemas"]["LeaderboardEntryDto"][];
             grade: string;
+            unrankedCount: number;
             weekEnd: string;
             weekStart: string;
         };
@@ -2533,19 +2562,46 @@ export interface components {
             total: number;
             totalPages: number;
         };
+        PracticeStatisticsByTopicDto: {
+            completeLessonCount: number;
+            correctCount: number;
+            incorrectCount: number;
+            lessonCount: number;
+            title: string;
+            topicId: number;
+        };
         PracticeStatisticsByTypeDto: {
             correctCount: number;
             correctOnSecondCount: number;
             incorrectCount: number;
             type: string;
         };
+        PracticeStatisticsRecentAttemptDto: {
+            accuracyPct: number;
+            attemptId: number;
+            /** Format: date-time */
+            createdAt: string;
+            lessonId: number;
+            lessonTitle: string;
+            maxScore: number;
+            topicTitle: string;
+            totalScore: number;
+        };
         PracticeStatisticsResponseDto: {
+            accuracyPct: number;
+            attemptCount: number;
+            byTopic: components["schemas"]["PracticeStatisticsByTopicDto"][];
             byType: components["schemas"]["PracticeStatisticsByTypeDto"][];
             completeLessonCount: number;
+            perfectLessonCount: number;
+            recentAttempts: components["schemas"]["PracticeStatisticsRecentAttemptDto"][];
+            scorePct: number;
             totalCorrectCount: number;
+            totalCorrectOnSecondCount: number;
             totalDurationSec: number;
             totalIncorrectCount: number;
             totalLessonCount: number;
+            totalSkipCount: number;
         };
         PronunciationAssessmentResponseDto: {
             /**
@@ -2796,7 +2852,9 @@ export interface components {
         StreakStatsResponseDto: {
             data: components["schemas"]["StreakStatsDataPointDto"][];
             days: number;
+            gradeAverageXP: number;
             gradeData: components["schemas"]["StreakStatsDataPointDto"][];
+            gradeLearnerCount: number;
             totalXP: number;
         };
         SubmitAttemptDto: {
@@ -3521,7 +3579,10 @@ export interface operations {
     };
     AttemptController_getPracticeStatistics: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Only count lessons in this grade. Omit to count every grade. */
+                grade?: "GRADE_1" | "GRADE_2" | "GRADE_3" | "GRADE_4" | "GRADE_5";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3534,6 +3595,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PracticeStatisticsResponseDto"];
+                };
+            };
+        };
+    };
+    AttemptController_getDailyPracticeStats: {
+        parameters: {
+            query?: {
+                /** @description How many days back to include, today counted */
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyPracticeStatsResponseDto"];
                 };
             };
         };

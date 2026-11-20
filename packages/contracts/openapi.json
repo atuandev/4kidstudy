@@ -3692,7 +3692,25 @@
     "/api/attempts/statistics": {
       "get": {
         "operationId": "AttemptController_getPracticeStatistics",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "grade",
+            "required": false,
+            "in": "query",
+            "description": "Only count lessons in this grade. Omit to count every grade.",
+            "schema": {
+              "example": "GRADE_1",
+              "type": "string",
+              "enum": [
+                "GRADE_1",
+                "GRADE_2",
+                "GRADE_3",
+                "GRADE_4",
+                "GRADE_5"
+              ]
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -3700,6 +3718,45 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PracticeStatisticsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Attempt"
+        ]
+      }
+    },
+    "/api/attempts/statistics/daily": {
+      "get": {
+        "operationId": "AttemptController_getDailyPracticeStats",
+        "parameters": [
+          {
+            "name": "days",
+            "required": false,
+            "in": "query",
+            "description": "How many days back to include, today counted",
+            "schema": {
+              "minimum": 1,
+              "maximum": 365,
+              "default": 7,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyPracticeStatsResponseDto"
                 }
               }
             }
@@ -7330,6 +7387,77 @@
           "incorrectCount"
         ]
       },
+      "PracticeStatisticsByTopicDto": {
+        "type": "object",
+        "properties": {
+          "topicId": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          },
+          "lessonCount": {
+            "type": "number"
+          },
+          "completeLessonCount": {
+            "type": "number"
+          },
+          "correctCount": {
+            "type": "number"
+          },
+          "incorrectCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "topicId",
+          "title",
+          "lessonCount",
+          "completeLessonCount",
+          "correctCount",
+          "incorrectCount"
+        ]
+      },
+      "PracticeStatisticsRecentAttemptDto": {
+        "type": "object",
+        "properties": {
+          "attemptId": {
+            "type": "number"
+          },
+          "lessonId": {
+            "type": "number"
+          },
+          "lessonTitle": {
+            "type": "string"
+          },
+          "topicTitle": {
+            "type": "string"
+          },
+          "totalScore": {
+            "type": "number"
+          },
+          "maxScore": {
+            "type": "number"
+          },
+          "accuracyPct": {
+            "type": "number"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attemptId",
+          "lessonId",
+          "lessonTitle",
+          "topicTitle",
+          "totalScore",
+          "maxScore",
+          "accuracyPct",
+          "createdAt"
+        ]
+      },
       "PracticeStatisticsResponseDto": {
         "type": "object",
         "properties": {
@@ -7337,6 +7465,12 @@
             "type": "number"
           },
           "totalLessonCount": {
+            "type": "number"
+          },
+          "perfectLessonCount": {
+            "type": "number"
+          },
+          "attemptCount": {
             "type": "number"
           },
           "totalDurationSec": {
@@ -7348,20 +7482,97 @@
           "totalIncorrectCount": {
             "type": "number"
           },
+          "totalSkipCount": {
+            "type": "number"
+          },
+          "totalCorrectOnSecondCount": {
+            "type": "number"
+          },
+          "accuracyPct": {
+            "type": "number"
+          },
+          "scorePct": {
+            "type": "number"
+          },
           "byType": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PracticeStatisticsByTypeDto"
+            }
+          },
+          "byTopic": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PracticeStatisticsByTopicDto"
+            }
+          },
+          "recentAttempts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PracticeStatisticsRecentAttemptDto"
             }
           }
         },
         "required": [
           "completeLessonCount",
           "totalLessonCount",
+          "perfectLessonCount",
+          "attemptCount",
           "totalDurationSec",
           "totalCorrectCount",
           "totalIncorrectCount",
-          "byType"
+          "totalSkipCount",
+          "totalCorrectOnSecondCount",
+          "accuracyPct",
+          "scorePct",
+          "byType",
+          "byTopic",
+          "recentAttempts"
+        ]
+      },
+      "DailyPracticeStatsDayDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "attemptCount": {
+            "type": "number"
+          },
+          "durationSec": {
+            "type": "number"
+          },
+          "correctCount": {
+            "type": "number"
+          },
+          "incorrectCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "attemptCount",
+          "durationSec",
+          "correctCount",
+          "incorrectCount"
+        ]
+      },
+      "DailyPracticeStatsResponseDto": {
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "number"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailyPracticeStatsDayDto"
+            }
+          }
+        },
+        "required": [
+          "days",
+          "data"
         ]
       },
       "MostWrongExerciseStatsDto": {
@@ -7956,6 +8167,12 @@
           "totalXP": {
             "type": "number"
           },
+          "gradeLearnerCount": {
+            "type": "number"
+          },
+          "gradeAverageXP": {
+            "type": "number"
+          },
           "days": {
             "type": "number"
           }
@@ -7964,6 +8181,8 @@
           "data",
           "gradeData",
           "totalXP",
+          "gradeLearnerCount",
+          "gradeAverageXP",
           "days"
         ]
       },
@@ -8082,7 +8301,13 @@
               "$ref": "#/components/schemas/LeaderboardEntryDto"
             }
           },
+          "currentUserId": {
+            "type": "number"
+          },
           "currentUserRank": {
+            "type": "number"
+          },
+          "unrankedCount": {
             "type": "number"
           },
           "weekStart": {
@@ -8097,7 +8322,9 @@
         },
         "required": [
           "entries",
+          "currentUserId",
           "currentUserRank",
+          "unrankedCount",
           "weekStart",
           "weekEnd",
           "grade"

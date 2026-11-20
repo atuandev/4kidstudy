@@ -19,6 +19,9 @@ import {
   CompleteAttemptDto,
   SubmitAttemptDto,
   GetAttemptsQueryDto,
+  GetPracticeStatisticsQueryDto,
+  GetDailyPracticeStatsQueryDto,
+  DailyPracticeStatsResponseDto,
   AttemptResponseDto,
   PaginatedAttemptsResponseDto,
   AttemptDetailResponseDto,
@@ -151,16 +154,32 @@ export class AttemptController {
 
   /**
    * Get user's practice statistics
-   * GET /attempts/statistics
+   * GET /attempts/statistics?grade=GRADE_1
    */
   @Get('statistics')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async getPracticeStatistics(
     @Request() req: any,
+    @Query() query: GetPracticeStatisticsQueryDto,
   ): Promise<PracticeStatisticsResponseDto> {
     const userId = req.user.id;
-    return this.attemptService.getPracticeStatistics(userId);
+    return this.attemptService.getPracticeStatistics(userId, query.grade);
+  }
+
+  /**
+   * Get the user's practice day by day, and per exercise type, over N days
+   * GET /attempts/statistics/daily?days=7
+   */
+  @Get('statistics/daily')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async getDailyPracticeStats(
+    @Request() req: any,
+    @Query() query: GetDailyPracticeStatsQueryDto,
+  ): Promise<DailyPracticeStatsResponseDto> {
+    const userId = req.user.id;
+    return this.attemptService.getDailyPracticeStats(userId, query.days ?? 7);
   }
 
   /**

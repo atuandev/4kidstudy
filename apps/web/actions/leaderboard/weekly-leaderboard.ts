@@ -13,8 +13,13 @@ export interface LeaderboardEntry {
 }
 
 export interface WeeklyLeaderboardResponse {
+  /** Learners with points this week, highest first; equal scores share a rank. */
   entries: LeaderboardEntry[];
+  currentUserId: number;
+  /** 0 when the user has no points this week. */
   currentUserRank: number;
+  /** Learners in the grade with no points this week, the user included. */
+  unrankedCount: number;
   weekStart: string;
   weekEnd: string;
   grade: GradeValue;

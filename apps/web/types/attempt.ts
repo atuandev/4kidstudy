@@ -1,4 +1,4 @@
-import { Exercise } from "./exercise";
+import { Exercise, ExerciseType } from "./exercise";
 
 export type PronunciationScore = {
   accuracy?: number;
@@ -66,19 +66,55 @@ export type SubmitAttemptRequest = {
 };
 
 export interface PracticeStatisticsByType {
-  type: string;
+  type: ExerciseType;
   correctCount: number;
   correctOnSecondCount: number;
+  /** Answers that were not right, skipped ones included. */
   incorrectCount: number;
 }
 
+export interface PracticeStatisticsByTopic {
+  topicId: number;
+  title: string;
+  lessonCount: number;
+  completeLessonCount: number;
+  correctCount: number;
+  incorrectCount: number;
+}
+
+export interface PracticeStatisticsRecentAttempt {
+  attemptId: number;
+  lessonId: number;
+  lessonTitle: string;
+  topicTitle: string;
+  totalScore: number;
+  maxScore: number;
+  accuracyPct: number;
+  createdAt: string;
+}
+
+/** Finished lessons only, on the lessons the practice page lists for one grade. */
 export interface PracticeStatistics {
   completeLessonCount: number;
   totalLessonCount: number;
+  /** Lessons with at least one full-score attempt. */
+  perfectLessonCount: number;
+  /** Finished attempts, retries included. */
+  attemptCount: number;
   totalDurationSec: number;
   totalCorrectCount: number;
+  /** Answers that were not right, skipped ones included. */
   totalIncorrectCount: number;
+  totalSkipCount: number;
+  totalCorrectOnSecondCount: number;
+  /** 0-100 */
+  accuracyPct: number;
+  /** Points earned out of points possible, 0-100. */
+  scorePct: number;
   byType: PracticeStatisticsByType[];
+  byTopic: PracticeStatisticsByTopic[];
+  /** Newest first. */
+  recentAttempts: PracticeStatisticsRecentAttempt[];
 }
 
 export interface MostWrongExerciseStats {
@@ -88,4 +124,20 @@ export interface MostWrongExerciseStats {
   firstWrongCount: number;
   secondWrongCount: number;
   totalWrongCount: number;
+}
+
+export interface DailyPracticeStatsDay {
+  /** YYYY-MM-DD in Vietnam time. */
+  date: string;
+  attemptCount: number;
+  durationSec: number;
+  correctCount: number;
+  /** Answers that were not right, skipped ones included. */
+  incorrectCount: number;
+}
+
+/** Practice over the last N days: every day, zeros included. */
+export interface DailyPracticeStats {
+  days: number;
+  data: DailyPracticeStatsDay[];
 }

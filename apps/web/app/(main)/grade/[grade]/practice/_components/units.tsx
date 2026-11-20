@@ -13,6 +13,10 @@ interface UnitsProps {
 }
 
 export default function Units({ stats, topics, gradeLabel }: UnitsProps) {
+  const completedByTopic = new Map(
+    stats.byTopic.map((topic) => [topic.topicId, topic.completeLessonCount]),
+  );
+
   return (
     <div className="grid gap-x-6 gap-y-4 pb-10 lg:grid-cols-[minmax(0,1fr)_320px] xl:gap-x-8">
       <PageHeading
@@ -35,16 +39,18 @@ export default function Units({ stats, topics, gradeLabel }: UnitsProps) {
           <ul className="flex flex-col gap-4">
             {topics.map((topic) => (
               <li key={topic.id}>
-                <Unit topic={topic} lessons={topic.lessons} />
+                <Unit
+                  topic={topic}
+                  lessons={topic.lessons}
+                  completedCount={completedByTopic.get(topic.id) ?? 0}
+                />
               </li>
             ))}
           </ul>
         )}
       </section>
       <aside className="mt-2 lg:mt-0" aria-label="Thống kê luyện tập">
-        <div className="lg:sticky lg:top-6">
-          <AttemptStatistics stats={stats} />
-        </div>
+        <AttemptStatistics stats={stats} />
       </aside>
     </div>
   );
