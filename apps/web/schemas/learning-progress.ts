@@ -1,9 +1,9 @@
-import { z } from 'zod';
-import { LearningContentType } from '@4kidstudy/contracts';
+import { z } from "zod";
+import { LearningContentType } from "@4kidstudy/contracts";
 
 export const CreateLearningProgressSchema = z.object({
   contentType: z.enum(LearningContentType, {
-    message: 'Loại nội dung là bắt buộc',
+    message: "Loại nội dung là bắt buộc",
   }),
   flashcardId: z
     .number()
@@ -21,7 +21,7 @@ export const CreateLearningProgressSchema = z.object({
 
 export const ReviewContentSchema = z.object({
   contentType: z.enum(LearningContentType, {
-    message: 'Loại nội dung là bắt buộc',
+    message: "Loại nội dung là bắt buộc",
   }),
   flashcardId: z
     .number()
@@ -38,7 +38,5 @@ export const ReviewContentSchema = z.object({
   isMastered: z.boolean().optional(),
 });
 
-export type CreateLearningProgressFormData = z.infer<
-  typeof CreateLearningProgressSchema
->;
+export type CreateLearningProgressFormData = z.infer<typeof CreateLearningProgressSchema>;
 export type ReviewContentFormData = z.infer<typeof ReviewContentSchema>;

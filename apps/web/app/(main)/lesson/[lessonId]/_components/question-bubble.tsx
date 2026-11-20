@@ -7,20 +7,8 @@ type QuestionBubbleProps = {
 export const QuestionBubble = ({ question }: QuestionBubbleProps) => {
   return (
     <div className="pb-4 flex items-center gap-x-4">
-      <Image
-        src="/mascot.svg"
-        alt="Mascot"
-        height={60}
-        width={60}
-        className="hidden lg:block"
-      />
-      <Image
-        src="/mascot.svg"
-        alt="Mascot"
-        height={40}
-        width={40}
-        className="block lg:hidden"
-      />
+      <Image src="/mascot.svg" alt="Mascot" height={60} width={60} className="hidden lg:block" />
+      <Image src="/mascot.svg" alt="Mascot" height={40} width={40} className="block lg:hidden" />
 
       {question && (
         <div className="relative rounded-xl border-2 px-4 py-2 text-base lg:text-2xl">

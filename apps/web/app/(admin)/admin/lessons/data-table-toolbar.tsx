@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
-import { Table } from '@tanstack/react-table';
+import { useEffect, useState } from "react";
+import { X } from "lucide-react";
+import { Table } from "@tanstack/react-table";
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { DataTableViewOptions } from '../_components/data-table-view-options';
-import { DataTableFacetedFilter } from '../_components/data-table-faceted-filter';
-import { Topic } from '@/types';
-import { getTopicsByGrade } from '@/actions/topic';
-import { useLessonFormStore } from '@/lib/stores/lesson-form-store';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { DataTableViewOptions } from "../_components/data-table-view-options";
+import { DataTableFacetedFilter } from "../_components/data-table-faceted-filter";
+import { Topic } from "@/types";
+import { getTopicsByGrade } from "@/actions/topic";
+import { useLessonFormStore } from "@/lib/stores/lesson-form-store";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -18,55 +18,53 @@ interface DataTableToolbarProps<TData> {
 
 const grades = [
   {
-    value: 'GRADE_1',
-    label: 'Lớp 1',
+    value: "GRADE_1",
+    label: "Lớp 1",
   },
   {
-    value: 'GRADE_2',
-    label: 'Lớp 2',
+    value: "GRADE_2",
+    label: "Lớp 2",
   },
   {
-    value: 'GRADE_3',
-    label: 'Lớp 3',
+    value: "GRADE_3",
+    label: "Lớp 3",
   },
   {
-    value: 'GRADE_4',
-    label: 'Lớp 4',
+    value: "GRADE_4",
+    label: "Lớp 4",
   },
   {
-    value: 'GRADE_5',
-    label: 'Lớp 5',
+    value: "GRADE_5",
+    label: "Lớp 5",
   },
 ];
 
 const statuses = [
   {
-    value: 'PUBLISHED',
-    label: 'Hoạt động',
+    value: "PUBLISHED",
+    label: "Hoạt động",
   },
   {
-    value: 'DRAFT',
-    label: 'Bản nháp',
+    value: "DRAFT",
+    label: "Bản nháp",
   },
   {
-    value: 'ARCHIVED',
-    label: 'Không hoạt động',
+    value: "ARCHIVED",
+    label: "Không hoạt động",
   },
 ];
 
-export function DataTableToolbar<TData>({
-  table,
-}: DataTableToolbarProps<TData>) {
+export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
   const [isLoadingTopics, setIsLoadingTopics] = useState(false);
   const { setSelectedGrade, setSelectedTopicId } = useLessonFormStore();
 
-  const gradeColumn = table.getColumn('grade');
+  const gradeColumn = table.getColumn("grade");
   const selectedGrades = (gradeColumn?.getFilterValue() as string[]) ?? [];
   const hasSelectedGrade = selectedGrades.length > 0;
 
-  const topicColumn = table.getColumn('topicId');
+  const topicColumn = table.getColumn("topicId");
   const selectedTopicIds = (topicColumn?.getFilterValue() as string[]) ?? [];
 
   // Update store when grade filter changes
@@ -76,7 +74,7 @@ export function DataTableToolbar<TData>({
     } else {
       setSelectedGrade(null);
     }
-  }, [selectedGrades.join(','), setSelectedGrade]);
+  }, [selectedGrades.join(","), setSelectedGrade]);
 
   // Update store when topic filter changes
   useEffect(() => {
@@ -85,13 +83,13 @@ export function DataTableToolbar<TData>({
     } else {
       setSelectedTopicId(null);
     }
-  }, [selectedTopicIds.join(','), setSelectedTopicId]);
+  }, [selectedTopicIds.join(","), setSelectedTopicId]);
 
   useEffect(() => {
     const fetchTopicsByGrade = async () => {
       if (!hasSelectedGrade) {
         setFilteredTopics([]);
-        table.getColumn('topicId')?.setFilterValue(undefined);
+        table.getColumn("topicId")?.setFilterValue(undefined);
         return;
       }
 
@@ -104,11 +102,11 @@ export function DataTableToolbar<TData>({
         }
 
         const uniqueTopics = Array.from(
-          new Map(allTopics.map((topic) => [topic.id, topic])).values()
+          new Map(allTopics.map((topic) => [topic.id, topic])).values(),
         );
         setFilteredTopics(uniqueTopics);
       } catch (error) {
-        console.error('Error fetching topics by grade:', error);
+        console.error("Error fetching topics by grade:", error);
         setFilteredTopics([]);
       } finally {
         setIsLoadingTopics(false);
@@ -116,7 +114,7 @@ export function DataTableToolbar<TData>({
     };
 
     fetchTopicsByGrade();
-  }, [selectedGrades.join(','), hasSelectedGrade, table]);
+  }, [selectedGrades.join(","), hasSelectedGrade, table]);
 
   const topicOptions = filteredTopics.map((topic) => ({
     value: String(topic.id),
@@ -134,48 +132,36 @@ export function DataTableToolbar<TData>({
       <div className="flex flex-1 items-center space-x-2">
         <Input
           placeholder="Tìm kiếm ID..."
-          value={(table.getColumn('id')?.getFilterValue() as string) ?? ''}
-          onChange={(event) =>
-            table.getColumn('id')?.setFilterValue(event.target.value)
-          }
+          value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
+          onChange={(event) => table.getColumn("id")?.setFilterValue(event.target.value)}
           className="h-8 w-[100px] lg:w-[150px]"
         />
         <Input
           placeholder="Tìm kiếm tiêu đề..."
-          value={(table.getColumn('title')?.getFilterValue() as string) ?? ''}
-          onChange={(event) =>
-            table.getColumn('title')?.setFilterValue(event.target.value)
-          }
+          value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
+          onChange={(event) => table.getColumn("title")?.setFilterValue(event.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        {table.getColumn('grade') && (
-          <DataTableFacetedFilter
-            column={table.getColumn('grade')}
-            title="Lớp"
-            options={grades}
-          />
+        {table.getColumn("grade") && (
+          <DataTableFacetedFilter column={table.getColumn("grade")} title="Lớp" options={grades} />
         )}
-        {table.getColumn('topicId') && (
+        {table.getColumn("topicId") && (
           <DataTableFacetedFilter
-            column={table.getColumn('topicId')}
+            column={table.getColumn("topicId")}
             title="Chủ đề"
             options={topicOptions}
             disabled={!hasSelectedGrade || isLoadingTopics}
           />
         )}
-        {table.getColumn('status') && (
+        {table.getColumn("status") && (
           <DataTableFacetedFilter
-            column={table.getColumn('status')}
+            column={table.getColumn("status")}
             title="Trạng thái"
             options={statuses}
           />
         )}
         {isFiltered && (
-          <Button
-            variant="dangerOutline"
-            onClick={handleResetFilters}
-            className="h-8 px-2 lg:px-3"
-          >
+          <Button variant="dangerOutline" onClick={handleResetFilters} className="h-8 px-2 lg:px-3">
             Xoá bộ lọc
             <X className="ml-2 h-4 w-4" />
           </Button>
@@ -185,4 +171,3 @@ export function DataTableToolbar<TData>({
     </div>
   );
 }
-

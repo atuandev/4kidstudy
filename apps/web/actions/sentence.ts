@@ -1,19 +1,17 @@
-'use server';
+"use server";
 
-import http from '@/lib/http';
-import { Sentence, SentenceImage } from '@/types';
-import { CreateSentenceImageFormData } from '@/schemas/sentence';
-import { revalidatePath } from 'next/cache';
+import http from "@/lib/http";
+import { Sentence, SentenceImage } from "@/types";
+import { CreateSentenceImageFormData } from "@/schemas/sentence";
+import { revalidatePath } from "next/cache";
 
 export async function getSentenceImages() {
-  const { payload } = await http.get<SentenceImage[]>('/sentences/images');
+  const { payload } = await http.get<SentenceImage[]>("/sentences/images");
   return payload;
 }
 
 export async function getSentenceImagesByTopicId(topicId: number) {
-  const { payload } = await http.get<SentenceImage[]>(
-    `/sentences/images/topic/${topicId}`
-  );
+  const { payload } = await http.get<SentenceImage[]>(`/sentences/images/topic/${topicId}`);
   return payload;
 }
 
@@ -30,7 +28,7 @@ export async function getSentenceImage(id: number) {
 
 export async function deleteSentenceImage(id: number) {
   const { payload } = await http.delete<SentenceImage>(`/sentences/images/${id}`);
-  revalidatePath('/admin/sentences');
+  revalidatePath("/admin/sentences");
   return payload;
 }
 
@@ -57,56 +55,47 @@ function cleanSentenceImageData(data: CreateSentenceImageFormData) {
 export async function createSentenceImage(data: CreateSentenceImageFormData) {
   const body = cleanSentenceImageData(data);
   const { payload } = await http.post<SentenceImage>(
-    '/sentences/images/with-sentences',
-    JSON.stringify(body)
+    "/sentences/images/with-sentences",
+    JSON.stringify(body),
   );
-  revalidatePath('/admin/sentences');
+  revalidatePath("/admin/sentences");
   return payload;
 }
 
 export async function bulkCreateSentences(
   topicId: number,
-  sentenceImages: Omit<CreateSentenceImageFormData, 'topicId'>[]
+  sentenceImages: Omit<CreateSentenceImageFormData, "topicId">[],
 ) {
-  const cleanedSentenceImages = sentenceImages.map((img) => 
-    cleanSentenceImageData({ ...img, topicId } as CreateSentenceImageFormData)
+  const cleanedSentenceImages = sentenceImages.map((img) =>
+    cleanSentenceImageData({ ...img, topicId } as CreateSentenceImageFormData),
   );
   const { payload } = await http.post<SentenceImage[]>(
-    '/sentences/bulk',
-    JSON.stringify({ topicId, sentenceImages: cleanedSentenceImages })
+    "/sentences/bulk",
+    JSON.stringify({ topicId, sentenceImages: cleanedSentenceImages }),
   );
-  revalidatePath('/admin/sentences');
+  revalidatePath("/admin/sentences");
   return payload;
 }
 
-export async function updateSentenceImage(
-  id: number,
-  data: Partial<CreateSentenceImageFormData>
-) {
+export async function updateSentenceImage(id: number, data: Partial<CreateSentenceImageFormData>) {
   const body = cleanSentenceImageData(data as CreateSentenceImageFormData);
   const { payload } = await http.put<SentenceImage>(
     `/sentences/images/${id}`,
-    JSON.stringify(body)
+    JSON.stringify(body),
   );
-  revalidatePath('/admin/sentences');
+  revalidatePath("/admin/sentences");
   return payload;
 }
 
-export async function updateSentence(
-  id: number,
-  data: Partial<Sentence>
-) {
+export async function updateSentence(id: number, data: Partial<Sentence>) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const body: any = {};
   Object.entries(data).forEach(([key, value]) => {
-    if (value !== undefined && key !== 'id' && key !== 'sentenceImageId') {
+    if (value !== undefined && key !== "id" && key !== "sentenceImageId") {
       body[key] = value;
     }
   });
-  const { payload } = await http.put<Sentence>(
-    `/sentences/${id}`,
-    JSON.stringify(body)
-  );
-  revalidatePath('/admin/sentences');
+  const { payload } = await http.put<Sentence>(`/sentences/${id}`, JSON.stringify(body));
+  revalidatePath("/admin/sentences");
   return payload;
 }

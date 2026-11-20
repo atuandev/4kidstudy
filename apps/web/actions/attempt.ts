@@ -1,6 +1,6 @@
-'use server';
+"use server";
 
-import http from '@/lib/http';
+import http from "@/lib/http";
 import {
   Attempt,
   CreateAttemptRequest,
@@ -8,14 +8,14 @@ import {
   CompleteAttemptRequest,
   AttemptDetail,
   MostWrongExerciseStats,
-} from '@/types';
+} from "@/types";
 
 /**
  * Start a new lesson attempt
  */
 export async function startAttempt(lessonId: number): Promise<Attempt> {
   const body: CreateAttemptRequest = { lessonId };
-  const { payload } = await http.post<Attempt>('/attempts', JSON.stringify(body));
+  const { payload } = await http.post<Attempt>("/attempts", JSON.stringify(body));
   return payload;
 }
 
@@ -24,11 +24,11 @@ export async function startAttempt(lessonId: number): Promise<Attempt> {
  */
 export async function submitExercise(
   attemptId: number,
-  data: SubmitExerciseRequest
+  data: SubmitExerciseRequest,
 ): Promise<AttemptDetail> {
   const { payload } = await http.post<AttemptDetail>(
     `/attempts/${attemptId}/submit`,
-    JSON.stringify(data)
+    JSON.stringify(data),
   );
   return payload;
 }
@@ -38,11 +38,11 @@ export async function submitExercise(
  */
 export async function completeAttempt(
   attemptId: number,
-  data: CompleteAttemptRequest
+  data: CompleteAttemptRequest,
 ): Promise<Attempt> {
   const { payload } = await http.patch<Attempt>(
     `/attempts/${attemptId}/complete`,
-    JSON.stringify(data)
+    JSON.stringify(data),
   );
   return payload;
 }
@@ -102,5 +102,3 @@ export async function getMostWrongExercisesByLesson(
   );
   return payload;
 }
-
-

@@ -62,10 +62,7 @@ export function XPChart() {
             <BarChartIcon className="h-5 w-5 text-primary" />
             <CardTitle>Điểm XP theo chủ đề</CardTitle>
           </div>
-          <Select
-            value={days.toString()}
-            onValueChange={(value) => setDays(parseInt(value))}
-          >
+          <Select value={days.toString()} onValueChange={(value) => setDays(parseInt(value))}>
             <SelectTrigger className="w-[140px]">
               <SelectValue />
             </SelectTrigger>
@@ -80,9 +77,7 @@ export function XPChart() {
         </div>
         <div className="mt-2">
           <p className="text-2xl font-bold text-primary">{totalXP} XP</p>
-          <p className="text-sm text-muted-foreground">
-            Tổng điểm kiếm được từ bài học
-          </p>
+          <p className="text-sm text-muted-foreground">Tổng điểm kiếm được từ bài học</p>
         </div>
       </CardHeader>
       <CardContent>
@@ -111,12 +106,7 @@ export function XPChart() {
                 labelFormatter={(label) => `Chủ đề: ${label}`}
               />
               <Legend />
-              <Bar
-                dataKey="xpEarned"
-                fill="#8b5cf6"
-                name="XP kiếm được"
-                radius={[8, 8, 0, 0]}
-              />
+              <Bar dataKey="xpEarned" fill="#8b5cf6" name="XP kiếm được" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}

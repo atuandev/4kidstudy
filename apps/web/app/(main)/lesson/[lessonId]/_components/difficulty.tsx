@@ -14,9 +14,7 @@ export const Difficulty = ({ difficulty }: DifficultyProps) => {
       })}
     >
       {difficulty === 1 && <span className="text-green-600 font-bold">Dễ</span>}
-      {difficulty === 2 && (
-        <span className="text-yellow-600 font-bold">Trung bình</span>
-      )}
+      {difficulty === 2 && <span className="text-yellow-600 font-bold">Trung bình</span>}
       {difficulty === 3 && <span className="text-red-600 font-bold">Khó</span>}
     </div>
   );

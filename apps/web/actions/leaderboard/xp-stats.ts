@@ -21,14 +21,11 @@ export async function getXPStats(days: number = 7): Promise<XPStatsResponse> {
       throw new Error("Not authenticated");
     }
 
-    const response = await http.get<XPStatsResponse>(
-      `/leaderboard/xp-stats?days=${days}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    const response = await http.get<XPStatsResponse>(`/leaderboard/xp-stats?days=${days}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
 
     return response.payload;
   } catch (error) {

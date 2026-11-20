@@ -1,4 +1,4 @@
-import type { Gender, GradeLevel, UserRole } from '@4kidstudy/contracts';
+import type { Gender, GradeLevel, UserRole } from "@4kidstudy/contracts";
 
 export type { Gender, GradeLevel, UserRole };
 

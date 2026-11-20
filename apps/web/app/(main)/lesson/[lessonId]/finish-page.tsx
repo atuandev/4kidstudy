@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useIsClient } from "@/hooks/use-is-client";
 import ReactConfetti from "react-confetti";
 import { Footer } from "./_components/footer";
 import { ExerciseStatsDashboard } from "./_components/exercise-stats-dashboard";
@@ -19,18 +20,16 @@ export default function FinishPage({ lessonId }: FinishPageProps) {
   const router = useRouter();
   const { getAccuracy } = useExerciseStatsStore();
   const { fetchProfile } = useProfile();
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsClient();
 
   useEffect(() => {
-    setIsMounted(true);
-    
     async function refreshProfile() {
       await new Promise((resolve) => setTimeout(resolve, 500));
       await fetchProfile();
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await fetchProfile();
     }
-    
+
     void refreshProfile();
   }, [fetchProfile]);
 
@@ -39,10 +38,10 @@ export default function FinishPage({ lessonId }: FinishPageProps) {
     accuracy >= 90
       ? "Excellent work!"
       : accuracy >= 70
-      ? "Great job!"
-      : accuracy >= 50
-      ? "Good effort!"
-      : "Keep practicing!";
+        ? "Great job!"
+        : accuracy >= 50
+          ? "Good effort!"
+          : "Keep practicing!";
 
   const hasValidDimensions = width > 0 && height > 0 && isFinite(width) && isFinite(height);
 

@@ -64,10 +64,7 @@ export const Header = ({
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
-  const progress =
-    totalExercises > 0
-      ? Math.round((currentExercise / totalExercises) * 100)
-      : 0;
+  const progress = totalExercises > 0 ? Math.round((currentExercise / totalExercises) * 100) : 0;
 
   return (
     <header className="mx-auto flex w-full flex-col gap-y-4">
@@ -102,27 +99,20 @@ export const Header = ({
               <AlertDialogHeader>
                 <AlertDialogTitle>Bạn có chắc muốn thoát?</AlertDialogTitle>
                 <AlertDialogDescription className="text-base">
-                  Tiến trình của bạn sẽ không được lưu. Bạn sẽ phải bắt đầu lại
-                  bài học này từ đầu.
+                  Tiến trình của bạn sẽ không được lưu. Bạn sẽ phải bắt đầu lại bài học này từ đầu.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Hủy</AlertDialogCancel>
-                <AlertDialogAction onClick={handleExit}>
-                  Thoát
-                </AlertDialogAction>
+                <AlertDialogAction onClick={handleExit}>Thoát</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
 
           <div className="flex items-center gap-x-2">
-            <span className="text-xl font-bold text-slate-700">
-              {unitTitle}
-            </span>
+            <span className="text-xl font-bold text-slate-700">{unitTitle}</span>
             <span className="text-slate-400">•</span>
-            <span className="text-lg font-semibold text-slate-500">
-              {lessonTitle}
-            </span>
+            <span className="text-lg font-semibold text-slate-500">{lessonTitle}</span>
           </div>
         </div>
 
@@ -138,33 +128,25 @@ export const Header = ({
           {/* Correct Count */}
           <div className="flex items-center gap-x-1 bg-green-50 rounded-lg px-2 py-1">
             <CheckCircle2 className="h-4 w-4 text-green-500" />
-            <span className="font-medium text-xl text-green-500">
-              {correctCount}
-            </span>
+            <span className="font-medium text-xl text-green-500">{correctCount}</span>
           </div>
 
           {/* Wrong Count */}
           <div className="flex items-center gap-x-1 bg-red-50 rounded-lg px-2 py-1">
             <XCircle className="h-4 w-4 text-red-500" />
-            <span className="font-medium text-xl text-red-500">
-              {wrongCount}
-            </span>
+            <span className="font-medium text-xl text-red-500">{wrongCount}</span>
           </div>
 
           {/* Points */}
           <div className="flex items-center gap-x-1 bg-yellow-50 rounded-lg px-2 py-1">
             <Trophy className="h-4 w-4 text-yellow-500" />
-            <span className="font-medium text-yellow-500 text-xl">
-              {totalPoints}
-            </span>
+            <span className="font-medium text-yellow-500 text-xl">{totalPoints}</span>
           </div>
 
           {/* Duration */}
           <div className="flex items-center gap-x-1 text-blue-500 bg-blue-50 rounded-lg px-2 py-1">
             <Clock className="h-4 w-4" />
-            <span className="font-medium text-xl text-blue-500">
-              {formatTime(duration)}
-            </span>
+            <span className="font-medium text-xl text-blue-500">{formatTime(duration)}</span>
           </div>
         </div>
       </div>

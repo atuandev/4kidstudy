@@ -35,6 +35,6 @@ export const useProfileStore = create<ProfileState>()(
       partialize: (state) => ({
         profile: state.profile,
       }),
-    }
-  )
+    },
+  ),
 );

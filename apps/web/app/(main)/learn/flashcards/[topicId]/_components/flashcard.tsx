@@ -30,7 +30,19 @@ export function FlashcardComponent({
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [autoplayFailed, setAutoplayFailed] = useState(false);
   const [pronunciationPassed, setPronunciationPassed] = useState(isReviewed);
-  
+
+  // Reset per-card state when the flashcard changes (during render, not in an effect).
+  const cardKey = `${flashcard.id}:${flashcard.audioUrl ?? ""}`;
+  const [resetCardKey, setResetCardKey] = useState(cardKey);
+  if (cardKey !== resetCardKey) {
+    setResetCardKey(cardKey);
+    setIsFlipped(false);
+    // Only reset pronunciation status if not already reviewed
+    if (!isReviewed) {
+      setPronunciationPassed(false);
+    }
+  }
+
   const audioRef = useRef<HTMLAudioElement>(null);
   const currentPlayPromiseRef = useRef<Promise<void> | null>(null);
 
@@ -87,7 +99,6 @@ export function FlashcardComponent({
     }
   };
 
-
   // Detect user interaction
   useEffect(() => {
     const handleUserInteraction = () => {
@@ -96,14 +107,14 @@ export function FlashcardComponent({
     };
 
     // Listen for various user interactions
-    const events = ['click', 'touchstart', 'keydown'];
-    
-    events.forEach(event => {
+    const events = ["click", "touchstart", "keydown"];
+
+    events.forEach((event) => {
       document.addEventListener(event, handleUserInteraction, { once: true });
     });
 
     return () => {
-      events.forEach(event => {
+      events.forEach((event) => {
         document.removeEventListener(event, handleUserInteraction);
       });
     };
@@ -115,20 +126,13 @@ export function FlashcardComponent({
       if (flashcard.audioUrl && !isLoading) {
         // Reset autoplay failed state for new flashcard
         setAutoplayFailed(false);
-        
+
         // Add a small delay to ensure the component has fully rendered
         setTimeout(() => {
           playAudio();
         }, 300);
       }
     };
-
-    // Reset flip state when flashcard changes
-    setIsFlipped(false);
-    // Only reset pronunciation status if not already reviewed
-    if (!isReviewed) {
-      setPronunciationPassed(false);
-    }
 
     // Always try auto-play (will fail gracefully if user hasn't interacted)
     autoPlayAudio();
@@ -159,44 +163,42 @@ export function FlashcardComponent({
     setIsFlipped(!isFlipped);
   };
 
-  const handleAssessmentComplete = useCallback((score: number, passed: boolean) => {
-    // console.log(`[Flashcard ${flashcard.id}] Assessment complete:`, { score, passed });
-    setPronunciationPassed(passed);
-    onPronunciationAssessed?.(passed);
-    
-    // Record review and set isMastered = true if passed (>= 50%)
-    if (typeof onRecordReview === 'function') {
-      // console.log(`[Flashcard ${flashcard.id}] Calling reviewContent API with isMastered=${passed}...`);
-      onRecordReview({ 
-        contentType: 'FLASHCARD', 
-        flashcardId: flashcard.id,
-        sentenceId: undefined,
-        isMastered: passed // Set mastered if passed pronunciation check
-      })
-      .then((result) => {
-        // console.log(`[Flashcard ${flashcard.id}] reviewContent success:`, result);
-      })
-      .catch((error: unknown) => {
-        console.error(`[Flashcard ${flashcard.id}] record review failed:`, error);
-      });
-    } else {
-      console.warn(`[Flashcard ${flashcard.id}] onRecordReview is not a function`);
-    }
-  }, [flashcard.id, onRecordReview, onPronunciationAssessed]);
+  const handleAssessmentComplete = useCallback(
+    (score: number, passed: boolean) => {
+      // console.log(`[Flashcard ${flashcard.id}] Assessment complete:`, { score, passed });
+      setPronunciationPassed(passed);
+      onPronunciationAssessed?.(passed);
+
+      // Record review and set isMastered = true if passed (>= 50%)
+      if (typeof onRecordReview === "function") {
+        // console.log(`[Flashcard ${flashcard.id}] Calling reviewContent API with isMastered=${passed}...`);
+        onRecordReview({
+          contentType: "FLASHCARD",
+          flashcardId: flashcard.id,
+          sentenceId: undefined,
+          isMastered: passed, // Set mastered if passed pronunciation check
+        })
+          .then((result) => {
+            // console.log(`[Flashcard ${flashcard.id}] reviewContent success:`, result);
+          })
+          .catch((error: unknown) => {
+            console.error(`[Flashcard ${flashcard.id}] record review failed:`, error);
+          });
+      } else {
+        console.warn(`[Flashcard ${flashcard.id}] onRecordReview is not a function`);
+      }
+    },
+    [flashcard.id, onRecordReview, onPronunciationAssessed],
+  );
 
   return (
     <>
       <audio ref={audioRef} preload="none" />
-      <div
-        className={cn(
-          "relative w-full max-w-md mx-auto perspective-1000",
-          className
-        )}
-      >
+      <div className={cn("relative w-full max-w-md mx-auto perspective-1000", className)}>
         <Card
           className={cn(
             "relative w-full h-128 cursor-pointer transition-transform duration-500 preserve-3d",
-            isFlipped && "rotate-y-180"
+            isFlipped && "rotate-y-180",
           )}
           onClick={handleFlip}
         >
@@ -204,7 +206,7 @@ export function FlashcardComponent({
           <CardContent
             className={cn(
               "absolute inset-0 w-full h-full backface-hidden flex flex-col items-center justify-center p-6",
-              "bg-gradient-to-br from-blue-50 to-indigo-100"
+              "bg-gradient-to-br from-blue-50 to-indigo-100",
             )}
           >
             <div className="flex flex-col items-center space-y-4 text-center">
@@ -220,13 +222,9 @@ export function FlashcardComponent({
               )}
 
               <div className="flex flex-col items-center gap-2">
-                <h2 className="text-5xl font-bold text-gray-800">
-                  {flashcard.term}
-                </h2>
+                <h2 className="text-5xl font-bold text-gray-800">{flashcard.term}</h2>
 
-                <p className="text-2xl text-gray-600 font-medium">
-                  {flashcard.phonetic}
-                </p>
+                <p className="text-2xl text-gray-600 font-medium">{flashcard.phonetic}</p>
 
                 <div className="flex items-center gap-2">
                   <Button
@@ -234,7 +232,7 @@ export function FlashcardComponent({
                     variant="ghost"
                     className={cn(
                       "p-2 rounded-full hover:bg-blue-300 bg-blue-200",
-                      autoplayFailed && !hasUserInteracted && "animate-pulse ring-2 ring-blue-400"
+                      autoplayFailed && !hasUserInteracted && "animate-pulse ring-2 ring-blue-400",
                     )}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -243,14 +241,11 @@ export function FlashcardComponent({
                     disabled={isLoading || !flashcard.audioUrl}
                   >
                     <Volume2
-                      className={cn(
-                        "h-6 w-6 text-blue-600",
-                        isLoading && "animate-pulse"
-                      )}
+                      className={cn("h-6 w-6 text-blue-600", isLoading && "animate-pulse")}
                     />
                   </Button>
 
-                  <AudioRecord 
+                  <AudioRecord
                     onStopPropagation={(e) => e.stopPropagation()}
                     resetTrigger={flashcard.id}
                     targetText={flashcard.term}
@@ -270,28 +265,22 @@ export function FlashcardComponent({
           <CardContent
             className={cn(
               "absolute inset-0 w-full h-full backface-hidden rotate-y-180 flex flex-col items-center justify-center p-6",
-              "bg-gradient-to-br from-green-50 to-emerald-100"
+              "bg-gradient-to-br from-green-50 to-emerald-100",
             )}
           >
             <div className="flex flex-col items-center space-y-6 text-center">
-              <h3 className="text-4xl font-bold text-gray-800">
-                {flashcard.meaningVi}
-              </h3>
+              <h3 className="text-4xl font-bold text-gray-800">{flashcard.meaningVi}</h3>
 
               <div className="space-y-2">
                 {flashcard.exampleEn && (
                   <div className="p-2 bg-white rounded-lg shadow-sm">
-                    <p className="text-gray-600 italic">
-                      &quot;{flashcard.exampleEn}&quot;
-                    </p>
+                    <p className="text-gray-600 italic">&quot;{flashcard.exampleEn}&quot;</p>
                   </div>
                 )}
 
                 {flashcard.exampleVi && (
                   <div className="p-2 bg-white rounded-lg shadow-sm">
-                    <p className="text-gray-600 italic">
-                      &quot;{flashcard.exampleVi}&quot;
-                    </p>
+                    <p className="text-gray-600 italic">&quot;{flashcard.exampleVi}&quot;</p>
                   </div>
                 )}
               </div>

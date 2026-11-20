@@ -1,19 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  RotateCcw,
-  BookOpen,
-  ArrowLeft,
-} from "lucide-react";
+import { useState } from "react";
+import { ChevronLeft, ChevronRight, RotateCcw, BookOpen, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FlashcardComponent } from "./flashcard";
 import { Flashcard } from "@/types";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ReviewContentFormData } from '@/schemas/learning-progress';
+import { ReviewContentFormData } from "@/schemas/learning-progress";
 
 interface FlashcardViewerProps {
   flashcards: Flashcard[];
@@ -30,36 +24,30 @@ export function FlashcardViewer({
 }: FlashcardViewerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialIndex = parseInt(searchParams.get("index") || "0", 10);
-  const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const [pronunciationPassed, setPronunciationPassed] = useState(false);
-  const [masteredFlashcardIds, setMasteredFlashcardIds] = useState<Set<number>>(new Set(initialMasteredIds));
+  const indexParam = searchParams.get("index");
+  const [currentIndex, setCurrentIndex] = useState(() => parseInt(indexParam || "0", 10));
+  const [masteredFlashcardIds, setMasteredFlashcardIds] = useState<Set<number>>(
+    new Set(initialMasteredIds),
+  );
 
-  // Update index when URL changes and check if flashcard is mastered
-  useEffect(() => {
-    const index = parseInt(searchParams.get("index") || "0", 10);
+  // Follow the URL when ?index= changes (e.g. back/forward navigation).
+  const [syncedIndexParam, setSyncedIndexParam] = useState(indexParam);
+  if (indexParam !== syncedIndexParam) {
+    setSyncedIndexParam(indexParam);
+    const index = parseInt(indexParam || "0", 10);
     if (index >= 0 && index < flashcards.length) {
       setCurrentIndex(index);
-      // Check if this flashcard is already mastered
-      const currentFlashcard = flashcards[index];
-      const isMastered = masteredFlashcardIds.has(currentFlashcard?.id);
-      setPronunciationPassed(isMastered);
     }
-  }, [searchParams, flashcards, masteredFlashcardIds]);
-
-  // Check if current flashcard is mastered when index changes
-  useEffect(() => {
-    const currentFlashcard = flashcards[currentIndex];
-    const isMastered = masteredFlashcardIds.has(currentFlashcard?.id);
-    setPronunciationPassed(isMastered);
-  }, [currentIndex, flashcards, masteredFlashcardIds]);
+  }
 
   const handleNext = () => {
     if (currentIndex < flashcards.length - 1) {
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
       // Update URL to persist navigation state
-      router.replace(`/learn/flashcards/${flashcards[0].topicId}?index=${nextIndex}`, { scroll: false });
+      router.replace(`/learn/flashcards/${flashcards[0].topicId}?index=${nextIndex}`, {
+        scroll: false,
+      });
     }
   };
 
@@ -68,20 +56,17 @@ export function FlashcardViewer({
       const prevIndex = currentIndex - 1;
       setCurrentIndex(prevIndex);
       // Update URL to persist navigation state
-      router.replace(`/learn/flashcards/${flashcards[0].topicId}?index=${prevIndex}`, { scroll: false });
+      router.replace(`/learn/flashcards/${flashcards[0].topicId}?index=${prevIndex}`, {
+        scroll: false,
+      });
     }
   };
 
   const handleReset = () => {
     setCurrentIndex(0);
-    // Check if first flashcard is already mastered
-    const firstFlashcard = flashcards[0];
-    setPronunciationPassed(masteredFlashcardIds.has(firstFlashcard?.id));
   };
 
   const handlePronunciationAssessed = (passed: boolean) => {
-    setPronunciationPassed(passed);
-    
     // Update mastered status immediately if passed (for UI feedback)
     if (passed && flashcards[currentIndex]) {
       setMasteredFlashcardIds((prev) => new Set(prev).add(flashcards[currentIndex].id));
@@ -159,11 +144,7 @@ export function FlashcardViewer({
         <CardContent className="py-6">
           <div className="flex flex-col items-center gap-3 min-h-[80px]">
             <div className="flex items-center justify-center gap-4">
-              <Button
-                variant="primary"
-                onClick={handlePrevious}
-                disabled={currentIndex === 0}
-              >
+              <Button variant="primary" onClick={handlePrevious} disabled={currentIndex === 0}>
                 <ChevronLeft className="h-4 w-4" />
                 Quay lại
               </Button>
@@ -175,15 +156,22 @@ export function FlashcardViewer({
               <Button
                 variant="primary"
                 onClick={handleNext}
-                disabled={currentIndex === flashcards.length - 1 || (!pronunciationPassed && !masteredFlashcardIds.has(currentFlashcard.id))}
-                title={!pronunciationPassed && !masteredFlashcardIds.has(currentFlashcard.id) ? "Vui lòng bấm Kiểm tra và đạt ≥ 50% để tiếp tục" : ""}
+                disabled={
+                  currentIndex === flashcards.length - 1 ||
+                  !masteredFlashcardIds.has(currentFlashcard.id)
+                }
+                title={
+                  !masteredFlashcardIds.has(currentFlashcard.id)
+                    ? "Vui lòng bấm Kiểm tra và đạt ≥ 50% để tiếp tục"
+                    : ""
+                }
               >
                 Tiếp tục
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
             <div className="min-h-[24px] flex items-center justify-center">
-              {!pronunciationPassed && !masteredFlashcardIds.has(currentFlashcard.id) && (
+              {!masteredFlashcardIds.has(currentFlashcard.id) && (
                 <p className="text-sm text-orange-600 font-medium text-center">
                   ⚠️ Bấm &quot;Kiểm tra&quot; để đánh giá phát âm (cần ≥ 50% để tiếp tục)
                 </p>

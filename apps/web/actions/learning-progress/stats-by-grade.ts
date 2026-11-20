@@ -45,12 +45,10 @@ const EMPTY_STATS: GradeLearningStats = {
  * Learning statistics for the current user within one grade.
  * The API computes everything in a single request.
  */
-export async function getLearningStatsByGrade(
-  grade: GradeValue
-): Promise<GradeLearningStats> {
+export async function getLearningStatsByGrade(grade: GradeValue): Promise<GradeLearningStats> {
   try {
     const { status, payload } = await http.get<GradeLearningStats>(
-      `/learning-progress/grade-stats?grade=${grade}`
+      `/learning-progress/grade-stats?grade=${grade}`,
     );
     if (status !== 200 || !payload) {
       throw new Error(`Unexpected response ${status}`);

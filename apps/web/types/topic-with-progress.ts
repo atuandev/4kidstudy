@@ -1,5 +1,5 @@
-import { Topic } from './topic';
-import { TopicProgress } from './learning-progress';
+import { Topic } from "./topic";
+import { TopicProgress } from "./learning-progress";
 
 /**
  * TopicWithProgress interface combines topic metadata with user progress.
@@ -7,4 +7,3 @@ import { TopicProgress } from './learning-progress';
 export interface TopicWithProgress extends Topic {
   readonly progress: TopicProgress;
 }
-

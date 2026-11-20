@@ -51,6 +51,6 @@ export const useGradeStore = create<GradeState>()(
         selectedGradeData: state.selectedGradeData,
         topics: state.topics,
       }),
-    }
-  )
+    },
+  ),
 );

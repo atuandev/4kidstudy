@@ -17,21 +17,19 @@ export async function sendEmailOTP(email: string): Promise<VerifyOtpResponse> {
     JSON.stringify({ email }),
     {
       noAuth: true,
-    }
+    },
   );
 
   return payload;
 }
 
-export async function verifyOTP(
-  data: VerifyEmailSchemaType
-): Promise<VerifyOtpResponse> {
+export async function verifyOTP(data: VerifyEmailSchemaType): Promise<VerifyOtpResponse> {
   const { payload } = await http.post<VerifyOtpResponse>(
     "/email/verify-otp",
     JSON.stringify({ email: data.email, code: data.otp }),
     {
       noAuth: true,
-    }
+    },
   );
 
   // Keep the reset token server-side (httpOnly cookie) for the new-password step.

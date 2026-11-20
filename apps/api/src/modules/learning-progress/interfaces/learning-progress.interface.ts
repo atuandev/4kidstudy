@@ -25,8 +25,7 @@ export interface LearningProgressWithRelations extends LearningProgress {
 /**
  * Learning progress with the subset of relation fields we select in queries
  */
-export interface LearningProgressWithSelectedRelations
-  extends LearningProgress {
+export interface LearningProgressWithSelectedRelations extends LearningProgress {
   flashcard?: {
     id: number;
     term: string;

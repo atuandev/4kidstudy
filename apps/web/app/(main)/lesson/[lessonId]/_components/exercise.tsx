@@ -1,3 +1,4 @@
+import type { PronunciationScore } from "@/lib/stores/quiz-store";
 import { Card } from "./card";
 import { MatchingExercise } from "./matching-exercise";
 import { PronunciationExercise } from "./pronunciation-exercise";
@@ -16,7 +17,7 @@ type ExerciseProps = {
   audioUrl?: string;
   imageUrl?: string;
   prompt?: string;
-  onPronunciationStateChange?: (state: string, score?: any) => void;
+  onPronunciationStateChange?: (state: string, score?: PronunciationScore | null) => void;
 };
 
 export const Exercise = ({

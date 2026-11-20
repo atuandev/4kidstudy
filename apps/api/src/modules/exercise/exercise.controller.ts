@@ -35,7 +35,6 @@ import {
   ReorderOptionsDto,
   UpdateExerciseDto,
   UpdateOptionDto,
-  ImportCsvDto,
   ImportCsvResponseDto,
 } from './dto/index';
 import { ExerciseType } from '@prisma/client';

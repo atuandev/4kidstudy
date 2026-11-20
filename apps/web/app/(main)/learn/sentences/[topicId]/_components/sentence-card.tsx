@@ -5,12 +5,7 @@ import { SentenceImage } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Volume2, Lightbulb, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AudioRecord } from "./audio-record";
 import { AudioControl } from "@/components/audio-control";
 import { ReviewContentFormData } from "@/schemas/learning-progress";
@@ -39,22 +34,22 @@ export function SentenceCard({
   const handleAssessmentComplete = (sentenceId: number) => (score: number, passed: boolean) => {
     // console.log(`[Sentence ${sentenceId}] Assessment complete:`, { score, passed });
     onPronunciationAssessed?.(sentenceId, passed);
-    
+
     // Record review and set isMastered = true if passed (>= 50%)
-    if (typeof onRecordReview === 'function') {
+    if (typeof onRecordReview === "function") {
       // console.log(`[Sentence ${sentenceId}] Calling reviewContent API with isMastered=${passed}...`);
-      onRecordReview({ 
-        contentType: 'SENTENCE', 
+      onRecordReview({
+        contentType: "SENTENCE",
         flashcardId: undefined,
         sentenceId,
-        isMastered: passed // Set mastered if passed pronunciation check
+        isMastered: passed, // Set mastered if passed pronunciation check
       })
-      .then((result) => {
-        console.log(`[Sentence ${sentenceId}] reviewContent success:`, result);
-      })
-      .catch((error: unknown) => {
-        console.error(`[Sentence ${sentenceId}] record review failed:`, error);
-      });
+        .then((result) => {
+          console.log(`[Sentence ${sentenceId}] reviewContent success:`, result);
+        })
+        .catch((error: unknown) => {
+          console.error(`[Sentence ${sentenceId}] record review failed:`, error);
+        });
     } else {
       console.warn(`[Sentence ${sentenceId}] onRecordReview is not a function`);
     }
@@ -66,10 +61,7 @@ export function SentenceCard({
         <div className="space-y-4">
           {/* Audio Player */}
           {sentenceImage.audioUrl && (
-            <AudioControl
-              audioUrl={sentenceImage.audioUrl}
-              className="w-full px-4"
-            />
+            <AudioControl audioUrl={sentenceImage.audioUrl} className="w-full px-4" />
           )}
           {/* Image Section */}
           <div className="relative aspect-video w-full">
@@ -90,7 +82,7 @@ export function SentenceCard({
             .map((sentence) => {
               // Check if sentence is mastered (isMastered = true from backend)
               const isMastered = masteredSentenceIds.has(sentence.id);
-              
+
               return (
                 <div
                   key={sentence.id}
@@ -119,9 +111,7 @@ export function SentenceCard({
 
                       {/* Vietnamese meaning */}
                       {sentence.meaningVi && (
-                        <p className="text-lg sm:text-xl text-gray-600">
-                          {sentence.meaningVi}
-                        </p>
+                        <p className="text-lg sm:text-xl text-gray-600">{sentence.meaningVi}</p>
                       )}
                     </div>
 

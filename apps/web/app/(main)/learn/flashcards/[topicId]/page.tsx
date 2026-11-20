@@ -9,9 +9,7 @@ interface FlashcardsTopicPageProps {
   }>;
 }
 
-export default async function FlashcardsTopicPage({
-  params,
-}: FlashcardsTopicPageProps) {
+export default async function FlashcardsTopicPage({ params }: FlashcardsTopicPageProps) {
   const { topicId } = await params;
   const data = await getFlashcardsByTopic(parseInt(topicId, 10));
 
