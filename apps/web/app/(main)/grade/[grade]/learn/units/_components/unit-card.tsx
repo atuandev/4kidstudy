@@ -1,11 +1,9 @@
 "use client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TopicWithProgress } from "@/types/topic-with-progress";
 import Image from "next/image";
 import { LibraryIcon, LibrarySquareIcon } from "lucide-react";
-import { TypographyLarge } from "@/components/typography";
-import { useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -71,79 +69,106 @@ export function UnitCard({ topic }: UnitCardProps) {
     router.push(url);
     setShowDialog(false);
   };
+  // Hand-placed tilt for the cover sticker, stable per topic.
+  const tilt = topic.id % 2 === 0 ? 1 : -1;
   return (
-    <Card
+    <article
       id={`topic-${topic.id}`}
-      className="transition-all hover:bg-muted/50 hover:shadow-md scroll-mt-4"
+      className="flex scroll-mt-4 flex-col rounded-[28px] bg-white p-4 shadow-sheet-lime sm:p-5"
     >
-      <CardHeader>
-        {topic.coverImage ? (
-          <div className="relative h-48 w-full overflow-hidden rounded-lg">
-            <Image
-              src={topic.coverImage}
-              alt={topic.title || "Topic cover image"}
-              fill
-              className="object-cover"
-            />
-          </div>
-        ) : (
-          <div className="flex h-32 w-full items-center justify-center rounded-lg bg-muted">
-            <span className="text-sm text-muted-foreground">No cover image</span>
-          </div>
-        )}
-      </CardHeader>
-      <CardContent className="pt-0">
-        <CardTitle className="text-xl font-bold">{topic.title}</CardTitle>
-        <p className="mb-4 line-clamp-3 text-muted-foreground">{topic.description}</p>
-        <div className="flex flex-col gap-2">
-          <Button
-            size="lg"
-            variant="primary"
-            className="relative w-full justify-start"
-            onClick={() => handleCardClick("flashcard")}
-          >
-            <LibraryIcon className="h-4 w-4" />
-            <TypographyLarge className="text-primary-foreground">Thẻ từ vựng</TypographyLarge>
-            {hasFlashcardProgress && (
-              <span className="ml-auto rounded-full bg-white/20 px-2 py-1 text-xs">
-                {flashcardProgress}%
-              </span>
-            )}
-          </Button>
-          <Button
-            size="lg"
-            variant="secondary"
-            className="relative w-full justify-start"
-            onClick={() => handleCardClick("sentence")}
-          >
-            <LibrarySquareIcon className="h-4 w-4" />
-            <TypographyLarge className="text-primary-foreground">Thẻ câu</TypographyLarge>
-            {hasSentenceProgress && (
-              <span className="ml-auto rounded-full bg-white/20 px-2 py-1 text-xs">
-                {sentenceProgress}%
-              </span>
-            )}
-          </Button>
+      {topic.coverImage ? (
+        <div
+          className="relative aspect-[16/9] w-full overflow-hidden rounded-[22px] border-[5px] border-white bg-wash shadow-sticker"
+          style={{ rotate: `${tilt}deg` }}
+        >
+          <Image
+            src={topic.coverImage}
+            alt=""
+            fill
+            sizes="(min-width: 1280px) 340px, (min-width: 768px) 45vw, 92vw"
+            className="object-cover"
+          />
         </div>
-      </CardContent>
+      ) : (
+        <div className="flex aspect-[16/9] w-full items-center justify-center rounded-[22px] bg-wash">
+          <Image src="/learn.svg" alt="" width={56} height={56} className="opacity-60" />
+        </div>
+      )}
+      <h2 className="mt-5 text-xl font-black leading-snug text-ink">{topic.title}</h2>
+      {topic.description ? (
+        <p className="mt-1 line-clamp-2 text-base text-ink-body">{topic.description}</p>
+      ) : null}
+      <div className="mt-auto flex flex-col gap-2.5 pt-5">
+        <TopicAction
+          variant="primary"
+          icon={<LibraryIcon />}
+          label="Thẻ từ vựng"
+          echo="Words"
+          progress={hasFlashcardProgress ? flashcardProgress : null}
+          onClick={() => handleCardClick("flashcard")}
+        />
+        <TopicAction
+          variant="secondary"
+          icon={<LibrarySquareIcon />}
+          label="Thẻ câu"
+          echo="Sentences"
+          progress={hasSentenceProgress ? sentenceProgress : null}
+          onClick={() => handleCardClick("sentence")}
+        />
+      </div>
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Tiếp tục từ đâu?</DialogTitle>
             <DialogDescription>
-              Bạn đã hoàn thành {dialogProgressValue}% của nội dung này. Bạn muốn tiếp tục từ đâu?
+              Bạn đã học được {dialogProgressValue}% phần này. Học tiếp từ chỗ cũ hay bắt đầu lại?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex gap-2 sm:gap-0">
-            <Button variant="secondaryOutline" onClick={() => navigateToContent(dialogType, false)}>
+          <DialogFooter className="gap-2">
+            <Button variant="default" onClick={() => navigateToContent(dialogType, false)}>
               Bắt đầu lại
             </Button>
-            <Button variant="primary" onClick={() => navigateToContent(dialogType, true)}>
-              Tiếp tục
+            <Button variant="secondary" onClick={() => navigateToContent(dialogType, true)}>
+              Học tiếp
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Card>
+    </article>
+  );
+}
+
+interface TopicActionProps {
+  readonly variant: "primary" | "secondary";
+  readonly icon: ReactNode;
+  readonly label: string;
+  readonly echo: string;
+  readonly progress: number | null;
+  readonly onClick: () => void;
+}
+
+/** A 3D action row: Vietnamese label, English echo, and how far the child got. */
+function TopicAction({ variant, icon, label, echo, progress, onClick }: TopicActionProps) {
+  return (
+    <Button
+      size="lg"
+      variant={variant}
+      className="h-14 w-full justify-start gap-3 px-4 text-left [&_svg]:size-5"
+      onClick={onClick}
+    >
+      {icon}
+      <span className="flex flex-col leading-tight">
+        <span className="text-base font-extrabold">{label}</span>
+        <span className="text-sm font-extrabold text-white">{echo}</span>
+      </span>
+      {progress !== null ? (
+        <span className="ml-auto flex items-center gap-2">
+          <span className="hidden h-2 w-14 overflow-hidden rounded-full bg-white/30 sm:block" aria-hidden="true">
+            <span className="block h-full rounded-full bg-white" style={{ width: `${progress}%` }} />
+          </span>
+          <span className="text-sm font-black tabular-nums">{progress}%</span>
+        </span>
+      ) : null}
+    </Button>
   );
 }

@@ -2,39 +2,38 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { NAV_TONES, type NavItem } from "./nav-items";
+import { useNavTarget } from "./use-nav-target";
 
-type SidebarItemProps = {
-  label: string;
-  iconSrc: string;
-  href: string;
-};
-
-const GRADE_SCOPED_PREFIXES = ["/learn/units", "/practice"];
-
-const isGradeScoped = (href: string) =>
-  GRADE_SCOPED_PREFIXES.some((prefix) => href.startsWith(prefix));
-
-export const SidebarItem = ({ label, iconSrc, href }: SidebarItemProps) => {
-  const pathname = usePathname();
-  const { grade } = useParams<{ grade?: string }>();
-  // Keep the current grade when switching sections. Without one, the
-  // grade-less URL redirects to the student's own grade.
-  const targetHref = grade && isGradeScoped(href) ? `/grade/${grade}${href}` : href;
-  const isActive = pathname === targetHref || pathname === href;
+/** A big sidebar tile: the section's picture in a tinted disc, its name, its colour when active. */
+export const SidebarItem = ({ label, iconSrc, href, tone }: NavItem) => {
+  const { targetHref, isActive } = useNavTarget(href);
+  const colors = NAV_TONES[tone];
 
   return (
-    <Button
-      variant={isActive ? "sidebarOutline" : "sidebar"}
-      className="h-[52px] justify-start"
-      asChild
-    >
-      <Link href={targetHref}>
-        <Image src={iconSrc} alt={label} className="mr-5" height={32} width={32} />
+    <li>
+      <Link
+        href={targetHref}
+        aria-current={isActive ? "page" : undefined}
+        className={cn(
+          "group flex h-16 items-center gap-3.5 rounded-[20px] border-2 px-2.5 text-lg font-black outline-none transition-[background-color,border-color,translate] duration-150 ease-peel focus-visible:ring-4 focus-visible:ring-sky/50",
+          isActive
+            ? cn("border-b-4", colors.active, colors.text)
+            : "border-transparent text-ink-body hover:bg-wash hover:text-ink active:translate-y-0.5",
+        )}
+      >
+        <span
+          className={cn(
+            "flex size-11 shrink-0 items-center justify-center rounded-2xl transition-transform duration-200 ease-peel group-hover:-rotate-6",
+            isActive ? "bg-white" : colors.disc,
+          )}
+        >
+          <Image src={iconSrc} alt="" height={30} width={30} />
+        </span>
         {label}
       </Link>
-    </Button>
+    </li>
   );
 };

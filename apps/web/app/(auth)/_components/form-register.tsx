@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthCard } from "./auth-card";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
@@ -20,21 +21,17 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { RegisterSchema, RegisterSchemaType } from "@/schemas/auth";
-import { TypographyH3 } from "@/components/typography";
-import Image from "next/image";
 import { useOtpStore } from "@/stores/otpStore";
 import { sendEmailOTP } from "@/actions/auth/verify-otp";
-import { GRADES } from "@/types/grade";
+import { GRADES, type GradeValue } from "@/types/grade";
 
-export function FormRegister() {
+interface FormRegisterProps {
+  /** Grade to pre-select, e.g. from the homepage grade picker. */
+  readonly defaultGrade?: GradeValue;
+}
+
+export function FormRegister({ defaultGrade }: FormRegisterProps) {
   const router = useRouter();
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
@@ -48,7 +45,7 @@ export function FormRegister() {
       email: "",
       password: "",
       confirmPassword: "",
-      grade: "GRADE_1",
+      grade: defaultGrade ?? "GRADE_1",
     },
   });
 
@@ -78,14 +75,21 @@ export function FormRegister() {
   };
 
   return (
-    <div className="p-6 rounded-lg min-w-[480px] max-w-[600px] bg-background space-y-4 shadow border">
-      <div className="w-fit">
-        <Image src="/mascot.svg" alt="Logo" width={40} height={40} />
-        <span className="text-2xl font-bold">4KisStudy</span>
-      </div>
-
-      <TypographyH3>Đăng ký</TypographyH3>
-
+    <AuthCard
+      title="Đăng ký"
+      echo="Create your account"
+      footer={
+        <>
+          Đã có tài khoản?{" "}
+          <Link
+            href="/login"
+            className="font-black text-sky-ink underline-offset-4 hover:underline"
+          >
+            Đăng nhập ngay
+          </Link>
+        </>
+      }
+    >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4 w-full">
@@ -107,25 +111,32 @@ export function FormRegister() {
               name="grade"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Khối lớp</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    disabled={isSpending}
+                  <p id="register-grade-label" className="text-base font-extrabold text-ink">
+                    Khối lớp
+                  </p>
+                  <div
+                    role="radiogroup"
+                    aria-labelledby="register-grade-label"
+                    className="grid grid-cols-5 gap-2"
                   >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn khối lớp" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {GRADES.map((grade) => (
-                        <SelectItem key={grade.id} value={grade.value}>
+                    {GRADES.map((grade) => (
+                      <label key={grade.id} className="block">
+                        <input
+                          type="radio"
+                          name={field.name}
+                          value={grade.value}
+                          checked={field.value === grade.value}
+                          onChange={() => field.onChange(grade.value)}
+                          onBlur={field.onBlur}
+                          disabled={isSpending}
+                          className="peer sr-only"
+                        />
+                        <span className="flex h-12 cursor-pointer items-center justify-center whitespace-nowrap rounded-2xl border-2 border-b-4 border-edge bg-white text-sm font-black text-ink transition-colors hover:border-sky hover:bg-sky-wash peer-checked:border-sky peer-checked:bg-sky-wash peer-checked:text-sky-ink peer-focus-visible:ring-4 peer-focus-visible:ring-sky/50 peer-disabled:opacity-60 sm:text-base">
                           {grade.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -180,21 +191,14 @@ export function FormRegister() {
             loading={isSpending}
             disabled={isSpending}
             type="submit"
-            className="w-full"
+            size="lg"
+            className="h-12 w-full uppercase"
             variant="secondary"
           >
             Đăng ký
           </Button>
-          <Button
-            size="sm"
-            variant="link"
-            asChild
-            className="px-0 font-normal w-full text-gray-800"
-          >
-            <Link href="/login">Đã có tài khoản? Đăng nhập ngay</Link>
-          </Button>
         </form>
       </Form>
-    </div>
+    </AuthCard>
   );
 }

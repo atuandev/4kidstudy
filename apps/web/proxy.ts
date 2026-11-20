@@ -138,7 +138,8 @@ function decodeToken(token: string): AuthToken | null {
  * Checks if a pathname matches any route in the routes array
  */
 function isMatchingRoute(pathname: string, routes: string[]): boolean {
-  return routes.some((route) => pathname.startsWith(route));
+  // Match whole path segments, so `/learn.svg` is not mistaken for the `/learn` route.
+  return routes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 }
 
 export const config = {

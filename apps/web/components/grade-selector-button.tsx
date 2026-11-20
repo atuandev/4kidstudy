@@ -1,10 +1,8 @@
 "use client";
 
-import { FlameIcon, GraduationCap, TrophyIcon } from "lucide-react";
-import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/use-profile";
 import {
   buildGradePath,
@@ -25,7 +23,7 @@ const gradeOrderMap: Record<GradeValue, number> = {
 };
 
 /**
- * Renders grade selector buttons and displays the active user name.
+ * Grade chips above every grade page (XP and streak live in the sidebar and phone header).
  */
 export function GradeSelectorButton() {
   const router = useRouter();
@@ -52,42 +50,32 @@ export function GradeSelectorButton() {
     : GRADES;
 
   return (
-    <div className="mx-6 flex items-center justify-between gap-2 pb-4">
-      <div className="flex items-center gap-2">
-        <GraduationCap className="size-8 text-muted-foreground" />
-        <div className="flex gap-1">
+    <div className="mb-6 sm:mb-8">
+      <nav aria-label="Chọn lớp">
+        <ul className="grid grid-cols-5 gap-2 sm:flex">
           {availableGrades.map((grade) => {
             const isActive = selectedGrade === grade.value;
             return (
-              <Button
-                key={grade.id}
-                variant={isActive ? "default" : "ghost"}
-                onClick={() => handleGradeClick(grade)}
-              >
-                {grade.label}
-              </Button>
+              <li key={grade.id}>
+                <button
+                  type="button"
+                  aria-current={isActive ? "page" : undefined}
+                  onClick={() => handleGradeClick(grade)}
+                  className={cn(
+                    "inline-flex h-11 w-full items-center justify-center whitespace-nowrap rounded-chip border-2 border-b-4 px-1 text-sm font-black outline-none transition-colors duration-150 sm:px-4 sm:text-base",
+                    "active:translate-y-0.5 active:border-b-2 focus-visible:ring-4 focus-visible:ring-sky/50",
+                    isActive
+                      ? "border-sky bg-sky-wash text-sky-ink"
+                      : "border-edge bg-white text-ink hover:border-sky hover:bg-sky-wash hover:text-sky-ink",
+                  )}
+                >
+                  {grade.label}
+                </button>
+              </li>
             );
           })}
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-1">
-          <TrophyIcon className="size-5 text-yellow-600" />
-          <span className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-            {profile?.xp.toLocaleString()}
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
-          <FlameIcon className="size-5 text-orange-600" />
-          <span className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-            {profile?.streakDays}
-          </span>
-        </div>
-        <Link href="/profile" className="flex items-center gap-2">
-          <span className="text-lg font-bold">Hello, {profile?.name}</span>
-        </Link>
-      </div>
+        </ul>
+      </nav>
     </div>
   );
 }

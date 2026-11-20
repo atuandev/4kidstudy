@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import { UnitList } from "./_components/unit-list";
@@ -18,10 +19,12 @@ export default async function UnitsPage({ params }: UnitsPageProps) {
   if (topics.length === 0) {
     return (
       <div className="flex flex-col gap-6">
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <h2 className="mb-2 text-2xl font-bold">No topics yet</h2>
-          <p className="text-muted-foreground">
-            We could not find topics for the selected grade. Please try a different grade.
+        <div className="flex flex-col items-center rounded-[28px] bg-white px-6 py-12 text-center shadow-sheet-lime">
+          <Image src="/mascot.svg" alt="" width={72} height={72} />
+          <h1 className="mt-4 text-2xl font-black text-ink">Lớp này chưa có chủ đề nào</h1>
+          <p className="mt-1 text-base font-extrabold text-sky-ink">No topics here yet.</p>
+          <p className="mt-3 max-w-md text-base text-ink-body">
+            Hãy chọn một lớp khác ở hàng nút phía trên.
           </p>
         </div>
       </div>

@@ -1,10 +1,10 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { PageHeading } from "@/components/page-heading";
 import { UnitCard } from "./unit-card";
 import { TopicWithProgress } from "@/types/topic-with-progress";
 import { LearningHistoryDialog } from "./learning-history-dialog";
-import { GradeValue } from "@/types/grade";
+import { GRADES, GradeValue } from "@/types/grade";
 import { getLearningStatsByGrade } from "@/actions/learning-progress/stats-by-grade";
 
 interface UnitListProps {
@@ -13,37 +13,34 @@ interface UnitListProps {
 }
 
 const renderHeader = (grade: GradeValue) => (
-  <div className="flex items-center justify-between gap-4">
-    <div>
-      <h2 className="text-2xl font-bold">Danh sách chủ đề</h2>
-    </div>
-    <LearningHistoryDialog
-      grade={grade}
-      onOpen={async () => {
-        return await getLearningStatsByGrade(grade);
-      }}
-    />
-  </div>
+  <PageHeading
+    title={<>Chủ đề · {GRADES.find((item) => item.value === grade)?.label}</>}
+    echo="Pick a topic to learn."
+    action={
+      <LearningHistoryDialog
+        grade={grade}
+        onOpen={async () => {
+          return await getLearningStatsByGrade(grade);
+        }}
+      />
+    }
+  />
 );
 
 export function UnitList({ topics, grade }: UnitListProps) {
   if (topics.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-8 text-center">
-          <p className="text-muted-foreground">Không có chủ đề nào cho lớp học này.</p>
-        </CardContent>
-      </Card>
+      <p className="rounded-[28px] bg-white px-6 py-10 text-center text-base text-ink-body shadow-sheet-lime">
+        Không có chủ đề nào cho lớp học này.
+      </p>
     );
   }
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 sm:space-y-8">
       {renderHeader(grade)}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         {topics.map((topic) => (
-          <div key={topic.id}>
-            <UnitCard topic={topic} />
-          </div>
+          <UnitCard key={topic.id} topic={topic} />
         ))}
       </div>
     </div>

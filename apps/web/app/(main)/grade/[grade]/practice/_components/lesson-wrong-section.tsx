@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 
 import type { MostWrongExerciseStats } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface LessonWrongSectionProps {
   isLoadingMostWrong: boolean;
@@ -15,40 +16,66 @@ export function LessonWrongSection({
   mostWrongExercises,
 }: LessonWrongSectionProps): JSX.Element {
   if (isLoadingMostWrong) {
-    return <p className="text-sm text-muted-foreground">Đang tải...</p>;
+    return (
+      <p role="status" className="text-sm font-bold text-ink-body">
+        Đang tải...
+      </p>
+    );
   }
   if (mostWrongExercises.length === 0) {
-    return <p className="text-sm text-muted-foreground">Chưa có dữ liệu câu hỏi sai nhiều.</p>;
+    return <p className="text-sm font-bold text-ink-body">Chưa có câu nào bị sai nhiều.</p>;
   }
   return (
-    <div className="space-y-2">
+    <ol className="divide-y-2 divide-wash rounded-[22px] border-2 border-edge">
       {mostWrongExercises.map((item, index) => (
-        <div
+        <li
           key={item.exerciseId}
-          className="flex items-center justify-between border rounded-lg px-3 py-2 bg-white"
+          className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
         >
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold text-muted-foreground">#{index + 1}</span>
-            <span className="text-sm">
-              Câu {item.exerciseOrder}: {item.exercisePrompt || "Không có nội dung câu hỏi"}
+          <div className="flex min-w-0 items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="flex size-8 shrink-0 items-center justify-center rounded-full bg-cherry-wash text-sm font-black text-cherry-deep"
+            >
+              {index + 1}
             </span>
+            <p className="min-w-0 text-base text-ink">
+              <span className="font-extrabold text-ink-body">Câu {item.exerciseOrder}: </span>
+              <span className="font-bold">
+                {item.exercisePrompt || "Không có nội dung câu hỏi"}
+              </span>
+            </p>
           </div>
-          <div className="flex items-center gap-4 text-xs sm:text-sm">
-            <div className="flex flex-col items-end">
-              <span className="text-muted-foreground">Sai lần 1</span>
-              <span className="font-semibold text-red-500">{item.firstWrongCount}</span>
+          <dl className="flex shrink-0 gap-4 pl-11 text-sm sm:pl-0">
+            <div className="flex flex-col-reverse items-end">
+              <dt className="font-bold text-ink-body">Sai lần 1</dt>
+              <dd
+                className={cn(
+                  "text-lg font-black tabular-nums",
+                  item.firstWrongCount > 0 ? "text-cherry-deep" : "text-ink-body",
+                )}
+              >
+                {item.firstWrongCount}
+              </dd>
             </div>
-            <div className="flex flex-col items-end">
-              <span className="text-muted-foreground">Sai lần 2</span>
-              <span className="font-semibold text-orange-500">{item.secondWrongCount}</span>
+            <div className="flex flex-col-reverse items-end">
+              <dt className="font-bold text-ink-body">Sai lần 2</dt>
+              <dd
+                className={cn(
+                  "text-lg font-black tabular-nums",
+                  item.secondWrongCount > 0 ? "text-cherry-deep" : "text-ink-body",
+                )}
+              >
+                {item.secondWrongCount}
+              </dd>
             </div>
-            <div className="flex flex-col items-end">
-              <span className="text-muted-foreground">Tổng</span>
-              <span className="font-semibold text-yellow-600">{item.totalWrongCount}</span>
+            <div className="flex flex-col-reverse items-end">
+              <dt className="font-bold text-ink-body">Tổng</dt>
+              <dd className="text-lg font-black tabular-nums text-ink">{item.totalWrongCount}</dd>
             </div>
-          </div>
-        </div>
+          </dl>
+        </li>
       ))}
-    </div>
+    </ol>
   );
 }

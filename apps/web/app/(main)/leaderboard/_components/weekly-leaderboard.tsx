@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Trophy, Medal, Award } from "lucide-react";
+import { Trophy } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { getWeeklyLeaderboard, LeaderboardEntry } from "@/actions/leaderboard";
 
 const GRADE_LABELS: Record<string, string> = {
@@ -15,19 +14,65 @@ const GRADE_LABELS: Record<string, string> = {
   GRADE_5: "Lớp 5",
 };
 
-const getRankIcon = (rank: number) => {
-  if (rank === 1) return <Trophy className="h-5 w-5 text-yellow-500" />;
-  if (rank === 2) return <Medal className="h-5 w-5 text-gray-400" />;
-  if (rank === 3) return <Award className="h-5 w-5 text-orange-500" />;
-  return null;
+/** Rank disc: gold, silver and bronze stickers for the top three, a plain disc after. */
+const RANK_DISC: Record<number, string> = {
+  1: "bg-sun text-ink shadow-[0_3px_0_#B78A00]",
+  2: "bg-edge text-ink shadow-[0_3px_0_#CBD5E1]",
+  3: "bg-tangerine text-ink shadow-[0_3px_0_#C2410C]",
 };
 
-const getRankBadgeColor = (rank: number) => {
-  if (rank === 1) return "bg-yellow-100 text-yellow-800 border-yellow-300";
-  if (rank === 2) return "bg-gray-100 text-gray-800 border-gray-300";
-  if (rank === 3) return "bg-orange-100 text-orange-800 border-orange-300";
-  return "bg-blue-100 text-blue-800 border-blue-300";
-};
+function RankDisc({ rank }: { readonly rank: number }) {
+  return (
+    <span
+      className={cn(
+        "flex size-9 shrink-0 items-center justify-center rounded-full text-base font-black tabular-nums",
+        RANK_DISC[rank] ?? "bg-wash text-ink-body",
+      )}
+    >
+      <span className="sr-only">Hạng </span>
+      {rank}
+    </span>
+  );
+}
+
+interface RankRowProps {
+  readonly entry: LeaderboardEntry;
+  readonly isYou: boolean;
+}
+
+function RankRow({ entry, isYou }: RankRowProps) {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-3 rounded-2xl px-3 py-2.5",
+        isYou ? "bg-sky-wash" : entry.rank <= 3 ? "bg-white" : "",
+      )}
+    >
+      <RankDisc rank={entry.rank} />
+      <Avatar className={cn("size-10", isYou && "ring-2 ring-sky")}>
+        <AvatarImage src={entry.avatarUrl || undefined} alt="" />
+        <AvatarFallback
+          className={cn("font-black", isYou ? "bg-sky-deep text-white" : "bg-wash text-ink")}
+        >
+          {entry.name.charAt(0).toUpperCase()}
+        </AvatarFallback>
+      </Avatar>
+      <p
+        className={cn(
+          "min-w-0 flex-1 truncate text-base font-extrabold",
+          isYou ? "text-sky-ink" : "text-ink",
+        )}
+      >
+        {entry.name}
+        {isYou ? <span className="font-bold"> (bạn)</span> : null}
+      </p>
+      <p className="shrink-0 text-right text-lg font-black tabular-nums text-ink">
+        {entry.totalScore}
+        <span className="ml-1 text-sm font-bold text-ink-body">điểm</span>
+      </p>
+    </div>
+  );
+}
 
 export function WeeklyLeaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
@@ -64,119 +109,79 @@ export function WeeklyLeaderboard() {
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <div className="flex items-center justify-between">
+    <section
+      aria-labelledby="weekly-title"
+      className="rounded-[28px] bg-white p-5 shadow-sheet-lime sm:p-6"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex size-11 shrink-0 -rotate-6 items-center justify-center rounded-2xl bg-sun text-ink shadow-[0_4px_0_#B78A00]">
+            <Trophy className="size-6" aria-hidden="true" />
+          </span>
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-yellow-500" />
-              Bảng xếp hạng
-            </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              {GRADE_LABELS[grade]} • {getWeekLabel()}
-            </p>
+            <h2 id="weekly-title" className="whitespace-nowrap text-lg font-black leading-tight text-ink">
+              Xếp hạng tuần này
+            </h2>
+            {grade || weekStart ? (
+              <p className="text-sm font-extrabold text-sky-ink">
+                {[GRADE_LABELS[grade], getWeekLabel()].filter(Boolean).map((part, i) => (
+                  <span key={part} className="whitespace-nowrap">
+                    {i > 0 ? " · " : null}
+                    {part}
+                  </span>
+                ))}
+              </p>
+            ) : null}
           </div>
-          {currentUserRank > 0 && (
-            <Badge variant="outline" className="text-lg px-3 py-1">
-              Hạng #{currentUserRank}
-            </Badge>
-          )}
         </div>
-      </CardHeader>
-      <CardContent>
+        {currentUserRank > 0 && (
+          <p className="shrink-0 rounded-full bg-sky-wash px-3 py-1 text-base font-black text-sky-ink">
+            Hạng #{currentUserRank}
+          </p>
+        )}
+      </div>
+
+      <div className="mt-4">
         {loading ? (
-          <div className="py-8 text-center">
-            <p className="text-muted-foreground">Đang tải...</p>
-          </div>
+          <p
+            role="status"
+            className="rounded-2xl bg-wash py-8 text-center text-base font-bold text-ink-body"
+          >
+            Đang tải...
+          </p>
         ) : entries.length === 0 ? (
-          <div className="py-8 text-center">
-            <p className="text-muted-foreground">Chưa có dữ liệu xếp hạng</p>
+          <div className="rounded-2xl bg-wash px-4 py-8 text-center">
+            <p className="text-base font-black text-ink">Tuần này chưa ai có điểm</p>
+            <p className="text-sm font-bold text-ink-body">Học một bài để đứng đầu bảng nhé!</p>
           </div>
         ) : (
           <>
-            <div className="space-y-3">
-              {/* Show top 10 users */}
+            {/* Top 10 */}
+            <ol className="flex flex-col gap-1.5">
               {entries.slice(0, 10).map((entry) => (
-                <div
-                  key={entry.userId}
-                  className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
-                    entry.rank <= 3
-                      ? "bg-gradient-to-r from-yellow-50 to-white"
-                      : "bg-white hover:bg-gray-50"
-                  }`}
-                >
-                  {/* Rank */}
-                  <div className="flex-shrink-0 w-12 flex items-center justify-center">
-                    {getRankIcon(entry.rank) || (
-                      <Badge variant="outline" className={getRankBadgeColor(entry.rank)}>
-                        #{entry.rank}
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Avatar */}
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={entry.avatarUrl || undefined} />
-                    <AvatarFallback>{entry.name.charAt(0).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-
-                  {/* Name */}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{entry.name}</p>
-                  </div>
-
-                  {/* Score */}
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-primary">{entry.totalScore}</p>
-                    <p className="text-xs text-muted-foreground">điểm</p>
-                  </div>
-                </div>
+                <li key={entry.userId}>
+                  <RankRow entry={entry} isYou={entry.rank === currentUserRank} />
+                </li>
               ))}
+            </ol>
 
-              {/* Show dots if there are more users */}
-              {entries.length > 10 && currentUserRank > 10 && (
-                <div className="flex items-center justify-center py-2">
-                  <p className="text-muted-foreground text-sm">•••</p>
-                </div>
-              )}
-            </div>
+            {/* Show dots if there are more users */}
+            {entries.length > 10 && currentUserRank > 10 && (
+              <p aria-hidden="true" className="py-1 text-center text-lg font-black text-ink-body">
+                ⋮
+              </p>
+            )}
 
-            {/* Current User Ranking - Fixed at bottom */}
-            {currentUserEntry && (
-              <div className="mt-4 pt-4 border-t">
-                <p className="text-xs text-muted-foreground mb-2 text-center">Hạng của bạn</p>
-                <div className="flex items-center gap-3 p-3 rounded-lg border bg-blue-50 border-blue-200">
-                  {/* Rank */}
-                  <div className="flex-shrink-0 w-12 flex items-center justify-center">
-                    <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
-                      #{currentUserEntry.rank}
-                    </Badge>
-                  </div>
-
-                  {/* Avatar */}
-                  <Avatar className="h-10 w-10 ring-2 ring-blue-400">
-                    <AvatarImage src={currentUserEntry.avatarUrl || undefined} />
-                    <AvatarFallback className="bg-blue-200">
-                      {currentUserEntry.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-
-                  {/* Name */}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold truncate text-blue-900">{currentUserEntry.name}</p>
-                  </div>
-
-                  {/* Score */}
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-blue-700">{currentUserEntry.totalScore}</p>
-                    <p className="text-xs text-blue-600">điểm</p>
-                  </div>
-                </div>
+            {/* The learner's own row stays visible when they are below the top 10. */}
+            {currentUserEntry && currentUserRank > 10 && (
+              <div className="mt-2 border-t-2 border-wash pt-3">
+                <p className="mb-1.5 px-3 text-sm font-extrabold text-ink-body">Hạng của bạn</p>
+                <RankRow entry={currentUserEntry} isYou />
               </div>
             )}
           </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }

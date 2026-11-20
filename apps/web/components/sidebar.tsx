@@ -1,53 +1,44 @@
-import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";
+import { LearnerStats } from "./learner-stats";
+import { NAV_ITEMS } from "./nav-items";
+import { SidebarBuddy } from "./sidebar-buddy";
 import { SidebarItem } from "./sidebar-item";
 
 type SidebarProps = {
   className?: string;
 };
 
-const SidebarNav = () => (
-  <div className="flex flex-1 flex-col gap-y-2">
-    <SidebarItem label="Học" href="/learn/units" iconSrc="/learn.svg" />
-    <SidebarItem label="Luyện tập" href="/practice" iconSrc="/practice.svg" />
-    <SidebarItem label="Bảng xếp hạng" href="/leaderboard" iconSrc="/leaderboard.svg" />
-    <SidebarItem label="Hồ sơ" href="/profile" iconSrc="/profile.svg" />
-  </div>
-);
-
-const SidebarNavFallback = () => (
-  <div className="flex flex-1 flex-col gap-y-2">
-    {Array.from({ length: 4 }).map((_, index) => (
-      <div
-        key={`sidebar-fallback-${index}`}
-        className="h-[52px] w-full animate-pulse rounded-md bg-muted"
-      />
-    ))}
-  </div>
-);
-
+/** Desktop navigation: logo, one big coloured tile per section, and the mascot buddy. */
 export const Sidebar = ({ className }: SidebarProps) => {
   return (
     <div
       className={cn(
-        "left-0 top-0 flex h-full flex-col border-r-2 px-4 lg:fixed lg:w-[256px]",
+        "left-0 top-0 flex h-full flex-col bg-white px-4 pb-5 lg:fixed lg:w-[256px] lg:border-r-2 lg:border-lime-rule",
         className,
       )}
     >
-      <Link href="/learn/units">
-        <div className="flex items-center gap-x-3 pb-7 pl-4 pt-8">
-          <Image src="/mascot.svg" alt="Mascot" height={40} width={40} />
-
-          <h1 className="text-2xl font-extrabold tracking-wide text-green-600">4KidStudy</h1>
-        </div>
+      <Link
+        href="/learn/units"
+        className="mx-1 mb-4 mt-7 flex items-center gap-2.5 self-start rounded-xl px-2 py-1 outline-none focus-visible:ring-4 focus-visible:ring-sky/50"
+      >
+        <Image src="/mascot.svg" alt="" height={40} width={40} />
+        <span className="text-2xl font-black tracking-tight text-forest">4KidStudy</span>
       </Link>
 
-      <Suspense fallback={<SidebarNavFallback />}>
-        <SidebarNav />
-      </Suspense>
+      <LearnerStats className="mx-1 mb-5 flex-wrap" />
+
+      <nav aria-label="Điều hướng chính" className="flex flex-1 flex-col">
+        <ul className="flex flex-col gap-y-2">
+          {NAV_ITEMS.map((item) => (
+            <SidebarItem key={item.href} {...item} />
+          ))}
+        </ul>
+      </nav>
+
+      <SidebarBuddy />
     </div>
   );
 };

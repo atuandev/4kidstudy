@@ -1,119 +1,91 @@
-"use client";
+import { CheckCircle2, Clock, GraduationCap, XCircle } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ExerciseType, PracticeStatistics, User } from "@/types";
-import { BookAIcon, CheckCircle2, Clock, GraduationCap, XCircle } from "lucide-react";
+import { PracticeStatistics } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface AttemptStatisticsProps {
   stats: PracticeStatistics;
 }
 
-const EXERCISE_TYPE_LABELS: Record<ExerciseType, string> = {
-  SELECT_IMAGE: "Chọn ảnh đúng",
-  MULTIPLE_CHOICE: "Chọn đáp án đúng",
-  MATCHING: "Ghép cặp",
-  LISTENING: "Nghe",
-  PRONUNCIATION: "Luyện phát âm (AI)",
+const formatDuration = (totalSeconds: number) => {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
 };
 
-export function AttemptStatistics({ stats }: AttemptStatisticsProps) {
+interface StatTileProps {
+  readonly label: string;
+  readonly value: React.ReactNode;
+  readonly icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  readonly tone: string;
+}
+
+function StatTile({ label, value, icon: Icon, tone }: StatTileProps) {
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookAIcon className="h-5 w-5 text-primary" />
-            Thống kê luyện tập
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950 dark:to-emerald-900 h-fit">
-              <div className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-9 h-9 mb-2 bg-emerald-500 rounded-full">
-                  <GraduationCap className="h-4 w-4 text-white" />
-                </div>
-                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                  {stats.completeLessonCount} / {stats.totalLessonCount}
-                </div>
-              </div>
-              <div className="text-sm font-medium text-muted-foreground">
-                Số bài luyện tập hoàn thành
-              </div>
-            </div>
+    <div className="flex flex-col-reverse gap-1 rounded-2xl bg-wash px-3.5 py-3 lg:flex-row lg:items-center lg:justify-between">
+      <dt className="flex flex-col items-start gap-1.5 text-sm font-bold leading-tight text-ink-body lg:flex-row lg:items-center lg:gap-2">
+        <span className={cn("flex size-7 shrink-0 items-center justify-center rounded-full", tone)}>
+          <Icon className="size-4" aria-hidden={true} />
+        </span>
+        {label}
+      </dt>
+      <dd className="text-xl font-black tabular-nums text-ink">{value}</dd>
+    </div>
+  );
+}
 
-            <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 h-fit">
-              <div className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-9 h-9 mb-2 bg-blue-500 rounded-full">
-                  <Clock className="h-4 w-4 text-white" />
-                </div>
-                <div className="text-xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                  <p>{Math.floor(stats.totalDurationSec / 60)}m </p>
-                  <p>{stats.totalDurationSec % 60}s</p>
-                </div>
-              </div>
-              <div className="text-sm font-medium text-muted-foreground">
-                Tổng thời gian luyện tập
-              </div>
-            </div>
-          </div>
+/** The learner's practice totals: lessons done (with a bar), time, right and wrong answers. */
+export function AttemptStatistics({ stats }: AttemptStatisticsProps) {
+  const done = stats.completeLessonCount;
+  const total = stats.totalLessonCount;
+  const percent = total > 0 ? Math.round((done / total) * 100) : 0;
 
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            <div className="p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 h-fit">
-              <div className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-9 h-9 mb-2 bg-green-500 rounded-full">
-                  <CheckCircle2 className="h-4 w-4 text-white" />
-                </div>
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {stats.totalCorrectCount}
-                </div>
-              </div>
-              <div className="text-sm font-medium text-muted-foreground">Số câu đúng</div>
-            </div>
+  return (
+    <div className="rounded-[28px] bg-white p-5 shadow-sheet-lime">
+      <h2 className="text-xl font-black text-ink">Thống kê luyện tập</h2>
+      <p className="text-sm font-extrabold text-sky-ink">Your practice so far</p>
 
-            <div className="p-4 rounded-lg bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 h-fit">
-              <div className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-9 h-9 mb-2 bg-red-500 rounded-full">
-                  <XCircle className="h-4 w-4 text-white" />
-                </div>
-                <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-                  {stats.totalIncorrectCount}
-                </div>
-              </div>
-              <div className="text-sm font-medium text-muted-foreground">Số câu sai</div>
-            </div>
-          </div>
+      <div className="mt-4 rounded-2xl bg-leaf-wash px-4 py-3">
+        <p className="flex items-center gap-2 text-sm font-bold text-forest">
+          <GraduationCap className="size-4" aria-hidden="true" />
+          Bài đã hoàn thành
+        </p>
+        <p className="mt-1 text-2xl font-black tabular-nums text-ink">
+          {done}
+          <span className="text-lg text-ink-body"> / {total}</span>
+        </p>
+        <div
+          role="progressbar"
+          aria-label="Bài đã hoàn thành"
+          aria-valuemin={0}
+          aria-valuemax={total}
+          aria-valuenow={done}
+          className="mt-2 h-3 overflow-hidden rounded-full bg-white"
+        >
+          <div className="h-full rounded-full bg-leaf" style={{ width: `${percent}%` }} />
+        </div>
+      </div>
 
-          {/* <TypographyLarge className="mt-6">
-            Thống kê theo từng loại luyện tập
-          </TypographyLarge>
-
-          <div className="mt-6 space-y-3">
-            {stats.byType.map((t) => (
-              <div
-                key={t.type}
-                className="flex items-center justify-between rounded-lg border p-3"
-              >
-                <div className="font-medium">
-                  {EXERCISE_TYPE_LABELS[t.type as ExerciseType]}
-                </div>
-                <div className="flex items-center gap-4 text-sm">
-                  <span className="text-green-600 dark:text-green-400 flex items-center gap-1">
-                    <CheckCircle2 className="h-4 w-4" /> {t.correctCount}
-                  </span>
-                  <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                    <CheckCircle2 className="h-4 w-4" />{" "}
-                    {t.correctOnSecondCount}
-                  </span>
-                  <span className="text-red-600 dark:text-red-400 flex items-center gap-1">
-                    <XCircle className="h-4 w-4" /> {t.incorrectCount}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div> */}
-        </CardContent>
-      </Card>
-    </>
+      <dl className="mt-2.5 grid grid-cols-3 gap-2.5 lg:grid-cols-1">
+        <StatTile
+          label="Thời gian"
+          value={formatDuration(stats.totalDurationSec)}
+          icon={Clock}
+          tone="bg-sky-wash text-sky-ink"
+        />
+        <StatTile
+          label="Câu đúng"
+          value={stats.totalCorrectCount}
+          icon={CheckCircle2}
+          tone="bg-leaf-wash text-forest"
+        />
+        <StatTile
+          label="Câu sai"
+          value={stats.totalIncorrectCount}
+          icon={XCircle}
+          tone="bg-cherry-wash text-cherry-deep"
+        />
+      </dl>
+    </div>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { AuthCard } from "./auth-card";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -18,8 +20,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { ForgetPasswordSchema, ForgetPasswordSchemaType } from "@/schemas/auth";
-import { TypographyH3 } from "@/components/typography";
-import { Logo } from "@/components/common/logo";
 import { useOtpStore } from "@/stores/otpStore";
 import { sendEmailOTP } from "@/actions/auth/verify-otp";
 
@@ -62,13 +62,16 @@ export function FormForgetPassword() {
   };
 
   return (
-    <div className="p-6 rounded-lg min-w-[480px] max-w-[600px] bg-background space-y-4 shadow border">
-      <div className="w-fit">
-        <Logo />
-      </div>
-
-      <TypographyH3>Quên mật khẩu</TypographyH3>
-
+    <AuthCard
+      title="Quên mật khẩu"
+      echo="Forgot your password?"
+      description="Nhập email của bạn, chúng tôi sẽ gửi mã xác thực."
+      footer={
+        <Link href="/login" className="font-black text-sky-ink underline-offset-4 hover:underline">
+          Quay lại đăng nhập
+        </Link>
+      }
+    >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4 w-full">
@@ -88,11 +91,18 @@ export function FormForgetPassword() {
           </div>
           <FormError message={error} />
           <FormSuccess message={success} />
-          <Button loading={isSpending} disabled={isSpending} type="submit" className="w-full">
+          <Button
+            loading={isSpending}
+            disabled={isSpending}
+            type="submit"
+            size="lg"
+            className="h-12 w-full uppercase"
+            variant="secondary"
+          >
             Gửi mã xác thực
           </Button>
         </form>
       </Form>
-    </div>
+    </AuthCard>
   );
 }

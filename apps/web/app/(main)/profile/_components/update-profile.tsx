@@ -117,7 +117,9 @@ export function UpdateProfileDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Cập nhật thông tin cá nhân</DialogTitle>
+          <DialogTitle className="text-2xl font-black text-ink">
+            Cập nhật thông tin cá nhân
+          </DialogTitle>
           <DialogDescription>
             Thay đổi thông tin cá nhân của bạn. Nhấn lưu để cập nhật.
           </DialogDescription>
@@ -127,9 +129,9 @@ export function UpdateProfileDialog({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Avatar Upload */}
             <div className="flex flex-col items-center gap-4">
-              <Avatar className="h-24 w-24 ring-4 ring-primary/10">
-                <AvatarImage src={avatarPreview} alt={profile.name} />
-                <AvatarFallback className="text-lg font-semibold bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
+              <Avatar className="size-24 -rotate-3 border-[5px] border-white shadow-sticker">
+                <AvatarImage src={avatarPreview} alt="" />
+                <AvatarFallback className="bg-leaf-deep text-2xl font-black text-white">
                   {getInitials(profile.name)}
                 </AvatarFallback>
               </Avatar>
@@ -139,11 +141,12 @@ export function UpdateProfileDialog({
                 name="avatar"
                 render={({ field: { value, onChange, ...field } }) => (
                   <FormItem>
-                    <FormLabel htmlFor="avatar" className="cursor-pointer">
-                      <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
-                        <Upload className="h-4 w-4" />
-                        <span>Tải ảnh lên</span>
-                      </div>
+                    <FormLabel
+                      htmlFor="avatar"
+                      className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border-2 border-b-4 border-edge bg-white px-4 text-sm font-bold text-ink transition-colors hover:bg-wash active:translate-y-0.5 active:border-b-2 has-[+*:focus-visible]:ring-4 has-[+*:focus-visible]:ring-sky/50"
+                    >
+                      <Upload className="size-4" aria-hidden="true" />
+                      Tải ảnh lên
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -263,7 +266,7 @@ export function UpdateProfileDialog({
               >
                 Hủy
               </Button>
-              <Button type="submit" variant="primary" className="flex-1" disabled={isPending}>
+              <Button type="submit" variant="secondary" className="flex-1" disabled={isPending}>
                 {isPending ? "Đang lưu..." : "Lưu thay đổi"}
               </Button>
             </div>
