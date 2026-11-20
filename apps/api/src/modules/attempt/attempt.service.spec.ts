@@ -9,7 +9,9 @@ describe('AttemptService.getPracticeStatistics', () => {
   };
   const service = new AttemptService(prisma as unknown as PrismaService);
 
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   it('builds the stats from two aggregate queries', async () => {
     prisma.$queryRaw
