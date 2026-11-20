@@ -10,6 +10,8 @@ export * from './req/get-learning-progress-query.dto';
 export * from './req/get-learning-progress-query.dto';
 
 export * from './req/review-content.dto';
+
+export * from './req/get-topics-progress-query.dto';
 export * from './req/review-content.dto';
 
 // Response DTOs
