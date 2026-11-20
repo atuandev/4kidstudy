@@ -77,7 +77,7 @@ export const Header = ({
             <AlertDialogHeader>
               <AlertDialogTitle>Bạn có chắc muốn thoát?</AlertDialogTitle>
               <AlertDialogDescription>
-                Tiến trình của bạn sẽ không được lưu. Bạn sẽ phải bắt đầu lại bài học này từ đầu.
+                Đừng lo, các câu bạn đã làm được lưu lại. Lần sau vào bài này, bạn có thể làm tiếp.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

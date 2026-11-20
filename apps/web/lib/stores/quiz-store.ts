@@ -43,6 +43,12 @@ type QuizState = {
 type QuizActions = {
   // Initialize quiz
   initializeQuiz: (lessonId: number, exercises: Exercise[]) => void;
+  /** Continue a lesson saved earlier, at the start of its next exercise. */
+  restoreQuiz: (
+    lessonId: number,
+    exercises: Exercise[],
+    saved: Pick<QuizState, "activeIndex" | "answers" | "exerciseAttempts">,
+  ) => void;
   resetQuiz: () => void;
 
   // Answers
@@ -113,6 +119,15 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
       },
       isPending: false,
       exerciseAttempts: {},
+    });
+  },
+
+  restoreQuiz: (lessonId, exercises, saved) => {
+    get().initializeQuiz(lessonId, exercises);
+    set({
+      activeIndex: saved.activeIndex,
+      answers: saved.answers,
+      exerciseAttempts: saved.exerciseAttempts,
     });
   },
 

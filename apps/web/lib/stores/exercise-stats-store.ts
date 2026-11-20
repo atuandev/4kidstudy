@@ -14,6 +14,13 @@ type ExerciseStats = {
 type ExerciseStatsActions = {
   // Initialize session
   startSession: () => void;
+  /** Continue a saved session; the clock resumes from elapsedSec. */
+  restoreSession: (
+    saved: Pick<
+      ExerciseStats,
+      "totalPoints" | "correctCount" | "wrongCount" | "skippedCount" | "totalExercises"
+    > & { elapsedSec: number },
+  ) => void;
   endSession: () => void;
 
   // Exercise tracking
@@ -53,6 +60,15 @@ export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
       totalExercises: 0,
       skippedCount: 0,
       wrongCount: 0,
+      currentExerciseStartTime: null,
+    });
+  },
+
+  restoreSession: ({ elapsedSec, ...counts }) => {
+    set({
+      ...counts,
+      duration: 0,
+      startTime: Date.now() - elapsedSec * 1000,
       currentExerciseStartTime: null,
     });
   },
