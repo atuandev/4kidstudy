@@ -8,12 +8,15 @@ interface PracticePageProps {
 }
 
 export default async function PracticePage({ searchParams }: PracticePageProps) {
-  const [stats, resolvedParams] = await Promise.all([getPracticeStatistics(), searchParams]);
+  const resolvedParams = await searchParams;
   const gradeParam = typeof resolvedParams?.grade === "string" ? resolvedParams.grade : undefined;
   const selectedGrade = gradeParam ? GRADES.find((grade) => grade.value === gradeParam) : undefined;
-  if (!selectedGrade) {
-    return <Units stats={stats} topics={[]} />;
-  }
-  const { topics } = await getTopicsWithProgress(selectedGrade.value);
+
+  // Stats and topics are independent: fetch them together so the page
+  // waits for one API round-trip, not two in a row.
+  const [stats, { topics }] = await Promise.all([
+    getPracticeStatistics(),
+    selectedGrade ? getTopicsWithProgress(selectedGrade.value) : Promise.resolve({ topics: [] }),
+  ]);
   return <Units stats={stats} topics={topics} />;
 }

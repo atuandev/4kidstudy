@@ -516,30 +516,47 @@ export class AttemptService {
   async getPracticeStatistics(
     userId: number,
   ): Promise<PracticeStatisticsResponseDto> {
-    const [
-      totalLessonCount,
-      completedDistinctLessons,
-      aggDuration,
-      totalCorrectCount,
-      totalIncorrectCount,
-    ] = await Promise.all([
-      this.prisma.lesson.count(),
-      this.prisma.attempt.findMany({
-        where: { userId, isCompleted: true },
-        select: { lessonId: true },
-        distinct: ['lessonId'],
-      }),
-      this.prisma.attempt.aggregate({
-        where: { userId, isCompleted: true },
-        _sum: { durationSec: true },
-      }),
-      this.prisma.attemptDetail.count({
-        where: { isCorrect: true, attempt: { userId } },
-      }),
-      this.prisma.attemptDetail.count({
-        where: { isCorrect: false, attempt: { userId } },
-      }),
+    // Two aggregate queries instead of one count per stat and exercise type.
+    // COUNT/SUM return bigint in Postgres, so cast to int for plain numbers.
+    const [summaryRows, typeRows] = await Promise.all([
+      this.prisma.$queryRaw<
+        Array<{
+          totalLessonCount: number;
+          completeLessonCount: number;
+          totalDurationSec: number;
+        }>
+      >`
+        SELECT
+          (SELECT COUNT(*) FROM "Lesson")::int AS "totalLessonCount",
+          COUNT(DISTINCT a."lessonId")::int AS "completeLessonCount",
+          COALESCE(SUM(a."durationSec"), 0)::int AS "totalDurationSec"
+        FROM "Attempt" a
+        WHERE a."userId" = ${userId} AND a."isCompleted" = true
+      `,
+      this.prisma.$queryRaw<
+        Array<{
+          type: ExerciseType;
+          correctCount: number;
+          correctOnSecondCount: number;
+          incorrectCount: number;
+        }>
+      >`
+        SELECT
+          e."type"::text AS "type",
+          COUNT(*) FILTER (WHERE d."isCorrect")::int AS "correctCount",
+          COUNT(*) FILTER (WHERE d."isCorrect" AND d."attempts" >= 2)::int
+            AS "correctOnSecondCount",
+          COUNT(*) FILTER (WHERE NOT d."isCorrect")::int AS "incorrectCount"
+        FROM "AttemptDetail" d
+        JOIN "Attempt" a ON a."id" = d."attemptId"
+        JOIN "Exercise" e ON e."id" = d."exerciseId"
+        WHERE a."userId" = ${userId}
+        GROUP BY e."type"
+      `,
     ]);
+
+    const summary = summaryRows[0];
+    const rowByType = new Map(typeRows.map((row) => [row.type, row]));
 
     const exerciseTypes: ExerciseType[] = [
       ExerciseType.SELECT_IMAGE,
@@ -549,55 +566,36 @@ export class AttemptService {
       ExerciseType.PRONUNCIATION,
     ];
 
-    const byType = await Promise.all(
-      exerciseTypes.map(async (type) => {
-        const [correctCount, correctOnSecondCount, incorrectCount] =
-          await Promise.all([
-            this.prisma.attemptDetail.count({
-              where: {
-                isCorrect: true,
-                exercise: { type },
-                attempt: { userId },
-              },
-            }),
-            this.prisma.attemptDetail.count({
-              where: {
-                isCorrect: true,
-                attempts: { gte: 2 },
-                exercise: { type },
-                attempt: { userId },
-              },
-            }),
-            this.prisma.attemptDetail.count({
-              where: {
-                isCorrect: false,
-                exercise: { type },
-                attempt: { userId },
-              },
-            }),
-          ]);
+    // Always return every type, in a fixed order, with zeros for types
+    // the user has not practised.
+    const byType = exerciseTypes.map((type) => {
+      const row = rowByType.get(type);
+      return {
+        type,
+        correctCount: row?.correctCount ?? 0,
+        correctOnSecondCount: row?.correctOnSecondCount ?? 0,
+        incorrectCount: row?.incorrectCount ?? 0,
+      };
+    });
 
-        return {
-          type,
-          correctCount,
-          correctOnSecondCount,
-          incorrectCount,
-        };
-      }),
+    // Every detail belongs to an exercise with a type, so the per-type
+    // counts add up to the overall totals.
+    const totalCorrectCount = typeRows.reduce(
+      (sum, row) => sum + row.correctCount,
+      0,
+    );
+    const totalIncorrectCount = typeRows.reduce(
+      (sum, row) => sum + row.incorrectCount,
+      0,
     );
 
     return {
-      completeLessonCount: completedDistinctLessons.length,
-      totalLessonCount,
-      totalDurationSec: aggDuration._sum.durationSec ?? 0,
+      completeLessonCount: summary?.completeLessonCount ?? 0,
+      totalLessonCount: summary?.totalLessonCount ?? 0,
+      totalDurationSec: summary?.totalDurationSec ?? 0,
       totalCorrectCount,
       totalIncorrectCount,
-      byType: byType.map((b) => ({
-        type: b.type,
-        correctCount: b.correctCount,
-        correctOnSecondCount: b.correctOnSecondCount,
-        incorrectCount: b.incorrectCount,
-      })),
+      byType,
     };
   }
 
