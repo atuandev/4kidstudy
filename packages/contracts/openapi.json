@@ -51,10 +51,21 @@
           "400": {
             "description": "Bad request - validation failed"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "409": {
             "description": "Conflict - topic with same title and grade already exists"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Create a new topic",
         "tags": [
           "topics"
@@ -184,10 +195,21 @@
           "400": {
             "description": "Bad request - validation failed"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Topic not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Update topic",
         "tags": [
           "topics"
@@ -218,10 +240,21 @@
               }
             }
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Topic not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Delete topic",
         "tags": [
           "topics"
@@ -254,10 +287,21 @@
               }
             }
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Topic not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Get topic statistics",
         "tags": [
           "topics"
@@ -293,10 +337,21 @@
           "400": {
             "description": "Bad request - validation failed"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Topic not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Create a new flashcard",
         "tags": [
           "flashcards"
@@ -387,10 +442,21 @@
           "400": {
             "description": "Bad request - validation failed or empty flashcards array"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Topic not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Create multiple flashcards",
         "tags": [
           "flashcards"
@@ -429,10 +495,21 @@
           "400": {
             "description": "Bad request - invalid file format or data"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Topic not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Import flashcards from Excel with assets",
         "tags": [
           "flashcards"
@@ -469,8 +546,19 @@
         "responses": {
           "200": {
             "description": "Returns flashcards with progress information"
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Check learning progress for flashcards",
         "tags": [
           "flashcards"
@@ -495,8 +583,19 @@
         "responses": {
           "200": {
             "description": "Returns progress information for flashcard"
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Check if flashcard has learning progress before delete",
         "tags": [
           "flashcards"
@@ -609,8 +708,19 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Get flashcard statistics",
         "tags": [
           "flashcards"
@@ -633,8 +743,19 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Export flashcards to Excel",
         "tags": [
           "flashcards"
@@ -714,10 +835,21 @@
           "400": {
             "description": "Bad request - validation failed"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Flashcard or Topic not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Update flashcard",
         "tags": [
           "flashcards"
@@ -748,10 +880,21 @@
               }
             }
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Flashcard not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Delete flashcard",
         "tags": [
           "flashcards"
@@ -812,10 +955,21 @@
           "400": {
             "description": "Bad request - invalid flashcard IDs"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Topic not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Reorder flashcards in a topic",
         "tags": [
           "flashcards"
@@ -957,6 +1111,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           }
         },
         "security": [
@@ -1132,7 +1292,10 @@
             }
           },
           "401": {
-            "description": "Unauthorized - not logged in"
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           },
           "404": {
             "description": "User not found"
@@ -1175,7 +1338,10 @@
             }
           },
           "401": {
-            "description": "Unauthorized - not logged in"
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           },
           "404": {
             "description": "User not found"
@@ -1226,6 +1392,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           }
         },
         "security": [
@@ -1485,9 +1657,17 @@
             "description": "Bad request - validation failed"
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Create a new lesson",
         "tags": [
           "lessons"
@@ -1566,12 +1746,20 @@
             "description": "Bad request - validation failed"
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           },
           "404": {
             "description": "Lesson not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Update a lesson",
         "tags": [
           "lessons"
@@ -1602,12 +1790,20 @@
             }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           },
           "404": {
             "description": "Lesson not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Delete a lesson",
         "tags": [
           "lessons"
@@ -1646,10 +1842,21 @@
           "400": {
             "description": "Bad request - validation failed or empty lessons array"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Topic not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Create multiple lessons",
         "tags": [
           "lessons"
@@ -1734,8 +1941,19 @@
           },
           "400": {
             "description": "Bad request - validation failed"
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Create a new exercise",
         "tags": [
           "exercises"
@@ -1768,8 +1986,19 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Export exercises to Excel",
         "tags": [
           "exercises"
@@ -1844,10 +2073,21 @@
               }
             }
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Exercise not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Update an exercise by ID",
         "tags": [
           "exercises"
@@ -1870,10 +2110,21 @@
           "200": {
             "description": "Exercise deleted successfully"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Exercise not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Delete an exercise by ID",
         "tags": [
           "exercises"
@@ -1944,10 +2195,21 @@
           "201": {
             "description": "Option added successfully"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Exercise not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Add a new option to an exercise",
         "tags": [
           "exercises"
@@ -1985,10 +2247,21 @@
           "400": {
             "description": "Bad request - validation failed"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "One or more lessons not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Create multiple exercises at once",
         "tags": [
           "exercises"
@@ -2023,10 +2296,21 @@
           "200": {
             "description": "Option updated successfully"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Option not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Update an option by ID",
         "tags": [
           "exercises"
@@ -2049,10 +2333,21 @@
           "200": {
             "description": "Option deleted successfully"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Option not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Delete an option by ID",
         "tags": [
           "exercises"
@@ -2089,8 +2384,19 @@
           },
           "400": {
             "description": "Bad request - invalid exercise IDs"
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Reorder exercises within a lesson",
         "tags": [
           "exercises"
@@ -2127,8 +2433,19 @@
           },
           "400": {
             "description": "Bad request - invalid option IDs"
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Reorder options within an exercise",
         "tags": [
           "exercises"
@@ -2183,10 +2500,21 @@
           "400": {
             "description": "Bad request - invalid CSV format or data"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Lesson not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Import exercises and/or exercise options from CSV files for a lesson",
         "tags": [
           "exercises"
@@ -2249,10 +2577,21 @@
           "400": {
             "description": "Bad request - invalid Excel format or data"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Lesson not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Import exercises from Excel file with asset uploads",
         "tags": [
           "exercises"
@@ -2322,10 +2661,21 @@
           "400": {
             "description": "Bad request - validation failed"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Topic not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Create a new sentence image",
         "tags": [
           "sentences"
@@ -2409,10 +2759,21 @@
           "400": {
             "description": "Bad request - validation failed or no sentences provided"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Topic not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Create a sentence image with sentences",
         "tags": [
           "sentences"
@@ -2451,10 +2812,21 @@
           "400": {
             "description": "Bad request - validation failed or empty sentence images array"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Topic not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Create multiple sentence images with sentences",
         "tags": [
           "sentences"
@@ -2490,10 +2862,21 @@
           "400": {
             "description": "Bad request - validation failed"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Sentence image not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Create a new sentence",
         "tags": [
           "sentences"
@@ -2573,10 +2956,21 @@
           "400": {
             "description": "Bad request - validation failed"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Sentence image or Topic not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Update sentence image",
         "tags": [
           "sentences"
@@ -2607,10 +3001,21 @@
               }
             }
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Sentence image not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Delete sentence image",
         "tags": [
           "sentences"
@@ -2633,8 +3038,19 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Export sentences to Excel",
         "tags": [
           "sentences"
@@ -2714,10 +3130,21 @@
           "400": {
             "description": "Bad request - validation failed"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Sentence or Sentence image not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Update sentence",
         "tags": [
           "sentences"
@@ -2748,10 +3175,21 @@
               }
             }
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Sentence not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Delete sentence",
         "tags": [
           "sentences"
@@ -2788,8 +3226,19 @@
         "responses": {
           "200": {
             "description": "Returns sentences with progress information"
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Check learning progress for sentences",
         "tags": [
           "sentences"
@@ -2814,8 +3263,19 @@
         "responses": {
           "200": {
             "description": "Returns progress information for sentence image"
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Check if sentence image has learning progress before delete",
         "tags": [
           "sentences"
@@ -2840,8 +3300,19 @@
         "responses": {
           "200": {
             "description": "Returns progress information for sentence"
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Check if sentence has learning progress before delete",
         "tags": [
           "sentences"
@@ -2870,10 +3341,21 @@
           "400": {
             "description": "Bad request - validation failed or invalid Excel format"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
           "404": {
             "description": "Topic not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Import sentences from Excel",
         "tags": [
           "sentences"
@@ -3804,10 +4286,18 @@
           "400": {
             "description": "Invalid input or file format"
           },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
           "500": {
             "description": "Assessment failed"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Assess pronunciation from audio file",
         "tags": [
           "Pronunciation"
@@ -5032,11 +5522,16 @@
             "minLength": 6,
             "example": "newPassword123",
             "description": "New password (minimum 6 characters)"
+          },
+          "resetToken": {
+            "type": "string",
+            "description": "The resetToken returned by POST /email/verify-otp"
           }
         },
         "required": [
           "email",
-          "newPassword"
+          "newPassword",
+          "resetToken"
         ]
       },
       "ChangePasswordDto": {
@@ -7660,6 +8155,10 @@
           "message": {
             "type": "string",
             "example": "Xác thực OTP thành công"
+          },
+          "resetToken": {
+            "type": "string",
+            "description": "Short-lived (10 min) token for POST /users/reset-password. Present when the email belongs to an existing user."
           }
         },
         "required": [

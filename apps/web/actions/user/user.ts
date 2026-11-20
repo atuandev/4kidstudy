@@ -3,6 +3,7 @@
 import http from "@/lib/http";
 import { User } from "@/types";
 import { ResetPasswordSchemaType } from "@/schemas/auth";
+import { clearPasswordResetToken, getPasswordResetToken } from "@/lib/cookies";
 import { UpdateProfileSchemaType } from "@/schemas/user";
 
 export const getUsers = async () => {
@@ -19,9 +20,14 @@ export const resetPassword = async (
   data: ResetPasswordSchemaType,
 ): Promise<ResetPasswordResponse> => {
   try {
+    const resetToken = await getPasswordResetToken();
+    if (!resetToken) {
+      throw new Error("Phiên đặt lại mật khẩu đã hết hạn. Vui lòng xác thực lại email.");
+    }
+
     const { status, payload } = await http.post<ResetPasswordResponse>(
       "/users/reset-password",
-      JSON.stringify(data),
+      JSON.stringify({ ...data, resetToken }),
       { noAuth: true },
     );
 
@@ -29,6 +35,8 @@ export const resetPassword = async (
       throw new Error("Không thể đặt lại mật khẩu. Vui lòng thử lại.");
     }
 
+    // The token no longer works (it is bound to the old password); drop it.
+    await clearPasswordResetToken();
     return payload;
   } catch (error) {
     if (error instanceof Error) {

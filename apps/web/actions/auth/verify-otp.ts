@@ -1,12 +1,14 @@
 "use server";
 
 import http from "@/lib/http";
+import { setPasswordResetToken } from "@/lib/cookies";
 import { VerifyEmailSchemaType } from "@/schemas/auth";
 
 interface VerifyOtpResponse {
   success: boolean;
   message: string;
   expiresAt?: string;
+  resetToken?: string;
 }
 
 export async function sendEmailOTP(email: string): Promise<VerifyOtpResponse> {
@@ -30,5 +32,8 @@ export async function verifyOTP(data: VerifyEmailSchemaType): Promise<VerifyOtpR
     },
   );
 
-  return payload;
+  // Keep the reset token server-side (httpOnly cookie) for the new-password step.
+  const { resetToken, ...result } = payload;
+  if (resetToken) await setPasswordResetToken(resetToken);
+  return result;
 }

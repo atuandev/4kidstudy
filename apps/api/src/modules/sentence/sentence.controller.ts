@@ -37,6 +37,7 @@ import {
   SentenceResponseDto,
   SentenceBulkCreateDto,
 } from './dtos/index';
+import { AdminOnly } from '../auth/decorators/auth.decorator';
 
 @ApiTags('sentences')
 @Controller('sentences')
@@ -98,6 +99,7 @@ export class SentenceController {
   }
 
   @Post('images/with-sentences')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Create a sentence image with sentences',
     description:
@@ -125,6 +127,7 @@ export class SentenceController {
   }
 
   @Post('images')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Create a new sentence image',
     description: 'Creates a new sentence image for a specific topic',
@@ -151,6 +154,7 @@ export class SentenceController {
   }
 
   @Post('bulk')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Create multiple sentence images with sentences',
     description:
@@ -179,6 +183,7 @@ export class SentenceController {
   }
 
   @Post()
+  @AdminOnly()
   @ApiOperation({
     summary: 'Create a new sentence',
     description: 'Creates a new sentence for a specific sentence image',
@@ -227,6 +232,7 @@ export class SentenceController {
   }
 
   @Get('export')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Export sentences to Excel',
     description: 'Exports sentences to Excel file (limited to 20 for demo)',
@@ -280,6 +286,7 @@ export class SentenceController {
   }
 
   @Put('images/:id')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Update sentence image',
     description: 'Updates an existing sentence image with new information',
@@ -311,6 +318,7 @@ export class SentenceController {
   }
 
   @Post('check-progress')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Check learning progress for sentences',
     description:
@@ -339,6 +347,7 @@ export class SentenceController {
   }
 
   @Post('images/check-progress-for-delete/:id')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Check if sentence image has learning progress before delete',
     description:
@@ -361,6 +370,7 @@ export class SentenceController {
   }
 
   @Post('check-progress-for-delete/:id')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Check if sentence has learning progress before delete',
     description: 'Check if sentence has learning progress',
@@ -380,6 +390,7 @@ export class SentenceController {
   }
 
   @Put(':id')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Update sentence',
     description: 'Updates an existing sentence with new information',
@@ -411,6 +422,7 @@ export class SentenceController {
   }
 
   @Delete('images/:id')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Delete sentence image',
     description:
@@ -436,6 +448,7 @@ export class SentenceController {
   }
 
   @Delete(':id')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Delete sentence',
     description: 'Deletes a specific sentence',
@@ -460,6 +473,7 @@ export class SentenceController {
   }
 
   @Post('import-excel/:topicId')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Import sentences from Excel',
     description:

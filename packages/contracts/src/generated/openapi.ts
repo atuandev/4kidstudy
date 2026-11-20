@@ -2706,6 +2706,8 @@ export interface components {
              * @example newPassword123
              */
             newPassword: string;
+            /** @description The resetToken returned by POST /email/verify-otp */
+            resetToken: string;
         };
         ReviewContentDto: {
             contentType: Record<string, never>;
@@ -3263,6 +3265,8 @@ export interface components {
         VerifyOTPResponseDto: {
             /** @example Xác thực OTP thành công */
             message: string;
+            /** @description Short-lived (10 min) token for POST /users/reset-password. Present when the email belongs to an existing user. */
+            resetToken?: string;
             /** @example true */
             success: boolean;
         };
@@ -3805,6 +3809,20 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     ExerciseController_findOne: {
@@ -3862,6 +3880,20 @@ export interface operations {
                     "application/json": components["schemas"]["ExerciseDto"];
                 };
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Exercise not found */
             404: {
                 headers: {
@@ -3885,6 +3917,20 @@ export interface operations {
         responses: {
             /** @description Exercise deleted successfully */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3952,6 +3998,20 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Exercise not found */
             404: {
                 headers: {
@@ -3991,6 +4051,20 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     ExerciseController_createMany: {
@@ -4017,6 +4091,20 @@ export interface operations {
             };
             /** @description Bad request - validation failed */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4051,6 +4139,20 @@ export interface operations {
                 content: {
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
                 };
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -4092,6 +4194,20 @@ export interface operations {
             };
             /** @description Bad request - invalid CSV format or data */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4146,6 +4262,20 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Lesson not found */
             404: {
                 headers: {
@@ -4185,6 +4315,20 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     ExerciseController_updateOption: {
@@ -4205,6 +4349,20 @@ export interface operations {
         responses: {
             /** @description Option updated successfully */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4233,6 +4391,20 @@ export interface operations {
         responses: {
             /** @description Option deleted successfully */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4298,6 +4470,20 @@ export interface operations {
             };
             /** @description Bad request - validation failed */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4374,6 +4560,20 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Flashcard or Topic not found */
             404: {
                 headers: {
@@ -4403,6 +4603,20 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["FlashcardWithTopicDto"];
                 };
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Flashcard not found */
             404: {
@@ -4442,6 +4656,20 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Topic not found */
             404: {
                 headers: {
@@ -4474,6 +4702,20 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     FlashcardController_checkFlashcardProgressForDelete: {
@@ -4490,6 +4732,20 @@ export interface operations {
         responses: {
             /** @description Returns progress information for flashcard */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4514,6 +4770,20 @@ export interface operations {
                 content: {
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
                 };
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -4540,6 +4810,20 @@ export interface operations {
             };
             /** @description Bad request - invalid file format or data */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4585,6 +4869,20 @@ export interface operations {
                         totalInactive?: number;
                     };
                 };
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -4651,6 +4949,20 @@ export interface operations {
             };
             /** @description Bad request - invalid flashcard IDs */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5081,8 +5393,15 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Unauthorized */
+            /** @description Missing or invalid access token */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5152,8 +5471,15 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Unauthorized */
+            /** @description Missing or invalid access token */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5189,8 +5515,15 @@ export interface operations {
                     "application/json": components["schemas"]["LessonResponseDto"];
                 };
             };
-            /** @description Unauthorized */
+            /** @description Missing or invalid access token */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5229,6 +5562,20 @@ export interface operations {
             };
             /** @description Bad request - validation failed or empty lessons array */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5292,6 +5639,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Assessment failed */
             500: {
                 headers: {
@@ -5325,6 +5679,20 @@ export interface operations {
             };
             /** @description Bad request - validation failed */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5401,6 +5769,20 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Sentence or Sentence image not found */
             404: {
                 headers: {
@@ -5430,6 +5812,20 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SentenceResponseDto"];
                 };
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Sentence not found */
             404: {
@@ -5469,6 +5865,20 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Topic not found */
             404: {
                 headers: {
@@ -5501,6 +5911,20 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     SentenceController_checkSentenceProgressForDelete: {
@@ -5517,6 +5941,20 @@ export interface operations {
         responses: {
             /** @description Returns progress information for sentence */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5541,6 +5979,20 @@ export interface operations {
                 content: {
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
                 };
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -5591,6 +6043,20 @@ export interface operations {
             };
             /** @description Bad request - validation failed */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5667,6 +6133,20 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Sentence image or Topic not found */
             404: {
                 headers: {
@@ -5697,6 +6177,20 @@ export interface operations {
                     "application/json": components["schemas"]["SentenceImageResponseDto"];
                 };
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Sentence image not found */
             404: {
                 headers: {
@@ -5720,6 +6214,20 @@ export interface operations {
         responses: {
             /** @description Returns progress information for sentence image */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5789,6 +6297,20 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Topic not found */
             404: {
                 headers: {
@@ -5819,6 +6341,20 @@ export interface operations {
             };
             /** @description Bad request - validation failed or invalid Excel format */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5882,6 +6418,20 @@ export interface operations {
             };
             /** @description Bad request - validation failed */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5958,6 +6508,20 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Topic not found */
             404: {
                 headers: {
@@ -5987,6 +6551,20 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TopicResponseDto"];
                 };
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Topic not found */
             404: {
@@ -6018,6 +6596,20 @@ export interface operations {
                     "application/json": components["schemas"]["TopicStatsDto"];
                 };
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Topic not found */
             404: {
                 headers: {
@@ -6048,6 +6640,20 @@ export interface operations {
                     "application/json": components["schemas"]["UserProfileDto"][];
                 };
             };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     UserController_getUserById: {
@@ -6071,8 +6677,15 @@ export interface operations {
                     "application/json": components["schemas"]["UserProfileDto"];
                 };
             };
-            /** @description Unauthorized - not logged in */
+            /** @description Missing or invalid access token */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6108,8 +6721,15 @@ export interface operations {
                     "application/json": components["schemas"]["UserStatsDto"];
                 };
             };
-            /** @description Unauthorized - not logged in */
+            /** @description Missing or invalid access token */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6148,6 +6768,20 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["UserProfileDto"];
                 };
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

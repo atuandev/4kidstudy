@@ -37,6 +37,7 @@ import {
   FlashcardWithTopicDto,
   FlashcardBulkCreateDto,
 } from './dtos/index';
+import { AdminOnly } from '../auth/decorators/auth.decorator';
 
 @ApiTags('flashcards')
 @Controller('flashcards')
@@ -44,6 +45,7 @@ export class FlashcardController {
   constructor(private readonly flashcardService: FlashcardService) {}
 
   @Post()
+  @AdminOnly()
   @ApiOperation({
     summary: 'Create a new flashcard',
     description: 'Creates a new flashcard for a specific topic',
@@ -68,6 +70,7 @@ export class FlashcardController {
   }
 
   @Post('bulk')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Create multiple flashcards',
     description:
@@ -95,6 +98,7 @@ export class FlashcardController {
   }
 
   @Post('import/:topicId')
+  @AdminOnly()
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'excelFile', maxCount: 1 },
@@ -149,6 +153,7 @@ export class FlashcardController {
   }
 
   @Post('check-progress')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Check learning progress for flashcards',
     description:
@@ -177,6 +182,7 @@ export class FlashcardController {
   }
 
   @Post('check-progress-for-delete/:id')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Check if flashcard has learning progress before delete',
     description: 'Check if flashcard has learning progress',
@@ -264,6 +270,7 @@ export class FlashcardController {
   }
 
   @Get('stats')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Get flashcard statistics',
     description:
@@ -308,6 +315,7 @@ export class FlashcardController {
   }
 
   @Get('export')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Export flashcards to Excel',
     description: 'Exports flashcards to Excel file (limited to 20 for demo)',
@@ -361,6 +369,7 @@ export class FlashcardController {
   }
 
   @Put('topic/:topicId/reorder')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Reorder flashcards in a topic',
     description: 'Updates the order of flashcards within a specific topic',
@@ -404,6 +413,7 @@ export class FlashcardController {
   }
 
   @Put(':id')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Update flashcard',
     description: 'Updates an existing flashcard with new information',
@@ -435,6 +445,7 @@ export class FlashcardController {
   }
 
   @Delete(':id')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Delete flashcard',
     description: 'Deletes a specific flashcard',

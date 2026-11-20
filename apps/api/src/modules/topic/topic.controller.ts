@@ -28,6 +28,7 @@ import {
   TopicStatsDto,
   GradeLevel,
 } from './dtos/index';
+import { AdminOnly } from '../auth/decorators/auth.decorator';
 
 @ApiTags('topics')
 @Controller('topics')
@@ -35,6 +36,7 @@ export class TopicController {
   constructor(private readonly topicService: TopicService) {}
 
   @Post()
+  @AdminOnly()
   @ApiOperation({
     summary: 'Create a new topic',
     description: 'Creates a new topic for the specified grade level',
@@ -113,6 +115,7 @@ export class TopicController {
   }
 
   @Get(':id/stats')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Get topic statistics',
     description:
@@ -137,6 +140,7 @@ export class TopicController {
   }
 
   @Put(':id')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Update topic',
     description: 'Updates an existing topic with new information',
@@ -168,6 +172,7 @@ export class TopicController {
   }
 
   @Delete(':id')
+  @AdminOnly()
   @ApiOperation({
     summary: 'Delete topic',
     description:
