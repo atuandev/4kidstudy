@@ -668,8 +668,8 @@ export default function SentenceFormPage() {
         });
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_ENDPOINT || "http://localhost:3001/api";
-      const response = await fetch(`${apiUrl}/sentences/import-excel/${topicId}`, {
+      // Same-origin route adds the admin's access token (httpOnly cookie).
+      const response = await fetch(`/api/admin-import/sentences/import-excel/${topicId}`, {
         method: "POST",
         body: formData,
       });

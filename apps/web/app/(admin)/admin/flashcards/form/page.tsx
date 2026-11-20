@@ -555,7 +555,7 @@ export default function FlashcardFormPage() {
       toast.info(`📦 Đang upload: 1 Excel + ${matchedCount} file assets...`);
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_ENDPOINT}/flashcards/import/${topicId}`,
+        `/api/admin-import/flashcards/import/${topicId}`,
         { method: "POST", body: formData }
       );
 

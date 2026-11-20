@@ -708,9 +708,9 @@ export default function ExerciseFormPage() {
         });
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_ENDPOINT || 'http://localhost:3001/api';
+      // Same-origin route adds the admin's access token (httpOnly cookie).
       const response = await fetch(
-        `${apiUrl}/exercises/import-excel/${lessonId}`,
+        `/api/admin-import/exercises/import-excel/${lessonId}`,
         {
           method: 'POST',
           body: formData,
