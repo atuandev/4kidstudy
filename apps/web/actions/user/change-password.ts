@@ -1,7 +1,7 @@
-'use server';
+"use server";
 
-import { ChangePasswordSchemaType } from '@/schemas/auth';
-import http from '@/lib/http';
+import { ChangePasswordSchemaType } from "@/schemas/auth";
+import http from "@/lib/http";
 
 interface ChangePasswordResponse {
   success: boolean;
@@ -11,24 +11,23 @@ interface ChangePasswordResponse {
 export async function changePassword(data: ChangePasswordSchemaType) {
   try {
     const { status, payload } = await http.post<ChangePasswordResponse>(
-      '/users/me/change-password',
+      "/users/me/change-password",
       JSON.stringify({
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
-      })
+      }),
     );
 
     if (status !== 200 && status !== 201) {
-      throw new Error(payload?.message || 'Đổi mật khẩu thất bại');
+      throw new Error(payload?.message || "Đổi mật khẩu thất bại");
     }
 
     return {
       success: true,
-      message: payload?.message || 'Đổi mật khẩu thành công',
+      message: payload?.message || "Đổi mật khẩu thành công",
     };
   } catch (error) {
-    const errorMessage =
-      (error instanceof Error && error.message) || 'Đổi mật khẩu thất bại';
+    const errorMessage = (error instanceof Error && error.message) || "Đổi mật khẩu thất bại";
 
     return {
       success: false,
@@ -36,4 +35,3 @@ export async function changePassword(data: ChangePasswordSchemaType) {
     };
   }
 }
-

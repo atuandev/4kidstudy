@@ -7,20 +7,10 @@ interface PracticePageProps {
   readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export default async function PracticePage({
-  searchParams,
-}: PracticePageProps) {
-  const [stats, resolvedParams] = await Promise.all([
-    getPracticeStatistics(),
-    searchParams,
-  ]);
-  const gradeParam =
-    typeof resolvedParams?.grade === "string"
-      ? resolvedParams.grade
-      : undefined;
-  const selectedGrade = gradeParam
-    ? GRADES.find((grade) => grade.value === gradeParam)
-    : undefined;
+export default async function PracticePage({ searchParams }: PracticePageProps) {
+  const [stats, resolvedParams] = await Promise.all([getPracticeStatistics(), searchParams]);
+  const gradeParam = typeof resolvedParams?.grade === "string" ? resolvedParams.grade : undefined;
+  const selectedGrade = gradeParam ? GRADES.find((grade) => grade.value === gradeParam) : undefined;
   if (!selectedGrade) {
     return <Units stats={stats} topics={[]} />;
   }

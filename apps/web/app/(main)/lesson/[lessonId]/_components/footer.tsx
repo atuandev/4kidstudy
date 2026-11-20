@@ -38,7 +38,7 @@ export const Footer = ({
       className={cn(
         "border-t-2 py-4",
         status === "correct" && "border-transparent bg-green-100",
-        status === "wrong" && "border-transparent bg-rose-100"
+        status === "wrong" && "border-transparent bg-rose-100",
       )}
     >
       <div className="grid grid-cols-12 h-full max-w-[1140px] px-6 lg:px-10 mx-auto items-center">
@@ -84,30 +84,14 @@ export const Footer = ({
           {/* Hints section - only show when wrong or correct */}
           {status === "correct" && (hintVi || hintEn) && (
             <div className="">
-              {hintEn && (
-                <div className="text-green-500 font-bold text-2xl">
-                  {hintEn}
-                </div>
-              )}
-              {hintVi && (
-                <div className="text-green-500 font-semibold text-2xl">
-                  {hintVi}
-                </div>
-              )}
+              {hintEn && <div className="text-green-500 font-bold text-2xl">{hintEn}</div>}
+              {hintVi && <div className="text-green-500 font-semibold text-2xl">{hintVi}</div>}
             </div>
           )}
           {status === "wrong" && (hintVi || hintEn) && (
             <div className="">
-              {hintEn && (
-                <div className="text-rose-500 font-bold text-2xl">
-                  {hintEn}
-                </div>
-              )}
-              {hintVi && (
-                <div className="text-rose-500 font-semibold text-2xl">
-                  {hintVi}
-                </div>
-              )}
+              {hintEn && <div className="text-rose-500 font-bold text-2xl">{hintEn}</div>}
+              {hintVi && <div className="text-rose-500 font-semibold text-2xl">{hintVi}</div>}
             </div>
           )}
         </div>

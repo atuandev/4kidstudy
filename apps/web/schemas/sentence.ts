@@ -2,14 +2,8 @@ import { z } from "zod";
 
 export const SentenceSchema = z.object({
   id: z.number().int().positive().optional(),
-  text: z
-    .string()
-    .min(1, "Vui lòng nhập câu tiếng Anh")
-    .max(100, "Tối đa 100 ký tự"),
-  meaningVi: z
-    .string()
-    .min(1, "Vui lòng nhập nghĩa tiếng Việt")
-    .max(100, "Tối đa 100 ký tự"),
+  text: z.string().min(1, "Vui lòng nhập câu tiếng Anh").max(100, "Tối đa 100 ký tự"),
+  meaningVi: z.string().min(1, "Vui lòng nhập nghĩa tiếng Việt").max(100, "Tối đa 100 ký tự"),
   hintVi: z
     .string()
     .nullish()
@@ -50,7 +44,5 @@ export const CreateSentenceImageSchema = z
     }
   });
 
-export type CreateSentenceImageFormData = z.infer<
-  typeof CreateSentenceImageSchema
->;
+export type CreateSentenceImageFormData = z.infer<typeof CreateSentenceImageSchema>;
 export type CreateSentenceItem = z.infer<typeof SentenceSchema>;

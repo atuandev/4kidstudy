@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Upload, FileUp } from 'lucide-react';
+import { useState } from "react";
+import { Upload, FileUp } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,12 +10,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
-import { importExercisesFromCsv } from '@/actions/exercise';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { importExercisesFromCsv } from "@/actions/exercise";
 
 interface ImportCsvDialogProps {
   lessonId: number;
@@ -27,13 +27,12 @@ export function ImportCsvDialog({ lessonId, lessonTitle }: ImportCsvDialogProps)
   const [exercisesFile, setExercisesFile] = useState<File | null>(null);
   const [optionsFile, setOptionsFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!exercisesFile && !optionsFile) {
-      toast.error('Vui lòng chọn ít nhất một file CSV');
+      toast.error("Vui lòng chọn ít nhất một file CSV");
       return;
     }
 
@@ -41,29 +40,31 @@ export function ImportCsvDialog({ lessonId, lessonTitle }: ImportCsvDialogProps)
 
     try {
       const formData = new FormData();
-      formData.append('lessonId', lessonId.toString());
-      
+      formData.append("lessonId", lessonId.toString());
+
       if (exercisesFile) {
-        formData.append('exercisesFile', exercisesFile);
+        formData.append("exercisesFile", exercisesFile);
       }
-      
+
       if (optionsFile) {
-        formData.append('optionsFile', optionsFile);
+        formData.append("optionsFile", optionsFile);
       }
 
       const result = await importExercisesFromCsv(formData);
 
-      toast.success(`Đã import ${result.exercisesCreated} bài tập và ${result.optionsCreated} lựa chọn`);
+      toast.success(
+        `Đã import ${result.exercisesCreated} bài tập và ${result.optionsCreated} lựa chọn`,
+      );
 
       setIsOpen(false);
       setExercisesFile(null);
       setOptionsFile(null);
-      
+
       // Reload the page to show new data
       window.location.reload();
     } catch (error) {
-      console.error('Import failed:', error);
-      toast.error(error instanceof Error ? error.message : 'Không thể import file CSV');
+      console.error("Import failed:", error);
+      toast.error(error instanceof Error ? error.message : "Không thể import file CSV");
     } finally {
       setIsLoading(false);
     }
@@ -85,14 +86,12 @@ export function ImportCsvDialog({ lessonId, lessonTitle }: ImportCsvDialogProps)
               Import bài tập và lựa chọn cho bài &quot;{lessonTitle}&quot; từ file CSV
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="exercisesFile">
                 File bài tập (Exercise.csv)
-                <span className="text-xs text-muted-foreground ml-2">
-                  (không bắt buộc)
-                </span>
+                <span className="text-xs text-muted-foreground ml-2">(không bắt buộc)</span>
               </Label>
               <div className="flex items-center gap-2">
                 <Input
@@ -102,21 +101,18 @@ export function ImportCsvDialog({ lessonId, lessonTitle }: ImportCsvDialogProps)
                   onChange={(e) => setExercisesFile(e.target.files?.[0] || null)}
                   disabled={isLoading}
                 />
-                {exercisesFile && (
-                  <FileUp className="h-4 w-4 text-green-600" />
-                )}
+                {exercisesFile && <FileUp className="h-4 w-4 text-green-600" />}
               </div>
               <p className="text-xs text-muted-foreground">
-                Columns: type, order, prompt, imageUrl, audioUrl, targetText, hintEn, hintVi, points, difficulty
+                Columns: type, order, prompt, imageUrl, audioUrl, targetText, hintEn, hintVi,
+                points, difficulty
               </p>
             </div>
 
             <div className="grid gap-2">
               <Label htmlFor="optionsFile">
                 File lựa chọn (ExerciseOptions.csv)
-                <span className="text-xs text-muted-foreground ml-2">
-                  (không bắt buộc)
-                </span>
+                <span className="text-xs text-muted-foreground ml-2">(không bắt buộc)</span>
               </Label>
               <div className="flex items-center gap-2">
                 <Input
@@ -126,9 +122,7 @@ export function ImportCsvDialog({ lessonId, lessonTitle }: ImportCsvDialogProps)
                   onChange={(e) => setOptionsFile(e.target.files?.[0] || null)}
                   disabled={isLoading}
                 />
-                {optionsFile && (
-                  <FileUp className="h-4 w-4 text-green-600" />
-                )}
+                {optionsFile && <FileUp className="h-4 w-4 text-green-600" />}
               </div>
               <p className="text-xs text-muted-foreground">
                 Columns: exerciseId, text, imageUrl, audioUrl, isCorrect, order, matchKey
@@ -150,7 +144,7 @@ export function ImportCsvDialog({ lessonId, lessonTitle }: ImportCsvDialogProps)
               variant="primary"
               disabled={isLoading || (!exercisesFile && !optionsFile)}
             >
-              {isLoading ? 'Đang import...' : 'Import'}
+              {isLoading ? "Đang import..." : "Import"}
             </Button>
           </DialogFooter>
         </form>

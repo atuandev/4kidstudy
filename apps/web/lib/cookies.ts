@@ -1,25 +1,25 @@
-'use server'
+"use server";
 
-import { cookies } from 'next/headers'
+import { cookies } from "next/headers";
 
 export const setTokenToCookies = async (accessToken: string, refreshToken: string) => {
-  const cookiesStore = await cookies()
+  const cookiesStore = await cookies();
 
   cookiesStore.set({
-    name: 'accessToken',
+    name: "accessToken",
     value: accessToken,
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    sameSite: 'lax',
-  })
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    sameSite: "lax",
+  });
 
   cookiesStore.set({
-    name: 'refreshToken',
+    name: "refreshToken",
     value: refreshToken,
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    sameSite: 'lax',
-  })
-}
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    sameSite: "lax",
+  });
+};

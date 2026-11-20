@@ -1,7 +1,4 @@
-
 "use client";
-
-
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ImageIcon, Loader2, Upload, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
@@ -103,7 +100,11 @@ export default function LessonFormPage() {
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { selectedGrade: storeGrade, selectedTopicId: storeTopicId, clearSelection } = useLessonFormStore();
+  const {
+    selectedGrade: storeGrade,
+    selectedTopicId: storeTopicId,
+    clearSelection,
+  } = useLessonFormStore();
 
   const lessonId = searchParams.get("id");
   const topicIdParam = searchParams.get("topicId");
@@ -113,7 +114,7 @@ export default function LessonFormPage() {
   // Use different schemas based on mode
   const form = useForm<CreateLessonFormData | CreateLessonsFormData>({
     resolver: zodResolver(
-      isTopicLocked ? CreateLessonsSchema : CreateLessonSchema
+      isTopicLocked ? CreateLessonsSchema : CreateLessonSchema,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ) as any,
     defaultValues: isTopicLocked
@@ -185,7 +186,7 @@ export default function LessonFormPage() {
               coverImage: lesson.coverImage ?? "",
               order: lesson.order,
             }));
-            
+
             setExistingLessonsCount(allLessons.length);
 
             form.reset({
@@ -258,10 +259,7 @@ export default function LessonFormPage() {
     try {
       if (isEditMode) {
         const singleData = data as CreateLessonFormData;
-        const updatedLesson = await updateLesson(
-          parseInt(lessonId),
-          singleData
-        );
+        const updatedLesson = await updateLesson(parseInt(lessonId), singleData);
         if (updatedLesson) {
           toast.success("Cập nhật bài luyện tập thành công");
           clearSelection();
@@ -273,15 +271,15 @@ export default function LessonFormPage() {
       } else if (isTopicLocked) {
         // Bulk create/update mode
         const bulkData = data as CreateLessonsFormData;
-        
+
         // Split lessons into existing (with id) and new (without id)
-        const existingLessons = bulkData.lessons.filter(lesson => lesson.id);
-        const newLessons = bulkData.lessons.filter(lesson => !lesson.id);
+        const existingLessons = bulkData.lessons.filter((lesson) => lesson.id);
+        const newLessons = bulkData.lessons.filter((lesson) => !lesson.id);
 
         // Update existing lessons individually
         if (existingLessons.length > 0) {
           await Promise.all(
-            existingLessons.map(lesson =>
+            existingLessons.map((lesson) =>
               updateLesson(lesson.id!, {
                 topicId: bulkData.topicId,
                 title: lesson.title,
@@ -293,8 +291,8 @@ export default function LessonFormPage() {
                 audioUrl: lesson.audioUrl,
                 coverImage: lesson.coverImage,
                 order: lesson.order,
-              })
-            )
+              }),
+            ),
           );
         }
 
@@ -306,7 +304,7 @@ export default function LessonFormPage() {
               description: lesson.description,
               status: lesson.status,
             };
-            
+
             // Only include optional fields if they have values
             if (lesson.theoryText) cleaned.theoryText = lesson.theoryText;
             if (lesson.phoneticsNote) cleaned.phoneticsNote = lesson.phoneticsNote;
@@ -314,7 +312,7 @@ export default function LessonFormPage() {
             if (lesson.audioUrl) cleaned.audioUrl = lesson.audioUrl;
             if (lesson.coverImage) cleaned.coverImage = lesson.coverImage;
             // DO NOT send order for new lessons - let backend auto-assign
-            
+
             return cleaned;
           });
           await bulkCreateLessons(bulkData.topicId, cleanedNewLessons);
@@ -340,24 +338,17 @@ export default function LessonFormPage() {
     } catch (error) {
       console.error("Failed to save lesson:", error);
 
-      const errorMessage = (
-        error as { payload?: { message?: string | string[] } }
-      )?.payload?.message;
+      const errorMessage = (error as { payload?: { message?: string | string[] } })?.payload
+        ?.message;
 
       if (typeof errorMessage === "string") {
-        if (
-          errorMessage.includes("Unique constraint") ||
-          errorMessage.includes("already exists")
-        ) {
+        if (errorMessage.includes("Unique constraint") || errorMessage.includes("already exists")) {
           toast.error(
-            "Bài luyện tập với thứ tự này đã tồn tại trong chủ đề. Vui lòng chọn thứ tự khác."
+            "Bài luyện tập với thứ tự này đã tồn tại trong chủ đề. Vui lòng chọn thứ tự khác.",
           );
           return;
         }
-        if (
-          errorMessage.includes("Topic") &&
-          errorMessage.includes("not found")
-        ) {
+        if (errorMessage.includes("Topic") && errorMessage.includes("not found")) {
           toast.error("Không tìm thấy chủ đề. Vui lòng chọn chủ đề khác.");
           return;
         }
@@ -365,9 +356,7 @@ export default function LessonFormPage() {
       } else if (Array.isArray(errorMessage)) {
         toast.error(errorMessage.join(", "));
       } else {
-        toast.error(
-          isEditMode ? "Cập nhật bài luyện tập thất bại" : "Tạo bài luyện tập thất bại"
-        );
+        toast.error(isEditMode ? "Cập nhật bài luyện tập thất bại" : "Tạo bài luyện tập thất bại");
       }
     } finally {
       setIsSubmitting(false);
@@ -422,7 +411,7 @@ export default function LessonFormPage() {
 
   async function handleRemoveLesson(index: number) {
     const lesson = form.getValues(`lessons.${index}` as any); // eslint-disable-line @typescript-eslint/no-explicit-any
-    
+
     // If lesson has an id, it exists in the database and needs to be deleted
     if (lesson.id) {
       try {
@@ -468,10 +457,7 @@ export default function LessonFormPage() {
       {/* Header */}
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-1" />
-        <Separator
-          orientation="vertical"
-          className="mr-2 data-[orientation=vertical]:h-4"
-        />
+        <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -479,14 +465,16 @@ export default function LessonFormPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/admin/lessons">
-                Bài luyện tập
-              </BreadcrumbLink>
+              <BreadcrumbLink href="/admin/lessons">Bài luyện tập</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbPage>
-                {isEditMode ? "Chỉnh sửa" : isTopicLocked ? "Tạo/sửa nhiều bài luyện tập" : "Thêm mới"}
+                {isEditMode
+                  ? "Chỉnh sửa"
+                  : isTopicLocked
+                    ? "Tạo/sửa nhiều bài luyện tập"
+                    : "Thêm mới"}
               </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
@@ -494,7 +482,11 @@ export default function LessonFormPage() {
       </div>
 
       <TypographyH3>
-        {isEditMode ? "Chỉnh sửa bài luyện tập" : isTopicLocked ? "Tạo/sửa nhiều bài luyện tập" : "Thêm bài luyện tập mới"}
+        {isEditMode
+          ? "Chỉnh sửa bài luyện tập"
+          : isTopicLocked
+            ? "Tạo/sửa nhiều bài luyện tập"
+            : "Thêm bài luyện tập mới"}
       </TypographyH3>
 
       {/* Form */}
@@ -525,9 +517,7 @@ export default function LessonFormPage() {
                 />
               </FormControl>
               {isTopicLocked && (
-                <FormDescription>
-                  Khối lớp đã được chọn và không thể thay đổi
-                </FormDescription>
+                <FormDescription>Khối lớp đã được chọn và không thể thay đổi</FormDescription>
               )}
               <FormMessage />
             </FormItem>
@@ -548,25 +538,15 @@ export default function LessonFormPage() {
                       }))}
                       value={field.value?.toString()}
                       onValueChange={(value) => field.onChange(parseInt(value))}
-                      placeholder={
-                        selectedGrade
-                          ? "Chọn chủ đề"
-                          : "Vui lòng chọn khối lớp trước"
-                      }
+                      placeholder={selectedGrade ? "Chọn chủ đề" : "Vui lòng chọn khối lớp trước"}
                       searchPlaceholder="Tìm kiếm chủ đề..."
-                      emptyText={
-                        selectedGrade
-                          ? "Không tìm thấy chủ đề."
-                          : "Chưa chọn khối lớp."
-                      }
+                      emptyText={selectedGrade ? "Không tìm thấy chủ đề." : "Chưa chọn khối lớp."}
                       disabled={!selectedGrade || isTopicLocked}
                       className={cn(!field.value && "text-muted-foreground")}
                     />
                   </FormControl>
                   {isTopicLocked && (
-                    <FormDescription>
-                      Chủ đề đã được chọn và không thể thay đổi
-                    </FormDescription>
+                    <FormDescription>Chủ đề đã được chọn và không thể thay đổi</FormDescription>
                   )}
                   <FormMessage />
                 </FormItem>
@@ -584,7 +564,8 @@ export default function LessonFormPage() {
                     <h3 className="text-lg font-semibold">Danh sách bài luyện tập</h3>
                     {existingLessonsCount > 0 && (
                       <p className="text-sm text-muted-foreground">
-                        Đang có {existingLessonsCount} bài luyện tập từ trước. Bạn có thể sửa hoặc thêm mới.
+                        Đang có {existingLessonsCount} bài luyện tập từ trước. Bạn có thể sửa hoặc
+                        thêm mới.
                       </p>
                     )}
                   </div>
@@ -642,7 +623,9 @@ export default function LessonFormPage() {
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleRemoveLesson(index)}>Xóa</AlertDialogAction>
+                                <AlertDialogAction onClick={() => handleRemoveLesson(index)}>
+                                  Xóa
+                                </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
@@ -705,13 +688,11 @@ export default function LessonFormPage() {
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    {Object.entries(lessonStatusLabels).map(
-                                      ([value, label]) => (
-                                        <SelectItem key={value} value={value}>
-                                          {label}
-                                        </SelectItem>
-                                      )
-                                    )}
+                                    {Object.entries(lessonStatusLabels).map(([value, label]) => (
+                                      <SelectItem key={value} value={value}>
+                                        {label}
+                                      </SelectItem>
+                                    ))}
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -795,11 +776,7 @@ export default function LessonFormPage() {
                                       onSuccess={(result) => handleCoverImageUpload(index, result)}
                                     >
                                       {({ open }) => (
-                                        <Button
-                                          type="button"
-                                          size="icon"
-                                          onClick={() => open()}
-                                        >
+                                        <Button type="button" size="icon" onClick={() => open()}>
                                           <ImageIcon className="h-4 w-4" />
                                         </Button>
                                       )}
@@ -826,11 +803,7 @@ export default function LessonFormPage() {
                                       onSuccess={(result) => handleAudioUpload(index, result)}
                                     >
                                       {({ open }) => (
-                                        <Button
-                                          type="button"
-                                          size="icon"
-                                          onClick={() => open()}
-                                        >
+                                        <Button type="button" size="icon" onClick={() => open()}>
                                           <Upload className="h-4 w-4" />
                                         </Button>
                                       )}
@@ -878,11 +851,7 @@ export default function LessonFormPage() {
                       Mô tả <RequiredField />
                     </FormLabel>
                     <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder="Nhập mô tả bài luyện tập"
-                        rows={3}
-                      />
+                      <Textarea {...field} placeholder="Nhập mô tả bài luyện tập" rows={3} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -890,11 +859,7 @@ export default function LessonFormPage() {
               />
 
               {/* Order and Status */}
-              <div
-                className={`grid gap-4 ${
-                  isEditMode ? "md:grid-cols-2" : "md:grid-cols-1"
-                }`}
-              >
+              <div className={`grid gap-4 ${isEditMode ? "md:grid-cols-2" : "md:grid-cols-1"}`}>
                 {isEditMode && (
                   <FormField
                     control={formControl}
@@ -906,9 +871,7 @@ export default function LessonFormPage() {
                           <Input
                             {...field}
                             type="number"
-                            onChange={(e) =>
-                              field.onChange(parseInt(e.target.value))
-                            }
+                            onChange={(e) => field.onChange(parseInt(e.target.value))}
                           />
                         </FormControl>
                         <FormMessage />
@@ -932,13 +895,11 @@ export default function LessonFormPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {Object.entries(lessonStatusLabels).map(
-                            ([value, label]) => (
-                              <SelectItem key={value} value={value}>
-                                {label}
-                              </SelectItem>
-                            )
-                          )}
+                          {Object.entries(lessonStatusLabels).map(([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -957,11 +918,7 @@ export default function LessonFormPage() {
                   <FormItem>
                     <FormLabel>Nội dung lý thuyết</FormLabel>
                     <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder="Nhập nội dung lý thuyết"
-                        rows={5}
-                      />
+                      <Textarea {...field} placeholder="Nhập nội dung lý thuyết" rows={5} />
                     </FormControl>
                     <FormDescription>
                       Nội dung lý thuyết sẽ được hiển thị cho học viên
@@ -979,15 +936,9 @@ export default function LessonFormPage() {
                   <FormItem>
                     <FormLabel>Ghi chú phát âm</FormLabel>
                     <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder="Nhập ghi chú về phát âm"
-                        rows={3}
-                      />
+                      <Textarea {...field} placeholder="Nhập ghi chú về phát âm" rows={3} />
                     </FormControl>
-                    <FormDescription>
-                      Hướng dẫn phát âm cho học viên
-                    </FormDescription>
+                    <FormDescription>Hướng dẫn phát âm cho học viên</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1001,15 +952,9 @@ export default function LessonFormPage() {
                   <FormItem>
                     <FormLabel>Ghi chú ngữ pháp</FormLabel>
                     <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder="Nhập ghi chú về ngữ pháp"
-                        rows={3}
-                      />
+                      <Textarea {...field} placeholder="Nhập ghi chú về ngữ pháp" rows={3} />
                     </FormControl>
-                    <FormDescription>
-                      Hướng dẫn ngữ pháp cho học viên
-                    </FormDescription>
+                    <FormDescription>Hướng dẫn ngữ pháp cho học viên</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1032,11 +977,7 @@ export default function LessonFormPage() {
                           onSuccess={(result) => handleCoverImageUpload(undefined, result)}
                         >
                           {({ open }) => (
-                            <Button
-                              type="button"
-                              size="icon"
-                              onClick={() => open()}
-                            >
+                            <Button type="button" size="icon" onClick={() => open()}>
                               <ImageIcon className="h-4 w-4" />
                             </Button>
                           )}
@@ -1066,20 +1007,14 @@ export default function LessonFormPage() {
                           onSuccess={(result) => handleAudioUpload(undefined, result)}
                         >
                           {({ open }) => (
-                            <Button
-                              type="button"
-                              size="icon"
-                              onClick={() => open()}
-                            >
+                            <Button type="button" size="icon" onClick={() => open()}>
                               <Upload className="h-4 w-4" />
                             </Button>
                           )}
                         </CldUploadWidget>
                       </div>
                     </FormControl>
-                    <FormDescription>
-                      File âm thanh phát âm mẫu cho bài luyện tập
-                    </FormDescription>
+                    <FormDescription>File âm thanh phát âm mẫu cho bài luyện tập</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1089,17 +1024,11 @@ export default function LessonFormPage() {
 
           {/* Form Actions */}
           <div className="flex justify-end gap-2 sticky bottom-0 bg-background pt-4 pb-2">
-            <Button
-              type="button"
-              onClick={handleCancel}
-              disabled={isSubmitting}
-            >
+            <Button type="button" onClick={handleCancel} disabled={isSubmitting}>
               Hủy
             </Button>
             <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isEditMode ? "Cập nhật" : isTopicLocked ? "Lưu tất cả" : "Tạo mới"}
             </Button>
           </div>

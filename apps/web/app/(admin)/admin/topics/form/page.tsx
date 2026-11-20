@@ -1,15 +1,12 @@
+"use client";
 
-'use client';
-
-
-
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ImageIcon, Loader2 } from 'lucide-react';
-import { CldUploadWidget } from 'next-cloudinary';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ImageIcon, Loader2 } from "lucide-react";
+import { CldUploadWidget } from "next-cloudinary";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import {
   Breadcrumb,
@@ -18,8 +15,8 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -28,31 +25,31 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
-import { SidebarTrigger } from '@/components/ui/sidebar';
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
-import { createTopic, getTopicById, updateTopic } from '@/actions/topic';
-import { RequiredField } from '@/components/form/required-field';
-import { TypographyH3 } from '@/components/typography';
+import { createTopic, getTopicById, updateTopic } from "@/actions/topic";
+import { RequiredField } from "@/components/form/required-field";
+import { TypographyH3 } from "@/components/typography";
 import {
   CreateTopicFormData,
   CreateTopicSchema,
   topicStatusLabels,
   gradeLabels,
-} from '@/schemas/topic';
-import { UPLOAD_PRESET } from '@/lib/constants';
-import { useTopicFormStore } from '@/lib/stores/topic-form-store';
-import type { GradeLevel } from '@4kidstudy/contracts';
+} from "@/schemas/topic";
+import { UPLOAD_PRESET } from "@/lib/constants";
+import { useTopicFormStore } from "@/lib/stores/topic-form-store";
+import type { GradeLevel } from "@4kidstudy/contracts";
 
 export default function TopicFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,17 +58,17 @@ export default function TopicFormPage() {
   const searchParams = useSearchParams();
   const { selectedGrade, clearSelectedGrade } = useTopicFormStore();
 
-  const topicId = searchParams.get('id');
+  const topicId = searchParams.get("id");
   const isEditMode = !!topicId;
 
   const form = useForm<CreateTopicFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(CreateTopicSchema) as any,
     defaultValues: {
-      title: '',
-      description: '',
+      title: "",
+      description: "",
       grade: undefined,
-      coverImage: '',
+      coverImage: "",
       isActive: true,
     },
   });
@@ -90,20 +87,20 @@ export default function TopicFormPage() {
           const topic = await getTopicById(parseInt(topicId));
           form.reset({
             title: topic.title,
-            description: topic.description ?? '',
+            description: topic.description ?? "",
             grade: topic.grade,
-            coverImage: topic.coverImage ?? '',
+            coverImage: topic.coverImage ?? "",
             order: topic.order,
             isActive: topic.isActive,
           });
         } else if (selectedGrade) {
           // If creating new topic and grade is selected from filter, pre-fill it
-          form.setValue('grade', selectedGrade as GradeLevel);
+          form.setValue("grade", selectedGrade as GradeLevel);
           toast.success(`Đã chọn lớp: ${gradeLabels[selectedGrade as keyof typeof gradeLabels]}`);
         }
       } catch (error) {
-        console.error('Failed to fetch data:', error);
-        toast.error('Không thể tải dữ liệu');
+        console.error("Failed to fetch data:", error);
+        toast.error("Không thể tải dữ liệu");
       } finally {
         setIsLoading(false);
       }
@@ -118,9 +115,9 @@ export default function TopicFormPage() {
       if (isEditMode) {
         const updatedTopic = await updateTopic(parseInt(topicId), data);
         if (updatedTopic) {
-          toast.success('Cập nhật unit thành công');
+          toast.success("Cập nhật unit thành công");
         } else {
-          toast.error('Cập nhật unit thất bại');
+          toast.error("Cập nhật unit thất bại");
         }
       } else {
         // Remove order field when creating to let backend auto-generate it
@@ -128,41 +125,35 @@ export default function TopicFormPage() {
         const { order, ...createData } = data;
         const createdTopic = await createTopic(createData);
         if (createdTopic) {
-          toast.success('Tạo unit thành công');
+          toast.success("Tạo unit thành công");
         } else {
-          toast.error('Tạo unit thất bại');
+          toast.error("Tạo unit thất bại");
         }
       }
       clearSelectedGrade();
-      router.push('/admin/topics');
+      router.push("/admin/topics");
       router.refresh();
     } catch (error) {
-      console.error('Failed to save topic:', error);
+      console.error("Failed to save topic:", error);
 
       // Handle specific error messages from backend
-      const errorMessage = (
-        error as { payload?: { message?: string | string[] } }
-      )?.payload?.message;
+      const errorMessage = (error as { payload?: { message?: string | string[] } })?.payload
+        ?.message;
 
-      if (typeof errorMessage === 'string') {
+      if (typeof errorMessage === "string") {
         // Check for order conflict error
-        if (
-          errorMessage.includes('Unique constraint') ||
-          errorMessage.includes('already exists')
-        ) {
-          toast.error(
-            'Unit với thứ tự này đã tồn tại trong lớp. Vui lòng chọn thứ tự khác.'
-          );
+        if (errorMessage.includes("Unique constraint") || errorMessage.includes("already exists")) {
+          toast.error("Unit với thứ tự này đã tồn tại trong lớp. Vui lòng chọn thứ tự khác.");
           return;
         }
         // Show the backend error message
         toast.error(errorMessage);
       } else if (Array.isArray(errorMessage)) {
         // Handle validation errors array
-        toast.error(errorMessage.join(', '));
+        toast.error(errorMessage.join(", "));
       } else {
         // Generic error message
-        toast.error(isEditMode ? 'Cập nhật unit thất bại' : 'Tạo unit thất bại');
+        toast.error(isEditMode ? "Cập nhật unit thất bại" : "Tạo unit thất bại");
       }
     } finally {
       setIsSubmitting(false);
@@ -172,7 +163,7 @@ export default function TopicFormPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleImageUpload = (result: any) => {
     if (result?.info?.secure_url) {
-      form.setValue('coverImage', result.info.secure_url);
+      form.setValue("coverImage", result.info.secure_url);
     }
   };
 
@@ -194,10 +185,7 @@ export default function TopicFormPage() {
       {/* Header */}
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-1" />
-        <Separator
-          orientation="vertical"
-          className="mr-2 data-[orientation=vertical]:h-4"
-        />
+        <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -209,17 +197,13 @@ export default function TopicFormPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>
-                {isEditMode ? 'Chỉnh sửa' : 'Thêm mới'}
-              </BreadcrumbPage>
+              <BreadcrumbPage>{isEditMode ? "Chỉnh sửa" : "Thêm mới"}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
       </div>
 
-      <TypographyH3>
-        {isEditMode ? 'Chỉnh sửa unit' : 'Thêm unit mới'}
-      </TypographyH3>
+      <TypographyH3>{isEditMode ? "Chỉnh sửa unit" : "Thêm unit mới"}</TypographyH3>
 
       {/* Form */}
       <Form {...form}>
@@ -252,15 +236,9 @@ export default function TopicFormPage() {
               <FormItem>
                 <FormLabel>Mô tả</FormLabel>
                 <FormControl>
-                  <Textarea
-                    {...field}
-                    placeholder="Nhập mô tả về unit"
-                    rows={3}
-                  />
+                  <Textarea {...field} placeholder="Nhập mô tả về unit" rows={3} />
                 </FormControl>
-                <FormDescription>
-                  Mô tả ngắn gọn về nội dung unit này
-                </FormDescription>
+                <FormDescription>Mô tả ngắn gọn về nội dung unit này</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -306,25 +284,16 @@ export default function TopicFormPage() {
                 <FormControl>
                   <div className="flex gap-2">
                     <Input {...field} placeholder="URL hình ảnh bìa" />
-                    <CldUploadWidget
-                      uploadPreset={UPLOAD_PRESET}
-                      onSuccess={handleImageUpload}
-                    >
+                    <CldUploadWidget uploadPreset={UPLOAD_PRESET} onSuccess={handleImageUpload}>
                       {({ open }) => (
-                        <Button
-                          type="button"
-                          size="icon"
-                          onClick={() => open()}
-                        >
+                        <Button type="button" size="icon" onClick={() => open()}>
                           <ImageIcon className="h-4 w-4" />
                         </Button>
                       )}
                     </CldUploadWidget>
                   </div>
                 </FormControl>
-                <FormDescription>
-                  Hình ảnh đại diện cho unit
-                </FormDescription>
+                <FormDescription>Hình ảnh đại diện cho unit</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -333,11 +302,7 @@ export default function TopicFormPage() {
           <Separator />
 
           {/* Order and Status */}
-          <div
-            className={`grid gap-4 ${
-              isEditMode ? 'md:grid-cols-2' : 'md:grid-cols-1'
-            }`}
-          >
+          <div className={`grid gap-4 ${isEditMode ? "md:grid-cols-2" : "md:grid-cols-1"}`}>
             {isEditMode && (
               <FormField
                 control={formControl}
@@ -349,9 +314,7 @@ export default function TopicFormPage() {
                       <Input
                         {...field}
                         type="number"
-                        onChange={(e) =>
-                          field.onChange(parseInt(e.target.value))
-                        }
+                        onChange={(e) => field.onChange(parseInt(e.target.value))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -369,8 +332,8 @@ export default function TopicFormPage() {
                     Trạng thái <RequiredField />
                   </FormLabel>
                   <Select
-                    onValueChange={(value) => field.onChange(value === 'true')}
-                    value={field.value ? 'true' : 'false'}
+                    onValueChange={(value) => field.onChange(value === "true")}
+                    value={field.value ? "true" : "false"}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -378,13 +341,11 @@ export default function TopicFormPage() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.entries(topicStatusLabels).map(
-                        ([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        )
-                      )}
+                      {Object.entries(topicStatusLabels).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -395,18 +356,12 @@ export default function TopicFormPage() {
 
           {/* Form Actions */}
           <div className="flex justify-end gap-2 sticky bottom-0 bg-background pt-4 pb-2">
-            <Button
-              type="button"
-              onClick={handleCancel}
-              disabled={isSubmitting}
-            >
+            <Button type="button" onClick={handleCancel} disabled={isSubmitting}>
               Hủy
             </Button>
             <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {isEditMode ? 'Cập nhật' : 'Tạo mới'}
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isEditMode ? "Cập nhật" : "Tạo mới"}
             </Button>
           </div>
         </form>
@@ -414,4 +369,3 @@ export default function TopicFormPage() {
     </div>
   );
 }
-

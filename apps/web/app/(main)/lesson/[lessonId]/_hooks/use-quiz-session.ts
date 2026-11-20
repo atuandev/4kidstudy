@@ -12,13 +12,7 @@ type UseQuizSessionProps = {
 };
 
 export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
-  const {
-    initializeQuiz,
-    resetQuiz,
-    activeIndex,
-    setAttemptId,
-    attemptId,
-  } = useQuizStore();
+  const { initializeQuiz, resetQuiz, activeIndex, setAttemptId, attemptId } = useQuizStore();
 
   // Get state values that need to be reactive
   const startTime = useExerciseStatsStore((state) => state.startTime);
@@ -88,18 +82,18 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
     async function finishAttempt() {
       // Check if all exercises are complete first
       const allExercisesComplete = activeIndex >= exercises.length;
-      
+
       if (!allExercisesComplete) return;
-      
+
       // Use attemptId from closure - this is the attempt that was active when
       // activeIndex reached completion. If attemptId is null, we can't complete.
       if (!attemptId) return;
-      
+
       // Prevent double completion for this specific attempt
       if (completedAttemptsRef.current.has(attemptId)) {
         return;
       }
-      
+
       // Mark as completed BEFORE async operations to prevent race conditions
       completedAttemptsRef.current.add(attemptId);
 
@@ -128,13 +122,7 @@ export function useQuizSession({ lessonId, exercises }: UseQuizSessionProps) {
     }
 
     void finishAttempt();
-  }, [
-    activeIndex,
-    exercises.length,
-    attemptId,
-    startTime,
-    duration,
-  ]);
+  }, [activeIndex, exercises.length, attemptId, startTime, duration]);
 
   return {
     isInitializing,

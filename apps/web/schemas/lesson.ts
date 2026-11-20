@@ -73,7 +73,7 @@ export type NewLessonInput = Pick<CreateLessonFormData, "title" | "description" 
  */
 export const LessonWithOptionalIdSchema = z.object({
   id: z.number().optional(),
-  
+
   title: z
     .string({
       error: "Vui lòng nhập tiêu đề",
@@ -113,7 +113,7 @@ export const CreateLessonsSchema = z.object({
       error: "Vui lòng chọn chủ đề",
     })
     .min(1, "Vui lòng chọn chủ đề"),
-  
+
   lessons: z.array(LessonWithOptionalIdSchema).min(1, "Phải có ít nhất một bài luyện tập"),
 });
 

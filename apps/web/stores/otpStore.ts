@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface OtpState {
-  email: string | null
-  setEmail: (email: string) => void
-  clearEmail: () => void
+  email: string | null;
+  setEmail: (email: string) => void;
+  clearEmail: () => void;
 }
 
 /**
@@ -17,19 +17,17 @@ export const useOtpStore = create<OtpState>()(
     (set) => ({
       email: null,
       setEmail: (email: string) => {
-        set({ email })
+        set({ email });
       },
       clearEmail: () => {
-        set({ email: null })
+        set({ email: null });
       },
     }),
     {
-      name: 'otp-store',
+      name: "otp-store",
       partialize: (state) => ({
         email: state.email,
       }),
-    }
-  )
-)
-
-
+    },
+  ),
+);

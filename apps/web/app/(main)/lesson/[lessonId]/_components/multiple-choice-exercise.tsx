@@ -36,12 +36,7 @@ export function MultipleChoiceExercise({
       {isValidUrl(imageUrl) && (
         <div className="flex justify-center">
           <div className="relative aspect-square max-h-[200px] w-full max-w-[300px] lg:max-h-[300px]">
-            <Image
-              src={imageUrl!}
-              fill
-              alt="Exercise image"
-              className="rounded-lg object-fill"
-            />
+            <Image src={imageUrl!} fill alt="Exercise image" className="rounded-lg object-fill" />
           </div>
         </div>
       )}
@@ -55,15 +50,14 @@ export function MultipleChoiceExercise({
             className={cn(
               "h-full cursor-pointer rounded-xl border-2 border-b-4 p-4 hover:bg-black/5 active:border-b-2 lg:p-6",
               !disabled && "cursor-pointer",
-              selectedOption === option.id &&
-                "border-sky-300 bg-sky-100 hover:bg-sky-100",
+              selectedOption === option.id && "border-sky-300 bg-sky-100 hover:bg-sky-100",
               selectedOption === option.id &&
                 status === "correct" &&
                 "border-green-300 bg-green-100 hover:bg-green-100",
               selectedOption === option.id &&
                 status === "wrong" &&
                 "border-rose-300 bg-rose-100 hover:bg-rose-100",
-              disabled && "pointer-events-none hover:bg-white"
+              disabled && "pointer-events-none hover:bg-white",
             )}
           >
             <div>
@@ -85,12 +79,8 @@ export function MultipleChoiceExercise({
                   className={cn(
                     "font-semibold text-neutral-600 text-xl",
                     selectedOption === option.id && "text-sky-500",
-                    selectedOption === option.id &&
-                      status === "correct" &&
-                      "text-green-500",
-                    selectedOption === option.id &&
-                      status === "wrong" &&
-                      "text-rose-500"
+                    selectedOption === option.id && status === "correct" && "text-green-500",
+                    selectedOption === option.id && status === "wrong" && "text-rose-500",
                   )}
                 >
                   {option.text}

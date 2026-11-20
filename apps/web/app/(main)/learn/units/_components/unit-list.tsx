@@ -17,7 +17,7 @@ const renderHeader = (grade: GradeValue) => (
     <div>
       <h2 className="text-2xl font-bold">Danh sách chủ đề</h2>
     </div>
-    <LearningHistoryDialog 
+    <LearningHistoryDialog
       grade={grade}
       onOpen={async () => {
         return await getLearningStatsByGrade(grade);
@@ -31,9 +31,7 @@ export function UnitList({ topics, grade }: UnitListProps) {
     return (
       <Card>
         <CardContent className="py-8 text-center">
-          <p className="text-muted-foreground">
-            Không có chủ đề nào cho lớp học này.
-          </p>
+          <p className="text-muted-foreground">Không có chủ đề nào cho lớp học này.</p>
         </CardContent>
       </Card>
     );

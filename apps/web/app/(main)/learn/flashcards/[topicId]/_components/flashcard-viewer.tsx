@@ -1,19 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  RotateCcw,
-  BookOpen,
-  ArrowLeft,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCcw, BookOpen, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FlashcardComponent } from "./flashcard";
 import { Flashcard } from "@/types";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ReviewContentFormData } from '@/schemas/learning-progress';
+import { ReviewContentFormData } from "@/schemas/learning-progress";
 
 interface FlashcardViewerProps {
   flashcards: Flashcard[];
@@ -32,7 +26,9 @@ export function FlashcardViewer({
   const searchParams = useSearchParams();
   const indexParam = searchParams.get("index");
   const [currentIndex, setCurrentIndex] = useState(() => parseInt(indexParam || "0", 10));
-  const [masteredFlashcardIds, setMasteredFlashcardIds] = useState<Set<number>>(new Set(initialMasteredIds));
+  const [masteredFlashcardIds, setMasteredFlashcardIds] = useState<Set<number>>(
+    new Set(initialMasteredIds),
+  );
 
   // Follow the URL when ?index= changes (e.g. back/forward navigation).
   const [syncedIndexParam, setSyncedIndexParam] = useState(indexParam);
@@ -49,7 +45,9 @@ export function FlashcardViewer({
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
       // Update URL to persist navigation state
-      router.replace(`/learn/flashcards/${flashcards[0].topicId}?index=${nextIndex}`, { scroll: false });
+      router.replace(`/learn/flashcards/${flashcards[0].topicId}?index=${nextIndex}`, {
+        scroll: false,
+      });
     }
   };
 
@@ -58,7 +56,9 @@ export function FlashcardViewer({
       const prevIndex = currentIndex - 1;
       setCurrentIndex(prevIndex);
       // Update URL to persist navigation state
-      router.replace(`/learn/flashcards/${flashcards[0].topicId}?index=${prevIndex}`, { scroll: false });
+      router.replace(`/learn/flashcards/${flashcards[0].topicId}?index=${prevIndex}`, {
+        scroll: false,
+      });
     }
   };
 
@@ -144,11 +144,7 @@ export function FlashcardViewer({
         <CardContent className="py-6">
           <div className="flex flex-col items-center gap-3 min-h-[80px]">
             <div className="flex items-center justify-center gap-4">
-              <Button
-                variant="primary"
-                onClick={handlePrevious}
-                disabled={currentIndex === 0}
-              >
+              <Button variant="primary" onClick={handlePrevious} disabled={currentIndex === 0}>
                 <ChevronLeft className="h-4 w-4" />
                 Quay lại
               </Button>
@@ -160,8 +156,15 @@ export function FlashcardViewer({
               <Button
                 variant="primary"
                 onClick={handleNext}
-                disabled={currentIndex === flashcards.length - 1 || (!masteredFlashcardIds.has(currentFlashcard.id))}
-                title={!masteredFlashcardIds.has(currentFlashcard.id) ? "Vui lòng bấm Kiểm tra và đạt ≥ 50% để tiếp tục" : ""}
+                disabled={
+                  currentIndex === flashcards.length - 1 ||
+                  !masteredFlashcardIds.has(currentFlashcard.id)
+                }
+                title={
+                  !masteredFlashcardIds.has(currentFlashcard.id)
+                    ? "Vui lòng bấm Kiểm tra và đạt ≥ 50% để tiếp tục"
+                    : ""
+                }
               >
                 Tiếp tục
                 <ChevronRight className="h-4 w-4" />

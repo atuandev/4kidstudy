@@ -91,12 +91,8 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">
-            Lịch sử học - {getGradeName(grade)}
-          </DialogTitle>
-          <DialogDescription>
-            Thống kê tổng quan về quá trình học tập của bạn
-          </DialogDescription>
+          <DialogTitle className="text-2xl">Lịch sử học - {getGradeName(grade)}</DialogTitle>
+          <DialogDescription>Thống kê tổng quan về quá trình học tập của bạn</DialogDescription>
         </DialogHeader>
 
         {loading ? (
@@ -105,9 +101,7 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
           </div>
         ) : !stats ? (
           <div className="py-8 text-center">
-            <p className="text-muted-foreground">
-              Không có dữ liệu thống kê
-            </p>
+            <p className="text-muted-foreground">Không có dữ liệu thống kê</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -121,12 +115,8 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
                   <h3 className="text-lg font-semibold">Tổng quan</h3>
                 </div>
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <p className="text-3xl font-bold text-blue-600">
-                    {stats.totalReviewed}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Tổng số đã học
-                  </p>
+                  <p className="text-3xl font-bold text-blue-600">{stats.totalReviewed}</p>
+                  <p className="text-sm text-muted-foreground mt-1">Tổng số đã học</p>
                 </div>
               </CardContent>
             </Card>
@@ -193,12 +183,8 @@ export function LearningHistoryDialog({ grade, onOpen }: LearningHistoryDialogPr
                   <h3 className="text-lg font-semibold">Chủ đề</h3>
                 </div>
                 <div className="text-center p-4 bg-indigo-50 rounded-lg">
-                  <p className="text-3xl font-bold text-indigo-600">
-                    {stats.topicCount}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Chủ đề đã hoàn thành
-                  </p>
+                  <p className="text-3xl font-bold text-indigo-600">{stats.topicCount}</p>
+                  <p className="text-sm text-muted-foreground mt-1">Chủ đề đã hoàn thành</p>
                 </div>
                 <div className="mt-3 flex justify-center">
                   <TopicDetailDialog topTopics={stats.topTopics} />

@@ -77,17 +77,12 @@ function DeleteExerciseDialog({ exercise }: { exercise: Exercise }) {
         <AlertDialogHeader>
           <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
           <AlertDialogDescription>
-            Hành động này không thể hoàn tác. Bài tập này sẽ bị xóa vĩnh viễn
-            khỏi hệ thống.
+            Hành động này không thể hoàn tác. Bài tập này sẽ bị xóa vĩnh viễn khỏi hệ thống.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Hủy</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleDelete}
-          >
-            Xóa
-          </AlertDialogAction>
+          <AlertDialogAction onClick={handleDelete}>Xóa</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -100,8 +95,7 @@ export const columns: ColumnDef<Exercise>[] = [
     header: ({ table }) => (
       <Checkbox
         checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
+          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
@@ -119,9 +113,7 @@ export const columns: ColumnDef<Exercise>[] = [
   },
   {
     accessorKey: "id",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="ID" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
     cell: ({ row }) => <div className="w-[60px]">{row.getValue("id")}</div>,
     filterFn: (row, id, value) => {
       const rowId = String(row.getValue(id));
@@ -130,9 +122,7 @@ export const columns: ColumnDef<Exercise>[] = [
   },
   {
     accessorKey: "prompt",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Câu hỏi" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Câu hỏi" />,
     cell: ({ row }) => {
       const prompt = row.getValue("prompt") as string;
       return (
@@ -144,9 +134,7 @@ export const columns: ColumnDef<Exercise>[] = [
   },
   {
     accessorKey: "type",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Loại" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Loại" />,
     cell: ({ row }) => {
       const type = row.getValue("type") as string;
       const typeInfo = exerciseTypeMap[type] || {
@@ -161,9 +149,7 @@ export const columns: ColumnDef<Exercise>[] = [
   },
   {
     accessorKey: "lessonId",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Lesson ID" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Lesson ID" />,
     cell: ({ row }) => <div>{row.getValue("lessonId")}</div>,
     filterFn: (row, id, value) => {
       return value.includes(String(row.getValue(id)));
@@ -171,18 +157,12 @@ export const columns: ColumnDef<Exercise>[] = [
   },
   {
     accessorKey: "order",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Thứ tự" />
-    ),
-    cell: ({ row }) => (
-      <div className="text-center">{row.getValue("order")}</div>
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Thứ tự" />,
+    cell: ({ row }) => <div className="text-center">{row.getValue("order")}</div>,
   },
   {
     accessorKey: "points",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Điểm" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Điểm" />,
     cell: ({ row }) => {
       const points = row.getValue("points") as number;
       return <div className="text-center font-medium">{points}</div>;
@@ -190,9 +170,7 @@ export const columns: ColumnDef<Exercise>[] = [
   },
   {
     accessorKey: "createdAt",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Ngày tạo" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Ngày tạo" />,
     cell: ({ row }) => {
       const date = new Date(row.getValue("createdAt"));
       return <div>{date.toLocaleDateString("vi-VN")}</div>;
@@ -213,11 +191,7 @@ export const columns: ColumnDef<Exercise>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() =>
-                navigator.clipboard.writeText(exercise.id.toString())
-              }
-            >
+            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(exercise.id.toString())}>
               <CopyIcon className="mr-2 h-4 w-4" />
               Copy ID
             </DropdownMenuItem>

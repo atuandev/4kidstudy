@@ -40,7 +40,7 @@ interface SpeechRecognition extends EventTarget {
 }
 
 interface SpeechRecognitionConstructor {
-  new(): SpeechRecognition;
+  new (): SpeechRecognition;
 }
 
 declare global {
@@ -65,8 +65,7 @@ export default function ChatPage() {
   // Initialize Speech Recognition
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const SpeechRecognitionAPI =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
+      const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
 
       if (SpeechRecognitionAPI) {
         recognitionRef.current = new SpeechRecognitionAPI();
@@ -98,7 +97,6 @@ export default function ChatPage() {
       }
     }
   }, []);
-
 
   // Load chat history on mount
   useEffect(() => {
@@ -226,25 +224,25 @@ export default function ChatPage() {
       // Clean text aggressively - remove ALL Vietnamese and special chars
       const cleanText = text
         // Remove emoji and special unicode chars
-        .replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu, '')
+        .replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu, "")
         // Remove Vietnamese text in parentheses (including the parentheses)
-        .replace(/\([^)]*[\u00C0-\u1EF9][^)]*\)/g, '')
+        .replace(/\([^)]*[\u00C0-\u1EF9][^)]*\)/g, "")
         // Remove any standalone Vietnamese words/phrases
-        .replace(/[\u00C0-\u1EF9]+[\w\s]*/g, '')
+        .replace(/[\u00C0-\u1EF9]+[\w\s]*/g, "")
         // Remove translation format "word: vietnamese"
-        .replace(/:\s*[\u00C0-\u1EF9][\w\s]*/g, '')
+        .replace(/:\s*[\u00C0-\u1EF9][\w\s]*/g, "")
         // Remove colon prefix for translations
-        .replace(/^[^:]+:\s*/, '')
+        .replace(/^[^:]+:\s*/, "")
         // Remove quotation marks
-        .replace(/["""]/g, '')
+        .replace(/["""]/g, "")
         // Remove extra whitespace
-        .replace(/\s+/g, ' ')
+        .replace(/\s+/g, " ")
         .trim();
 
       // Only speak if we have clean English text left
       if (cleanText && cleanText.length > 0 && /[a-zA-Z]/.test(cleanText)) {
         const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = 'en-US';
+        utterance.lang = "en-US";
         utterance.rate = 0.9;
         utterance.pitch = 1.0;
 
@@ -255,10 +253,9 @@ export default function ChatPage() {
         window.speechSynthesis.speak(utterance);
       }
     } catch (error) {
-      console.error('Text-to-speech error:', error);
+      console.error("Text-to-speech error:", error);
     }
   };
-
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -304,14 +301,14 @@ export default function ChatPage() {
               messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${message.type === "user" ? "justify-end" : "justify-start"
-                    }`}
+                  className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[70%] rounded-lg p-3 ${message.type === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-white border"
-                      }`}
+                    className={`max-w-[70%] rounded-lg p-3 ${
+                      message.type === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-white border"
+                    }`}
                   >
                     <p className="whitespace-pre-wrap">{message.text}</p>
 
@@ -364,11 +361,7 @@ export default function ChatPage() {
                 size="icon"
                 disabled={isSending}
               >
-                {isListening ? (
-                  <MicOff className="h-4 w-4" />
-                ) : (
-                  <Mic className="h-4 w-4" />
-                )}
+                {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
               </Button>
 
               <Button

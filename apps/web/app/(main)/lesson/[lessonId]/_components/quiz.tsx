@@ -7,12 +7,7 @@ import { Header } from "./header";
 import { QuestionBubble } from "./question-bubble";
 import AudioPlayer from "./audio-player";
 import FinishPage from "../finish-page";
-import {
-  useQuizAudio,
-  useQuizLogic,
-  useQuizSession,
-  useQuizDuration,
-} from "../_hooks";
+import { useQuizAudio, useQuizLogic, useQuizSession, useQuizDuration } from "../_hooks";
 import { useQuizStore } from "@/lib/stores/quiz-store";
 import { useExerciseStatsStore } from "@/lib/stores/exercise-stats-store";
 import { Exercise as ExerciseType, Lesson, User } from "@/types";
@@ -33,13 +28,7 @@ const EXERCISE_TITLES = {
 
 export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
   // Audio hooks - must be called first to render audio elements
-  const {
-    correctAudio,
-    incorrectAudio,
-    finishAudio,
-    playCorrect,
-    playIncorrect,
-  } = useQuizAudio();
+  const { correctAudio, incorrectAudio, finishAudio, playCorrect, playIncorrect } = useQuizAudio();
 
   // Session management
   useQuizSession({
@@ -66,8 +55,7 @@ export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
   } = useQuizLogic({ playCorrect, playIncorrect });
 
   // Stats
-  const { totalPoints, correctCount, skippedCount, wrongCount } =
-    useExerciseStatsStore();
+  const { totalPoints, correctCount, skippedCount, wrongCount } = useExerciseStatsStore();
   const { updatePronunciation, getExerciseAttemptCount } = useQuizStore();
 
   const handlePronunciationStateChange = (state: string, score?: PronunciationScore | null) => {
@@ -159,11 +147,9 @@ export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
         onCheck={handleContinue}
         onSkip={handleSkip}
         showSkip={status === "none"}
-        isAutoSkipExercise={[
-          "SELECT_IMAGE",
-          "MULTIPLE_CHOICE",
-          "LISTENING",
-        ].includes(exercise.type)}
+        isAutoSkipExercise={["SELECT_IMAGE", "MULTIPLE_CHOICE", "LISTENING"].includes(
+          exercise.type,
+        )}
         isFirstWrongAttempt={isFirstWrongAttempt}
         hintVi={shouldHideHintsOnFirstWrong ? undefined : exercise.hintVi}
         hintEn={shouldHideHintsOnFirstWrong ? undefined : exercise.hintEn}

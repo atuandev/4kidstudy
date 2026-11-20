@@ -82,12 +82,7 @@ export function FormLogin({ redirect }: FormLoginProps) {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder="Nhập email"
-                      type="email"
-                    />
+                    <Input {...field} disabled={isPending} placeholder="Nhập email" type="email" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -100,11 +95,7 @@ export function FormLogin({ redirect }: FormLoginProps) {
                 <FormItem>
                   <FormLabel>Mật khẩu</FormLabel>
                   <FormControl>
-                    <PasswordInput
-                      {...field}
-                      disabled={isPending}
-                      placeholder="Nhập mật khẩu"
-                    />
+                    <PasswordInput {...field} disabled={isPending} placeholder="Nhập mật khẩu" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -121,20 +112,10 @@ export function FormLogin({ redirect }: FormLoginProps) {
           </div>
           <FormError message={error} />
           <FormSuccess message={success} />
-          <Button
-            loading={isPending}
-            type="submit"
-            className="w-full"
-            variant="secondary"
-          >
+          <Button loading={isPending} type="submit" className="w-full" variant="secondary">
             Đăng nhập
           </Button>
-          <Button
-            asChild
-            size="sm"
-            variant="link"
-            className="font-normal w-full text-gray-700"
-          >
+          <Button asChild size="sm" variant="link" className="font-normal w-full text-gray-700">
             <Link href="/register">Chưa có tài khoản? Đăng ký ngay</Link>
           </Button>
         </form>

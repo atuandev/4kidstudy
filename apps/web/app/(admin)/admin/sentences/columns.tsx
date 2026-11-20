@@ -30,11 +30,7 @@ import { deleteSentenceImage } from "@/actions/sentence";
 import { SentenceImage } from "@/types";
 import { DataTableColumnHeader } from "../_components/data-table-column-header";
 
-function DeleteSentenceImageDialog({
-  sentenceImage,
-}: {
-  sentenceImage: SentenceImage;
-}) {
+function DeleteSentenceImageDialog({ sentenceImage }: { sentenceImage: SentenceImage }) {
   const [isOpen, setIsOpen] = useState(false);
   async function handleDelete() {
     await deleteSentenceImage(sentenceImage.id);
@@ -56,8 +52,8 @@ function DeleteSentenceImageDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
           <AlertDialogDescription>
-            Hành động này không thể hoàn tác. Thẻ câu và toàn bộ câu liên quan
-            sẽ bị xóa vĩnh viễn khỏi hệ thống.
+            Hành động này không thể hoàn tác. Thẻ câu và toàn bộ câu liên quan sẽ bị xóa vĩnh viễn
+            khỏi hệ thống.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -75,8 +71,7 @@ export const columns: ColumnDef<SentenceImage>[] = [
     header: ({ table }) => (
       <Checkbox
         checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
+          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
@@ -94,9 +89,7 @@ export const columns: ColumnDef<SentenceImage>[] = [
   },
   {
     accessorKey: "id",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="ID" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
     cell: ({ row }) => <div className="w-[60px]">{row.getValue("id")}</div>,
     filterFn: (row, id, value) => {
       const rowId = String(row.getValue(id));
@@ -105,9 +98,7 @@ export const columns: ColumnDef<SentenceImage>[] = [
   },
   {
     accessorKey: "imageUrl",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Hình ảnh" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Hình ảnh" />,
     cell: ({ row }) => {
       const imageUrl = row.getValue("imageUrl") as string;
       return (
@@ -126,9 +117,7 @@ export const columns: ColumnDef<SentenceImage>[] = [
   {
     accessorKey: "topic.grade",
     id: "grade",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Lớp" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Lớp" />,
     cell: ({ row }) => {
       const grade = row.original.topic?.grade;
       if (!grade) return <div>-</div>;
@@ -149,9 +138,7 @@ export const columns: ColumnDef<SentenceImage>[] = [
   {
     accessorKey: "topicId",
     id: "topicId",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Chủ đề" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Chủ đề" />,
     cell: ({ row }) => {
       const topicTitle = row.original.topic?.title || "-";
       return (
@@ -166,9 +153,7 @@ export const columns: ColumnDef<SentenceImage>[] = [
   },
   {
     accessorKey: "isActive",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Trạng thái" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Trạng thái" />,
     cell: ({ row }) => {
       const isActive = row.getValue("isActive") as boolean;
       return (
@@ -183,9 +168,7 @@ export const columns: ColumnDef<SentenceImage>[] = [
   },
   {
     accessorKey: "createdAt",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Ngày tạo" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Ngày tạo" />,
     cell: ({ row }) => {
       const date = new Date(row.getValue("createdAt"));
       return <div>{date.toLocaleDateString("vi-VN")}</div>;
@@ -206,9 +189,7 @@ export const columns: ColumnDef<SentenceImage>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(image.id.toString())}
-            >
+            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(image.id.toString())}>
               Copy ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />

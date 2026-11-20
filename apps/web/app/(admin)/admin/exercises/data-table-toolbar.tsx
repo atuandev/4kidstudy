@@ -5,7 +5,7 @@ import { Table } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DataTableViewOptions } from "../_components/data-table-view-options"
+import { DataTableViewOptions } from "../_components/data-table-view-options";
 import { DataTableFacetedFilter } from "../_components/data-table-faceted-filter";
 import { Lesson } from "@/types";
 import { useExerciseFormStore } from "@/lib/stores/exercise-form-store";
@@ -39,23 +39,20 @@ const exerciseTypes = [
   },
 ];
 
-export function DataTableToolbar<TData>({
-  table,
-  lessons,
-}: DataTableToolbarProps<TData>) {
+export function DataTableToolbar<TData>({ table, lessons }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const { setSelectedLessonId } = useExerciseFormStore();
 
   // Track lessonId filter
   const selectedLessonIds = (table.getColumn("lessonId")?.getFilterValue() as string[]) || [];
-  
+
   useEffect(() => {
     if (selectedLessonIds.length === 1) {
       setSelectedLessonId(parseInt(selectedLessonIds[0]));
     } else {
       setSelectedLessonId(null);
     }
-  }, [selectedLessonIds.join(','), setSelectedLessonId]);
+  }, [selectedLessonIds.join(","), setSelectedLessonId]);
 
   // Create lesson ID options for the faceted filter
   const lessonIdOptions = lessons
@@ -76,17 +73,13 @@ export function DataTableToolbar<TData>({
         <Input
           placeholder="Tìm kiếm ID..."
           value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("id")?.setFilterValue(event.target.value)
-          }
+          onChange={(event) => table.getColumn("id")?.setFilterValue(event.target.value)}
           className="h-8 w-[100px] lg:w-[150px]"
         />
         <Input
           placeholder="Tìm kiếm câu hỏi..."
           value={(table.getColumn("prompt")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("prompt")?.setFilterValue(event.target.value)
-          }
+          onChange={(event) => table.getColumn("prompt")?.setFilterValue(event.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
         />
         {table.getColumn("lessonId") && lessonIdOptions.length > 0 && (
@@ -104,11 +97,7 @@ export function DataTableToolbar<TData>({
           />
         )}
         {isFiltered && (
-          <Button
-            variant="dangerOutline"
-            onClick={handleResetFilters}
-            className="h-8 px-2 lg:px-3"
-          >
+          <Button variant="dangerOutline" onClick={handleResetFilters} className="h-8 px-2 lg:px-3">
             Xoá bộ lọc
             <X className="ml-2 h-4 w-4" />
           </Button>

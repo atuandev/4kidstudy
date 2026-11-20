@@ -17,12 +17,12 @@ interface AudioRecordProps {
   onAssessmentComplete?: (score: number, passed: boolean) => void;
 }
 
-export function AudioRecord({ 
-  className, 
-  onStopPropagation, 
+export function AudioRecord({
+  className,
+  onStopPropagation,
   resetTrigger,
   targetText,
-  onAssessmentComplete 
+  onAssessmentComplete,
 }: AudioRecordProps) {
   const [recordingState, setRecordingState] = useState<RecordingState>("idle");
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
@@ -32,7 +32,7 @@ export function AudioRecord({
   const [assessmentPassed, setAssessmentPassed] = useState<boolean>(false);
   const [analysisProgress, setAnalysisProgress] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  
+
   const chunksRef = useRef<Blob[]>([]);
   const prevResetTriggerRef = useRef<string | number | undefined>(undefined);
 
@@ -99,20 +99,19 @@ export function AudioRecord({
 
       // Call pronunciation assessment API
       const response = await assessPronunciation(recordedBlob, targetText);
-      
+
       clearInterval(progressInterval);
       setAnalysisProgress(100);
 
       const score = response.overall || 0;
       const passed = score > 50;
-      
+
       setAssessmentScore(score);
       setAssessmentPassed(passed);
       setRecordingState("completed");
-      
+
       // Notify parent component
       onAssessmentComplete?.(score, passed);
-      
     } catch (error) {
       console.error("Error analyzing pronunciation:", error);
       setErrorMessage("Lỗi phân tích phát âm. Vui lòng thử lại.");
@@ -139,7 +138,7 @@ export function AudioRecord({
 
   const playRecordedAudio = useCallback(async () => {
     if (!recordedAudioUrl) return;
-    
+
     try {
       const audio = new Audio(recordedAudioUrl);
       await audio.play();
@@ -152,13 +151,15 @@ export function AudioRecord({
   useEffect(() => {
     // Only reset if we have a previous resetTrigger value and it's different
     // This prevents reset on initial mount
-    if (prevResetTriggerRef.current !== undefined && 
-        prevResetTriggerRef.current !== resetTrigger && 
-        resetTrigger !== undefined) {
+    if (
+      prevResetTriggerRef.current !== undefined &&
+      prevResetTriggerRef.current !== resetTrigger &&
+      resetTrigger !== undefined
+    ) {
       // console.log("Resetting recording due to resetTrigger change:", prevResetTriggerRef.current, "->", resetTrigger);
       resetRecording();
     }
-    
+
     prevResetTriggerRef.current = resetTrigger;
   }, [resetTrigger, resetRecording]);
 
@@ -178,7 +179,7 @@ export function AudioRecord({
   };
 
   // console.log("AudioRecord render, recordingState:", recordingState, "recordedAudioUrl:", !!recordedAudioUrl);
-  
+
   return (
     <div className={cn("flex items-center justify-center gap-2 min-h-[44px]", className)}>
       {recordingState === "idle" && (
@@ -229,9 +230,7 @@ export function AudioRecord({
           >
             <RotateCcw className="w-4 h-4 text-gray-600" />
           </Button>
-          {errorMessage && (
-            <p className="text-xs text-red-600">{errorMessage}</p>
-          )}
+          {errorMessage && <p className="text-xs text-red-600">{errorMessage}</p>}
         </>
       )}
 
@@ -245,13 +244,13 @@ export function AudioRecord({
 
       {recordingState === "completed" && (
         <>
-          <div className="text-xl font-bold">
-            {assessmentScore?.toFixed(0)}%
-          </div>
-          <p className={cn(
-            "text-sm font-medium",
-            assessmentPassed ? "text-green-600" : "text-red-600"
-          )}>
+          <div className="text-xl font-bold">{assessmentScore?.toFixed(0)}%</div>
+          <p
+            className={cn(
+              "text-sm font-medium",
+              assessmentPassed ? "text-green-600" : "text-red-600",
+            )}
+          >
             {assessmentPassed ? "✓ Đạt" : "✗ Chưa đạt"}
           </p>
           <Button
@@ -272,7 +271,6 @@ export function AudioRecord({
           </Button>
         </>
       )}
-      
     </div>
   );
 }

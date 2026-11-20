@@ -1,17 +1,7 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 interface LessonStatusChartProps {
@@ -34,15 +24,15 @@ export function LessonStatusChart({ data }: LessonStatusChartProps) {
       item.status === "PUBLISHED"
         ? "Đã hoạt động"
         : item.status === "DRAFT"
-        ? "Nháp"
-        : "Không hoạt động",
+          ? "Nháp"
+          : "Không hoạt động",
     count: item.count,
     fill:
       item.status === "PUBLISHED"
         ? "hsl(142, 76%, 36%)"
         : item.status === "DRAFT"
-        ? "hsl(48, 96%, 53%)"
-        : "hsl(0, 84%, 60%)",
+          ? "hsl(48, 96%, 53%)"
+          : "hsl(0, 84%, 60%)",
   }));
 
   return (
@@ -55,12 +45,7 @@ export function LessonStatusChart({ data }: LessonStatusChartProps) {
         <ChartContainer config={chartConfig} className="h-[300px] w-full">
           <BarChart data={formattedData} accessibilityLayer>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis
-              dataKey="status"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-            />
+            <XAxis dataKey="status" tickLine={false} tickMargin={10} axisLine={false} />
             <YAxis tickLine={false} axisLine={false} />
             <ChartTooltip content={<ChartTooltipContent />} />
             <Bar dataKey="count" radius={[8, 8, 0, 0]} />

@@ -27,14 +27,11 @@ export async function getWeeklyLeaderboard(): Promise<WeeklyLeaderboardResponse 
       throw new Error("Not authenticated");
     }
 
-    const response = await http.get<WeeklyLeaderboardResponse>(
-      "/leaderboard/weekly",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    const response = await http.get<WeeklyLeaderboardResponse>("/leaderboard/weekly", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
 
     return response.payload;
   } catch (error) {

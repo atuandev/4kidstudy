@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { ColumnDef } from '@tanstack/react-table';
-import { CopyIcon, MoreHorizontal, Pencil, Trash } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import Image from 'next/image';
+import { ColumnDef } from "@tanstack/react-table";
+import { CopyIcon, MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import Image from "next/image";
 
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,33 +24,33 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User } from '@/types';
-import { DataTableColumnHeader } from '../_components/data-table-column-header';
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User } from "@/types";
+import { DataTableColumnHeader } from "../_components/data-table-column-header";
 
 const roleMap: Record<
   string,
   {
     label: string;
-    variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'purple';
+    variant: "default" | "secondary" | "destructive" | "outline" | "purple";
   }
 > = {
-  ADMIN: { label: 'Quản trị viên', variant: 'destructive' },
-  LEARNER: { label: 'Học viên', variant: 'default' },
+  ADMIN: { label: "Quản trị viên", variant: "destructive" },
+  LEARNER: { label: "Học viên", variant: "default" },
 };
 
 const genderMap: Record<
   string,
   {
     label: string;
-    variant: 'default' | 'secondary' | 'outline' | 'purple';
+    variant: "default" | "secondary" | "outline" | "purple";
   }
 > = {
-  MALE: { label: 'Nam', variant: 'default' },
-  FEMALE: { label: 'Nữ', variant: 'purple' },
-  UNSET: { label: 'Chưa xác định', variant: 'outline' },
+  MALE: { label: "Nam", variant: "default" },
+  FEMALE: { label: "Nữ", variant: "purple" },
+  UNSET: { label: "Chưa xác định", variant: "outline" },
 };
 
 function DeleteUserDialog({ user }: { user: User }) {
@@ -78,8 +78,8 @@ function DeleteUserDialog({ user }: { user: User }) {
         <AlertDialogHeader>
           <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
           <AlertDialogDescription>
-            Hành động này không thể hoàn tác. Người dùng này sẽ bị xóa vĩnh viễn
-            khỏi hệ thống cùng với tất cả dữ liệu liên quan.
+            Hành động này không thể hoàn tác. Người dùng này sẽ bị xóa vĩnh viễn khỏi hệ thống cùng
+            với tất cả dữ liệu liên quan.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -93,12 +93,11 @@ function DeleteUserDialog({ user }: { user: User }) {
 
 export const columns: ColumnDef<User>[] = [
   {
-    id: 'select',
+    id: "select",
     header: ({ table }) => (
       <Checkbox
         checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && 'indeterminate')
+          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
@@ -115,26 +114,24 @@ export const columns: ColumnDef<User>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: 'id',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="ID" />
-    ),
-    cell: ({ row }) => <div className="w-[60px]">{row.getValue('id')}</div>,
+    accessorKey: "id",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
+    cell: ({ row }) => <div className="w-[60px]">{row.getValue("id")}</div>,
     filterFn: (row, id, value) => {
       const rowId = String(row.getValue(id));
       return rowId.includes(value);
     },
   },
   {
-    accessorKey: 'avatarUrl',
-    header: 'Ảnh đại diện',
+    accessorKey: "avatarUrl",
+    header: "Ảnh đại diện",
     cell: ({ row }) => {
-      const avatarUrl = row.getValue('avatarUrl') as string | undefined;
-      const name = row.getValue('name') as string;
+      const avatarUrl = row.getValue("avatarUrl") as string | undefined;
+      const name = row.getValue("name") as string;
       const initials = name
-        .split(' ')
+        .split(" ")
         .map((n) => n[0])
-        .join('')
+        .join("")
         .toUpperCase()
         .slice(0, 2);
 
@@ -148,12 +145,10 @@ export const columns: ColumnDef<User>[] = [
     enableSorting: false,
   },
   {
-    accessorKey: 'name',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Tên" />
-    ),
+    accessorKey: "name",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Tên" />,
     cell: ({ row }) => {
-      const name = row.getValue('name') as string;
+      const name = row.getValue("name") as string;
       return (
         <div className="max-w-[200px] truncate font-medium" title={name}>
           {name}
@@ -162,12 +157,10 @@ export const columns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: 'email',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Email" />
-    ),
+    accessorKey: "email",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
     cell: ({ row }) => {
-      const email = row.getValue('email') as string;
+      const email = row.getValue("email") as string;
       return (
         <div className="max-w-[250px] truncate" title={email}>
           {email}
@@ -176,15 +169,13 @@ export const columns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: 'role',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Vai trò" />
-    ),
+    accessorKey: "role",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Vai trò" />,
     cell: ({ row }) => {
-      const role = row.getValue('role') as string;
+      const role = row.getValue("role") as string;
       const roleInfo = roleMap[role] || {
         label: role,
-        variant: 'outline' as const,
+        variant: "outline" as const,
       };
       return <Badge variant={roleInfo.variant}>{roleInfo.label}</Badge>;
     },
@@ -193,15 +184,13 @@ export const columns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: 'gender',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Giới tính" />
-    ),
+    accessorKey: "gender",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Giới tính" />,
     cell: ({ row }) => {
-      const gender = row.getValue('gender') as string;
+      const gender = row.getValue("gender") as string;
       const genderInfo = genderMap[gender] || {
         label: gender,
-        variant: 'outline' as const,
+        variant: "outline" as const,
       };
       return <Badge variant={genderInfo.variant}>{genderInfo.label}</Badge>;
     },
@@ -210,22 +199,18 @@ export const columns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: 'xp',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="XP" />
-    ),
+    accessorKey: "xp",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="XP" />,
     cell: ({ row }) => {
-      const xp = row.getValue('xp') as number;
+      const xp = row.getValue("xp") as number;
       return <div className="text-center font-medium">{xp.toLocaleString()}</div>;
     },
   },
   {
-    accessorKey: 'streakDays',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Streak" />
-    ),
+    accessorKey: "streakDays",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Streak" />,
     cell: ({ row }) => {
-      const streak = row.getValue('streakDays') as number;
+      const streak = row.getValue("streakDays") as number;
       return (
         <div className="text-center">
           {streak > 0 ? (
@@ -238,15 +223,13 @@ export const columns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: 'isActive',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Trạng thái" />
-    ),
+    accessorKey: "isActive",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Trạng thái" />,
     cell: ({ row }) => {
-      const isActive = row.getValue('isActive') as boolean;
+      const isActive = row.getValue("isActive") as boolean;
       return (
-        <Badge variant={isActive ? 'default' : 'secondary'}>
-          {isActive ? 'Hoạt động' : 'Không hoạt động'}
+        <Badge variant={isActive ? "default" : "secondary"}>
+          {isActive ? "Hoạt động" : "Không hoạt động"}
         </Badge>
       );
     },
@@ -255,17 +238,15 @@ export const columns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: 'createdAt',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Ngày tạo" />
-    ),
+    accessorKey: "createdAt",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Ngày tạo" />,
     cell: ({ row }) => {
-      const date = new Date(row.getValue('createdAt'));
-      return <div>{date.toLocaleDateString('vi-VN')}</div>;
+      const date = new Date(row.getValue("createdAt"));
+      return <div>{date.toLocaleDateString("vi-VN")}</div>;
     },
   },
   {
-    id: 'actions',
+    id: "actions",
     enableHiding: false,
     cell: function ActionsCell({ row }) {
       const user = row.original;
@@ -284,11 +265,7 @@ export const columns: ColumnDef<User>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() =>
-                navigator.clipboard.writeText(user.id.toString())
-              }
-            >
+            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(user.id.toString())}>
               <CopyIcon className="mr-2 h-4 w-4" />
               Copy ID
             </DropdownMenuItem>
@@ -304,4 +281,3 @@ export const columns: ColumnDef<User>[] = [
     },
   },
 ];
-

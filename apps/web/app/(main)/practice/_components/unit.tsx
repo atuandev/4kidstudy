@@ -19,18 +19,12 @@ export const Unit = ({ topic, lessons }: UnitProps) => {
 
   return (
     <div className="bg-green-50 rounded-2xl border-2 border-green-600">
-      <UnitBanner
-        topic={topic}
-        isExpanded={isExpanded}
-        onClick={toggleExpanded}
-      />
+      <UnitBanner topic={topic} isExpanded={isExpanded} onClick={toggleExpanded} />
 
       {isExpanded && (
         <div className="space-y-2 p-4">
           {lessons.map((lesson) => {
-            return (
-              <LessonButton key={lesson.id} id={lesson.id} lesson={lesson} />
-            );
+            return <LessonButton key={lesson.id} id={lesson.id} lesson={lesson} />;
           })}
         </div>
       )}

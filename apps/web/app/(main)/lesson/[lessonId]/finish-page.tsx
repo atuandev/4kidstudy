@@ -29,7 +29,7 @@ export default function FinishPage({ lessonId }: FinishPageProps) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await fetchProfile();
     }
-    
+
     void refreshProfile();
   }, [fetchProfile]);
 
@@ -38,10 +38,10 @@ export default function FinishPage({ lessonId }: FinishPageProps) {
     accuracy >= 90
       ? "Excellent work!"
       : accuracy >= 70
-      ? "Great job!"
-      : accuracy >= 50
-      ? "Good effort!"
-      : "Keep practicing!";
+        ? "Great job!"
+        : accuracy >= 50
+          ? "Good effort!"
+          : "Keep practicing!";
 
   const hasValidDimensions = width > 0 && height > 0 && isFinite(width) && isFinite(height);
 

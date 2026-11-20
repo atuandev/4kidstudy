@@ -3,17 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SentenceImage } from "@/types";
-import {
-  ArrowLeft,
-  BookOpen,
-  ChevronLeft,
-  ChevronRight,
-  RotateCcw,
-} from "lucide-react";
+import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { SentenceCard } from "./sentence-card";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ReviewContentFormData } from '@/schemas/learning-progress';
+import { ReviewContentFormData } from "@/schemas/learning-progress";
 
 interface SentenceViewerProps {
   sentenceImages: SentenceImage[];
@@ -34,16 +28,18 @@ export function SentenceViewer({
 }: SentenceViewerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const indexParam = searchParams.get('index');
-  const [currentIndex, setCurrentIndex] = useState(() => parseInt(indexParam || '0', 10));
+  const indexParam = searchParams.get("index");
+  const [currentIndex, setCurrentIndex] = useState(() => parseInt(indexParam || "0", 10));
   const [pronunciationPassedIds, setPronunciationPassedIds] = useState<Set<number>>(new Set());
-  const [masteredSentenceIds, setMasteredSentenceIds] = useState<Set<number>>(new Set(initialMasteredIds));
+  const [masteredSentenceIds, setMasteredSentenceIds] = useState<Set<number>>(
+    new Set(initialMasteredIds),
+  );
 
   // Follow the URL when ?index= changes (e.g. back/forward navigation).
   const [syncedIndexParam, setSyncedIndexParam] = useState(indexParam);
   if (indexParam !== syncedIndexParam) {
     setSyncedIndexParam(indexParam);
-    const index = parseInt(indexParam || '0', 10);
+    const index = parseInt(indexParam || "0", 10);
     if (index >= 0 && index < sentenceImages.length) {
       setCurrentIndex(index);
     }
@@ -86,9 +82,7 @@ export function SentenceViewer({
             <div className="text-center">
               <BookOpen className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Không có câu học</h3>
-              <p className="text-muted-foreground">
-                Chủ đề này chưa có câu học nào.
-              </p>
+              <p className="text-muted-foreground">Chủ đề này chưa có câu học nào.</p>
             </div>
           </CardContent>
         </Card>
@@ -97,14 +91,14 @@ export function SentenceViewer({
   }
 
   const currentSentenceImage = sentenceImages[currentIndex];
-  
+
   // Check if all active sentences in the current image are mastered or passed in current session
-  const currentSentences = currentSentenceImage.sentences.filter(s => s.isActive);
-  const allCompleted = currentSentences.every(s => 
-    masteredSentenceIds.has(s.id) || pronunciationPassedIds.has(s.id)
+  const currentSentences = currentSentenceImage.sentences.filter((s) => s.isActive);
+  const allCompleted = currentSentences.every(
+    (s) => masteredSentenceIds.has(s.id) || pronunciationPassedIds.has(s.id),
   );
-  const hasIncomplete = currentSentences.some(s => 
-    !masteredSentenceIds.has(s.id) && !pronunciationPassedIds.has(s.id)
+  const hasIncomplete = currentSentences.some(
+    (s) => !masteredSentenceIds.has(s.id) && !pronunciationPassedIds.has(s.id),
   );
 
   return (
@@ -113,9 +107,13 @@ export function SentenceViewer({
       <Card className="mb-8 bg-primary">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <Button size="sm" variant="default" onClick={() => {
-              router.push(`/learn/units?grade=${topicGrade}#topic-${topicId}`);
-            }}>
+            <Button
+              size="sm"
+              variant="default"
+              onClick={() => {
+                router.push(`/learn/units?grade=${topicGrade}#topic-${topicId}`);
+              }}
+            >
               <ArrowLeft className="size-8" />
             </Button>
 
@@ -164,13 +162,9 @@ export function SentenceViewer({
               </p>
             </div>
           )}
-          
+
           <div className="flex items-center justify-center gap-4">
-            <Button
-              variant="secondary"
-              onClick={handlePrevious}
-              disabled={currentIndex === 0}
-            >
+            <Button variant="secondary" onClick={handlePrevious} disabled={currentIndex === 0}>
               <ChevronLeft className="h-4 w-4" />
               Quay lại
             </Button>

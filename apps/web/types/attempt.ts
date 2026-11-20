@@ -1,4 +1,4 @@
-import { Exercise } from './exercise';
+import { Exercise } from "./exercise";
 
 export type PronunciationScore = {
   accuracy?: number;
@@ -86,5 +86,3 @@ export interface MostWrongExerciseStats {
   secondWrongCount: number;
   totalWrongCount: number;
 }
-
-

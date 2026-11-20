@@ -47,9 +47,7 @@ export function TopicDetailDialog({ topTopics }: Props) {
                   className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-lg font-bold text-indigo-600 w-8">
-                      #{index + 1}
-                    </span>
+                    <span className="text-lg font-bold text-indigo-600 w-8">#{index + 1}</span>
                     <span className="font-medium">{topic.name}</span>
                   </div>
                   <span className="text-sm font-semibold text-indigo-600">

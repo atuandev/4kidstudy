@@ -6,9 +6,7 @@ import { CreateExerciseFormData } from "@/schemas/exercise";
 import { revalidatePath } from "next/cache";
 
 export async function getExerciseByLessonId(lessonId: number) {
-  const { payload } = await http.get<Exercise[]>(
-    `/exercises/?lessonId=${lessonId}`
-  );
+  const { payload } = await http.get<Exercise[]>(`/exercises/?lessonId=${lessonId}`);
   return payload;
 }
 
@@ -24,9 +22,7 @@ export async function getExercise(id: number) {
 
 /** Copy of `obj` without keys whose value is `undefined`. */
 function omitUndefined<T extends object>(obj: T): T {
-  return Object.fromEntries(
-    Object.entries(obj).filter(([, value]) => value !== undefined),
-  ) as T;
+  return Object.fromEntries(Object.entries(obj).filter(([, value]) => value !== undefined)) as T;
 }
 
 function cleanExerciseData(data: CreateExerciseFormData): CreateExerciseFormData {
@@ -42,34 +38,26 @@ function cleanExerciseData(data: CreateExerciseFormData): CreateExerciseFormData
 
 export async function createExercise(data: CreateExerciseFormData) {
   const cleanedData = cleanExerciseData(data);
-  const { payload, status } = await http.post<Exercise>(
-    "/exercises",
-    JSON.stringify(cleanedData)
-  );
+  const { payload, status } = await http.post<Exercise>("/exercises", JSON.stringify(cleanedData));
   revalidatePath("/admin/exercises");
   return { payload, status };
 }
 
 export async function createManyExercises(exercises: CreateExerciseFormData[]) {
-  const cleanedExercises = exercises.map((exercise) =>
-    cleanExerciseData(exercise)
-  );
+  const cleanedExercises = exercises.map((exercise) => cleanExerciseData(exercise));
   const { payload, status } = await http.post<Exercise[]>(
     "/exercises/bulk",
-    JSON.stringify({ exercises: cleanedExercises })
+    JSON.stringify({ exercises: cleanedExercises }),
   );
   revalidatePath("/admin/exercises");
   return { payload, status };
 }
 
-export async function updateExercise(
-  id: number,
-  data: Partial<CreateExerciseFormData>
-) {
+export async function updateExercise(id: number, data: Partial<CreateExerciseFormData>) {
   const cleanedData = cleanExerciseData(data as CreateExerciseFormData);
   const { payload, status } = await http.put<Exercise>(
     `/exercises/${id}`,
-    JSON.stringify(cleanedData)
+    JSON.stringify(cleanedData),
   );
   revalidatePath("/admin/exercises");
   return { payload, status };
@@ -86,8 +74,8 @@ export async function importExercisesFromCsv(formData: FormData) {
   const { payload } = await http.post<{
     exercisesCreated: number;
     optionsCreated: number;
-  }>('/exercises/import', formData, { isFileUpload: true });
-  
+  }>("/exercises/import", formData, { isFileUpload: true });
+
   revalidatePath("/admin/exercises");
   revalidatePath("/admin/lessons");
   return payload;
