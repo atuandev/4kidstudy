@@ -8,12 +8,10 @@ import {
   Param,
   Query,
   ParseIntPipe,
-  UseGuards,
   HttpStatus,
   HttpCode,
 } from '@nestjs/common';
 import {
-  ApiBearerAuth,
   ApiOperation,
   ApiParam,
   ApiQuery,
@@ -29,7 +27,6 @@ import {
   UpdateLessonDto,
   LessonBulkCreateDto,
 } from './dto/index';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('lessons')
 @Controller('lessons')

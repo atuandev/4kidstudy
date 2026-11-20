@@ -1293,7 +1293,7 @@ export class ExerciseService {
 
     // Prepare data for Excel - format depends on exercise type
     const excelData = exercises.map((exercise) => {
-      const row: any = {
+      const row: Record<string, string> = {
         type: exercise.type,
         prompt: exercise.prompt || '',
         img: exercise.imageUrl || '',
@@ -1383,7 +1383,11 @@ export class ExerciseService {
     ];
 
     // Generate buffer
-    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    // XLSX.write is typed `any`; type: 'buffer' returns a Buffer.
+    const buffer = XLSX.write(workbook, {
+      type: 'buffer',
+      bookType: 'xlsx',
+    }) as Buffer;
     return buffer;
   }
 }

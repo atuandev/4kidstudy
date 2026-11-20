@@ -1206,7 +1206,7 @@ Input: "cái nồi" → Output: "pot"`;
     // Làm sạch response - chỉ giữ lại nghĩa thuần túy
     let cleanResponse = aiResponse
       .trim()
-      .replace(/^["'`()\[\]{}]|["'`()\[\]{}]$/g, '') // Bỏ mọi dấu bao quanh
+      .replace(/^["'`()[\]{}]|["'`()[\]{}]$/g, '') // Bỏ mọi dấu bao quanh
       .replace(/^(Output:|Answer:|Translation:)\s*/i, '') // Bỏ prefix
       .split(/[.\n]/)[0] // Chỉ lấy trước dấu chấm hoặc xuống dòng
       .trim();

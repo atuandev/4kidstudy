@@ -37,7 +37,6 @@ import {
   ReorderOptionsDto,
   UpdateExerciseDto,
   UpdateOptionDto,
-  ImportCsvDto,
   ImportCsvResponseDto,
 } from './dto/index';
 // import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';

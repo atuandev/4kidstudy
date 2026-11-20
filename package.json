@@ -9,6 +9,8 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
+    "format": "turbo run format",
+    "format:check": "turbo run format:check",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "contracts:generate": "turbo run generate --filter=@4kidstudy/contracts"

@@ -148,7 +148,9 @@ export class EmailService {
         `User ${email} verified successfully (after ${Math.floor(timeElapsed)}s)`,
       );
     } catch (error) {
-      this.logger.error(`Failed to update user verification status: ${error}`);
+      this.logger.error(
+        `Failed to update user verification status: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw new BadRequestException(
         'Xác thực thành công nhưng không thể cập nhật trạng thái',
       );

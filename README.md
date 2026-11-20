@@ -8,7 +8,6 @@ English-learning platform for primary-school children (grades 1–5).
 | `apps/api` | `@4kidstudy/api` | NestJS 11 + Prisma 6 + PostgreSQL API |
 | `packages/contracts` | `@4kidstudy/contracts` | API contract generated from the Prisma schema and OpenAPI document |
 | `packages/tsconfig` | `@4kidstudy/tsconfig` | Shared TypeScript bases |
-| `packages/eslint-config` | `@4kidstudy/eslint-config` | Shared ESLint configs (`base`, `nest`) for the API and packages. The web app lints with [oxlint](https://oxc.rs) (`apps/web/.oxlintrc.json`) and formats with oxfmt (`apps/web/.oxfmtrc.json`; `pnpm --filter @4kidstudy/web format`) |
 
 ## Requirements
 
@@ -33,8 +32,18 @@ pnpm dev                                  # web on :3000, api on :3001
 | --- | --- |
 | `pnpm dev` | Run both apps in watch mode |
 | `pnpm build` / `pnpm typecheck` / `pnpm test` / `pnpm lint` | Run across the repo (Turborepo, cached) |
+| `pnpm format` / `pnpm format:check` | Format (or check) every package with oxfmt |
 | `pnpm --filter @4kidstudy/web <script>` | Run one app's script |
 | `pnpm contracts:generate` | Regenerate `packages/contracts` after changing `schema.prisma` or any DTO |
+
+## Linting and formatting
+
+Every package uses [OXC](https://oxc.rs): **oxlint** for linting and **oxfmt** for formatting. Each package has its own `.oxlintrc.json` and `.oxfmtrc.json`.
+
+- `apps/web`: React, Next.js and TypeScript rules. The React Compiler rules oxlint lacks natively come from `eslint-plugin-react-hooks`, loaded as an oxlint JS plugin. Style: double quotes, 100 columns.
+- `apps/api` and `packages/contracts`: type-aware rules (`oxlint --type-aware`, via `oxlint-tsgolint`), matching typescript-eslint `recommendedTypeChecked`. Style: single quotes, 80 columns.
+
+CI fails on any lint error or unformatted file. Existing `// eslint-disable-*` comments still work, because oxlint reads them.
 
 ## The API contract
 
