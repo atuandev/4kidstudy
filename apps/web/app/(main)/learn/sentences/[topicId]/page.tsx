@@ -14,7 +14,8 @@ export default async function SentencesTopicPage({ params }: SentencesTopicPageP
   const { topicId } = await params;
   const topicIdNum = parseInt(topicId, 10);
 
-  const sentenceImages = await getSentenceImagesByTopicId(topicIdNum);
+  // Active images only: the saved resume index counts active images, so the lists must match.
+  const sentenceImages = await getSentenceImagesByTopicId(topicIdNum, true);
   const topic = await getTopicById(topicIdNum);
 
   // Get mastered sentence IDs from backend (sentences with isMastered = true)

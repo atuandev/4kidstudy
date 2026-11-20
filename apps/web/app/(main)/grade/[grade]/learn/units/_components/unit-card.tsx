@@ -1,75 +1,52 @@
 "use client";
 
-import { BookOpenTextIcon, CardsIcon, ChatTextIcon } from "@/components/icons";
+import {
+  ArrowCounterClockwiseIcon,
+  BookOpenTextIcon,
+  CardsIcon,
+  ChatTextIcon,
+} from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { TopicWithProgress } from "@/types/topic-with-progress";
 import Image from "next/image";
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 interface UnitCardProps {
   readonly topic: TopicWithProgress;
 }
 
-const buildNavigationUrl = (
-  topicId: number,
-  type: "flashcard" | "sentence",
-  continueFromLast: boolean,
-  lastFlashcardIndex: number,
-  lastSentenceIndex: number,
-) => {
+type ContentType = "flashcard" | "sentence";
+
+/**
+ * `resumeIndex` is the furthest card the child tried (undefined if none). Continuing adds
+ * `resume`, which tells the viewer to step past that card when it is already finished.
+ */
+const buildNavigationUrl = (topicId: number, type: ContentType, resumeIndex?: number) => {
   const basePath = type === "flashcard" ? "/learn/flashcards" : "/learn/sentences";
-  const lastIndex = type === "flashcard" ? lastFlashcardIndex : lastSentenceIndex;
-  if (continueFromLast && lastIndex > 0) {
-    return `${basePath}/${topicId}?index=${lastIndex}`;
+  if (resumeIndex === undefined) {
+    return `${basePath}/${topicId}`;
   }
-  return `${basePath}/${topicId}`;
+  return `${basePath}/${topicId}?index=${resumeIndex}&resume=1`;
 };
 
 export function UnitCard({ topic }: UnitCardProps) {
   const router = useRouter();
-  const [showDialog, setShowDialog] = useState(false);
-  const [dialogType, setDialogType] = useState<"flashcard" | "sentence">("flashcard");
-  const lastFlashcardIndex = topic.progress.lastReviewedFlashcardIndex ?? 0;
-  const lastSentenceIndex = topic.progress.lastReviewedSentenceIndex ?? 0;
-  const flashcardProgress = topic.progress.flashcardProgress;
-  const sentenceProgress = topic.progress.sentenceProgress;
-  const hasFlashcardProgress = flashcardProgress > 0;
-  const hasSentenceProgress = sentenceProgress > 0;
-  const dialogProgressValue = useMemo(() => {
-    if (dialogType === "flashcard") {
-      return flashcardProgress;
-    }
-    return sentenceProgress;
-  }, [dialogType, flashcardProgress, sentenceProgress]);
-  const handleCardClick = (type: "flashcard" | "sentence") => {
-    const progressValue = type === "flashcard" ? flashcardProgress : sentenceProgress;
-    if (progressValue > 0) {
-      setDialogType(type);
-      setShowDialog(true);
-      return;
-    }
-    navigateToContent(type, false);
+  const { flashcardProgress, sentenceProgress } = topic.progress;
+  const resumeIndex: Record<ContentType, number | undefined> = {
+    flashcard: topic.progress.lastReviewedFlashcardIndex,
+    sentence: topic.progress.lastReviewedSentenceIndex,
   };
-  const navigateToContent = (type: "flashcard" | "sentence", continueFromLast: boolean) => {
-    const url = buildNavigationUrl(
-      topic.id,
-      type,
-      continueFromLast,
-      lastFlashcardIndex,
-      lastSentenceIndex,
-    );
-    router.push(url);
-    setShowDialog(false);
+  const progress: Record<ContentType, number> = {
+    flashcard: flashcardProgress,
+    sentence: sentenceProgress,
   };
+  // Tapping the row continues; a finished part (100%) starts again from the first card.
+  const start = (type: ContentType) => {
+    const index = progress[type] >= 100 ? undefined : resumeIndex[type];
+    router.push(buildNavigationUrl(topic.id, type, index));
+  };
+  const restart = (type: ContentType) => router.push(buildNavigationUrl(topic.id, type));
   // Hand-placed tilt for the cover sticker, stable per topic.
   const tilt = topic.id % 2 === 0 ? 1 : -1;
   return (
@@ -110,36 +87,20 @@ export function UnitCard({ topic }: UnitCardProps) {
           icon={<CardsIcon />}
           label="Thẻ từ vựng"
           echo="Words"
-          progress={hasFlashcardProgress ? flashcardProgress : null}
-          onClick={() => handleCardClick("flashcard")}
+          progress={flashcardProgress > 0 ? flashcardProgress : null}
+          onClick={() => start("flashcard")}
+          onRestart={() => restart("flashcard")}
         />
         <TopicAction
           variant="secondary"
           icon={<ChatTextIcon />}
           label="Thẻ câu"
           echo="Sentences"
-          progress={hasSentenceProgress ? sentenceProgress : null}
-          onClick={() => handleCardClick("sentence")}
+          progress={sentenceProgress > 0 ? sentenceProgress : null}
+          onClick={() => start("sentence")}
+          onRestart={() => restart("sentence")}
         />
       </div>
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Tiếp tục từ đâu?</DialogTitle>
-            <DialogDescription>
-              Bạn đã học được {dialogProgressValue}% phần này. Học tiếp từ chỗ cũ hay bắt đầu lại?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button variant="default" onClick={() => navigateToContent(dialogType, false)}>
-              Bắt đầu lại
-            </Button>
-            <Button variant="secondary" onClick={() => navigateToContent(dialogType, true)}>
-              Học tiếp
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </article>
   );
 }
@@ -151,36 +112,62 @@ interface TopicActionProps {
   readonly echo: string;
   readonly progress: number | null;
   readonly onClick: () => void;
+  readonly onRestart: () => void;
 }
 
-/** A 3D action row: Vietnamese label, English echo, and how far the child got. */
-function TopicAction({ variant, icon, label, echo, progress, onClick }: TopicActionProps) {
+/**
+ * A 3D action row: Vietnamese label, English echo, and how far the child got. Once
+ * started, tapping it continues, and a restart button sits beside it.
+ */
+function TopicAction({
+  variant,
+  icon,
+  label,
+  echo,
+  progress,
+  onClick,
+  onRestart,
+}: TopicActionProps) {
   return (
-    <Button
-      size="lg"
-      variant={variant}
-      className="h-14 w-full justify-start gap-3 px-4 text-left [&_svg]:size-5"
-      onClick={onClick}
-    >
-      {icon}
-      <span className="flex flex-col leading-tight">
-        <span className="text-base font-extrabold">{label}</span>
-        <span className="text-sm font-extrabold text-white">{echo}</span>
-      </span>
-      {progress !== null ? (
-        <span className="ml-auto flex items-center gap-2">
-          <span
-            className="hidden h-2 w-14 overflow-hidden rounded-full bg-white/30 sm:block"
-            aria-hidden="true"
-          >
-            <span
-              className="block h-full rounded-full bg-white"
-              style={{ width: `${progress}%` }}
-            />
-          </span>
-          <span className="text-sm font-black tabular-nums">{progress}%</span>
+    <div className="flex gap-2">
+      <Button
+        size="lg"
+        variant={variant}
+        className="h-14 min-w-0 flex-1 justify-start gap-3 px-4 text-left [&_svg]:size-5"
+        onClick={onClick}
+      >
+        {icon}
+        <span className="flex flex-col leading-tight">
+          <span className="text-base font-extrabold">{label}</span>
+          <span className="text-sm font-extrabold text-white">{echo}</span>
         </span>
+        {progress !== null ? (
+          <span className="ml-auto flex items-center gap-2">
+            <span
+              className="hidden h-2 w-14 overflow-hidden rounded-full bg-white/30 sm:block"
+              aria-hidden="true"
+            >
+              <span
+                className="block h-full rounded-full bg-white"
+                style={{ width: `${progress}%` }}
+              />
+            </span>
+            <span className="text-sm font-black tabular-nums">{progress}%</span>
+          </span>
+        ) : null}
+      </Button>
+      {progress !== null && progress < 100 ? (
+        <Button
+          size="icon"
+          variant="default"
+          className="h-14 w-12 shrink-0 [&_svg]:size-5"
+          onClick={onRestart}
+          aria-label={`${label}: bắt đầu lại`}
+          title="Bắt đầu lại"
+        >
+          <ArrowCounterClockwiseIcon />
+        </Button>
       ) : null}
-    </Button>
+    </div>
   );
 }

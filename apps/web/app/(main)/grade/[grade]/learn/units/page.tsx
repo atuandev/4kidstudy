@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { UnitList } from "./_components/unit-list";
 import { getGradeBySlug } from "@/types/grade";
 import { getTopicsWithProgress } from "@/lib/data/get-topics-with-progress";
+import { getLearningStatsByGrade } from "@/actions/learning-progress/stats-by-grade";
 
 interface UnitsPageProps {
   readonly params: Promise<{ grade: string }>;
@@ -15,6 +16,8 @@ export default async function UnitsPage({ params }: UnitsPageProps) {
   if (!selectedGrade) {
     notFound();
   }
+  // Start the stats request now but don't wait on it: the strip streams in after the grid.
+  const statsPromise = getLearningStatsByGrade(selectedGrade.value);
   const { topics } = await getTopicsWithProgress(selectedGrade.value);
   if (topics.length === 0) {
     return (
@@ -32,7 +35,7 @@ export default async function UnitsPage({ params }: UnitsPageProps) {
   }
   return (
     <div className="flex flex-col gap-6">
-      <UnitList topics={topics} grade={selectedGrade.value} />
+      <UnitList topics={topics} grade={selectedGrade.value} statsPromise={statsPromise} />
     </div>
   );
 }

@@ -175,7 +175,8 @@ export function FlashcardComponent({
           contentType: "FLASHCARD",
           flashcardId: flashcard.id,
           sentenceId: undefined,
-          isMastered: passed, // Set mastered if passed pronunciation check
+          // Only ever set mastered: a failed retry must not un-master a card already passed.
+          isMastered: passed ? true : undefined,
         })
           .then((result) => {
             // console.log(`[Flashcard ${flashcard.id}] reviewContent success:`, result);

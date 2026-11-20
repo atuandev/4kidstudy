@@ -2,11 +2,12 @@
 
 import { SentenceImage } from "@/types";
 import { StudyEmpty, StudyHeader, StudyNav } from "@/components/learn/study-shell";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SentenceCard } from "./sentence-card";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReviewContentFormData } from "@/schemas/learning-progress";
 import { buildGradeHref } from "@/types/grade";
+import { clampStudyIndex, resumeStudyIndex } from "@/lib/study-index";
 
 interface SentenceViewerProps {
   sentenceImages: SentenceImage[];
@@ -28,7 +29,17 @@ export function SentenceViewer({
   const router = useRouter();
   const searchParams = useSearchParams();
   const indexParam = searchParams.get("index");
-  const [currentIndex, setCurrentIndex] = useState(() => parseInt(indexParam || "0", 10));
+  const isResume = searchParams.has("resume");
+  const basePath = `/learn/sentences/${topicId}`;
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    const index = clampStudyIndex(indexParam, sentenceImages.length);
+    if (!isResume) {
+      return index;
+    }
+    const active = sentenceImages[index]?.sentences.filter((s) => s.isActive) ?? [];
+    const isFinished = active.length > 0 && active.every((s) => initialMasteredIds.includes(s.id));
+    return resumeStudyIndex(index, sentenceImages.length, isFinished);
+  });
   const [pronunciationPassedIds, setPronunciationPassedIds] = useState<Set<number>>(new Set());
   const [masteredSentenceIds, setMasteredSentenceIds] = useState<Set<number>>(
     new Set(initialMasteredIds),
@@ -38,11 +49,15 @@ export function SentenceViewer({
   const [syncedIndexParam, setSyncedIndexParam] = useState(indexParam);
   if (indexParam !== syncedIndexParam) {
     setSyncedIndexParam(indexParam);
-    const index = parseInt(indexParam || "0", 10);
-    if (index >= 0 && index < sentenceImages.length) {
-      setCurrentIndex(index);
-    }
+    setCurrentIndex(clampStudyIndex(indexParam, sentenceImages.length));
   }
+
+  // "Continue" links carry ?resume; swap it for the image actually opened so a reload stays put.
+  useEffect(() => {
+    if (isResume) {
+      router.replace(`${basePath}?index=${currentIndex}`, { scroll: false });
+    }
+  }, [isResume, basePath, currentIndex, router]);
 
   const handlePronunciationAssessed = (sentenceId: number, passed: boolean) => {
     // Track pronunciation passed in current session
@@ -57,7 +72,7 @@ export function SentenceViewer({
     if (currentIndex < sentenceImages.length - 1) {
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
-      router.replace(`/learn/sentences/${topicId}?index=${nextIndex}`, { scroll: false });
+      router.replace(`${basePath}?index=${nextIndex}`, { scroll: false });
     }
   };
 
@@ -65,12 +80,14 @@ export function SentenceViewer({
     if (currentIndex > 0) {
       const prevIndex = currentIndex - 1;
       setCurrentIndex(prevIndex);
-      router.replace(`/learn/sentences/${topicId}?index=${prevIndex}`, { scroll: false });
+      router.replace(`${basePath}?index=${prevIndex}`, { scroll: false });
     }
   };
 
   const handleReset = () => {
     setCurrentIndex(0);
+    // Clear ?index too, or a reload would jump back to the old image.
+    router.replace(basePath, { scroll: false });
   };
 
   if (sentenceImages.length === 0) {

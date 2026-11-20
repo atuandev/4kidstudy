@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StudyEmpty, StudyHeader, StudyNav } from "@/components/learn/study-shell";
 import { FlashcardComponent } from "./flashcard";
 import { Flashcard } from "@/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReviewContentFormData } from "@/schemas/learning-progress";
 import { buildGradeHref } from "@/types/grade";
+import { clampStudyIndex, resumeStudyIndex } from "@/lib/study-index";
 
 interface FlashcardViewerProps {
   flashcards: Flashcard[];
@@ -24,19 +25,32 @@ export function FlashcardViewer({
   const router = useRouter();
   const searchParams = useSearchParams();
   const indexParam = searchParams.get("index");
-  const [currentIndex, setCurrentIndex] = useState(() => parseInt(indexParam || "0", 10));
+  const isResume = searchParams.has("resume");
+  const basePath = `/learn/flashcards/${flashcards[0]?.topicId}`;
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    const index = clampStudyIndex(indexParam, flashcards.length);
+    if (!isResume) {
+      return index;
+    }
+    const isFinished = initialMasteredIds.includes(flashcards[index]?.id);
+    return resumeStudyIndex(index, flashcards.length, isFinished);
+  });
   const [masteredFlashcardIds, setMasteredFlashcardIds] = useState<Set<number>>(
     new Set(initialMasteredIds),
   );
+
+  // "Continue" links carry ?resume; swap it for the card actually opened so a reload stays put.
+  useEffect(() => {
+    if (isResume) {
+      router.replace(`${basePath}?index=${currentIndex}`, { scroll: false });
+    }
+  }, [isResume, basePath, currentIndex, router]);
 
   // Follow the URL when ?index= changes (e.g. back/forward navigation).
   const [syncedIndexParam, setSyncedIndexParam] = useState(indexParam);
   if (indexParam !== syncedIndexParam) {
     setSyncedIndexParam(indexParam);
-    const index = parseInt(indexParam || "0", 10);
-    if (index >= 0 && index < flashcards.length) {
-      setCurrentIndex(index);
-    }
+    setCurrentIndex(clampStudyIndex(indexParam, flashcards.length));
   }
 
   const handleNext = () => {
@@ -44,9 +58,7 @@ export function FlashcardViewer({
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
       // Update URL to persist navigation state
-      router.replace(`/learn/flashcards/${flashcards[0].topicId}?index=${nextIndex}`, {
-        scroll: false,
-      });
+      router.replace(`${basePath}?index=${nextIndex}`, { scroll: false });
     }
   };
 
@@ -55,14 +67,14 @@ export function FlashcardViewer({
       const prevIndex = currentIndex - 1;
       setCurrentIndex(prevIndex);
       // Update URL to persist navigation state
-      router.replace(`/learn/flashcards/${flashcards[0].topicId}?index=${prevIndex}`, {
-        scroll: false,
-      });
+      router.replace(`${basePath}?index=${prevIndex}`, { scroll: false });
     }
   };
 
   const handleReset = () => {
     setCurrentIndex(0);
+    // Clear ?index too, or a reload would jump back to the old card.
+    router.replace(basePath, { scroll: false });
   };
 
   const handlePronunciationAssessed = (passed: boolean) => {

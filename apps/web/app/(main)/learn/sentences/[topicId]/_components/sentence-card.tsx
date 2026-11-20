@@ -41,7 +41,8 @@ export function SentenceCard({
         contentType: "SENTENCE",
         flashcardId: undefined,
         sentenceId,
-        isMastered: passed, // Set mastered if passed pronunciation check
+        // Only ever set mastered: a failed retry must not un-master a sentence already passed.
+        isMastered: passed ? true : undefined,
       })
         .then((result) => {
           console.log(`[Sentence ${sentenceId}] reviewContent success:`, result);
