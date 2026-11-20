@@ -2,12 +2,19 @@
 
 import { FlameIcon, GraduationCap, TrophyIcon } from "lucide-react";
 import Link from "next/link";
-import { parseAsString, useQueryState } from "nuqs";
+import { useParams, usePathname, useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { useProfile } from "@/hooks/use-profile";
-import { Grade, GRADE_VALUES, GRADES, GradeValue } from "@/types/grade";
-import { useRouter } from "next/navigation";
+import {
+  buildGradePath,
+  Grade,
+  GRADE_VALUES,
+  GRADES,
+  GradeValue,
+  getGradeBySlug,
+  getGradeSlug,
+} from "@/types/grade";
 
 const gradeOrderMap: Record<GradeValue, number> = {
   [GRADE_VALUES.GRADE_1]: 1,
@@ -22,15 +29,21 @@ const gradeOrderMap: Record<GradeValue, number> = {
  */
 export function GradeSelectorButton() {
   const router = useRouter();
+  const pathname = usePathname();
+  const params = useParams<{ grade?: string }>();
   const { profile } = useProfile();
-  const [selectedGrade, setSelectedGrade] = useQueryState("grade", parseAsString.withDefault(""));
+  const selectedGrade = getGradeBySlug(params.grade)?.value;
 
-  const handleGradeClick = async (grade: Grade) => {
+  const handleGradeClick = (grade: Grade) => {
     if (selectedGrade === grade.value) {
       return;
     }
-    await setSelectedGrade(grade.value);
-    router.refresh();
+    // On a /grade/[grade]/... page, swap only the grade segment so the
+    // student stays in the same section. Elsewhere, open that grade's units.
+    const nextPath = params.grade
+      ? pathname.replace(`/grade/${params.grade}`, `/grade/${getGradeSlug(grade.value)}`)
+      : buildGradePath(grade.value, "learn/units");
+    router.push(nextPath);
   };
 
   const userGradeValue = profile?.grade as GradeValue | undefined;

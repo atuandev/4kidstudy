@@ -23,6 +23,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { buildGradeHref } from "@/types/grade";
 import { Progress } from "@/components/ui/progress";
 import { useRouter } from "next/navigation";
 import { User } from "@/types";
@@ -38,6 +39,8 @@ type HeaderProps = {
   unitTitle: string;
   lessonTitle: string;
   profile: User;
+  /** Grade of the lesson's topic; exiting returns to that grade's practice page. */
+  grade?: string;
 };
 
 export const Header = ({
@@ -50,12 +53,13 @@ export const Header = ({
   unitTitle,
   lessonTitle,
   profile,
+  grade,
 }: HeaderProps) => {
   const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleExit = () => {
-    router.push("/practice");
+    router.push(buildGradeHref(grade, "practice"));
   };
 
   const formatTime = (seconds: number): string => {

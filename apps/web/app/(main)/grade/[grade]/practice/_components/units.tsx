@@ -12,7 +12,7 @@ interface UnitsProps {
 
 const renderEmptyTopics = () => (
   <div className="rounded-lg border border-dashed p-8 text-center">
-    <p className="text-muted-foreground">Select a grade to review practice content.</p>
+    <p className="text-muted-foreground">No practice content for this grade yet.</p>
   </div>
 );
 

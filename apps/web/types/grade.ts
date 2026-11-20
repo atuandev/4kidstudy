@@ -63,3 +63,34 @@ export const GRADES: Grade[] = [
     description: "Kiến thức chuyên sâu cho học sinh lớp 5",
   },
 ];
+
+/**
+ * Sections that live under `/grade/[grade]/...`.
+ */
+export type GradeSection = "practice" | "learn/units";
+
+/**
+ * URL slug for a grade: `GRADE_3` -> `"3"`.
+ */
+export const getGradeSlug = (value: GradeValue): string => value.replace("GRADE_", "");
+
+/**
+ * Resolves a `/grade/[grade]` slug back to its grade, or `undefined` when the slug is not a known grade.
+ */
+export const getGradeBySlug = (slug: string | undefined): Grade | undefined =>
+  slug ? GRADES.find((grade) => getGradeSlug(grade.value) === slug) : undefined;
+
+/**
+ * Builds the grade-scoped URL for a section, e.g. `/grade/1/practice`.
+ */
+export const buildGradePath = (value: GradeValue, section: GradeSection): string =>
+  `/grade/${getGradeSlug(value)}/${section}`;
+
+/**
+ * Like `buildGradePath`, but accepts an unchecked grade (for example an optional `topic.grade`).
+ * Unknown grades fall back to the grade-less URL, which redirects to the student's own grade.
+ */
+export const buildGradeHref = (value: string | null | undefined, section: GradeSection): string =>
+  GRADES.some((grade) => grade.value === value)
+    ? buildGradePath(value as GradeValue, section)
+    : `/${section}`;
