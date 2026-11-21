@@ -7,7 +7,6 @@ import type { User } from "@/types";
 interface ProfileState {
   profile: User | null;
   isLoadingProfile: boolean;
-  /** The last automatic fetch failed; stops every mounted useProfile from retrying in a loop. */
   profileFetchFailed: boolean;
   setProfile: (profile: User | null) => void;
   setLoadingProfile: (isLoading: boolean) => void;
@@ -15,9 +14,6 @@ interface ProfileState {
   clearProfile: () => void;
 }
 
-/**
- * Stores the authenticated user profile in a persisted Zustand store.
- */
 export const useProfileStore = create<ProfileState>()(
   persist(
     (set) => ({

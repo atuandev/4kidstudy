@@ -43,7 +43,6 @@ export const register = async (data: RegisterSchemaType): Promise<RegisterResult
       },
     );
 
-    // Handle conflict (email already exists)
     if (status === 409) {
       return {
         success: false,
@@ -51,7 +50,6 @@ export const register = async (data: RegisterSchemaType): Promise<RegisterResult
       };
     }
 
-    // Handle other error status codes
     if (status !== 200 && status !== 201) {
       const errorPayload = payload as ErrorResponse;
       return {
@@ -62,7 +60,6 @@ export const register = async (data: RegisterSchemaType): Promise<RegisterResult
 
     const registerPayload = payload as RegisterResponse;
 
-    // Validate response structure
     if (!registerPayload.user) {
       return {
         success: false,
@@ -75,7 +72,6 @@ export const register = async (data: RegisterSchemaType): Promise<RegisterResult
       data: registerPayload,
     };
   } catch (error) {
-    // Log error only in development
     if (process.env.NODE_ENV === "development") {
       console.error("Register error:", error);
     }

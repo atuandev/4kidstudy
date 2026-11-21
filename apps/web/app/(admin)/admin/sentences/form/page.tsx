@@ -88,7 +88,6 @@ const GRADE_LABELS: Record<string, string> = {
   GRADE_5: "Lớp 5",
 };
 
-// Type for SentenceImage with sentences (for bulk mode)
 type SentenceImageGroup = {
   id?: number;
   imageUrl: string;
@@ -137,7 +136,7 @@ export default function SentenceFormPage() {
   const sentenceImageId = searchParams.get("id");
   const topicIdParam = searchParams.get("topicId");
   const isEditMode = !!sentenceImageId;
-  const isTopicLocked = !!topicIdParam; // Lock topic if passed via query param
+  const isTopicLocked = !!topicIdParam;
 
   const form = useForm<CreateSentenceImageFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -169,7 +168,6 @@ export default function SentenceFormPage() {
     name: "sentences",
   });
 
-  // Fetch topics and sentence image data on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -177,7 +175,6 @@ export default function SentenceFormPage() {
         const fetchedTopics = await getTopics();
         setAvailableTopics(fetchedTopics);
 
-        // If topicId is passed via query param (bulk create mode)
         if (topicIdParam) {
           const parsedTopicId = parseInt(topicIdParam);
           const topic = fetchedTopics.find((t) => t.id === parsedTopicId);
@@ -185,10 +182,8 @@ export default function SentenceFormPage() {
             setSelectedGrade(topic.grade);
           }
 
-          // Fetch existing sentence images for this topic
           const existingSentenceImages = await getSentenceImagesByTopicId(parsedTopicId);
 
-          // Map to SentenceImageGroup structure
           const groups: SentenceImageGroup[] = existingSentenceImages.map((img) => ({
             id: img.id,
             imageUrl: img.imageUrl,
@@ -208,7 +203,6 @@ export default function SentenceFormPage() {
 
           setSentenceImageGroups(groups);
 
-          // Set topic in form for submission
           form.setValue("topicId", parsedTopicId);
         } else if (isEditMode) {
           const sentenceImage = await getSentenceImage(parseInt(sentenceImageId));
@@ -233,7 +227,6 @@ export default function SentenceFormPage() {
             })),
           });
         } else {
-          // New sentence mode - check if there are filters from store
           if (storeGrade) {
             setSelectedGrade(storeGrade);
             toast.success(`Đã chọn lớp: ${GRADE_LABELS[storeGrade]}`);
@@ -259,16 +252,13 @@ export default function SentenceFormPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sentenceImageId, isEditMode, topicIdParam, storeGrade, storeTopicId]);
 
-  // Bulk mode submit handler
   const handleBulkSubmit = async () => {
     setIsSubmitting(true);
     try {
       const topicId = form.getValues("topicId");
 
-      // Process each SentenceImageGroup
       for (const group of sentenceImageGroups) {
         if (group.id) {
-          // Update existing SentenceImage
           await updateSentenceImage(group.id, {
             topicId,
             imageUrl: group.imageUrl,
@@ -286,7 +276,6 @@ export default function SentenceFormPage() {
             })),
           });
         } else if (group.sentences.length > 0) {
-          // Create new SentenceImage with sentences
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const cleanedSentences = group.sentences.map(({ id, ...s }) => s);
           await bulkCreateSentences(topicId, [
@@ -326,10 +315,8 @@ export default function SentenceFormPage() {
         router.push("/admin/sentences");
         router.refresh();
       } else {
-        // Normal create mode (single sentence image)
         const { order: _order, ...createData } = data;
 
-        // Remove 'id' field from all sentences
         const cleanedSentences = createData.sentences.map(({ id: _id, ...sentence }) => sentence);
         const finalData = {
           ...createData,
@@ -396,7 +383,6 @@ export default function SentenceFormPage() {
       meaningVi: "",
       hintVi: "",
       audioUrl: "",
-      // Don't set order here - backend will auto-assign
       isActive: true,
     });
   }
@@ -404,7 +390,6 @@ export default function SentenceFormPage() {
   async function handleRemoveSentence(index: number) {
     const sentence = form.getValues(`sentences.${index}`);
 
-    // If sentence has an id, it exists in the database and needs to be deleted
     if (sentence.id) {
       try {
         await deleteSentence(sentence.id);
@@ -415,7 +400,6 @@ export default function SentenceFormPage() {
         toast.error("Xóa câu thất bại");
       }
     } else {
-      // Just remove from form array if it's a new sentence not yet saved
       remove(index);
     }
   }
@@ -432,7 +416,6 @@ export default function SentenceFormPage() {
     });
   }
 
-  // === Bulk Mode Handlers ===
   function toggleGroupExpanded(groupIndex: number) {
     setExpandedGroups((prev) => {
       const newSet = new Set(prev);
@@ -645,7 +628,6 @@ export default function SentenceFormPage() {
         });
       }
 
-      // Same-origin route adds the admin's access token (httpOnly cookie).
       const response = await fetch(`/api/admin-import/sentences/import-excel/${topicId}`, {
         method: "POST",
         body: formData,
@@ -660,9 +642,7 @@ export default function SentenceFormPage() {
           try {
             const error = await response.json();
             errorMessage = error.message || errorMessage;
-          } catch {
-            // Failed to parse JSON error
-          }
+          } catch {}
         } else {
           const text = await response.text();
           console.error("Server error response:", text.substring(0, 500));
@@ -686,7 +666,6 @@ export default function SentenceFormPage() {
       setSelectedFolderFiles(null);
       setImportPreview(null);
 
-      // Reload sentence images for this topic
       if (topicId) {
         const existingSentenceImages = await getSentenceImagesByTopicId(topicId);
         const groups: SentenceImageGroup[] = existingSentenceImages.map((img) => ({
@@ -725,7 +704,6 @@ export default function SentenceFormPage() {
 
   return (
     <div className="max-w-5xl space-y-6 py-6 px-4">
-      {/* Header */}
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
@@ -754,10 +732,8 @@ export default function SentenceFormPage() {
             : "Thêm câu với hình ảnh mới"}
       </TypographyH3>
 
-      {/* Bulk Mode - Manage Multiple SentenceImage Groups */}
       {isTopicLocked ? (
         <div className="space-y-6">
-          {/* Topic Display */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Thông tin chủ đề</CardTitle>
@@ -779,7 +755,6 @@ export default function SentenceFormPage() {
             </CardContent>
           </Card>
 
-          {/* SentenceImage Groups */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-lg font-semibold">Danh sách thẻ câu</h4>
@@ -870,9 +845,7 @@ export default function SentenceFormPage() {
 
                 {expandedGroups.has(groupIndex) && (
                   <CardContent className="space-y-4 pt-6">
-                    {/* SentenceImage Fields */}
                     <div className="grid gap-4 md:grid-cols-2">
-                      {/* Image URL */}
                       <div className="space-y-2">
                         <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                           Hình ảnh <RequiredField />
@@ -912,10 +885,8 @@ export default function SentenceFormPage() {
                             )}
                           </CldUploadWidget>
                         </div>
-                        {/* image preview removed per request */}
                       </div>
 
-                      {/* Audio URL */}
                       <div className="space-y-2">
                         <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                           Audio (không bắt buộc)
@@ -955,13 +926,11 @@ export default function SentenceFormPage() {
                             )}
                           </CldUploadWidget>
                         </div>
-                        {/* audio preview removed per request */}
                       </div>
                     </div>
 
                     <Separator />
 
-                    {/* Sentences in this group */}
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <h5 className="font-medium">Các câu</h5>
@@ -1140,7 +1109,6 @@ export default function SentenceFormPage() {
                                     )}
                                   </CldUploadWidget>
                                 </div>
-                                {/* sentence audio preview removed per request */}
                               </div>
                             </div>
                           </CardContent>
@@ -1153,7 +1121,6 @@ export default function SentenceFormPage() {
             ))}
           </div>
 
-          {/* Bulk Mode Actions */}
           <div className="flex justify-between items-center sticky bottom-0 bg-background pt-4 pb-2 border-t">
             <Button
               type="button"
@@ -1181,7 +1148,6 @@ export default function SentenceFormPage() {
             </Button>
           </div>
 
-          {/* Import Dialog */}
           <AlertDialog open={showImportDialog} onOpenChange={setShowImportDialog}>
             <AlertDialogContent className="max-w-3xl">
               <AlertDialogHeader>
@@ -1192,7 +1158,6 @@ export default function SentenceFormPage() {
               </AlertDialogHeader>
 
               <div className="space-y-4">
-                {/* Excel File Input */}
                 <div>
                   <label className="block text-sm font-medium mb-2">
                     File Excel <RequiredField />
@@ -1205,7 +1170,6 @@ export default function SentenceFormPage() {
                   )}
                 </div>
 
-                {/* Folder Input */}
                 {importPreview && (
                   <div>
                     <label className="block text-sm font-medium mb-2">
@@ -1226,7 +1190,6 @@ export default function SentenceFormPage() {
                   </div>
                 )}
 
-                {/* Preview */}
                 {importPreview && (
                   <div className="rounded-md border p-4 space-y-2">
                     <div>
@@ -1265,15 +1228,12 @@ export default function SentenceFormPage() {
           </AlertDialog>
         </div>
       ) : (
-        /* Single Mode Form */
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
             className="space-y-6"
           >
-            {/* Grade and Topic Selection */}
             <div className="grid gap-4 md:grid-cols-2">
-              {/* Grade Selection */}
               <FormItem>
                 <FormLabel>
                   Khối lớp <RequiredField />
@@ -1301,7 +1261,6 @@ export default function SentenceFormPage() {
                 <FormMessage />
               </FormItem>
 
-              {/* Topic Selection */}
               <FormField
                 control={formControl}
                 name="topicId"
@@ -1333,7 +1292,6 @@ export default function SentenceFormPage() {
               />
             </div>
 
-            {/* Image URL */}
             <FormField
               control={formControl}
               name="imageUrl"
@@ -1359,7 +1317,6 @@ export default function SentenceFormPage() {
               )}
             />
 
-            {/* Audio URL */}
             <FormField
               control={formControl}
               name="audioUrl"
@@ -1387,7 +1344,6 @@ export default function SentenceFormPage() {
               )}
             />
 
-            {/* Order and Active Status */}
             <div className="grid gap-4 md:grid-cols-2">
               {isEditMode && (
                 <FormField
@@ -1439,7 +1395,6 @@ export default function SentenceFormPage() {
 
             <Separator />
 
-            {/* Sentences Section */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -1506,7 +1461,6 @@ export default function SentenceFormPage() {
                     </CardHeader>
                     {isExpanded && (
                       <CardContent className="space-y-4">
-                        {/* Sentence Text */}
                         <FormField
                           control={formControl}
                           name={`sentences.${index}.text`}
@@ -1523,7 +1477,6 @@ export default function SentenceFormPage() {
                           )}
                         />
 
-                        {/* Meaning in Vietnamese */}
                         <FormField
                           control={formControl}
                           name={`sentences.${index}.meaningVi`}
@@ -1540,7 +1493,6 @@ export default function SentenceFormPage() {
                           )}
                         />
 
-                        {/* Audio URL */}
                         <FormField
                           control={formControl}
                           name={`sentences.${index}.audioUrl`}
@@ -1569,7 +1521,6 @@ export default function SentenceFormPage() {
                           )}
                         />
 
-                        {/* Hint in Vietnamese */}
                         <FormField
                           control={formControl}
                           name={`sentences.${index}.hintVi`}
@@ -1584,7 +1535,6 @@ export default function SentenceFormPage() {
                           )}
                         />
 
-                        {/* Order and Active Status for each sentence */}
                         <div className="grid gap-4 md:grid-cols-2">
                           <FormField
                             control={formControl}
@@ -1640,7 +1590,6 @@ export default function SentenceFormPage() {
               })}
             </div>
 
-            {/* Form Actions */}
             <div className="flex justify-end gap-2 sticky bottom-0 bg-background pt-4 pb-2">
               <Button type="button" onClick={handleCancel} disabled={isSubmitting}>
                 Hủy

@@ -12,10 +12,8 @@ export async function FlashcardsContent({ data }: { data: Flashcard[] }) {
     return <ErrorDisplay message="No flashcards found for this topic" />;
   }
 
-  // Sort flashcards by order
   const sortedFlashcards = data.sort((a: Flashcard, b: Flashcard) => a.order - b.order);
 
-  // Get mastered flashcard IDs from backend (isMastered = true, reviewCount >= 50)
   const topicId = sortedFlashcards[0]?.topicId;
   let masteredFlashcardIds: number[] = [];
 
@@ -24,7 +22,6 @@ export async function FlashcardsContent({ data }: { data: Flashcard[] }) {
       masteredFlashcardIds = await getReviewedFlashcardIds(topicId);
     } catch (error) {
       console.error("Failed to fetch mastered flashcards:", error);
-      // Continue without mastered IDs - user will need to complete reviews
     }
   }
 

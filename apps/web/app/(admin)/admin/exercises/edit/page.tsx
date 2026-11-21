@@ -69,8 +69,6 @@ export default function EditExercisePage() {
   const exerciseId = searchParams.get("id");
 
   const form = useForm<CreateExerciseFormData>({
-    // The schema's z.preprocess fields make its input type `unknown`; the
-    // parsed output is what the form holds.
     resolver: zodResolver(CreateExerciseSchema) as Resolver<CreateExerciseFormData>,
     defaultValues: {
       lessonId: 0,
@@ -123,7 +121,6 @@ export default function EditExercisePage() {
         if (exerciseId) {
           const exercise = await getExercise(parseInt(exerciseId));
 
-          // Set grade and topic based on the lesson
           const lesson = fetchedLessons.find((l) => l.id === exercise.lessonId);
           if (lesson && lesson.topic) {
             setSelectedGrade(lesson.topic.grade || null);
@@ -162,12 +159,10 @@ export default function EditExercisePage() {
     fetchData();
   }, [exerciseId]);
 
-  // Filter topics by selected grade
   const filteredTopics = selectedGrade
     ? availableTopics.filter((topic) => topic.grade === selectedGrade)
     : [];
 
-  // Filter lessons by selected topic
   const filteredLessons = selectedTopicId
     ? availableLessons.filter((lesson) => lesson.topicId === selectedTopicId)
     : [];
@@ -286,7 +281,6 @@ export default function EditExercisePage() {
 
   return (
     <div className="max-w-4xl space-y-6 py-6 px-4">
-      {/* Header */}
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
@@ -311,10 +305,8 @@ export default function EditExercisePage() {
         <TypographyH3>Chỉnh sửa câu hỏi</TypographyH3>
       </div>
 
-      {/* Form */}
       <Form {...form}>
         <form onSubmit={handleFormSubmit} className="space-y-6">
-          {/* Grade Selection */}
           <div>
             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Khối học <RequiredField />
@@ -337,7 +329,6 @@ export default function EditExercisePage() {
             />
           </div>
 
-          {/* Unit/Topic Selection */}
           {selectedGrade && (
             <div>
               <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -361,7 +352,6 @@ export default function EditExercisePage() {
             </div>
           )}
 
-          {/* Lesson Selection */}
           {selectedTopicId && (
             <FormField
               control={formControl}
@@ -391,7 +381,6 @@ export default function EditExercisePage() {
             />
           )}
 
-          {/* Exercise Type */}
           <FormField
             control={formControl}
             name="type"
@@ -426,7 +415,6 @@ export default function EditExercisePage() {
             )}
           />
 
-          {/* Prompt */}
           <FormField
             control={formControl}
             name="prompt"
@@ -443,7 +431,6 @@ export default function EditExercisePage() {
             )}
           />
 
-          {/* Hint English */}
           <FormField
             control={formControl}
             name="hintEn"
@@ -458,7 +445,6 @@ export default function EditExercisePage() {
             )}
           />
 
-          {/* Hint Vietnamese */}
           <FormField
             control={formControl}
             name="hintVi"
@@ -473,7 +459,6 @@ export default function EditExercisePage() {
             )}
           />
 
-          {/* Target Text - Only for PRONUNCIATION */}
           {exerciseType === "PRONUNCIATION" && (
             <>
               <FormField
@@ -518,7 +503,6 @@ export default function EditExercisePage() {
             </>
           )}
 
-          {/* Main Image URL */}
           {exerciseType === "MULTIPLE_CHOICE" && (
             <FormField
               control={formControl}
@@ -544,7 +528,6 @@ export default function EditExercisePage() {
             />
           )}
 
-          {/* Audio URL - Required for LISTENING */}
           {exerciseType === "LISTENING" && (
             <FormField
               control={formControl}
@@ -572,7 +555,6 @@ export default function EditExercisePage() {
             />
           )}
 
-          {/* Points, Difficulty, and Order */}
           <div className="grid gap-4 md:grid-cols-3">
             <FormField
               control={formControl}
@@ -645,7 +627,6 @@ export default function EditExercisePage() {
 
           <Separator />
 
-          {/* Exercise Options */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
@@ -668,14 +649,12 @@ export default function EditExercisePage() {
               )}
             </div>
 
-            {/* Display options validation errors */}
             {form.formState.errors.options?.message && (
               <p className="text-sm font-medium text-destructive">
                 {form.formState.errors.options.message}
               </p>
             )}
 
-            {/* Render option fields based on exercise type */}
             {exerciseType === "SELECT_IMAGE" &&
               fields.map((field, index) => (
                 <Card key={field.id}>
@@ -966,7 +945,6 @@ export default function EditExercisePage() {
             )}
           </div>
 
-          {/* Form Actions */}
           <div className="flex justify-end gap-2 sticky bottom-0 bg-background pt-4 pb-2 border-t">
             <Button type="button" variant="default" onClick={handleCancel} disabled={isSubmitting}>
               Hủy

@@ -17,12 +17,10 @@ interface ProfileProps {
 export default function Profile({ profile }: ProfileProps) {
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [isChangePasswordDialogOpen, setIsChangePasswordDialogOpen] = useState(false);
-  // Calculate level from XP (assuming 100 XP per level)
   const level = Math.floor(profile.xp / 100) + 1;
   const currentLevelXP = profile.xp % 100;
   const xpProgress = (currentLevelXP / 100) * 100;
 
-  // Format date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("vi-VN", {
       year: "numeric",
@@ -31,7 +29,6 @@ export default function Profile({ profile }: ProfileProps) {
     });
   };
 
-  // Get user initials for avatar fallback
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -69,7 +66,6 @@ export default function Profile({ profile }: ProfileProps) {
   return (
     <div className="flex flex-col gap-6 pb-10">
       <PageHeading title="Hồ sơ của bé" echo="Your profile" />
-      {/* Profile header */}
       <section className="rounded-[28px] bg-white p-5 shadow-sheet-lime sm:p-7">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-6">
           <div className="relative w-fit">
@@ -131,7 +127,6 @@ export default function Profile({ profile }: ProfileProps) {
       </section>
 
       <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
-        {/* Gamification stats */}
         <section
           aria-labelledby="profile-stats"
           className="rounded-[28px] bg-white p-5 shadow-sheet-lime sm:p-6"
@@ -166,7 +161,6 @@ export default function Profile({ profile }: ProfileProps) {
           </dl>
         </section>
 
-        {/* Profile info */}
         <section
           aria-labelledby="profile-info"
           className="rounded-[28px] bg-white p-5 shadow-sheet-lime sm:p-6"

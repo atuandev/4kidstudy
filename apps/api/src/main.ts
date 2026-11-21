@@ -14,10 +14,6 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  // Exact origins only: credentials are allowed, so no wildcards.
-  // The Vercel project was renamed 4kidstudy-frontend -> 4kidstudy; the old
-  // aliases stay until nothing serves them. Extra origins: CORS_ORIGINS
-  // (comma-separated).
   const extraOrigins = (process.env.CORS_ORIGINS ?? '')
     .split(',')
     .map((origin) => origin.trim())
@@ -25,11 +21,9 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3000',
-      // Production
       'https://4kidstudy-frontend.vercel.app',
       'https://4kidstudy-atuandev-projects.vercel.app',
       'https://4kidstudy-git-master-atuandev-projects.vercel.app',
-      // Branch previews
       'https://4kidstudy-git-dev-atuandev-projects.vercel.app',
       'https://4kidstudy-git-dev2-atuandev-projects.vercel.app',
       'https://4kidstudy-frontend-git-dev-atuandev-projects.vercel.app',
@@ -39,7 +33,6 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Swagger Configuration
   const config = createSwaggerConfig();
   const document = SwaggerModule.createDocument(app as any, config);
   SwaggerModule.setup('api/docs', app as any, document, {

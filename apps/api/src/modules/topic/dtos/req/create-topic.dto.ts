@@ -9,7 +9,6 @@ import {
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-// Create enum locally to avoid Prisma client issues
 export enum GradeLevel {
   GRADE_1 = 'GRADE_1',
   GRADE_2 = 'GRADE_2',

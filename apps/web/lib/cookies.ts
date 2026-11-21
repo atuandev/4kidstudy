@@ -2,7 +2,6 @@
 
 import { cookies } from "next/headers";
 
-/** Cookie holding the API's password-reset token between OTP and new-password steps. */
 const PASSWORD_RESET_COOKIE = "passwordResetToken";
 
 export const setPasswordResetToken = async (token: string) => {
@@ -14,7 +13,7 @@ export const setPasswordResetToken = async (token: string) => {
     secure: process.env.NODE_ENV === "production",
     path: "/",
     sameSite: "lax",
-    maxAge: 10 * 60, // matches the API token lifetime
+    maxAge: 10 * 60,
   });
 };
 

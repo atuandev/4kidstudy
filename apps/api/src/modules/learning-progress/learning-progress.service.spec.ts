@@ -17,7 +17,6 @@ describe('LearningProgressService topic progress', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    // Topic 1 has content and progress; topic 2 is empty.
     prisma.topic.findMany.mockResolvedValue([{ id: 1 }, { id: 2 }]);
     prisma.flashcard.findMany.mockResolvedValue([
       { id: 10, topicId: 1 },
@@ -35,7 +34,6 @@ describe('LearningProgressService topic progress', () => {
         flashcardId: 10,
         sentenceId: null,
       },
-      // Reviewed but not mastered: moves the "last reviewed" index, not the count.
       {
         contentType: FLASHCARD,
         isMastered: false,
@@ -121,7 +119,6 @@ describe('LearningProgressService grade learning stats', () => {
       { id: 1, title: 'Animals' },
       { id: 2, title: 'Colors' },
     ]);
-    // Most recently reviewed first, as the query orders them.
     prisma.learningProgress.findMany.mockResolvedValue([
       {
         contentType: FLASHCARD,
@@ -148,7 +145,6 @@ describe('LearningProgressService grade learning stats', () => {
           sentenceImage: { topicId: 1 },
         },
       },
-      // Not mastered: counts toward top topics only.
       {
         contentType: FLASHCARD,
         isMastered: false,
@@ -181,7 +177,6 @@ describe('LearningProgressService grade learning stats', () => {
       total: 2,
       percentage: 50,
     });
-    // Topic 1 is fully mastered; topic 2 still has 'blue' and sentence 200.
     expect(stats.topicCount).toBe(1);
     expect(stats.topTopics).toEqual([
       { id: 1, name: 'Animals', reviewCount: 2 },

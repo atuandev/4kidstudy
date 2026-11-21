@@ -6,18 +6,15 @@ import { cn } from "@/lib/utils";
 
 type AudioPlayerProps = {
   audioUrl: string;
-  /** `full` plays once on load and shows a large listen button; `button` is the compact one. */
   variant?: "full" | "button";
   className?: string;
 };
 
-/** Sky round "listen" button on a round ledge. */
 export default function AudioPlayer({
   audioUrl,
   variant = "full",
   className = "",
 }: AudioPlayerProps) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [audio, _, controls] = useAudio({ src: audioUrl, autoPlay: variant === "full" });
 
   const handlePlay = useCallback(() => {

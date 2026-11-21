@@ -57,8 +57,6 @@ function DeleteUserDialog({ user }: { user: User }) {
   const [isOpen, setIsOpen] = useState(false);
 
   function handleDelete() {
-    // TODO: Implement delete user action
-    // console.log('Delete user:', user.id);
     setIsOpen(false);
   }
 

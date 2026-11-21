@@ -32,17 +32,10 @@ const buildTopicsWithProgress = (
     .filter((topic): topic is TopicWithProgress => topic !== null);
 };
 
-/**
- * Fetches topics for a grade along with the current user's progress.
- */
 export async function getTopicsWithProgress(
   grade: GradeValue,
 ): Promise<TopicsWithProgressResponse> {
-  // Both requests are independent, so run them together: two round-trips
-  // in parallel instead of one request per topic.
   const [{ payload: topics }, { payload: progresses }] = await Promise.all([
-    // Public and the same for every user, so it is cached. It must be sent
-    // without the user's token: the token would become part of the cache key.
     http.get<Topic[]>(`/topics?grade=${grade}`, {
       noAuth: true,
       next: { revalidate: TOPICS_REVALIDATE_SECONDS, tags: [TOPICS_CACHE_TAG] },

@@ -17,7 +17,6 @@ import { LessonHistoryContent } from "./lesson-history-content";
 type LessonButtonProps = {
   id: number;
   lesson: Lesson;
-  /** 1-based place in the topic, shown until the lesson has a best attempt. */
   position: number;
 };
 
@@ -25,7 +24,6 @@ export const LessonButton = ({ id, lesson, position }: LessonButtonProps) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [hasBestAttempt, setHasBestAttempt] = useState(false);
   const userId = useProfileStore((state) => state.profile?.id);
-  // Saved progress lives in this browser only, so read it after hydration.
   const isClient = useIsClient();
   const isInProgress = isClient && userId !== undefined && hasLessonProgress(userId, id);
 

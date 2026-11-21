@@ -7,9 +7,9 @@ import { RecorderControls, type RecordingState } from "@/components/learn/record
 interface AudioRecordProps {
   className?: string;
   onStopPropagation?: (event: React.MouseEvent) => void;
-  resetTrigger?: string | number; // Used to trigger reset from parent
-  targetText?: string; // Reference text for pronunciation assessment
-  onAssessmentComplete?: (score: number, passed: boolean) => void; // Callback when assessment completes
+  resetTrigger?: string | number;
+  targetText?: string;
+  onAssessmentComplete?: (score: number, passed: boolean) => void;
 }
 
 export function AudioRecord({
@@ -48,14 +48,11 @@ export function AudioRecord({
         const blob = new Blob(chunksRef.current, { type: "audio/wav" });
         setRecordedBlob(blob);
 
-        // Create URL for playback
         const url = URL.createObjectURL(blob);
         setRecordedAudioUrl(url);
 
         setRecordingState("recorded");
-        // console.log("Recording completed, state set to 'recorded'");
 
-        // Stop all tracks to release microphone
         stream.getTracks().forEach((track) => track.stop());
       };
 
@@ -63,7 +60,6 @@ export function AudioRecord({
       setErrorMessage(null);
       setMediaRecorder(recorder);
       setRecordingState("recording");
-      // console.log("Recording started, state set to 'recording'");
     } catch (error) {
       console.error("Error accessing microphone:", error);
       setErrorMessage("Bé chưa bật được micro. Hãy cho phép trình duyệt dùng micro rồi thử lại.");
@@ -71,16 +67,12 @@ export function AudioRecord({
   }, []);
 
   const stopRecording = useCallback(() => {
-    // console.log("stopRecording called, mediaRecorder state:", mediaRecorder?.state);
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop();
-      // console.log("MediaRecorder.stop() called");
     }
   }, [mediaRecorder]);
 
   const resetRecording = useCallback(() => {
-    // console.log("resetRecording called, current state:", recordingState);
-    // Clean up previous object URL
     if (recordedAudioUrl) {
       URL.revokeObjectURL(recordedAudioUrl);
     }
@@ -116,7 +108,6 @@ export function AudioRecord({
     setAnalysisProgress(0);
     setErrorMessage(null);
 
-    // Simulate progress
     const progressInterval = setInterval(() => {
       setAnalysisProgress((prev) => {
         if (prev >= 90) {
@@ -139,8 +130,6 @@ export function AudioRecord({
       clearInterval(progressInterval);
       setAnalysisProgress(100);
 
-      // console.log("Pronunciation assessment response:", response);
-
       if (response.success && response.overall !== undefined) {
         const score = response.overall;
         const passed = score > 50;
@@ -150,7 +139,6 @@ export function AudioRecord({
         setRecordingState("completed");
         setErrorMessage(null);
 
-        // Notify parent component
         onAssessmentComplete?.(score, passed);
       } else {
         const errorMsg = response?.error || "Không thể phân tích phát âm. Vui lòng thử lại.";
@@ -170,10 +158,7 @@ export function AudioRecord({
     }
   }, [recordedBlob, targetText, onAssessmentComplete]);
 
-  // Reset recording when resetTrigger changes (e.g., flashcard changes)
   useEffect(() => {
-    // Only reset if we have a previous resetTrigger value and it's different
-    // This prevents reset on initial mount
     if (
       prevResetTriggerRef.current !== undefined &&
       prevResetTriggerRef.current !== resetTrigger &&
@@ -191,10 +176,8 @@ export function AudioRecord({
     prevResetTriggerRef.current = resetTrigger;
   }, [resetTrigger, resetRecording]);
 
-  // Cleanup on component unmount
   useEffect(() => {
     return () => {
-      // Clean up recorded audio URL
       if (recordedAudioUrl) {
         URL.revokeObjectURL(recordedAudioUrl);
       }

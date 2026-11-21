@@ -27,7 +27,6 @@ import { sendEmailOTP } from "@/actions/auth/verify-otp";
 import { GRADES, type GradeValue } from "@/types/grade";
 
 interface FormRegisterProps {
-  /** Grade to pre-select, e.g. from the homepage grade picker. */
   readonly defaultGrade?: GradeValue;
 }
 

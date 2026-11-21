@@ -19,21 +19,12 @@ export type PronunciationAssessmentResponse = {
   rawResult?: Record<string, unknown>;
 };
 
-/**
- * Assess pronunciation from audio file
- * @param audioFile - The audio file (Blob or File)
- * @param referenceText - The correct text that should be spoken
- * @returns Pronunciation assessment response
- */
 export async function assessPronunciation(
   audioFile: Blob | File,
   referenceText: string,
 ): Promise<PronunciationAssessmentResponse> {
   const formData = new FormData();
 
-  // Convert Blob to File if needed
-  // MediaRecorder typically produces webm format, but we'll let the backend handle conversion
-  // Use the blob's type if available, otherwise default to webm
   const mimeType = audioFile.type || "audio/webm";
   const extension = mimeType.includes("webm")
     ? "webm"
@@ -58,23 +49,13 @@ export async function assessPronunciation(
       { isFileUpload: true },
     );
 
-    // Debug logging - always log to help diagnose issues
-    // console.log("[Pronunciation API] Status:", status);
-    // console.log("[Pronunciation API] Payload:", payload);
-    // console.log("[Pronunciation API] Payload type:", typeof payload);
     if (payload && typeof payload === "object") {
-      // console.log("[Pronunciation API] Payload keys:", Object.keys(payload));
-      // console.log("[Pronunciation API] Payload.success:", (payload as any).success);
-      // console.log("[Pronunciation API] Payload.error:", (payload as any).error);
     }
 
-    // Check if HTTP request failed
     if (status !== 200 && status !== 201) {
-      // Extract error message from payload
       let errorMessage = `Failed to assess pronunciation (HTTP ${status})`;
 
       if (payload) {
-        // Backend might return error in different formats
         if (typeof payload === "object") {
           if ("error" in payload && typeof payload.error === "string") {
             errorMessage = payload.error;
@@ -95,7 +76,6 @@ export async function assessPronunciation(
       };
     }
 
-    // Check if payload exists
     if (!payload) {
       console.error("[Pronunciation API] No payload received from server (status:", status, ")");
       return {
@@ -104,8 +84,6 @@ export async function assessPronunciation(
       };
     }
 
-    // Backend returns success: false in payload even with HTTP 200
-    // So check the payload.success field
     if (payload.success === false) {
       const errorMsg = payload.error || "Failed to assess pronunciation (unknown error)";
       return {
@@ -114,7 +92,6 @@ export async function assessPronunciation(
       };
     }
 
-    // Validate that we have the required fields for a successful response
     if (payload.overall === undefined) {
       return {
         success: false,

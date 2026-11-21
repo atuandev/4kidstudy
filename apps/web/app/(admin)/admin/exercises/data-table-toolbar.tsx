@@ -43,7 +43,6 @@ export function DataTableToolbar<TData>({ table, lessons }: DataTableToolbarProp
   const isFiltered = table.getState().columnFilters.length > 0;
   const { setSelectedLessonId } = useExerciseFormStore();
 
-  // Track lessonId filter
   const selectedLessonIds = (table.getColumn("lessonId")?.getFilterValue() as string[]) || [];
 
   useEffect(() => {
@@ -54,7 +53,6 @@ export function DataTableToolbar<TData>({ table, lessons }: DataTableToolbarProp
     }
   }, [selectedLessonIds.join(","), setSelectedLessonId]);
 
-  // Create lesson ID options for the faceted filter
   const lessonIdOptions = lessons
     ? lessons.map((lesson) => ({
         value: String(lesson.id),

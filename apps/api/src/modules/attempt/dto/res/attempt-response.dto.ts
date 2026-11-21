@@ -1,8 +1,5 @@
 import { AttemptDetailResponseDto } from './attempt-detail-response.dto';
 
-/**
- * Response DTO for attempt
- */
 export class AttemptResponseDto {
   id: number;
   userId: number;
@@ -21,9 +18,6 @@ export class AttemptResponseDto {
   updatedAt: Date;
 }
 
-/**
- * Response DTO for paginated attempts
- */
 export class PaginatedAttemptsResponseDto {
   data: AttemptResponseDto[];
   total: number;

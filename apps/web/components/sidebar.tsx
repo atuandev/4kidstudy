@@ -11,7 +11,6 @@ type SidebarProps = {
   className?: string;
 };
 
-/** Desktop navigation: logo, one big coloured tile per section, and the mascot buddy. */
 export const Sidebar = ({ className }: SidebarProps) => {
   return (
     <div

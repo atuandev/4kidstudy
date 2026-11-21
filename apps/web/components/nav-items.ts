@@ -1,13 +1,11 @@
 export type NavTone = "leaf" | "sky" | "sun" | "grape";
 
-/** Which Phosphor icon a section uses (mapped to a component in nav-icons.tsx). */
 export type NavIconKey = "learn" | "practice" | "leaderboard" | "profile";
 
 export interface NavItem {
   readonly label: string;
   readonly href: string;
   readonly icon: NavIconKey;
-  /** Each section keeps its own colour, so a child can find it by colour as well as by word. */
   readonly tone: NavTone;
 }
 
@@ -18,7 +16,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { label: "Hồ sơ", href: "/profile", icon: "profile", tone: "grape" },
 ];
 
-/** Active and resting classes per tone: a tinted tile on a coloured ledge when active. */
 export const NAV_TONES: Record<
   NavTone,
   { active: string; disc: string; text: string; icon: string }

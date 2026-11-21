@@ -1,8 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-/**
- * Response DTO for topic learning progress
- */
 export class TopicProgressResponseDto {
   @ApiProperty({
     description: 'Topic ID',

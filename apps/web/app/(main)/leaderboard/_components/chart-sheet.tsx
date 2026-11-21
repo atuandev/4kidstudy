@@ -16,7 +16,6 @@ export const TIME_RANGES = [
   { value: "30", label: "30 ngày" },
 ];
 
-/** Axis and grid styling shared by every chart: recessive, in text tokens. */
 export const AXIS_TICK = { fontSize: 13, fill: "#475569", fontWeight: 700 };
 export const GRID_STROKE = "#E2E8F0";
 export const TOOLTIP_PROPS = {
@@ -37,19 +36,16 @@ interface ChartSheetProps {
   readonly title: string;
   readonly echo: string;
   readonly total: React.ReactNode;
-  /** Unit after the total; XP unless set. */
   readonly unit?: string;
   readonly totalLabel: string;
   readonly days: number;
   readonly onDaysChange: (days: number) => void;
   readonly loading: boolean;
   readonly isEmpty: boolean;
-  /** Optional controls between the total and the plot, such as a view switch. */
   readonly toolbar?: React.ReactNode;
   readonly children: React.ReactNode;
 }
 
-/** A white sheet holding one chart: title, range picker, the headline total, then the plot. */
 export function ChartSheet({
   titleId,
   title,

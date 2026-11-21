@@ -7,7 +7,6 @@ interface LearnCardProps {
   readonly href: string;
 }
 
-/** A white sticker link to one area of the learning corner. */
 export const LearnCard = ({ title, description, href }: LearnCardProps) => {
   return (
     <Link

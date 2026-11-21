@@ -9,9 +9,6 @@ import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PronunciationScoreDto } from './submit-exercise.dto';
 
-/**
- * DTO for creating an attempt detail record
- */
 export class CreateAttemptDetailDto {
   @ApiProperty({
     description: 'Attempt ID',

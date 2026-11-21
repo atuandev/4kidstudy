@@ -3,15 +3,18 @@
   // Mirrors the previous ESLint setup: eslint recommended +
   // typescript-eslint recommendedTypeChecked. Run with --type-aware.
   "plugins": ["typescript", "oxc", "unicorn", "import", "jest"],
+  "jsPlugins": ["../../tools/oxlint/no-comments.mjs"],
   "env": { "node": true, "jest": true, "es2024": true },
   "categories": {
     "correctness": "error"
   },
   "rules": {
+    "no-comments/no-comments": "error",
+
     // typescript-eslint recommended
     "typescript/ban-ts-comment": "error",
-    "typescript/no-empty-object-type": "error",
-    "typescript/no-namespace": "error",
+    "typescript/no-empty-object-type": ["error", { "allowInterfaces": "with-single-extends" }],
+    "typescript/no-namespace": ["error", { "allowDeclarations": true }],
     "typescript/no-require-imports": "error",
     "typescript/no-unsafe-function-type": "error",
     "typescript/no-wrapper-object-types": "error",

@@ -1,11 +1,3 @@
-/**
- * Compile-time drift check: UI types vs backend models (@4kidstudy/contracts).
- *
- * Every field a UI type declares must exist on the Prisma model, be one of
- * the model's relations, or be listed here as computed by the API. Renaming
- * or removing a column in apps/api/prisma/schema.prisma (then running
- * `pnpm contracts:generate`) makes `pnpm typecheck` fail in this file.
- */
 import type * as C from "@4kidstudy/contracts";
 import type {
   Attempt,
@@ -21,7 +13,6 @@ import type {
   User,
 } from "./index";
 
-// `_count` is Prisma's relation-count aggregate, returned via `include`.
 type Extra<Local, Model, Allowed extends PropertyKey> = Exclude<
   keyof Local,
   keyof Model | Allowed | "_count"

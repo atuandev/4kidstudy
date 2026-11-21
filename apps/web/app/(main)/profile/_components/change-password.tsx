@@ -56,7 +56,6 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
           setSuccess(result.message);
           form.reset();
 
-          // Close dialog after 1.5 seconds
           setTimeout(() => {
             onOpenChange(false);
           }, 1500);
@@ -85,7 +84,6 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Current Password */}
             <FormField
               control={form.control}
               name="currentPassword"
@@ -104,7 +102,6 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
               )}
             />
 
-            {/* New Password */}
             <FormField
               control={form.control}
               name="newPassword"
@@ -123,7 +120,6 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
               )}
             />
 
-            {/* Confirm Password */}
             <FormField
               control={form.control}
               name="confirmPassword"

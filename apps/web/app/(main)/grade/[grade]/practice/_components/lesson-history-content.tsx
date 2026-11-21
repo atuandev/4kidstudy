@@ -45,7 +45,6 @@ export function LessonHistoryContent({ lesson, lessonId, isOpen }: LessonHistory
   const [isLoadingMostWrong, setIsLoadingMostWrong] = useState(false);
   const [isWrongSectionOpen, setIsWrongSectionOpen] = useState(true);
 
-  // When the panel opens (or the lesson changes), reset and show loaders.
   const loadKey = isOpen ? lessonId : null;
   const [startedLoadKey, setStartedLoadKey] = useState<number | null>(null);
   if (loadKey !== startedLoadKey) {
@@ -58,7 +57,6 @@ export function LessonHistoryContent({ lesson, lessonId, isOpen }: LessonHistory
     }
   }
 
-  // Fetch attempts and most-wrong exercises; ignore responses after close/change.
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
@@ -137,17 +135,11 @@ export function LessonHistoryContent({ lesson, lessonId, isOpen }: LessonHistory
     });
   }
 
-  /**
-   * Count exercises answered correctly on the 2nd attempt
-   */
   function getCorrectOnSecondAttemptCount(attempt: Attempt): number {
     if (!attempt.details || attempt.details.length === 0) return 0;
     return attempt.details.filter((detail) => detail.isCorrect && detail.attempts === 2).length;
   }
 
-  /**
-   * Count exercises answered correctly on the 2nd attempt with 5 points
-   */
   function getCorrectOnSecondAttemptWith5PointsCount(attempt: Attempt): number {
     if (!attempt.details || attempt.details.length === 0) return 0;
     return attempt.details.filter(
@@ -157,9 +149,6 @@ export function LessonHistoryContent({ lesson, lessonId, isOpen }: LessonHistory
 
   const bestAttempt = getBestAttempt();
 
-  /**
-   * Calculate lesson attempt statistics
-   */
   function calculateStatistics() {
     if (attempts.length === 0) {
       return {
@@ -206,7 +195,6 @@ export function LessonHistoryContent({ lesson, lessonId, isOpen }: LessonHistory
 
   const statistics = calculateStatistics();
 
-  // Load details for best attempt if not already loaded
   useEffect(() => {
     if (bestAttempt && isOpen && (!bestAttempt.details || bestAttempt.details.length === 0)) {
       getAttemptById(bestAttempt.id)
@@ -256,7 +244,6 @@ export function LessonHistoryContent({ lesson, lessonId, isOpen }: LessonHistory
           </section>
         )}
 
-        {/* Most wrong exercises */}
         <section>
           <h3>
             <button
@@ -456,7 +443,6 @@ interface AttemptMetricsProps {
   readonly tileClassName?: string;
 }
 
-/** Score, accuracy, right first/second time, wrong, time for one attempt. */
 function AttemptMetrics({
   attempt,
   secondCount,
@@ -520,7 +506,6 @@ function AnswerImage({
   );
 }
 
-/** One exercise inside an attempt: what was asked, what the learner picked, the points. */
 function DetailCard({
   detail,
   position,
@@ -530,7 +515,6 @@ function DetailCard({
 }) {
   const isCorrectOnSecondAttempt = detail.isCorrect && detail.points === 5;
   const type = detail.exercise?.type;
-  // The first pick is stored in selectedOption2Id when a second try happened.
   const firstPickId =
     detail.attempts === 2 && detail.selectedOption2Id
       ? detail.selectedOption2Id

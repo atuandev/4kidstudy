@@ -7,15 +7,12 @@ import { cn } from "@/lib/utils";
 type UnitBannerProps = {
   topic: Topic;
   lessonCount: number;
-  /** Lessons finished at least once. */
   completedCount: number;
   isExpanded: boolean;
-  /** Id of the lesson list this banner opens. */
   controls: string;
   onClick: () => void;
 };
 
-/** The topic row: cover sticker, title, lesson count; opens the lesson list. */
 export const UnitBanner = ({
   topic,
   lessonCount,

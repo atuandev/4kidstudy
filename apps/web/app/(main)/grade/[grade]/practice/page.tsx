@@ -16,8 +16,6 @@ export default async function PracticePage({ params }: PracticePageProps) {
     notFound();
   }
 
-  // Stats and topics are independent: fetch them together so the page
-  // waits for one API round-trip, not two in a row.
   const [stats, { topics }] = await Promise.all([
     getPracticeStatistics(selectedGrade.value),
     getTopicsWithProgress(selectedGrade.value),

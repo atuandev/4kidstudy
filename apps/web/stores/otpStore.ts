@@ -9,9 +9,6 @@ interface OtpState {
   clearEmail: () => void;
 }
 
-/**
- * Stores the email used in the OTP verification flows (register, forget password).
- */
 export const useOtpStore = create<OtpState>()(
   persist(
     (set) => ({

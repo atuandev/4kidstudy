@@ -127,7 +127,6 @@ export default function FlashcardFormPage() {
   const isEditMode = !!flashcardId;
   const isTopicLocked = !!topicIdParam;
 
-  // Use different schemas based on mode
   const form = useForm<CreateFlashcardFormData | CreateFlashcardsFormData>({
     resolver: zodResolver(
       isTopicLocked ? CreateFlashcardsSchema : CreateFlashcardSchema,
@@ -170,10 +169,8 @@ export default function FlashcardFormPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formControl = form.control as any;
-  // Typed view of the form for bulk (topic-locked) mode.
   const bulkForm = form as unknown as UseFormReturn<CreateFlashcardsFormData>;
 
-  // Fetch topics and flashcard data on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -188,7 +185,6 @@ export default function FlashcardFormPage() {
             setSelectedGrade(topic.grade);
           }
 
-          // Load existing flashcards for this topic
           const existingFlashcardsResponse = await getFlashcardsByTopic(parsedTopicId);
           const existingFlashcards = existingFlashcardsResponse.payload || [];
 
@@ -248,7 +244,6 @@ export default function FlashcardFormPage() {
             isActive: flashcard.isActive,
           });
         } else {
-          // New flashcard mode - check if there are filters from store
           if (storeGrade) {
             setSelectedGrade(storeGrade);
             toast.success(`Đã chọn lớp: ${GRADE_LABELS[storeGrade]}`);
@@ -289,14 +284,11 @@ export default function FlashcardFormPage() {
         router.push("/admin/flashcards");
         router.refresh();
       } else if (isTopicLocked) {
-        // Bulk create/update mode
         const bulkData = data as CreateFlashcardsFormData;
 
-        // Split flashcards into existing (with id) and new (without id)
         const existingFlashcards = bulkData.flashcards.filter((fc) => fc.id);
         const newFlashcards = bulkData.flashcards.filter((fc) => !fc.id);
 
-        // Update existing flashcards individually
         if (existingFlashcards.length > 0) {
           await Promise.all(
             existingFlashcards.map((flashcard) =>
@@ -316,7 +308,6 @@ export default function FlashcardFormPage() {
           );
         }
 
-        // Create new flashcards if any
         if (newFlashcards.length > 0) {
           const cleanedNewFlashcards = newFlashcards.map((flashcard) => {
             const cleaned: NewFlashcardInput = {
@@ -326,12 +317,10 @@ export default function FlashcardFormPage() {
               isActive: flashcard.isActive ?? true,
             };
 
-            // Only include optional fields if they have values
             if (flashcard.exampleEn) cleaned.exampleEn = flashcard.exampleEn;
             if (flashcard.exampleVi) cleaned.exampleVi = flashcard.exampleVi;
             if (flashcard.imageUrl) cleaned.imageUrl = flashcard.imageUrl;
             if (flashcard.audioUrl) cleaned.audioUrl = flashcard.audioUrl;
-            // DO NOT send order for new flashcards - let backend auto-assign
 
             return cleaned;
           });
@@ -343,7 +332,6 @@ export default function FlashcardFormPage() {
         router.push("/admin/flashcards");
         router.refresh();
       } else {
-        // Single create mode
         const singleData = data as CreateFlashcardFormData;
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { order, ...createData } = singleData;
@@ -426,7 +414,6 @@ export default function FlashcardFormPage() {
       exampleVi: "",
       imageUrl: "",
       audioUrl: "",
-      // Don't set order here - backend will auto-assign
       isActive: true,
     });
   }
@@ -446,7 +433,6 @@ export default function FlashcardFormPage() {
 
     setSelectedExcelFile(file);
 
-    // Read Excel to get needed files
     try {
       const reader = new FileReader();
       reader.onload = (evt) => {
@@ -475,7 +461,6 @@ export default function FlashcardFormPage() {
           });
         });
 
-        // Update preview if folder already selected
         if (selectedFolderFiles) {
           const matchedCount = Array.from(selectedFolderFiles).filter((f) =>
             neededFileNames.has(f.name),
@@ -498,7 +483,6 @@ export default function FlashcardFormPage() {
 
     setSelectedFolderFiles(files);
 
-    // Update preview if Excel already selected
     if (importPreview) {
       const matchedCount = Array.from(files).filter((f) =>
         importPreview.neededFiles.has(f.name),
@@ -521,7 +505,6 @@ export default function FlashcardFormPage() {
       const formData = new FormData();
       formData.append("excelFile", selectedExcelFile);
 
-      // Filter and add only needed files
       let matchedCount = 0;
       if (importPreview) {
         Array.from(selectedFolderFiles).forEach((file) => {
@@ -547,7 +530,6 @@ export default function FlashcardFormPage() {
       const result = await response.json();
       toast.success(`🎉 Đã import ${result.imported} flashcard thành công!`);
 
-      // Reload flashcards
       const existingFlashcardsResponse = await getFlashcardsByTopic(topicId);
       const existingFlashcards = existingFlashcardsResponse.payload || [];
 
@@ -569,7 +551,6 @@ export default function FlashcardFormPage() {
         bulkForm.setValue("flashcards", allFlashcards);
       }
 
-      // Close dialog and reset
       setShowImportDialog(false);
       setSelectedExcelFile(null);
       setSelectedFolderFiles(null);
@@ -585,7 +566,6 @@ export default function FlashcardFormPage() {
   async function handleRemoveFlashcard(index: number) {
     const flashcard = form.getValues(`flashcards.${index}` as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
-    // If flashcard has an id, it exists in the database and needs to be deleted
     if (flashcard.id) {
       try {
         await deleteFlashcard(flashcard.id);
@@ -596,7 +576,6 @@ export default function FlashcardFormPage() {
         toast.error("Xóa flashcard thất bại");
       }
     } else {
-      // Just remove from form array if it's a new flashcard not yet saved
       remove(index);
     }
   }
@@ -627,7 +606,6 @@ export default function FlashcardFormPage() {
 
   return (
     <div className="max-w-4xl space-y-6 py-6 px-4">
-      {/* Header */}
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
@@ -658,13 +636,11 @@ export default function FlashcardFormPage() {
             : "Thêm flashcard mới"}
       </TypographyH3>
 
-      {/* Form */}
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
           className="space-y-6"
         >
-          {/* Grade and Topic Selection */}
           <div className="grid gap-4 md:grid-cols-2">
             <FormItem className="flex flex-col">
               <FormLabel>
@@ -723,7 +699,6 @@ export default function FlashcardFormPage() {
             />
           </div>
 
-          {/* Bulk Mode: List of Flashcards */}
           {isTopicLocked ? (
             <>
               <Separator className="my-6" />
@@ -988,7 +963,6 @@ export default function FlashcardFormPage() {
               </div>
             </>
           ) : (
-            /* Single Mode: Original Form Fields */
             <>
               <div className="grid gap-4 md:grid-cols-2">
                 <FormField
@@ -1184,7 +1158,6 @@ export default function FlashcardFormPage() {
             </>
           )}
 
-          {/* Form Actions */}
           <div className="flex justify-end gap-2 sticky bottom-0 bg-background pt-4 pb-2">
             <Button type="button" onClick={handleCancel} disabled={isSubmitting}>
               Hủy
@@ -1197,7 +1170,6 @@ export default function FlashcardFormPage() {
         </form>
       </Form>
 
-      {/* Import Dialog */}
       <AlertDialog open={showImportDialog} onOpenChange={setShowImportDialog}>
         <AlertDialogContent className="max-w-2xl">
           <AlertDialogHeader>
@@ -1211,7 +1183,6 @@ export default function FlashcardFormPage() {
           </AlertDialogHeader>
 
           <div className="space-y-4 py-4">
-            {/* Excel File Selection */}
             <div className="space-y-2">
               <label className="text-sm font-medium">1. File Excel (.xlsx, .xls)</label>
               <div className="flex gap-2">
@@ -1229,7 +1200,6 @@ export default function FlashcardFormPage() {
               )}
             </div>
 
-            {/* Folder Selection */}
             <div className="space-y-2">
               <label className="text-sm font-medium">2. Thư mục chứa tài nguyên (ảnh/audio)</label>
               <div className="flex gap-2">
@@ -1250,7 +1220,6 @@ export default function FlashcardFormPage() {
               )}
             </div>
 
-            {/* Preview */}
             {importPreview && (
               <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
                 <h4 className="font-medium text-sm">Thông tin import:</h4>

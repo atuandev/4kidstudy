@@ -1,4 +1,3 @@
-/** Skeleton of the topic grid, so the page keeps its shape while topics load. */
 const Loading = () => {
   return (
     <div className="space-y-6 sm:space-y-8" aria-busy="true" aria-label="Đang tải chủ đề">

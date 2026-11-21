@@ -26,10 +26,8 @@ import {
   AttemptDetailWithPronunciation,
 } from './interfaces/attempt.interface';
 
-/** Learners are in Vietnam, so a practice "day" follows their clock. */
 const PRACTICE_TIME_ZONE = 'Asia/Ho_Chi_Minh';
 
-/** Exercise types in the order the app lists them. */
 const EXERCISE_TYPE_ORDER: ExerciseType[] = [
   ExerciseType.SELECT_IMAGE,
   ExerciseType.MULTIPLE_CHOICE,
@@ -38,10 +36,6 @@ const EXERCISE_TYPE_ORDER: ExerciseType[] = [
   ExerciseType.PRONUNCIATION,
 ];
 
-/**
- * Every exercise type, in a fixed order, with zeros for types the user has
- * not practised.
- */
 function everyExerciseType(
   rows: Array<{
     type: ExerciseType;
@@ -62,23 +56,16 @@ function everyExerciseType(
   });
 }
 
-/**
- * Service for handling lesson attempts and exercise submissions
- */
 @Injectable()
 export class AttemptService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Start a new lesson attempt
-   */
   async startAttempt(
     userId: number,
     createAttemptDto: CreateAttemptDto,
   ): Promise<AttemptResponseDto> {
     const { lessonId } = createAttemptDto;
 
-    // Verify lesson exists
     const lesson = await this.prisma.lesson.findUnique({
       where: { id: lessonId },
       include: { exercises: true },
@@ -88,18 +75,15 @@ export class AttemptService {
       throw new NotFoundException(`Lesson with ID ${lessonId} not found`);
     }
 
-    // Calculate attempt number for this user and lesson
     const previousAttempts = await this.prisma.attempt.count({
       where: { userId, lessonId },
     });
 
-    // Calculate max possible score
     const maxScore = lesson.exercises.reduce(
       (sum, exercise) => sum + exercise.points,
       0,
     );
 
-    // Create new attempt
     const attempt = await this.prisma.attempt.create({
       data: {
         userId,
@@ -119,9 +103,6 @@ export class AttemptService {
     return this.mapToAttemptResponse(attempt);
   }
 
-  /**
-   * Create an attempt detail record
-   */
   async createAttemptDetail(
     createAttemptDetailDto: CreateAttemptDetailDto,
   ): Promise<AttemptDetailResponseDto> {
@@ -138,7 +119,6 @@ export class AttemptService {
       pronunciation,
     } = createAttemptDetailDto;
 
-    // Verify attempt exists
     const attempt = await this.prisma.attempt.findUnique({
       where: { id: attemptId },
     });
@@ -147,7 +127,6 @@ export class AttemptService {
       throw new NotFoundException(`Attempt with ID ${attemptId} not found`);
     }
 
-    // Verify exercise exists
     const exercise = await this.prisma.exercise.findUnique({
       where: { id: exerciseId },
     });
@@ -156,19 +135,16 @@ export class AttemptService {
       throw new NotFoundException(`Exercise with ID ${exerciseId} not found`);
     }
 
-    // Verify exercise belongs to the lesson in the attempt
     if (exercise.lessonId !== attempt.lessonId) {
       throw new BadRequestException(
         `Exercise ${exerciseId} does not belong to lesson ${attempt.lessonId}`,
       );
     }
 
-    // Calculate points if not provided
     const calculatedPoints = points ?? (isCorrect ? exercise.points : 0);
     const calculatedMaxPoints = maxPoints ?? exercise.points;
     const attemptCount = attempts ?? 1;
 
-    // Create attempt detail
     const detail = await this.prisma.attemptDetail.create({
       data: {
         attemptId,
@@ -184,7 +160,6 @@ export class AttemptService {
       include: { pronunciation: true },
     });
 
-    // Create pronunciation score if provided
     if (pronunciation) {
       await this.prisma.pronunciationScore.create({
         data: {
@@ -200,10 +175,8 @@ export class AttemptService {
       });
     }
 
-    // Recalculate attempt statistics
     await this.recalculateAttemptStats(attemptId);
 
-    // Reload detail with pronunciation
     const updatedDetail = await this.prisma.attemptDetail.findUnique({
       where: { id: detail.id },
       include: { pronunciation: true },
@@ -218,9 +191,6 @@ export class AttemptService {
     return this.mapToAttemptDetailResponse(updatedDetail);
   }
 
-  /**
-   * Submit an exercise answer within an attempt
-   */
   async submitExercise(
     attemptId: number,
     submitExerciseDto: SubmitExerciseDto,
@@ -235,7 +205,6 @@ export class AttemptService {
       pronunciation,
     } = submitExerciseDto;
 
-    // Verify attempt exists and is not completed
     const attempt = await this.prisma.attempt.findUnique({
       where: { id: attemptId },
       include: { lesson: { include: { exercises: true } } },
@@ -249,7 +218,6 @@ export class AttemptService {
       throw new BadRequestException('Cannot submit to a completed attempt');
     }
 
-    // Verify exercise belongs to the lesson
     const exercise = attempt.lesson.exercises.find(
       (ex) => ex.id === exerciseId,
     );
@@ -259,7 +227,6 @@ export class AttemptService {
       );
     }
 
-    // Check if this exercise was already answered in this attempt
     const existingDetail = await this.prisma.attemptDetail.findFirst({
       where: { attemptId, exerciseId },
     });
@@ -269,13 +236,8 @@ export class AttemptService {
 
     let detail;
     if (existingDetail) {
-      // Update existing detail (this is a retry/second attempt)
-      // If first attempt was wrong and we're not providing selectedOption2Id,
-      // preserve the first wrong answer in selectedOption2Id
       let selectedOption2IdToSave = selectedOption2Id;
 
-      // If selectedOption2Id is not provided and first attempt was wrong,
-      // move the first wrong answer to selectedOption2Id
       if (
         !selectedOption2Id &&
         !existingDetail.isCorrect &&
@@ -284,7 +246,6 @@ export class AttemptService {
         selectedOption2IdToSave = existingDetail.selectedOptionId;
       }
 
-      // Update existing detail
       detail = await this.prisma.attemptDetail.update({
         where: { id: existingDetail.id },
         data: {
@@ -298,7 +259,6 @@ export class AttemptService {
         include: { pronunciation: true },
       });
     } else {
-      // Create new detail
       detail = await this.prisma.attemptDetail.create({
         data: {
           attemptId,
@@ -315,7 +275,6 @@ export class AttemptService {
       });
     }
 
-    // Create pronunciation score if provided
     if (pronunciation && !detail.pronunciation) {
       await this.prisma.pronunciationScore.create({
         data: {
@@ -330,7 +289,6 @@ export class AttemptService {
         },
       });
     } else if (pronunciation && detail.pronunciation) {
-      // Update existing pronunciation score
       await this.prisma.pronunciationScore.update({
         where: { attemptDetailId: detail.id },
         data: {
@@ -345,10 +303,8 @@ export class AttemptService {
       });
     }
 
-    // Recalculate attempt statistics
     await this.recalculateAttemptStats(attemptId);
 
-    // Reload detail with pronunciation
     const updatedDetail = await this.prisma.attemptDetail.findUnique({
       where: { id: detail.id },
       include: { pronunciation: true },
@@ -363,16 +319,12 @@ export class AttemptService {
     return this.mapToAttemptDetailResponse(updatedDetail);
   }
 
-  /**
-   * Complete an attempt and award XP
-   */
   async completeAttempt(
     attemptId: number,
     completeAttemptDto: CompleteAttemptDto,
   ): Promise<AttemptResponseDto> {
     const { durationSec } = completeAttemptDto;
 
-    // Get attempt with details
     const attempt = await this.prisma.attempt.findUnique({
       where: { id: attemptId },
       include: {
@@ -389,10 +341,8 @@ export class AttemptService {
       throw new BadRequestException('Attempt is already completed');
     }
 
-    // Recalculate final statistics
     await this.recalculateAttemptStats(attemptId);
 
-    // Get updated stats for XP calculation
     const updatedAttemptData = await this.prisma.attempt.findUnique({
       where: { id: attemptId },
     });
@@ -401,9 +351,7 @@ export class AttemptService {
       throw new NotFoundException(`Attempt with ID ${attemptId} not found`);
     }
 
-    // Use transaction to ensure atomicity
     const updatedAttempt = await this.prisma.$transaction(async (tx) => {
-      // Update attempt as completed
       const completed = await tx.attempt.update({
         where: { id: attemptId },
         data: {
@@ -419,7 +367,6 @@ export class AttemptService {
         },
       });
 
-      // Award XP based on the score
       await this.awardXpForAttempt(
         tx,
         attempt.userId,
@@ -428,7 +375,6 @@ export class AttemptService {
         updatedAttemptData.totalScore,
       );
 
-      // Update streak
       await this.updateUserStreak(tx, attempt.userId);
 
       return completed;
@@ -437,11 +383,6 @@ export class AttemptService {
     return this.mapToAttemptResponse(updatedAttempt);
   }
 
-  /**
-   * Save a finished lesson in one transaction: the completed attempt, every
-   * answer (with pronunciation scores), XP and the streak. Nothing is written
-   * while the learner plays, so an abandoned lesson leaves no rows behind.
-   */
   async submitAttempt(
     userId: number,
     submitAttemptDto: SubmitAttemptDto,
@@ -488,8 +429,6 @@ export class AttemptService {
         }
       }
 
-      // The client scores tries (10 first, 5 second); never trust more than
-      // the exercise is worth.
       const points = answer.isCorrect
         ? Math.max(
             0,
@@ -572,16 +511,12 @@ export class AttemptService {
 
         return created;
       },
-      // Each answer is its own insert; leave room for a slow database.
       { timeout: 15_000 },
     );
 
     return this.mapToAttemptResponse(attempt);
   }
 
-  /**
-   * Get attempt by ID
-   */
   async getAttemptById(attemptId: number): Promise<AttemptResponseDto> {
     const attempt = await this.prisma.attempt.findUnique({
       where: { id: attemptId },
@@ -595,7 +530,6 @@ export class AttemptService {
               },
             },
           },
-          // Answers saved together share a timestamp; id keeps their order.
           orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
         },
       },
@@ -608,9 +542,6 @@ export class AttemptService {
     return this.mapToAttemptResponse(attempt);
   }
 
-  /**
-   * Get attempts with pagination and filters
-   */
   async getAttempts(
     query: GetAttemptsQueryDto,
   ): Promise<PaginatedAttemptsResponseDto> {
@@ -649,9 +580,6 @@ export class AttemptService {
     };
   }
 
-  /**
-   * Get user's best attempt for a lesson
-   */
   async getBestAttempt(
     userId: number,
     lessonId: number,
@@ -671,9 +599,6 @@ export class AttemptService {
     return attempt ? this.mapToAttemptResponse(attempt) : null;
   }
 
-  /**
-   * Get user's attempt history for a lesson
-   */
   async getUserLessonAttempts(
     userId: number,
     lessonId: number,
@@ -693,14 +618,6 @@ export class AttemptService {
     return attempts.map((attempt) => this.mapToAttemptResponse(attempt));
   }
 
-  /**
-   * Get aggregated practice statistics for a user.
-   *
-   * Counts only finished attempts (unfinished ones come from the old
-   * answer-by-answer flow and were abandoned), on lessons learners can see
-   * (published or archived, as the topics list shows), optionally within one
-   * grade so the numbers match the practice page they sit on.
-   */
   async getPracticeStatistics(
     userId: number,
     grade?: GradeLevel,
@@ -710,13 +627,7 @@ export class AttemptService {
       ${grade ? Prisma.sql`AND t."grade"::text = ${grade}` : Prisma.empty}
     `;
 
-    // Three queries, run together. COUNT/SUM return bigint in
-    // Postgres, so cast to int for plain numbers.
     const [topicRows, typeRows, recentRows] = await Promise.all([
-      // Per topic; the overall totals are the sums of these rows. Right and
-      // wrong come from the saved answers, not the attempt's own counters:
-      // deleting an exercise deletes its answers but not the counters, and
-      // counting answers keeps these totals equal to the per-type ones.
       this.prisma.$queryRaw<
         Array<{
           topicId: number;
@@ -887,11 +798,6 @@ export class AttemptService {
     };
   }
 
-  /**
-   * Practice over the last `days` days (Vietnam time, today included): one
-   * row per day, zeros on days without practice. Finished attempts only; right and wrong come from saved answers,
-   * as in getPracticeStatistics.
-   */
   async getDailyPracticeStats(
     userId: number,
     days: number,
@@ -947,10 +853,6 @@ export class AttemptService {
     return { days, data: dayRows };
   }
 
-  /**
-   * Get most wrong exercises in a lesson for a specific user,
-   * including first and second wrong counts.
-   */
   async getMostWrongExercisesByLesson(
     userId: number,
     lessonId: number,
@@ -1015,9 +917,6 @@ export class AttemptService {
     return stats.sort((a, b) => b.totalWrongCount - a.totalWrongCount);
   }
 
-  /**
-   * Award XP for completing an attempt
-   */
   private async awardXpForAttempt(
     tx: Prisma.TransactionClient,
     userId: number,
@@ -1025,12 +924,10 @@ export class AttemptService {
     lessonId: number,
     totalScore: number,
   ): Promise<void> {
-    // Calculate XP based on score (1:1 ratio for now, can be adjusted)
     const xpAmount = totalScore;
     if (xpAmount <= 0) {
       return;
     }
-    // Create XP log entry
     await tx.xPLog.create({
       data: {
         userId,
@@ -1039,7 +936,6 @@ export class AttemptService {
         lessonId,
       },
     });
-    // Update user's total XP
     await tx.user.update({
       where: { id: userId },
       data: {
@@ -1050,17 +946,12 @@ export class AttemptService {
     });
   }
 
-  /**
-   * Update user's streak days
-   */
   private async updateUserStreak(
     tx: Prisma.TransactionClient,
     userId: number,
   ): Promise<void> {
-    // Get today's date at midnight (UTC)
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
-    // Check if user already has a streak log for today
     const todayLog = await tx.streakLog.findUnique({
       where: {
         userId_day: {
@@ -1069,9 +960,7 @@ export class AttemptService {
         },
       },
     });
-    // If already logged today, just update XP earned
     if (todayLog) {
-      // Get today's total XP
       const todayXpLogs = await tx.xPLog.findMany({
         where: {
           userId,
@@ -1090,10 +979,8 @@ export class AttemptService {
       });
       return;
     }
-    // Get yesterday's date
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    // Check if user practiced yesterday
     const yesterdayLog = await tx.streakLog.findUnique({
       where: {
         userId_day: {
@@ -1102,25 +989,20 @@ export class AttemptService {
         },
       },
     });
-    // Get current user data
     const user = await tx.user.findUnique({
       where: { id: userId },
       select: { streakDays: true },
     });
     let newStreakDays: number;
     if (yesterdayLog || user?.streakDays === 0) {
-      // Continue or start streak
       newStreakDays = (user?.streakDays || 0) + 1;
     } else {
-      // Streak broken, reset to 1
       newStreakDays = 1;
     }
-    // Update user's streak days
     await tx.user.update({
       where: { id: userId },
       data: { streakDays: newStreakDays },
     });
-    // Get today's total XP
     const todayXpLogs = await tx.xPLog.findMany({
       where: {
         userId,
@@ -1130,7 +1012,6 @@ export class AttemptService {
       },
     });
     const totalXpToday = todayXpLogs.reduce((sum, log) => sum + log.amount, 0);
-    // Create today's streak log
     await tx.streakLog.create({
       data: {
         userId,
@@ -1140,9 +1021,6 @@ export class AttemptService {
     });
   }
 
-  /**
-   * Recalculate attempt statistics based on details
-   */
   private async recalculateAttemptStats(attemptId: number): Promise<void> {
     const details = await this.prisma.attemptDetail.findMany({
       where: { attemptId },
@@ -1151,7 +1029,7 @@ export class AttemptService {
     const totalScore = details.reduce((sum, detail) => sum + detail.points, 0);
     const correctCount = details.filter((d) => d.isCorrect).length;
     const incorrectCount = details.filter((d) => !d.isCorrect).length;
-    const skipCount = 0; // Can be calculated based on lesson exercises vs details
+    const skipCount = 0;
     const totalExercises = details.length;
     const accuracyPct =
       totalExercises > 0 ? (correctCount / totalExercises) * 100 : 0;
@@ -1168,9 +1046,6 @@ export class AttemptService {
     });
   }
 
-  /**
-   * Map Prisma attempt to response DTO
-   */
   private mapToAttemptResponse(
     attempt: AttemptWithDetails,
   ): AttemptResponseDto {
@@ -1197,9 +1072,6 @@ export class AttemptService {
     };
   }
 
-  /**
-   * Map Prisma attempt detail to response DTO
-   */
   private mapToAttemptDetailResponse(
     detail: AttemptDetailWithPronunciation,
   ): AttemptDetailResponseDto {

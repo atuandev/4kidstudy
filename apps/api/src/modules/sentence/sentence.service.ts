@@ -22,7 +22,6 @@ import * as XLSX from 'xlsx';
 import { v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
 
-// Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
   api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
@@ -35,16 +34,10 @@ type SentenceImageWithSentences = SentenceImage & {
   })[];
 };
 
-/**
- * Service for managing sentence images and sentences
- */
 @Injectable()
 export class SentenceService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Get all sentence images by topic ID with their associated sentences
-   */
   async getSentenceImagesByTopicId(
     topicId: number,
     isActive?: boolean,
@@ -75,9 +68,6 @@ export class SentenceService {
     });
   }
 
-  /**
-   * Get all sentence images with their associated sentences
-   */
   async getAllSentenceImages(
     isActive?: boolean,
   ): Promise<SentenceImageWithSentences[]> {
@@ -101,9 +91,6 @@ export class SentenceService {
     });
   }
 
-  /**
-   * Create a new sentence image
-   */
   async createSentenceImage(
     createSentenceImageDto: CreateSentenceImageDto,
   ): Promise<SentenceImageWithSentences> {
@@ -126,9 +113,6 @@ export class SentenceService {
     });
   }
 
-  /**
-   * Create a sentence image with sentences in a single transaction
-   */
   async createSentenceImageWithSentences(
     createDto: CreateSentenceImageWithSentencesDto,
   ): Promise<SentenceImageWithSentences> {
@@ -176,13 +160,9 @@ export class SentenceService {
     });
   }
 
-  /**
-   * Create multiple sentence images with sentences in bulk
-   */
   async createBulk(
     sentenceBulkCreateDto: SentenceBulkCreateDto,
   ): Promise<SentenceImageWithSentences[]> {
-    // Check if topic exists
     const topic = await this.prisma.topic.findUnique({
       where: { id: sentenceBulkCreateDto.topicId },
     });
@@ -200,7 +180,6 @@ export class SentenceService {
       throw new BadRequestException('Sentence images array cannot be empty');
     }
 
-    // Get the current max order for this topic
     const maxOrderSentenceImage = await this.prisma.sentenceImage.findFirst({
       where: { topicId: sentenceBulkCreateDto.topicId },
       orderBy: { order: 'desc' },
@@ -218,7 +197,6 @@ export class SentenceService {
         index,
         sentenceImageData,
       ] of sentenceBulkCreateDto.sentenceImages.entries()) {
-        // Create sentence image
         const sentenceImage = await tx.sentenceImage.create({
           data: {
             topicId: sentenceBulkCreateDto.topicId,
@@ -238,7 +216,6 @@ export class SentenceService {
           },
         });
 
-        // Create sentences for this image
         let sentenceOrderCounter = 0;
         const sentences = await Promise.all(
           (sentenceImageData.sentences || []).map((sentence) => {
@@ -270,9 +247,6 @@ export class SentenceService {
     });
   }
 
-  /**
-   * Create a new sentence
-   */
   async createSentence(
     createSentenceDto: CreateSentenceDto,
   ): Promise<Sentence> {
@@ -289,9 +263,6 @@ export class SentenceService {
     });
   }
 
-  /**
-   * Get a sentence image by ID with its sentences
-   */
   async getSentenceImageById(id: number): Promise<SentenceImageWithSentences> {
     const sentenceImage = await this.prisma.sentenceImage.findUnique({
       where: { id },
@@ -311,9 +282,6 @@ export class SentenceService {
     return sentenceImage;
   }
 
-  /**
-   * Get a sentence by ID
-   */
   async getSentenceById(id: number): Promise<Sentence> {
     const sentence = await this.prisma.sentence.findUnique({
       where: { id },
@@ -324,9 +292,6 @@ export class SentenceService {
     return sentence;
   }
 
-  /**
-   * Update a sentence image
-   */
   async updateSentenceImage(
     id: number,
     updateSentenceImageDto: UpdateSentenceImageDto,
@@ -354,9 +319,6 @@ export class SentenceService {
     });
   }
 
-  /**
-   * Update a sentence
-   */
   async updateSentence(
     id: number,
     updateSentenceDto: UpdateSentenceDto,
@@ -373,10 +335,8 @@ export class SentenceService {
       }
     }
 
-    // Extract resetProgress from DTO
     const { resetProgress, ...updateData } = updateSentenceDto;
 
-    // If resetProgress is true, delete all learning progress for this sentence
     if (resetProgress) {
       await this.prisma.learningProgress.deleteMany({
         where: {
@@ -392,9 +352,6 @@ export class SentenceService {
     });
   }
 
-  /**
-   * Soft delete a sentence image (set isActive = false)
-   */
   async deleteSentenceImage(id: number): Promise<SentenceImageWithSentences> {
     await this.getSentenceImageById(id);
     return this.prisma.sentenceImage.update({
@@ -407,9 +364,6 @@ export class SentenceService {
     });
   }
 
-  /**
-   * Soft delete a sentence (set isActive = false)
-   */
   async deleteSentence(id: number): Promise<Sentence> {
     await this.getSentenceById(id);
     return this.prisma.sentence.update({
@@ -418,9 +372,6 @@ export class SentenceService {
     });
   }
 
-  /**
-   * Check if sentences have learning progress
-   */
   async checkProgress(sentenceIds: number[]) {
     const sentences = await this.prisma.sentence.findMany({
       where: {
@@ -451,9 +402,6 @@ export class SentenceService {
     }));
   }
 
-  /**
-   * Check if sentence image has learning progress before delete
-   */
   async checkSentenceImageProgressForDelete(id: number) {
     const sentenceImage = await this.prisma.sentenceImage.findUnique({
       where: { id },
@@ -493,9 +441,6 @@ export class SentenceService {
     };
   }
 
-  /**
-   * Check if sentence has learning progress before delete
-   */
   async checkSentenceProgressForDelete(id: number) {
     const sentence = await this.prisma.sentence.findUnique({
       where: { id },
@@ -521,10 +466,6 @@ export class SentenceService {
     };
   }
 
-  /**
-   * Upload file to Cloudinary
-   * Returns the secure URL of the uploaded file
-   */
   private async uploadToCloudinary(file: Express.Multer.File): Promise<string> {
     return new Promise((resolve, reject) => {
       let resourceType: 'image' | 'video' | 'raw' | 'auto' = 'auto';
@@ -566,10 +507,6 @@ export class SentenceService {
     });
   }
 
-  /**
-   * Import sentences from Excel file
-   * One Excel row creates one SentenceImage with 1-4 Sentence records
-   */
   async importFromExcel(
     topicId: number,
     buffer: Buffer,
@@ -582,7 +519,6 @@ export class SentenceService {
       sentenceCount: number;
     }>;
   }> {
-    // Check if topic exists
     const topic = await this.prisma.topic.findUnique({
       where: { id: topicId },
     });
@@ -592,7 +528,6 @@ export class SentenceService {
     }
 
     try {
-      // Step 1: Upload all assets to Cloudinary and create filename -> URL map
       const assetMap = new Map<string, string>();
 
       console.log(`📦 Received ${assetFiles.length} asset files to upload`);
@@ -605,7 +540,6 @@ export class SentenceService {
           console.log(`✅ Uploaded: ${file.originalname} -> ${uploadedUrl}`);
         } catch (error) {
           console.error(`❌ Failed to upload ${file.originalname}:`, error);
-          // ignore upload failures for individual assets
         }
       }
 
@@ -614,7 +548,6 @@ export class SentenceService {
         Array.from(assetMap.keys()),
       );
 
-      // Step 2: Parse Excel file
       const workbook = XLSX.read(buffer, { type: 'buffer' });
       const sheetName = workbook.SheetNames[0];
       if (!sheetName) {
@@ -641,7 +574,6 @@ export class SentenceService {
         [key: string]: unknown;
       }
 
-      // Parse Excel with default empty string for missing cells
       const data: ExcelRow[] = XLSX.utils.sheet_to_json(worksheet, {
         defval: '',
       });
@@ -652,7 +584,6 @@ export class SentenceService {
 
       console.log(`📊 Found ${data.length} rows in Excel`);
 
-      // Get the current max order for this topic
       const maxOrderSentenceImage = await this.prisma.sentenceImage.findFirst({
         where: { topicId },
         orderBy: { order: 'desc' },
@@ -663,25 +594,21 @@ export class SentenceService {
         ? maxOrderSentenceImage.order + 1
         : 0;
 
-      // Helper function to normalize values
       const normalizeValue = (
         val: string | number | null | undefined,
       ): string => {
         if (val === null || val === undefined) return '';
         const str = String(val).trim();
-        // Treat '\n' as null/empty
         if (str === '\\n' || str === '\n') return '';
         return str;
       };
 
-      // Helper function to map asset filename to URL
       const mapAssetUrl = (
         filename: string | number | null | undefined,
       ): string | null => {
         const normalized = normalizeValue(filename);
         if (!normalized) return null;
 
-        // If it's already a URL (http/https), use it directly
         if (
           normalized.startsWith('http://') ||
           normalized.startsWith('https://')
@@ -689,8 +616,6 @@ export class SentenceService {
           return normalized;
         }
 
-        // Otherwise, treat as filename and look up in assetMap
-        // Extract just the filename if path is provided
         const name = normalized.split(/[/\\]/).pop() || normalized;
 
         const url = assetMap.get(name);
@@ -698,7 +623,6 @@ export class SentenceService {
           return url;
         }
 
-        // Try case-insensitive search
         for (const [key, value] of assetMap.entries()) {
           if (key.toLowerCase() === name.toLowerCase()) {
             return value;
@@ -709,16 +633,13 @@ export class SentenceService {
         return null;
       };
 
-      // Step 3: Create SentenceImage and Sentence records in transaction
       const createdSentenceImages: SentenceImageWithSentences[] = [];
 
-      // Use longer timeout for serverless environments (Vercel)
       await this.prisma.$transaction(
         async (tx) => {
           for (const [index, row] of data.entries()) {
             const rowNum = index + 1;
 
-            // Get SentenceImage fields
             const imageUrl = mapAssetUrl(row.imgSentence);
             const audioUrl = mapAssetUrl(row.audioImg);
 
@@ -729,7 +650,6 @@ export class SentenceService {
               continue;
             }
 
-            // Create SentenceImage
             const sentenceImage = await tx.sentenceImage.create({
               data: {
                 topicId,
@@ -743,7 +663,6 @@ export class SentenceService {
               },
             });
 
-            // Collect sentences (sen01-04)
             const sentencesData: Array<{
               text: string;
               meaningVi: string | null;
@@ -759,7 +678,7 @@ export class SentenceService {
               const text = normalizeValue(
                 row[senKey] as string | number | undefined,
               );
-              if (!text) continue; // Skip empty sentence
+              if (!text) continue;
 
               const meaningVi =
                 normalizeValue(row[senViKey] as string | number | undefined) ||
@@ -780,7 +699,6 @@ export class SentenceService {
               `📝 Row ${rowNum}: Creating SentenceImage with ${sentencesData.length} sentences`,
             );
 
-            // Create all sentences for this SentenceImage
             const sentences = await Promise.all(
               sentencesData.map((sentenceData) =>
                 tx.sentence.create({
@@ -804,8 +722,8 @@ export class SentenceService {
           }
         },
         {
-          maxWait: 15000, // 15 seconds
-          timeout: 15000, // 15 seconds
+          maxWait: 15000,
+          timeout: 15000,
         },
       );
 
@@ -813,7 +731,6 @@ export class SentenceService {
         `✅ Import completed: ${createdSentenceImages.length} SentenceImages created`,
       );
 
-      // Return lightweight summary to avoid large response
       return {
         created: createdSentenceImages.length,
         sentenceImages: createdSentenceImages.map((img) => ({
@@ -836,21 +753,16 @@ export class SentenceService {
     }
   }
 
-  /**
-   * Export sentences to Excel format (14 columns)
-   * Returns buffer of Excel file
-   */
   async exportToExcel(): Promise<Buffer> {
-    // Fetch sentence images with sentences, limit for demo
     const sentenceImages = await this.prisma.sentenceImage.findMany({
       where: { isActive: true },
       orderBy: [{ topicId: 'asc' }, { order: 'asc' }],
-      take: 20, // Limit to 20 for demo
+      take: 20,
       include: {
         sentences: {
           where: { isActive: true },
           orderBy: { order: 'asc' },
-          take: 4, // Max 4 sentences per image
+          take: 4,
         },
         topic: {
           select: {
@@ -860,17 +772,15 @@ export class SentenceService {
       },
     });
 
-    // Prepare data for Excel - each row is one SentenceImage with up to 4 sentences
     const excelData = sentenceImages.map((img) => {
       const row: Record<string, string> = {
         imgSentence: img.imageUrl || '',
         audioImg: img.audioUrl || '',
       };
 
-      // Add up to 4 sentences
       for (let i = 0; i < 4; i++) {
         const sentence = img.sentences[i];
-        const num = String(i + 1).padStart(2, '0'); // 01, 02, 03, 04
+        const num = String(i + 1).padStart(2, '0');
 
         if (sentence) {
           row[`sen${num}`] = sentence.text || '';
@@ -886,31 +796,27 @@ export class SentenceService {
       return row;
     });
 
-    // Create workbook and worksheet
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Sentences');
 
-    // Set column widths for better readability
     worksheet['!cols'] = [
-      { wch: 50 }, // imgSentence
-      { wch: 50 }, // audioImg
-      { wch: 30 }, // sen01
-      { wch: 30 }, // sen01Vi
-      { wch: 50 }, // sen01audio
-      { wch: 30 }, // sen02
-      { wch: 30 }, // sen02Vi
-      { wch: 50 }, // sen02audio
-      { wch: 30 }, // sen03
-      { wch: 30 }, // sen03Vi
-      { wch: 50 }, // sen03audio
-      { wch: 30 }, // sen04
-      { wch: 30 }, // sen04Vi
-      { wch: 50 }, // sen04audio
+      { wch: 50 },
+      { wch: 50 },
+      { wch: 30 },
+      { wch: 30 },
+      { wch: 50 },
+      { wch: 30 },
+      { wch: 30 },
+      { wch: 50 },
+      { wch: 30 },
+      { wch: 30 },
+      { wch: 50 },
+      { wch: 30 },
+      { wch: 30 },
+      { wch: 50 },
     ];
 
-    // Generate buffer
-    // XLSX.write is typed `any`; type: 'buffer' returns a Buffer.
     const buffer = XLSX.write(workbook, {
       type: 'buffer',
       bookType: 'xlsx',

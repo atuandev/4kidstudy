@@ -13,7 +13,9 @@
     "format:check": "turbo run format:check",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "contracts:generate": "turbo run generate --filter=@4kidstudy/contracts"
+    "contracts:generate": "turbo run generate --filter=@4kidstudy/contracts",
+    "comments:list": "node tools/oxlint/comments.mjs list",
+    "comments:baseline": "node tools/oxlint/comments.mjs baseline"
   },
   "devDependencies": {
     "turbo": "2.11.11"

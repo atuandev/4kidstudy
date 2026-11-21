@@ -59,9 +59,6 @@ export class GradeStatsTopTopicDto extends GradeStatsTopicDto {
   reviewCount: number;
 }
 
-/**
- * Response DTO for a user's learning statistics within one grade
- */
 export class GradeLearningStatsResponseDto {
   @ApiProperty({
     description: 'Mastered flashcards plus mastered sentences',

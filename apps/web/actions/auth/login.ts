@@ -32,11 +32,6 @@ interface LoginResult {
   error?: string;
 }
 
-/**
- * Login action that calls the backend authentication endpoint
- * @param values - Login form data (email, password)
- * @returns Promise with success status and data or error message
- */
 export async function login(values: LoginSchemaType): Promise<LoginResult> {
   try {
     const { status, payload } = await http.post<LoginResponse | ErrorResponse>(
@@ -47,12 +42,10 @@ export async function login(values: LoginSchemaType): Promise<LoginResult> {
       },
     );
 
-    // Handle error responses
     if (status === 403) {
       const errorPayload = payload as ErrorResponse;
       const errorMessage = errorPayload.message || "Access Denied";
 
-      // Check if it's an email verification error
       if (
         errorMessage.includes("Email not verified") ||
         errorMessage.includes("verify your email")
@@ -63,14 +56,12 @@ export async function login(values: LoginSchemaType): Promise<LoginResult> {
         };
       }
 
-      // Otherwise it's wrong credentials
       return {
         success: false,
         error: "Email hoặc mật khẩu không chính xác",
       };
     }
 
-    // Handle non-200 status codes
     if (status !== 200 && status !== 201) {
       const errorPayload = payload as ErrorResponse;
       return {
@@ -81,7 +72,6 @@ export async function login(values: LoginSchemaType): Promise<LoginResult> {
 
     const loginPayload = payload as LoginResponse;
 
-    // Validate response structure
     if (!loginPayload.user || !loginPayload.tokens) {
       return {
         success: false,
@@ -89,7 +79,6 @@ export async function login(values: LoginSchemaType): Promise<LoginResult> {
       };
     }
 
-    // Set tokens to cookies
     await setTokenToCookies(loginPayload.tokens.accessToken, loginPayload.tokens.refreshToken);
 
     return {
@@ -97,7 +86,6 @@ export async function login(values: LoginSchemaType): Promise<LoginResult> {
       data: loginPayload,
     };
   } catch (error) {
-    // Log error only in development
     if (process.env.NODE_ENV === "development") {
       console.error("Login error:", error);
     }

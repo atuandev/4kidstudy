@@ -81,7 +81,6 @@ export const CreateExerciseSchema = z
     options: z.array(ExerciseOptionSchema).default([]),
   })
   .superRefine((data, ctx) => {
-    // Validate PRONUNCIATION type requires targetText and audioUrl
     if (data.type === "PRONUNCIATION") {
       if (!data.targetText) {
         ctx.addIssue({
@@ -99,7 +98,6 @@ export const CreateExerciseSchema = z
       }
     }
 
-    // Validate LISTENING type requires audioUrl
     if (data.type === "LISTENING") {
       if (!data.audioUrl) {
         ctx.addIssue({
@@ -110,7 +108,6 @@ export const CreateExerciseSchema = z
       }
     }
 
-    // Validate options for non-PRONUNCIATION types
     if (data.type !== "PRONUNCIATION" && (!data.options || data.options.length === 0)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -119,7 +116,6 @@ export const CreateExerciseSchema = z
       });
     }
 
-    // Validate exactly one correct answer for multiple choice types
     if (["MULTIPLE_CHOICE", "SELECT_IMAGE", "LISTENING"].includes(data.type)) {
       const correctAnswersCount = data.options?.filter((opt) => opt.isCorrect).length ?? 0;
       if (correctAnswersCount === 0) {
@@ -137,7 +133,6 @@ export const CreateExerciseSchema = z
       }
     }
 
-    // Validate option content based on exercise type
     if (data.options && data.options.length > 0) {
       if (["MULTIPLE_CHOICE", "SELECT_IMAGE", "LISTENING"].includes(data.type)) {
         const identifiers = data.options
@@ -195,7 +190,6 @@ export const CreateExerciseSchema = z
       }
 
       data.options.forEach((option, index) => {
-        // SELECT_IMAGE requires imageUrl
         if (data.type === "SELECT_IMAGE") {
           if (!option.imageUrl) {
             ctx.addIssue({
@@ -206,7 +200,6 @@ export const CreateExerciseSchema = z
           }
         }
 
-        // MULTIPLE_CHOICE and LISTENING require text
         if (["MULTIPLE_CHOICE", "LISTENING"].includes(data.type)) {
           if (!option.text) {
             ctx.addIssue({
@@ -217,7 +210,6 @@ export const CreateExerciseSchema = z
           }
         }
 
-        // MATCHING requires matchKey and text/imageUrl
         if (data.type === "MATCHING") {
           if (!option.matchKey) {
             ctx.addIssue({
@@ -226,7 +218,6 @@ export const CreateExerciseSchema = z
               path: ["options", index, "matchKey"],
             });
           }
-          // At least text or imageUrl should be present
           const hasText = option.text !== undefined;
           const hasImage = option.imageUrl !== undefined;
           if (!hasText && !hasImage) {
@@ -245,7 +236,6 @@ export type CreateExerciseFormData = z.infer<typeof CreateExerciseSchema>;
 export type ExerciseOption = z.infer<typeof ExerciseOptionSchema>;
 export type ExerciseTypeEnum = z.infer<typeof ExerciseType>;
 
-// Exercise type labels for UI
 export const exerciseTypeLabels: Record<ExerciseTypeEnum, string> = {
   SELECT_IMAGE: "Chọn ảnh đúng",
   MULTIPLE_CHOICE: "Chọn đáp án đúng",
@@ -254,17 +244,16 @@ export const exerciseTypeLabels: Record<ExerciseTypeEnum, string> = {
   PRONUNCIATION: "Luyện phát âm (AI)",
 };
 
-// Helper to determine required fields based on exercise type
 export const getRequiredFieldsByType = (type: ExerciseTypeEnum) => {
   const baseFields = ["lessonId", "type", "prompt"];
 
   switch (type) {
     case "SELECT_IMAGE":
-      return [...baseFields, "options"]; // Options must have imageUrl
+      return [...baseFields, "options"];
     case "MULTIPLE_CHOICE":
-      return [...baseFields, "options"]; // Options must have text
+      return [...baseFields, "options"];
     case "MATCHING":
-      return [...baseFields, "options"]; // Options must have matchKey
+      return [...baseFields, "options"];
     case "LISTENING":
       return [...baseFields, "audioUrl", "options"];
     case "PRONUNCIATION":
@@ -274,25 +263,20 @@ export const getRequiredFieldsByType = (type: ExerciseTypeEnum) => {
   }
 };
 
-// Validation for options based on exercise type
 export const validateOptionsByType = (
   options: ExerciseOption[],
   type: ExerciseTypeEnum,
 ): boolean => {
   if (!options || options.length === 0) {
-    // PRONUNCIATION doesn't need options
     return type === "PRONUNCIATION";
   }
 
   switch (type) {
     case "SELECT_IMAGE":
-      // All options should have imageUrl
       return options.every((opt) => opt.imageUrl);
     case "MULTIPLE_CHOICE":
-      // All options should have text
       return options.every((opt) => opt.text);
     case "MATCHING":
-      // Options should have matchKey and be in pairs
       const matchKeys = options.map((opt) => opt.matchKey).filter(Boolean);
       const uniqueKeys = [...new Set(matchKeys)];
       return (
@@ -300,7 +284,6 @@ export const validateOptionsByType = (
         uniqueKeys.every((key) => options.filter((opt) => opt.matchKey === key).length === 2)
       );
     case "LISTENING":
-      // At least one correct option
       return options.some((opt) => opt.isCorrect);
     default:
       return true;

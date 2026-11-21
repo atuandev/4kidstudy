@@ -14,16 +14,13 @@ import { cn } from "@/lib/utils";
 
 interface StudyHeaderProps {
   readonly title: string;
-  /** What is being studied, in Vietnamese with its English echo. */
   readonly kind: { readonly vi: string; readonly en: string };
-  /** Where the back arrow goes (the topic list, scrolled to this topic). */
   readonly backHref: string;
   readonly index: number;
   readonly total: number;
   readonly onReset: () => void;
 }
 
-/** Back arrow, topic title, start-over, and the card-by-card progress bar. */
 export function StudyHeader({ title, kind, backHref, index, total, onReset }: StudyHeaderProps) {
   const progress = total > 0 ? ((index + 1) / total) * 100 : 0;
   return (
@@ -75,7 +72,6 @@ export function StudyHeader({ title, kind, backHref, index, total, onReset }: St
 interface StudyNavProps {
   readonly isFirst: boolean;
   readonly isLast: boolean;
-  /** The learner has passed the pronunciation check for this card. */
   readonly isDone: boolean;
   readonly doneLabel: string;
   readonly todoLabel: string;
@@ -83,7 +79,6 @@ interface StudyNavProps {
   readonly onNext: () => void;
 }
 
-/** Previous / next, with the next step gated on passing the pronunciation check. */
 export function StudyNav({
   isFirst,
   isLast,
@@ -136,7 +131,6 @@ interface StudyEmptyProps {
   readonly backHref?: string;
 }
 
-/** Empty or failed state: the mascot on a white sheet, with a way back. */
 export function StudyEmpty({ title, echo, body, backHref = "/learn/units" }: StudyEmptyProps) {
   return (
     <div className="mx-auto flex max-w-xl flex-col items-center rounded-[28px] bg-white px-6 py-12 text-center shadow-sheet-lime">

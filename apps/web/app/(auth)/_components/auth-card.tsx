@@ -2,14 +2,12 @@ import Image from "next/image";
 
 interface AuthCardProps {
   readonly title: string;
-  /** English echo under the Vietnamese title, as on every learner page. */
   readonly echo: string;
   readonly description?: React.ReactNode;
   readonly footer?: React.ReactNode;
   readonly children: React.ReactNode;
 }
 
-/** The white sticker sheet every auth form sits on, with the mascot peeking over its top edge. */
 export function AuthCard({ title, echo, description, footer, children }: AuthCardProps) {
   return (
     <section className="relative w-full max-w-[440px] rounded-sheet bg-white px-5 pb-7 pt-12 shadow-sheet-lime sm:px-8">

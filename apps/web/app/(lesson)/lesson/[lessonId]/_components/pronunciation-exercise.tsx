@@ -52,8 +52,6 @@ export function PronunciationExercise({
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Leaving mid-recording (skip, exit): release the mic without reporting a
-  // "recorded" state to the next question.
   useEffect(() => {
     return () => {
       const recorder = recorderRef.current;
@@ -66,8 +64,6 @@ export function PronunciationExercise({
     };
   }, []);
 
-  // Audio player for target pronunciation
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [audio, _, controls] = useAudio({ src: audioUrl || "" });
 
   const playTargetAudio = useCallback(() => {
@@ -100,21 +96,17 @@ export function PronunciationExercise({
       };
 
       recorder.onstop = () => {
-        // Use the actual MediaRecorder mime type (typically "audio/webm" or "audio/webm;codecs=opus")
         const mimeType = recorder.mimeType || "audio/webm";
         const blob = new Blob(chunksRef.current, { type: mimeType });
         setRecordedBlob(blob);
 
-        // Create URL for AudioPlayer component
         const url = URL.createObjectURL(blob);
         setRecordedAudioUrl(url);
 
         setRecordingState("recorded");
 
-        // Notify parent component of state change
         onStateChange?.("recorded", null);
 
-        // Stop all tracks to release microphone
         stream?.getTracks().forEach((track) => track.stop());
       };
 
@@ -140,7 +132,6 @@ export function PronunciationExercise({
     }
   }, [mediaRecorder]);
 
-  // Clean up object URL when component unmounts or blob changes
   useEffect(() => {
     return () => {
       if (recordedAudioUrl) {
@@ -156,10 +147,8 @@ export function PronunciationExercise({
     setAnalysisProgress(0);
     setErrorMessage(null);
 
-    // Notify parent component of state change
     onStateChange?.("analyzing", null);
 
-    // Simulate progress while API call is in progress
     const progressInterval = setInterval(() => {
       setAnalysisProgress((prev) => {
         if (prev >= 90) {
@@ -171,7 +160,6 @@ export function PronunciationExercise({
     }, 200);
 
     try {
-      // Call the backend API to assess pronunciation
       console.log("Calling assessPronunciation with:", {
         blobSize: recordedBlob.size,
         blobType: recordedBlob.type,
@@ -198,10 +186,8 @@ export function PronunciationExercise({
         setRecordingState("completed");
         setErrorMessage(null);
 
-        // Notify parent component of completion with score
         onStateChange?.("completed", assessmentScore);
       } else {
-        // Handle error - log full response for debugging
         console.error(
           "Pronunciation assessment failed. Full response:",
           JSON.stringify(response, null, 2),
@@ -231,7 +217,6 @@ export function PronunciationExercise({
   }, [recordedBlob, targetText, onStateChange]);
 
   const resetRecording = useCallback(() => {
-    // Clean up previous object URL
     if (recordedAudioUrl) {
       URL.revokeObjectURL(recordedAudioUrl);
     }
@@ -244,16 +229,13 @@ export function PronunciationExercise({
     setMediaRecorder(null);
     setErrorMessage(null);
 
-    // Notify parent component of state reset
     onStateChange?.("idle", null);
   }, [recordedAudioUrl, onStateChange]);
 
   return (
     <div className="flex flex-col items-center gap-8">
-      {/* Hidden audio element for useAudio hook */}
       {audio}
 
-      {/* The word to say, with the model voice beside it */}
       <div className="flex items-center gap-4">
         <p className="text-4xl font-black tracking-[-0.01em] text-ink sm:text-5xl">{targetText}</p>
         {audioUrl && <AudioPlayer audioUrl={audioUrl} variant="button" />}
@@ -386,7 +368,6 @@ export function PronunciationExercise({
   );
 }
 
-/** Score bands: green is good, yellow is close, red needs another try. */
 function scoreBand(value: number) {
   if (value >= 90)
     return { vi: "Xuất sắc!", en: "Excellent!", disc: "bg-leaf-deep", bar: "bg-leaf" };

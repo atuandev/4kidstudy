@@ -27,9 +27,6 @@ import {
 } from './dtos';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
-/**
- * Controller for handling learning progress tracking
- */
 @ApiTags('Learning Progress')
 @Controller('learning-progress')
 @UseGuards(JwtAuthGuard)
@@ -39,10 +36,6 @@ export class LearningProgressController {
     private readonly learningProgressService: LearningProgressService,
   ) {}
 
-  /**
-   * Get or create learning progress
-   * POST /learning-progress
-   */
   @Post()
   async getOrCreateProgress(
     @Request() req: any,
@@ -52,10 +45,6 @@ export class LearningProgressController {
     return this.learningProgressService.getOrCreateProgress(userId, createDto);
   }
 
-  /**
-   * Review content (increment review count)
-   * POST /learning-progress/review
-   */
   @Post('review')
   async reviewContent(
     @Request() req: any,
@@ -65,10 +54,6 @@ export class LearningProgressController {
     return this.learningProgressService.reviewContent(userId, reviewDto);
   }
 
-  /**
-   * Get user's learning progress statistics
-   * GET /learning-progress/stats
-   */
   @Get('stats')
   async getUserStats(
     @Request() req: any,
@@ -77,10 +62,6 @@ export class LearningProgressController {
     return this.learningProgressService.getUserStats(userId);
   }
 
-  /**
-   * Get learning progress for every topic in a grade
-   * GET /learning-progress/topics?grade=GRADE_1
-   */
   @Get('topics')
   @ApiOkResponse({ type: TopicProgressResponseDto, isArray: true })
   async getTopicsProgress(
@@ -94,10 +75,6 @@ export class LearningProgressController {
     );
   }
 
-  /**
-   * Get learning statistics for a grade (learning history dialog)
-   * GET /learning-progress/grade-stats?grade=GRADE_1
-   */
   @Get('grade-stats')
   @ApiOkResponse({ type: GradeLearningStatsResponseDto })
   async getGradeLearningStats(
@@ -111,10 +88,6 @@ export class LearningProgressController {
     );
   }
 
-  /**
-   * Get learning progress by topic
-   * GET /learning-progress/topic/:topicId
-   */
   @Get('topic/:topicId')
   async getTopicProgress(
     @Request() req: any,
@@ -124,10 +97,6 @@ export class LearningProgressController {
     return this.learningProgressService.getTopicProgress(userId, topicId);
   }
 
-  /**
-   * Get reviewed flashcard IDs for a topic
-   * GET /learning-progress/topic/:topicId/reviewed-flashcards
-   */
   @Get('topic/:topicId/reviewed-flashcards')
   async getReviewedFlashcards(
     @Request() req: any,
@@ -142,10 +111,6 @@ export class LearningProgressController {
     return { flashcardIds };
   }
 
-  /**
-   * Get reviewed sentence IDs for a topic
-   * GET /learning-progress/topic/:topicId/reviewed-sentences
-   */
   @Get('topic/:topicId/reviewed-sentences')
   async getReviewedSentences(
     @Request() req: any,
@@ -160,10 +125,6 @@ export class LearningProgressController {
     return { sentenceIds };
   }
 
-  /**
-   * Get last reviewed topic ID
-   * GET /learning-progress/last-topic
-   */
   @Get('last-topic')
   async getLastReviewedTopic(
     @Request() req: any,
@@ -174,10 +135,6 @@ export class LearningProgressController {
     return { topicId };
   }
 
-  /**
-   * Get user's learning progress list (paginated)
-   * GET /learning-progress
-   */
   @Get()
   async getUserProgress(
     @Request() req: any,
@@ -187,10 +144,6 @@ export class LearningProgressController {
     return this.learningProgressService.getUserProgress(userId, query);
   }
 
-  /**
-   * Get learning progress by ID
-   * GET /learning-progress/:id
-   */
   @Get(':id')
   async getProgressById(
     @Request() req: any,
@@ -200,10 +153,6 @@ export class LearningProgressController {
     return this.learningProgressService.getProgressById(id, userId);
   }
 
-  /**
-   * Update learning progress
-   * PATCH /learning-progress/:id
-   */
   @Patch(':id')
   async updateProgress(
     @Request() req: any,
@@ -214,10 +163,6 @@ export class LearningProgressController {
     return this.learningProgressService.updateProgress(id, userId, updateDto);
   }
 
-  /**
-   * Delete learning progress
-   * DELETE /learning-progress/:id
-   */
   @Delete(':id')
   async deleteProgress(
     @Request() req: any,

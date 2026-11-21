@@ -13,14 +13,12 @@ export default function LeaderboardPage() {
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-        {/* Weekly ranking: first on phones, right column on desktop */}
         <div className="lg:order-2">
           <div className="lg:sticky lg:top-6">
             <WeeklyLeaderboard />
           </div>
         </div>
 
-        {/* Charts: XP, then practice each day */}
         <div className="flex min-w-0 flex-col gap-6 lg:order-1">
           <XPChart />
           <PracticeChart />

@@ -7,7 +7,6 @@ import { NavIcon } from "./nav-icons";
 import { NAV_TONES, type NavItem } from "./nav-items";
 import { useNavTarget } from "./use-nav-target";
 
-/** A big sidebar tile: the section's picture in a tinted disc, its name, its colour when active. */
 export const SidebarItem = ({ label, icon, href, tone }: NavItem) => {
   const { targetHref, isActive } = useNavTarget(href);
   const colors = NAV_TONES[tone];

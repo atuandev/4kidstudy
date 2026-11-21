@@ -73,11 +73,9 @@ export default function TopicFormPage() {
     },
   });
 
-  // Type-safe control for FormField components
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formControl = form.control as any;
 
-  // Fetch topic data on mount for edit mode
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -94,7 +92,6 @@ export default function TopicFormPage() {
             isActive: topic.isActive,
           });
         } else if (selectedGrade) {
-          // If creating new topic and grade is selected from filter, pre-fill it
           form.setValue("grade", selectedGrade as GradeLevel);
           toast.success(`Đã chọn lớp: ${gradeLabels[selectedGrade as keyof typeof gradeLabels]}`);
         }
@@ -120,7 +117,6 @@ export default function TopicFormPage() {
           toast.error("Cập nhật unit thất bại");
         }
       } else {
-        // Remove order field when creating to let backend auto-generate it
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { order, ...createData } = data;
         const createdTopic = await createTopic(createData);
@@ -136,23 +132,18 @@ export default function TopicFormPage() {
     } catch (error) {
       console.error("Failed to save topic:", error);
 
-      // Handle specific error messages from backend
       const errorMessage = (error as { payload?: { message?: string | string[] } })?.payload
         ?.message;
 
       if (typeof errorMessage === "string") {
-        // Check for order conflict error
         if (errorMessage.includes("Unique constraint") || errorMessage.includes("already exists")) {
           toast.error("Unit với thứ tự này đã tồn tại trong lớp. Vui lòng chọn thứ tự khác.");
           return;
         }
-        // Show the backend error message
         toast.error(errorMessage);
       } else if (Array.isArray(errorMessage)) {
-        // Handle validation errors array
         toast.error(errorMessage.join(", "));
       } else {
-        // Generic error message
         toast.error(isEditMode ? "Cập nhật unit thất bại" : "Tạo unit thất bại");
       }
     } finally {
@@ -182,7 +173,6 @@ export default function TopicFormPage() {
 
   return (
     <div className="max-w-4xl space-y-6 py-6 px-4">
-      {/* Header */}
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
@@ -205,13 +195,11 @@ export default function TopicFormPage() {
 
       <TypographyH3>{isEditMode ? "Chỉnh sửa unit" : "Thêm unit mới"}</TypographyH3>
 
-      {/* Form */}
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
           className="space-y-6"
         >
-          {/* Title */}
           <FormField
             control={formControl}
             name="title"
@@ -228,7 +216,6 @@ export default function TopicFormPage() {
             )}
           />
 
-          {/* Description */}
           <FormField
             control={formControl}
             name="description"
@@ -244,7 +231,6 @@ export default function TopicFormPage() {
             )}
           />
 
-          {/* Grade */}
           <FormField
             control={formControl}
             name="grade"
@@ -274,7 +260,6 @@ export default function TopicFormPage() {
 
           <Separator />
 
-          {/* Cover Image */}
           <FormField
             control={formControl}
             name="coverImage"
@@ -301,7 +286,6 @@ export default function TopicFormPage() {
 
           <Separator />
 
-          {/* Order and Status */}
           <div className={`grid gap-4 ${isEditMode ? "md:grid-cols-2" : "md:grid-cols-1"}`}>
             {isEditMode && (
               <FormField
@@ -354,7 +338,6 @@ export default function TopicFormPage() {
             />
           </div>
 
-          {/* Form Actions */}
           <div className="flex justify-end gap-2 sticky bottom-0 bg-background pt-4 pb-2">
             <Button type="button" onClick={handleCancel} disabled={isSubmitting}>
               Hủy

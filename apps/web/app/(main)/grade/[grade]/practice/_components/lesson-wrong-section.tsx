@@ -8,9 +8,6 @@ interface LessonWrongSectionProps {
   mostWrongExercises: MostWrongExerciseStats[];
 }
 
-/**
- * Render section for most wrong exercises in a lesson.
- */
 export function LessonWrongSection({
   isLoadingMostWrong,
   mostWrongExercises,

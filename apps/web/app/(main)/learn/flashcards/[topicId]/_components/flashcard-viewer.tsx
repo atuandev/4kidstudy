@@ -11,9 +11,7 @@ import { clampStudyIndex, resumeStudyIndex } from "@/lib/study-index";
 
 interface FlashcardViewerProps {
   flashcards: Flashcard[];
-  // server action passed down to record reviews when user completes pronunciation check
   onRecordReview?: (body: ReviewContentFormData) => Promise<unknown>;
-  // flashcard IDs that have been mastered (isMastered = true, reviewCount >= 50)
   initialMasteredIds?: number[];
 }
 
@@ -39,14 +37,12 @@ export function FlashcardViewer({
     new Set(initialMasteredIds),
   );
 
-  // "Continue" links carry ?resume; swap it for the card actually opened so a reload stays put.
   useEffect(() => {
     if (isResume) {
       router.replace(`${basePath}?index=${currentIndex}`, { scroll: false });
     }
   }, [isResume, basePath, currentIndex, router]);
 
-  // Follow the URL when ?index= changes (e.g. back/forward navigation).
   const [syncedIndexParam, setSyncedIndexParam] = useState(indexParam);
   if (indexParam !== syncedIndexParam) {
     setSyncedIndexParam(indexParam);
@@ -57,7 +53,6 @@ export function FlashcardViewer({
     if (currentIndex < flashcards.length - 1) {
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
-      // Update URL to persist navigation state
       router.replace(`${basePath}?index=${nextIndex}`, { scroll: false });
     }
   };
@@ -66,19 +61,16 @@ export function FlashcardViewer({
     if (currentIndex > 0) {
       const prevIndex = currentIndex - 1;
       setCurrentIndex(prevIndex);
-      // Update URL to persist navigation state
       router.replace(`${basePath}?index=${prevIndex}`, { scroll: false });
     }
   };
 
   const handleReset = () => {
     setCurrentIndex(0);
-    // Clear ?index too, or a reload would jump back to the old card.
     router.replace(basePath, { scroll: false });
   };
 
   const handlePronunciationAssessed = (passed: boolean) => {
-    // Update mastered status immediately if passed (for UI feedback)
     if (passed && flashcards[currentIndex]) {
       setMasteredFlashcardIds((prev) => new Set(prev).add(flashcards[currentIndex].id));
     }

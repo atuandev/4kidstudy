@@ -38,10 +38,8 @@ const request = async <Response>(
           credentials: "include",
         };
 
-  // Get both tokens using server actions
   const [accessToken, refreshToken] = await Promise.all([getAccessToken(), getRefreshToken()]);
 
-  // Add Authorization header if token exists and auth is not disabled
   if (accessToken && !options?.noAuth) {
     baseHeaders.Authorization = `Bearer ${accessToken}`;
   }
@@ -61,49 +59,8 @@ const request = async <Response>(
       } as Headers,
       body,
       method,
-      credentials: "include", // Always include credentials
+      credentials: "include",
     });
-
-    // Handle 401 errors by attempting to refresh token
-    // if (res.status === 401 && !url.includes('/auth/refresh')) {
-    //   try {
-    //     const refreshRes = await fetch(formatUrl('/auth/refresh', baseUrl), {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //       },
-    //       body: JSON.stringify({ refreshToken: 'refreshToken' }),
-    //     })
-
-    //     if (refreshRes.ok) {
-    //       // Retry the original request with the new token
-    //       const { payload: refreshData } = await refreshRes.json()
-    //       if (refreshData?.data?.accessToken) {
-    //         // Update headers with new token
-    //         baseHeaders.Authorization = `Bearer ${refreshData.data.accessToken}`
-
-    //         // Retry original request
-    //         const retryRes = await fetch(formatUrl(url, baseUrl), {
-    //           ...options,
-    //           headers: {
-    //             ...baseHeaders,
-    //             ...options?.headers,
-    //           } as Headers,
-    //           body,
-    //           method,
-    //         })
-
-    //         const retryPayload: Response = await retryRes.json()
-    //         return {
-    //           status: retryRes.status,
-    //           payload: retryPayload,
-    //         }
-    //       }
-    //     }
-    //   } catch (refreshError) {
-    //     console.error('Token refresh failed:', refreshError)
-    //   }
-    // }
 
     const responseText = await res.text();
     const contentType = res.headers.get("content-type") ?? "";
@@ -114,14 +71,12 @@ const request = async <Response>(
         ? (null as Response)
         : (JSON.parse(responseText) as Response);
 
-    // Log error responses for debugging (only in development)
     if (!res.ok && process.env.NODE_ENV === "development") {
       console.error(`HTTP ${res.status} error for ${url}:`, payload);
     }
 
     return { status: res.status, payload };
   } catch (error) {
-    // Log errors only in development
     if (process.env.NODE_ENV === "development") {
       console.error(`Request failed for ${url}:`, error);
     }

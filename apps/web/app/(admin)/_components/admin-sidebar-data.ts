@@ -16,7 +16,6 @@ export type MainNavType = {
   icon: Icon;
 };
 
-// Data for the sidebar
 export const sidebarData = {
   navMain: [
     {
@@ -54,10 +53,5 @@ export const sidebarData = {
       url: "/admin/users",
       icon: UsersIcon,
     },
-    // {
-    //   title: 'Cài đặt',
-    //   url: '/admin/settings',
-    //   icon: SettingsIcon,
-    // },
   ] as MainNavType[],
 };

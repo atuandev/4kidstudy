@@ -4,7 +4,6 @@ type QuestionBubbleProps = {
   question: string;
 };
 
-/** The mascot asks the question in a speech bubble. */
 export const QuestionBubble = ({ question }: QuestionBubbleProps) => {
   return (
     <div className="flex items-end gap-3 sm:gap-4">

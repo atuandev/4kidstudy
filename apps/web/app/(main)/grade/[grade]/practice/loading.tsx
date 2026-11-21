@@ -1,4 +1,3 @@
-/** Skeleton of the practice page: topic sheets on the left, stats on the right. */
 const Loading = () => {
   return (
     <div
