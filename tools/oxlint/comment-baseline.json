@@ -1,0 +1,17 @@
+{
+  "total": 57,
+  "files": {
+    "apps/api/src/modules/learning-progress/learning-progress.service.ts": 2,
+    "apps/web/actions/sentence.ts": 4,
+    "apps/web/app/(admin)/admin/exercises/form/page.tsx": 9,
+    "apps/web/app/(admin)/admin/flashcards/form/page.tsx": 10,
+    "apps/web/app/(admin)/admin/lessons/form/page.tsx": 10,
+    "apps/web/app/(admin)/admin/sentences/data-table-toolbar.tsx": 1,
+    "apps/web/app/(admin)/admin/sentences/form/page.tsx": 11,
+    "apps/web/app/(admin)/admin/topics/form/page.tsx": 5,
+    "apps/web/app/(lesson)/lesson/[lessonId]/_components/matching-exercise.tsx": 1,
+    "apps/web/app/(lesson)/lesson/[lessonId]/_hooks/use-quiz-session.ts": 2,
+    "apps/web/app/(main)/learn/flashcards/[topicId]/_components/flashcard.tsx": 1,
+    "apps/web/app/page.tsx": 1
+  }
+}

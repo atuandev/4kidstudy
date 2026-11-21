@@ -2,12 +2,17 @@
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["typescript", "react", "nextjs", "jsx-a11y", "import", "oxc", "unicorn"],
   // React Compiler rules oxlint has no native version of (alpha JS plugin).
-  "jsPlugins": [{ "name": "react-compiler", "specifier": "eslint-plugin-react-hooks" }],
+  "jsPlugins": [
+    { "name": "react-compiler", "specifier": "eslint-plugin-react-hooks" },
+    "../../tools/oxlint/no-comments.mjs"
+  ],
   "env": { "browser": true, "node": true, "es2024": true },
   "categories": {
     "correctness": "error"
   },
   "rules": {
+    "no-comments/no-comments": "error",
+
     // Hooks
     "react/rules-of-hooks": "error",
     "react/exhaustive-deps": "warn",

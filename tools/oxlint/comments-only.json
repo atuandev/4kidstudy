@@ -1,0 +1,17 @@
+{
+  "plugins": [],
+  "categories": {},
+  "jsPlugins": [
+    "./no-comments.mjs"
+  ],
+  "rules": {
+    "no-comments/no-comments": "error"
+  },
+  "ignorePatterns": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/coverage/**",
+    "**/.next/**",
+    "**/next-env.d.ts"
+  ]
+}
