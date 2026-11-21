@@ -14,10 +14,6 @@ const GradeSelectorFallback = () => (
   <div className="mb-6 h-11 animate-pulse rounded-chip bg-white/70 sm:mb-8" />
 );
 
-/**
- * Shared shell for every `/grade/[grade]/...` page: rejects unknown grades
- * and shows the grade selector above the page.
- */
 export default async function GradeLayout({ children, params }: GradeLayoutProps) {
   const { grade } = await params;
   if (!getGradeBySlug(grade)) {

@@ -26,7 +26,6 @@ interface NavIconProps {
   readonly className?: string;
 }
 
-/** A section's icon in its own colour: two-tone at rest, solid when it is the current page. */
 export function NavIcon({ icon, tone, active, size = 30, className }: NavIconProps) {
   const Glyph = ICONS[icon];
   return (

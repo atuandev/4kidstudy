@@ -21,7 +21,6 @@ export async function getExercise(id: number) {
   return payload;
 }
 
-/** Copy of `obj` without keys whose value is `undefined`. */
 function omitUndefined<T extends object>(obj: T): T {
   return Object.fromEntries(Object.entries(obj).filter(([, value]) => value !== undefined)) as T;
 }
@@ -29,7 +28,6 @@ function omitUndefined<T extends object>(obj: T): T {
 function cleanExerciseData(data: CreateExerciseFormData): CreateExerciseFormData {
   const cleanedData = omitUndefined(data);
 
-  // Clean options if they exist
   if (Array.isArray(cleanedData.options)) {
     cleanedData.options = cleanedData.options.map(omitUndefined);
   }

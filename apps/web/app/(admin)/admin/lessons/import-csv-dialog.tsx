@@ -60,7 +60,6 @@ export function ImportCsvDialog({ lessonId, lessonTitle }: ImportCsvDialogProps)
       setExercisesFile(null);
       setOptionsFile(null);
 
-      // Reload the page to show new data
       window.location.reload();
     } catch (error) {
       console.error("Import failed:", error);

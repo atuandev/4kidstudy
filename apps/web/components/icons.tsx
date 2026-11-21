@@ -1,11 +1,3 @@
-/**
- * The app's one icon set: Phosphor, defaulting to the bold weight so strokes sit with
- * Nunito 900. Import icons from here, never from `@phosphor-icons/react` directly.
- *
- * The SSR entry has no React context, so these work in server and client components alike.
- * Pass `weight="fill"` or `weight="duotone"` for sticker-style badges and section icons.
- * Add new icons to the import list and the exports below.
- */
 import type { Icon, IconProps } from "@phosphor-icons/react";
 import {
   ArrowCounterClockwiseIcon as ArrowCounterClockwiseGlyph,

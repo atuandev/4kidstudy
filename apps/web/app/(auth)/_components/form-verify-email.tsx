@@ -42,7 +42,6 @@ export function FormVerifyEmail() {
       return;
     }
 
-    // Check if we came from the forget-password flow
     const referrer = document.referrer;
     const isFromForgetPassword =
       referrer.includes("/forget-password") ||
@@ -52,7 +51,6 @@ export function FormVerifyEmail() {
       return;
     }
 
-    // Store the flow type in case page refreshes; onSubmit reads it back
     sessionStorage.setItem("flowType", "password-reset");
   }, [email, router]);
 
@@ -68,14 +66,10 @@ export function FormVerifyEmail() {
 
         setSuccess("Xác thực thành công.");
 
-        // Redirect based on the flow type (stored by the effect above)
         const isPasswordReset = sessionStorage.getItem("flowType") === "password-reset";
         if (isPasswordReset) {
-          // DON'T clear email yet - needed for new-password form
-          // DON'T clear flowType yet - needed for new-password form
           router.push("/new-password");
         } else {
-          // For registration flow, clear email and redirect to login
           clearEmail();
           router.push("/login");
         }

@@ -14,7 +14,6 @@ import * as XLSX from 'xlsx';
 import { v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
 
-// Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
   api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
@@ -25,10 +24,6 @@ cloudinary.config({
 export class FlashcardService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Upload file to Cloudinary
-   * Returns the secure URL of the uploaded file
-   */
   private async uploadToCloudinary(file: Express.Multer.File): Promise<string> {
     return new Promise((resolve, reject) => {
       let resourceType: 'image' | 'video' | 'raw' | 'auto' = 'auto';
@@ -71,7 +66,6 @@ export class FlashcardService {
   }
 
   async create(createFlashcardDto: CreateFlashcardDto) {
-    // Check if topic exists
     const topic = await this.prisma.topic.findUnique({
       where: { id: createFlashcardDto.topicId },
     });
@@ -97,7 +91,6 @@ export class FlashcardService {
   }
 
   async createBulk(flashcardBulkCreateDto: FlashcardBulkCreateDto) {
-    // Check if topic exists
     const topic = await this.prisma.topic.findUnique({
       where: { id: flashcardBulkCreateDto.topicId },
     });
@@ -115,7 +108,6 @@ export class FlashcardService {
       throw new BadRequestException('Flashcards array cannot be empty');
     }
 
-    // Get the current max order for this topic
     const maxOrderFlashcard = await this.prisma.flashcard.findFirst({
       where: { topicId: flashcardBulkCreateDto.topicId },
       orderBy: { order: 'desc' },
@@ -124,7 +116,6 @@ export class FlashcardService {
 
     const startOrder = maxOrderFlashcard ? maxOrderFlashcard.order + 1 : 0;
 
-    // Prepare data with topicId and order
     let autoOrderCounter = startOrder;
     const flashcardsData = flashcardBulkCreateDto.flashcards.map(
       (flashcard) => {
@@ -161,16 +152,11 @@ export class FlashcardService {
     });
   }
 
-  /**
-   * Export flashcards to Excel format
-   * Returns buffer of Excel file
-   */
   async exportToExcel(): Promise<Buffer> {
-    // Fetch flashcards with limit for demo
     const flashcards = await this.prisma.flashcard.findMany({
       where: { isActive: true },
       orderBy: [{ topicId: 'asc' }, { order: 'asc' }],
-      take: 20, // Limit to 20 for demo
+      take: 20,
       include: {
         topic: {
           select: {
@@ -180,7 +166,6 @@ export class FlashcardService {
       },
     });
 
-    // Prepare data for Excel
     const excelData = flashcards.map((fc) => ({
       term: fc.term,
       phonetic: fc.phonetic || '',
@@ -191,24 +176,20 @@ export class FlashcardService {
       audio: fc.audioUrl || '',
     }));
 
-    // Create workbook and worksheet
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Flashcards');
 
-    // Set column widths for better readability
     worksheet['!cols'] = [
-      { wch: 15 }, // term
-      { wch: 15 }, // phonetic
-      { wch: 20 }, // meaningVi
-      { wch: 30 }, // ExEn
-      { wch: 30 }, // ExVi
-      { wch: 50 }, // img (URL)
-      { wch: 50 }, // audio (URL)
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 30 },
+      { wch: 30 },
+      { wch: 50 },
+      { wch: 50 },
     ];
 
-    // Generate buffer
-    // XLSX.write is typed `any`; type: 'buffer' returns a Buffer.
     const buffer = XLSX.write(workbook, {
       type: 'buffer',
       bookType: 'xlsx',
@@ -252,7 +233,6 @@ export class FlashcardService {
   }
 
   async findByTopic(topicId: number, isActive?: boolean) {
-    // Check if topic exists
     const topic = await this.prisma.topic.findUnique({
       where: { id: topicId },
     });
@@ -305,7 +285,6 @@ export class FlashcardService {
   }
 
   async checkProgress(flashcardIds: number[]) {
-    // Get all flashcards with their progress
     const flashcards = await this.prisma.flashcard.findMany({
       where: {
         id: { in: flashcardIds },
@@ -325,7 +304,6 @@ export class FlashcardService {
       },
     });
 
-    // Filter only flashcards that have progress
     const flashcardsWithProgress = flashcards
       .filter((fc) => fc.progress.length > 0)
       .map((fc) => ({
@@ -339,10 +317,8 @@ export class FlashcardService {
   }
 
   async update(id: number, updateFlashcardDto: UpdateFlashcardDto) {
-    // Check if flashcard exists
     await this.findOne(id);
 
-    // If topicId is being updated, check if the new topic exists
     if (updateFlashcardDto.topicId) {
       const topic = await this.prisma.topic.findUnique({
         where: { id: updateFlashcardDto.topicId },
@@ -355,10 +331,8 @@ export class FlashcardService {
       }
     }
 
-    // Extract resetProgress from DTO and remove it before updating flashcard
     const { resetProgress, ...flashcardData } = updateFlashcardDto;
 
-    // If resetProgress is true, delete all learning progress for this flashcard
     if (resetProgress) {
       await this.prisma.learningProgress.deleteMany({
         where: {
@@ -409,10 +383,8 @@ export class FlashcardService {
   }
 
   async remove(id: number) {
-    // Check if flashcard exists
     await this.findOne(id);
 
-    // Check if this flashcard has any learning progress
     const progressCount = await this.prisma.learningProgress.count({
       where: { flashcardId: id },
     });
@@ -420,7 +392,6 @@ export class FlashcardService {
     const hasProgress = progressCount > 0;
 
     if (hasProgress) {
-      // Soft delete - set isActive = false to preserve learning data
       const updated = await this.prisma.flashcard.update({
         where: { id },
         data: { isActive: false },
@@ -436,7 +407,6 @@ export class FlashcardService {
       });
       return { flashcard: updated, hasProgress: true, deleted: false };
     } else {
-      // Hard delete - no learning data to preserve
       const deleted = await this.prisma.flashcard.delete({
         where: { id },
         include: {
@@ -485,7 +455,6 @@ export class FlashcardService {
   }
 
   async reorderFlashcards(topicId: number, flashcardIds: number[]) {
-    // Check if topic exists
     const topic = await this.prisma.topic.findUnique({
       where: { id: topicId },
     });
@@ -494,7 +463,6 @@ export class FlashcardService {
       throw new NotFoundException(`Topic with ID ${topicId} not found`);
     }
 
-    // Verify all flashcard IDs belong to the topic
     const flashcards = await this.prisma.flashcard.findMany({
       where: {
         id: { in: flashcardIds },
@@ -508,7 +476,6 @@ export class FlashcardService {
       );
     }
 
-    // Update the order
     return this.prisma.$transaction(async (tx) => {
       const updatedFlashcards = [];
       for (let i = 0; i < flashcardIds.length; i++) {
@@ -536,7 +503,6 @@ export class FlashcardService {
     buffer: Buffer,
     assetFiles: Express.Multer.File[] = [],
   ) {
-    // Check if topic exists
     const topic = await this.prisma.topic.findUnique({
       where: { id: topicId },
     });
@@ -546,19 +512,15 @@ export class FlashcardService {
     }
 
     try {
-      // Step 1: Upload all assets to Cloudinary and create filename -> URL map
       const assetMap = new Map<string, string>();
 
       for (const file of assetFiles) {
         try {
           const uploadedUrl = await this.uploadToCloudinary(file);
           assetMap.set(file.originalname, uploadedUrl);
-        } catch {
-          // ignore upload failures for individual assets
-        }
+        } catch {}
       }
 
-      // Step 2: Parse Excel file
       const workbook = XLSX.read(buffer, { type: 'buffer' });
       const sheetName = workbook.SheetNames[0];
       if (!sheetName) {
@@ -586,7 +548,6 @@ export class FlashcardService {
         throw new BadRequestException('No data found in Excel file');
       }
 
-      // Get the current max order for this topic
       const maxOrderFlashcard = await this.prisma.flashcard.findFirst({
         where: { topicId },
         orderBy: { order: 'desc' },
@@ -595,20 +556,18 @@ export class FlashcardService {
 
       const startOrder = maxOrderFlashcard ? maxOrderFlashcard.order + 1 : 0;
 
-      // Helper function to extract filename from path
       const extractFileName = (path: string): string => {
         if (!path || typeof path !== 'string') return '';
         const normalized = path.trim();
-        if (!normalized) return ''; // Handles empty strings and whitespace-only
+        if (!normalized) return '';
         return normalized.split('\\').pop()?.split('/').pop() || '';
       };
 
-      // Helper function to normalize cell value
       const normalizeValue = (value: unknown): string => {
         if (value === undefined || value === null) return '';
         if (typeof value === 'string') {
           const s = value.trim();
-          if (!s) return ''; // Handles empty strings and whitespace-only
+          if (!s) return '';
           return s;
         }
         if (typeof value === 'object') return '';
@@ -618,18 +577,15 @@ export class FlashcardService {
         return '';
       };
 
-      // Helper function to map file path to uploaded URL
       const mapAssetUrl = (cellValue: any): string => {
         if (!cellValue) return '';
         const path = normalizeValue(cellValue);
         if (!path) return '';
 
-        // If it's already a URL (http/https), use it directly
         if (path.startsWith('http://') || path.startsWith('https://')) {
           return path;
         }
 
-        // Otherwise, treat as filename and look up in assetMap
         const fileName = extractFileName(path);
         if (!fileName) return '';
 
@@ -640,12 +596,10 @@ export class FlashcardService {
         return '';
       };
 
-      // Map Excel rows to flashcard DTOs
       const flashcards: CreateFlashcardDto[] = data.map((row, index) => {
         const term = normalizeValue(row.term);
         const meaningVi = normalizeValue(row.meaningVi);
 
-        // Validate required fields
         if (!term || !meaningVi) {
           throw new BadRequestException(
             `Row ${index + 2}: term and meaningVi are required`,
@@ -666,7 +620,6 @@ export class FlashcardService {
         };
       });
 
-      // Create flashcards in transaction with extended timeout for serverless
       const createdFlashcards = await this.prisma.$transaction(
         async (tx) => {
           const createdFlashcards = [];
@@ -688,12 +641,11 @@ export class FlashcardService {
           return createdFlashcards;
         },
         {
-          maxWait: 15000, // 15 seconds
-          timeout: 15000, // 15 seconds
+          maxWait: 15000,
+          timeout: 15000,
         },
       );
 
-      // Return lightweight summary instead of full data to avoid large response
       return {
         imported: createdFlashcards.length,
         flashcards: createdFlashcards.map((fc) => ({

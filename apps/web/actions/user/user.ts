@@ -35,7 +35,6 @@ export const resetPassword = async (
       throw new Error("Không thể đặt lại mật khẩu. Vui lòng thử lại.");
     }
 
-    // The token no longer works (it is bound to the old password); drop it.
     await clearPasswordResetToken();
     return payload;
   } catch (error) {

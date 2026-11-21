@@ -16,7 +16,6 @@ export async function getFlashcard(id: number) {
   return payload;
 }
 
-/** All of a topic's flashcards; pass `activeOnly` for the learner view (hidden cards left out). */
 export async function getFlashcardsByTopic(topicId: number, activeOnly = false) {
   const query = activeOnly ? "?isActive=true" : "";
   const response = await http.get<Flashcard[]>(`/flashcards/topic/${topicId}${query}`);

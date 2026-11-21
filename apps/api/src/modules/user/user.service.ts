@@ -10,7 +10,6 @@ import { v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
 import { UpdateProfileDto, ChangePasswordDto } from './dto/index';
 
-// Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
   api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
@@ -73,7 +72,6 @@ export class UserService {
         isActive: true,
         createdAt: true,
         updatedAt: true,
-        // Exclude sensitive info like passwordHash
         _count: {
           select: {
             attempts: true,
@@ -88,7 +86,6 @@ export class UserService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    // Normalize nullable values and ensure grade/isVerified are always present
     return {
       ...user,
       avatarUrl: user.avatarUrl || undefined,
@@ -99,17 +96,13 @@ export class UserService {
   }
 
   async findProfileStatistics(id: number) {
-    // Check if user exists
     await this.findById(id);
 
-    // Get learning statistics
     const learningStats = await this.prisma.$transaction(async (tx) => {
-      // Get total lesson attempts
       const totalAttempts = await tx.attempt.count({
         where: { userId: id },
       });
 
-      // Get completed lessons
       const completedLessons = await tx.attempt.count({
         where: {
           userId: id,
@@ -117,16 +110,13 @@ export class UserService {
         },
       });
 
-      // Get total XP
       const user = await tx.user.findUnique({
         where: { id },
         select: { xp: true, streakDays: true },
       });
 
-      // Get streak information
       const currentStreak = user?.streakDays || 0;
 
-      // Get best day XP
       const bestDay = await tx.streakLog.findFirst({
         where: { userId: id },
         orderBy: { xpEarned: 'desc' },
@@ -147,7 +137,6 @@ export class UserService {
   }
 
   async updateStatus(id: number, isActive: boolean) {
-    // Ensure user exists
     await this.findById(id);
     const updated = await this.prisma.user.update({
       where: { id },
@@ -186,7 +175,6 @@ export class UserService {
   }
 
   async resetPassword(email: string, newPassword: string) {
-    // Find user by email
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -195,16 +183,13 @@ export class UserService {
       throw new NotFoundException('Không tìm thấy người dùng với email này');
     }
 
-    // Check if user is verified
     if (!user.isVerified) {
       throw new BadRequestException('Email chưa được xác thực');
     }
 
-    // Hash new password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
-    // Update password
     await this.prisma.user.update({
       where: { email },
       data: { passwordHash: hashedPassword },
@@ -217,7 +202,6 @@ export class UserService {
   }
 
   async changePassword(userId: number, changePasswordDto: ChangePasswordDto) {
-    // Find user by ID
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -230,7 +214,6 @@ export class UserService {
       throw new BadRequestException('Không thể xác thực người dùng');
     }
 
-    // Verify current password
     const isPasswordValid = await bcrypt.compare(
       changePasswordDto.currentPassword,
       user.passwordHash,
@@ -240,7 +223,6 @@ export class UserService {
       throw new BadRequestException('Mật khẩu hiện tại không đúng');
     }
 
-    // Check if new password is same as current password
     const isSamePassword = await bcrypt.compare(
       changePasswordDto.newPassword,
       user.passwordHash,
@@ -252,14 +234,12 @@ export class UserService {
       );
     }
 
-    // Hash new password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(
       changePasswordDto.newPassword,
       saltRounds,
     );
 
-    // Update password
     await this.prisma.user.update({
       where: { id: userId },
       data: { passwordHash: hashedPassword },
@@ -271,10 +251,6 @@ export class UserService {
     };
   }
 
-  /**
-   * Upload file to Cloudinary
-   * Returns the secure URL of the uploaded file
-   */
   private async uploadToCloudinary(file: Express.Multer.File): Promise<string> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
@@ -315,10 +291,8 @@ export class UserService {
     updateProfileDto: UpdateProfileDto,
     avatarFile?: Express.Multer.File,
   ) {
-    // Ensure user exists
     await this.findById(id);
 
-    // Prepare update data
     const updateData: Prisma.UserUpdateInput = {};
 
     if (updateProfileDto.name !== undefined) {
@@ -337,7 +311,6 @@ export class UserService {
       updateData.gender = updateProfileDto.gender;
     }
 
-    // Handle avatar upload if file is provided
     if (avatarFile) {
       const avatarUrl = await this.uploadToCloudinary(avatarFile);
       updateData.avatarUrl = avatarUrl;

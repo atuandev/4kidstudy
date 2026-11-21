@@ -85,13 +85,11 @@ export function UpdateProfileDialog({
         await updateProfile(values);
         setSuccess("Cập nhật thông tin thành công");
 
-        // Close dialog after 1.5 seconds
         setTimeout(() => {
           onOpenChange(false);
           if (onSuccess) {
             onSuccess();
           }
-          // Reload the page to refresh profile data
           window.location.reload();
         }, 1500);
       } catch (err) {
@@ -127,7 +125,6 @@ export function UpdateProfileDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Avatar Upload */}
             <div className="flex flex-col items-center gap-4">
               <Avatar className="size-24 -rotate-3 border-[5px] border-white shadow-sticker">
                 <AvatarImage src={avatarPreview} alt="" />
@@ -165,7 +162,6 @@ export function UpdateProfileDialog({
               />
             </div>
 
-            {/* Name */}
             <FormField
               control={form.control}
               name="name"
@@ -180,7 +176,6 @@ export function UpdateProfileDialog({
               )}
             />
 
-            {/* Grade */}
             <FormField
               control={form.control}
               name="grade"
@@ -210,7 +205,6 @@ export function UpdateProfileDialog({
               )}
             />
 
-            {/* Date of Birth */}
             <FormField
               control={form.control}
               name="dob"
@@ -225,7 +219,6 @@ export function UpdateProfileDialog({
               )}
             />
 
-            {/* Gender */}
             <FormField
               control={form.control}
               name="gender"

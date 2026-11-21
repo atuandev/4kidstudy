@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 type ExerciseStats = {
-  duration: number; // in seconds
+  duration: number;
   totalPoints: number;
   correctCount: number;
   totalExercises: number;
@@ -12,9 +12,7 @@ type ExerciseStats = {
 };
 
 type ExerciseStatsActions = {
-  // Initialize session
   startSession: () => void;
-  /** Continue a saved session; the clock resumes from elapsedSec. */
   restoreSession: (
     saved: Pick<
       ExerciseStats,
@@ -23,24 +21,20 @@ type ExerciseStatsActions = {
   ) => void;
   endSession: () => void;
 
-  // Exercise tracking
   startExercise: () => void;
   completeExercise: (isCorrect: boolean, points: number) => void;
   skipExercise: () => void;
   incrementWrongCount: () => void;
 
-  // Getters
   getAccuracy: () => number;
   getAverageDuration: () => number;
 
-  // Reset
   resetStats: () => void;
 };
 
 type ExerciseStatsStore = ExerciseStats & ExerciseStatsActions;
 
 export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
-  // Initial state
   duration: 0,
   totalPoints: 0,
   correctCount: 0,
@@ -50,7 +44,6 @@ export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
   startTime: null,
   currentExerciseStartTime: null,
 
-  // Actions
   startSession: () => {
     set({
       startTime: Date.now(),
@@ -95,7 +88,6 @@ export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
     const state = get();
     const currentTime = Date.now();
 
-    // Calculate duration if we have a start time
     let exerciseDuration = 0;
     if (state.currentExerciseStartTime) {
       exerciseDuration = Math.floor((currentTime - state.currentExerciseStartTime) / 1000);
@@ -114,13 +106,11 @@ export const useExerciseStatsStore = create<ExerciseStatsStore>((set, get) => ({
     const state = get();
     const currentTime = Date.now();
 
-    // Calculate duration if we have a start time
     let exerciseDuration = 0;
     if (state.currentExerciseStartTime) {
       exerciseDuration = Math.floor((currentTime - state.currentExerciseStartTime) / 1000);
     }
 
-    // Count skips but don't award points (0 points for skip)
     set({
       skippedCount: state.skippedCount + 1,
       totalExercises: state.totalExercises + 1,

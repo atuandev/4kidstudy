@@ -22,9 +22,6 @@ const gradeOrderMap: Record<GradeValue, number> = {
   [GRADE_VALUES.GRADE_5]: 5,
 };
 
-/**
- * Grade chips above every grade page (XP and streak live in the sidebar and phone header).
- */
 export function GradeSelectorButton() {
   const router = useRouter();
   const pathname = usePathname();
@@ -36,8 +33,6 @@ export function GradeSelectorButton() {
     if (selectedGrade === grade.value) {
       return;
     }
-    // On a /grade/[grade]/... page, swap only the grade segment so the
-    // student stays in the same section. Elsewhere, open that grade's units.
     const nextPath = params.grade
       ? pathname.replace(`/grade/${params.grade}`, `/grade/${getGradeSlug(grade.value)}`)
       : buildGradePath(grade.value, "learn/units");

@@ -1,8 +1,5 @@
 import { LearningContentType } from '@prisma/client';
 
-/**
- * Response DTO for learning progress
- */
 export class LearningProgressResponseDto {
   id: number;
   userId: number;
@@ -15,7 +12,6 @@ export class LearningProgressResponseDto {
   createdAt: Date;
   updatedAt: Date;
 
-  // Optional related data
   flashcard?: {
     id: number;
     term: string;
@@ -46,9 +42,6 @@ export class LearningProgressResponseDto {
   };
 }
 
-/**
- * Response DTO for paginated learning progress
- */
 export class PaginatedLearningProgressResponseDto {
   data: LearningProgressResponseDto[];
   total: number;
@@ -57,9 +50,6 @@ export class PaginatedLearningProgressResponseDto {
   totalPages: number;
 }
 
-/**
- * Response DTO for learning progress statistics
- */
 export class LearningProgressStatsResponseDto {
   totalReviewed: number;
   flashcardStats: {

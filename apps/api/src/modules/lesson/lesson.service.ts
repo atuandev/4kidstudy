@@ -79,7 +79,6 @@ export class LessonService {
   }
 
   async create(data: CreateLessonDto): Promise<Lesson> {
-    // Check if topic exists
     const topicExists = await this.prisma.topic.findUnique({
       where: { id: data.topicId },
     });
@@ -88,7 +87,6 @@ export class LessonService {
       throw new NotFoundException(`Topic with ID ${data.topicId} not found`);
     }
 
-    // Determine order if not provided
     if (!data.order) {
       const maxOrder = await this.prisma.lesson.findFirst({
         where: { topicId: data.topicId },
@@ -107,7 +105,6 @@ export class LessonService {
   }
 
   async createBulk(lessonBulkCreateDto: LessonBulkCreateDto) {
-    // Check if topic exists
     const topic = await this.prisma.topic.findUnique({
       where: { id: lessonBulkCreateDto.topicId },
     });
@@ -125,7 +122,6 @@ export class LessonService {
       throw new BadRequestException('Lessons array cannot be empty');
     }
 
-    // Get the current max order for this topic
     const maxOrderLesson = await this.prisma.lesson.findFirst({
       where: { topicId: lessonBulkCreateDto.topicId },
       orderBy: { order: 'desc' },
@@ -134,8 +130,6 @@ export class LessonService {
 
     const startOrder = maxOrderLesson ? maxOrderLesson.order + 1 : 1;
 
-    // Prepare data with topicId
-    // Only auto-assign order for lessons without an order (new lessons)
     let autoOrderCounter = startOrder;
     const lessonsData = lessonBulkCreateDto.lessons.map((lesson) => {
       const orderValue =
@@ -172,7 +166,6 @@ export class LessonService {
   }
 
   async update(id: number, data: UpdateLessonDto): Promise<Lesson> {
-    // Check if the lesson exists
     await this.findById(id);
 
     return this.prisma.lesson.update({
@@ -185,7 +178,6 @@ export class LessonService {
   }
 
   async delete(id: number): Promise<Lesson> {
-    // Check if the lesson exists
     await this.findById(id);
 
     return this.prisma.lesson.delete({

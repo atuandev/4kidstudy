@@ -71,9 +71,7 @@ export class PronunciationController {
   async assessPronunciation(
     @UploadedFile(
       new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 }), // 10MB limit
-        ],
+        validators: [new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 })],
       }),
     )
     file: Express.Multer.File,
@@ -81,7 +79,6 @@ export class PronunciationController {
   ): Promise<PronunciationAssessmentResponseDto> {
     const { referenceText } = body;
 
-    // Call service to process assessment
     return this.pronunciationService.assess(file.buffer, referenceText);
   }
 }

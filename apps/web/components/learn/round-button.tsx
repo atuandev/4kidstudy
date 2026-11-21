@@ -20,11 +20,9 @@ const SIZES: Record<Size, string> = {
 interface RoundButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   readonly tone?: Tone;
   readonly size?: Size;
-  /** Required: these buttons carry an icon only. */
   readonly "aria-label": string;
 }
 
-/** Icon-only round button on a round ledge (listen, record, replay). */
 export const RoundButton = forwardRef<HTMLButtonElement, RoundButtonProps>(function RoundButton(
   { tone = "sky", size = "md", className, type = "button", ...props },
   ref,

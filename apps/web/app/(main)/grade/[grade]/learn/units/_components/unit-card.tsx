@@ -18,10 +18,6 @@ interface UnitCardProps {
 
 type ContentType = "flashcard" | "sentence";
 
-/**
- * `resumeIndex` is the furthest card the child tried (undefined if none). Continuing adds
- * `resume`, which tells the viewer to step past that card when it is already finished.
- */
 const buildNavigationUrl = (topicId: number, type: ContentType, resumeIndex?: number) => {
   const basePath = type === "flashcard" ? "/learn/flashcards" : "/learn/sentences";
   if (resumeIndex === undefined) {
@@ -41,13 +37,11 @@ export function UnitCard({ topic }: UnitCardProps) {
     flashcard: flashcardProgress,
     sentence: sentenceProgress,
   };
-  // Tapping the row continues; a finished part (100%) starts again from the first card.
   const start = (type: ContentType) => {
     const index = progress[type] >= 100 ? undefined : resumeIndex[type];
     router.push(buildNavigationUrl(topic.id, type, index));
   };
   const restart = (type: ContentType) => router.push(buildNavigationUrl(topic.id, type));
-  // Hand-placed tilt for the cover sticker, stable per topic.
   const tilt = topic.id % 2 === 0 ? 1 : -1;
   return (
     <article
@@ -115,10 +109,6 @@ interface TopicActionProps {
   readonly onRestart: () => void;
 }
 
-/**
- * A 3D action row: Vietnamese label, English echo, and how far the child got. Once
- * started, tapping it continues, and a restart button sits beside it.
- */
 function TopicAction({
   variant,
   icon,

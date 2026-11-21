@@ -32,7 +32,6 @@ export async function verifyOTP(data: VerifyEmailSchemaType): Promise<VerifyOtpR
     },
   );
 
-  // Keep the reset token server-side (httpOnly cookie) for the new-password step.
   const { resetToken, ...result } = payload;
   if (resetToken) await setPasswordResetToken(resetToken);
   return result;

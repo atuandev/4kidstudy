@@ -14,17 +14,14 @@ export default async function SentencesTopicPage({ params }: SentencesTopicPageP
   const { topicId } = await params;
   const topicIdNum = parseInt(topicId, 10);
 
-  // Active images only: the saved resume index counts active images, so the lists must match.
   const sentenceImages = await getSentenceImagesByTopicId(topicIdNum, true);
   const topic = await getTopicById(topicIdNum);
 
-  // Get mastered sentence IDs from backend (sentences with isMastered = true)
   let masteredSentenceIds: number[] = [];
   try {
     masteredSentenceIds = await getMasteredSentenceIds(topicIdNum);
   } catch (error) {
     console.error("Failed to fetch mastered sentences:", error);
-    // Continue without mastered IDs - user will need to complete assessment
   }
 
   return (

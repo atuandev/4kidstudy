@@ -13,9 +13,6 @@ import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { SubmitExerciseDto } from './submit-exercise.dto';
 
-/**
- * The final result of one exercise in a finished lesson.
- */
 export class AttemptAnswerDto extends SubmitExerciseDto {
   @ApiPropertyOptional({
     description: 'Number of tries the learner used (1 or 2)',
@@ -36,10 +33,6 @@ export class AttemptAnswerDto extends SubmitExerciseDto {
   isSkipped?: boolean;
 }
 
-/**
- * DTO for saving a finished lesson in one request: the attempt, every
- * answer, XP and streak are written together.
- */
 export class SubmitAttemptDto {
   @ApiProperty({ description: 'Lesson ID', example: 1 })
   @IsInt()

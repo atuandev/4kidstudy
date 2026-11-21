@@ -16,7 +16,6 @@ export default async function UnitsPage({ params }: UnitsPageProps) {
   if (!selectedGrade) {
     notFound();
   }
-  // Start the stats request now but don't wait on it: the strip streams in after the grid.
   const statsPromise = getLearningStatsByGrade(selectedGrade.value);
   const { topics } = await getTopicsWithProgress(selectedGrade.value);
   if (topics.length === 0) {

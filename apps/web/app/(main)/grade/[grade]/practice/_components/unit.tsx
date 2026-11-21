@@ -8,7 +8,6 @@ import { Lesson, Topic } from "@/types";
 type UnitProps = {
   topic: Topic;
   lessons: Lesson[];
-  /** Lessons in this topic the learner has finished at least once. */
   completedCount: number;
 };
 

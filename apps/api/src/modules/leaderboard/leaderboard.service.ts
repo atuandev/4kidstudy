@@ -12,9 +12,6 @@ import {
 export class LeaderboardService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Get streak statistics for a user within specified days
-   */
   async getStreakStats(
     userId: number,
     days: number,
@@ -23,7 +20,6 @@ export class LeaderboardService {
     startDate.setDate(startDate.getDate() - days + 1);
     startDate.setHours(0, 0, 0, 0);
 
-    // Get user's own streak logs
     const streakLogs = await this.prisma.streakLog.findMany({
       where: {
         userId,
@@ -43,14 +39,11 @@ export class LeaderboardService {
 
     const totalXP = streakLogs.reduce((sum, log) => sum + log.xpEarned, 0);
 
-    // Get user's grade
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { grade: true },
     });
 
-    // Active learners in the same grade (the weekly ranking's pool), and
-    // their streak logs, for the class average.
     const gradeLearners = { grade: user?.grade, isActive: true };
     const [gradeStreakLogs, gradeLearnerCount] = await Promise.all([
       this.prisma.streakLog.findMany({
@@ -67,7 +60,6 @@ export class LeaderboardService {
       this.prisma.user.count({ where: gradeLearners }),
     ]);
 
-    // Group by date and sum XP for each day
     const gradeXpByDate = gradeStreakLogs.reduce(
       (acc, log) => {
         const date = log.day.toISOString().split('T')[0];
@@ -103,9 +95,6 @@ export class LeaderboardService {
     };
   }
 
-  /**
-   * Get XP statistics for a user within specified days
-   */
   async getXPStats(userId: number, days: number): Promise<XPStatsResponseDto> {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days + 1);
@@ -123,7 +112,6 @@ export class LeaderboardService {
       },
     });
 
-    // Group by date
     const groupedByDate = xpLogs.reduce(
       (acc, log) => {
         const date = log.createdAt.toISOString().split('T')[0];
@@ -150,9 +138,6 @@ export class LeaderboardService {
     };
   }
 
-  /**
-   * Get XP statistics grouped by Topic for a user
-   */
   async getTopicXPStats(
     userId: number,
     days: number,
@@ -161,7 +146,6 @@ export class LeaderboardService {
     startDate.setDate(startDate.getDate() - days + 1);
     startDate.setHours(0, 0, 0, 0);
 
-    // Get all XP logs for the user that have a lessonId within the date range
     const xpLogs = await this.prisma.xPLog.findMany({
       where: {
         userId,
@@ -177,7 +161,6 @@ export class LeaderboardService {
       },
     });
 
-    // Get lesson and topic info for each unique lessonId
     const lessonIds = [...new Set(xpLogs.map((log) => log.lessonId))].filter(
       (id): id is number => id !== null,
     );
@@ -198,12 +181,10 @@ export class LeaderboardService {
       },
     });
 
-    // Create a map of lessonId -> topic
     const lessonToTopic = new Map(
       lessons.map((lesson) => [lesson.id, lesson.topic]),
     );
 
-    // Group XP by topic
     const topicXPMap = new Map<number, { title: string; xp: number }>();
 
     for (const log of xpLogs) {
@@ -223,7 +204,6 @@ export class LeaderboardService {
       }
     }
 
-    // Convert to array and sort by XP descending
     const data = Array.from(topicXPMap.entries())
       .map(([topicId, { title, xp }]) => ({
         topicId,
@@ -234,13 +214,11 @@ export class LeaderboardService {
 
     const totalXP = data.reduce((sum, item) => sum + item.xpEarned, 0);
 
-    // Get user's grade
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { grade: true },
     });
 
-    // Get all XP logs for users in the same grade
     const gradeXpLogs = await this.prisma.xPLog.findMany({
       where: {
         lessonId: {
@@ -256,7 +234,6 @@ export class LeaderboardService {
       },
     });
 
-    // Get lessons for grade XP logs
     const gradeLessonIds = [
       ...new Set(gradeXpLogs.map((log) => log.lessonId)),
     ].filter((id): id is number => id !== null);
@@ -281,7 +258,6 @@ export class LeaderboardService {
       gradeLessons.map((lesson) => [lesson.id, lesson.topic]),
     );
 
-    // Group grade XP by topic
     const gradeTopicXPMap = new Map<number, number>();
 
     for (const log of gradeXpLogs) {
@@ -294,7 +270,6 @@ export class LeaderboardService {
       gradeTopicXPMap.set(topic.id, existing + log.amount);
     }
 
-    // Merge grade XP into user data
     const dataWithGradeXP = data.map((item) => ({
       ...item,
       gradeXpEarned: gradeTopicXPMap.get(item.topicId) || 0,
@@ -306,13 +281,7 @@ export class LeaderboardService {
     };
   }
 
-  /**
-
-   * Get weekly leaderboard for user's grade
-   * Resets every Sunday (week starts on Monday)
-   */
   async getWeeklyLeaderboard(userId: number): Promise<LeaderboardResponseDto> {
-    // Get current user's grade
     const currentUser = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { grade: true, name: true, avatarUrl: true },
@@ -322,21 +291,16 @@ export class LeaderboardService {
       throw new Error('User not found');
     }
 
-    // Calculate current week's Monday
     const now = new Date();
     const dayOfWeek = now.getDay();
     const monday = new Date(now);
-    // If Sunday (0), go back 6 days to Monday, otherwise go back (dayOfWeek - 1) days
     const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
     monday.setDate(monday.getDate() - daysToMonday);
     monday.setHours(0, 0, 0, 0);
 
-    // Get next Monday (end of current week)
     const nextMonday = new Date(monday);
     nextMonday.setDate(nextMonday.getDate() + 7);
 
-    // Users in the grade and their summed scores for this week, in one
-    // round-trip instead of one query per user.
     const [users, weeklyScores] = await Promise.all([
       this.prisma.user.findMany({
         where: {
@@ -370,8 +334,6 @@ export class LeaderboardService {
       weeklyScores.map((row) => [row.userId, row._sum.totalScore ?? 0]),
     );
 
-    // Only learners who scored this week are ranked; the rest are counted.
-    // Highest score first, then by name so equal scores keep a steady order.
     const scored = users
       .map((user) => ({
         userId: user.id,
@@ -385,8 +347,6 @@ export class LeaderboardService {
           b.totalScore - a.totalScore || a.name.localeCompare(b.name, 'vi'),
       );
 
-    // Equal scores share a rank and the next rank skips: 100, 80, 80, 50
-    // ranks 1, 2, 2, 4.
     const leaderboardEntries: LeaderboardEntryDto[] = scored.map(
       (entry, index) => ({
         ...entry,
@@ -400,7 +360,6 @@ export class LeaderboardService {
       if (entry.rank === 0) entry.rank = leaderboardEntries[index - 1].rank;
     });
 
-    // 0 when the user has no points this week.
     const currentUserRank =
       leaderboardEntries.find((entry) => entry.userId === userId)?.rank ?? 0;
 

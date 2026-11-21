@@ -23,7 +23,6 @@ const SKY_DEEP = "#0284C7";
 
 const EMPTY: DailyPracticeStats = { days: 7, data: [] };
 
-/** Days arrive as YYYY-MM-DD in Vietnam time; read them as plain dates. */
 const shortDate = (value: string) => {
   const [, month, day] = value.split("-");
   return `${Number(day)}/${Number(month)}`;
@@ -37,9 +36,7 @@ const longDate = (value: string) => {
 const accuracy = (correct: number, incorrect: number) =>
   correct + incorrect > 0 ? Math.round((correct / (correct + incorrect)) * 100) : null;
 
-/** Loads practice stats for a range; a later range wins over an earlier slow one. */
 function usePracticeStats(days: number) {
-  // Loading is derived: the range shown is not the range last loaded.
   const [loaded, setLoaded] = useState<{ days: number; stats: DailyPracticeStats } | null>(null);
 
   useEffect(() => {
@@ -121,10 +118,6 @@ function ViewTabs({
   );
 }
 
-/**
- * Practice day by day, in one sheet with three views: minutes practised,
- * the share of right answers, and lessons finished.
- */
 export function PracticeChart() {
   const [days, setDays] = useState<number>(7);
   const [view, setView] = useState<View>("time");
@@ -135,7 +128,6 @@ export function PracticeChart() {
     date: day.date,
     minutes: Math.round(day.durationSec / 6) / 10,
     lessons: day.attemptCount,
-    // No answers that day: leave a gap in the line instead of a fake 0%.
     accuracy: accuracy(day.correctCount, day.incorrectCount),
   }));
 

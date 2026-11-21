@@ -30,7 +30,6 @@ export const CreateFlashcardSchema = z.object({
 
 export type CreateFlashcardFormData = z.infer<typeof CreateFlashcardSchema>;
 
-/** A new flashcard for bulk create: no topicId/order; empty optional fields omitted. */
 export type NewFlashcardInput = Pick<
   CreateFlashcardFormData,
   "term" | "phonetic" | "meaningVi" | "isActive"
@@ -41,10 +40,9 @@ export type NewFlashcardInput = Pick<
   audioUrl?: string;
 };
 
-// Schema for bulk flashcards with optional id (for upsert)
 export const FlashcardWithOptionalIdSchema = CreateFlashcardSchema.extend({
   id: z.number().int().positive().optional(),
-  topicId: z.number().int().positive().optional(), // topicId will be set at form level
+  topicId: z.number().int().positive().optional(),
 });
 
 export const CreateFlashcardsSchema = z.object({

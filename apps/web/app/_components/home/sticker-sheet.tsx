@@ -12,9 +12,7 @@ interface SampleWord {
   readonly phonetic: string;
   readonly meaning: string;
   readonly example: string;
-  /** Sticker field colour. */
   readonly color: string;
-  /** Resting tilt in degrees, so the sheet looks hand-placed. */
   readonly tilt: number;
 }
 
@@ -85,10 +83,8 @@ const WORDS: readonly SampleWord[] = [
   },
 ];
 
-/** The sticker that starts peeled up, showing its Vietnamese side. */
 const PEELED = "cat";
 
-/** Tilt of a peeled-up sticker, in degrees. */
 const PEEL_TILT = -7;
 
 function speak(text: string) {
@@ -104,7 +100,6 @@ export function StickerSheet() {
   const [flipped, setFlipped] = useState<ReadonlySet<string>>(() => new Set([PEELED]));
 
   const toggle = (word: string) => {
-    // Every tap says the word, so the play button on a flipped sticker always plays.
     speak(word);
     const next = new Set(flipped);
     if (next.has(word)) {
@@ -138,7 +133,6 @@ export function StickerSheet() {
   );
 }
 
-/** Counts flipped stickers; once all are flipped it offers sign-up. */
 function FlipTray({ count, total }: { readonly count: number; readonly total: number }) {
   const done = count === total;
   return (
@@ -198,7 +192,6 @@ function Sticker({ item, isFlipped, isPeeled, onToggle }: StickerProps) {
           isFlipped && "rotate-y-180",
         )}
       >
-        {/* Front: the coloured sticker */}
         <span
           aria-hidden={isFlipped}
           className="backface-hidden absolute inset-0 flex flex-col items-center justify-between rounded-[26px] border-[6px] border-white p-3 shadow-[0_0_0_2px_#E2E8F0,0_10px_18px_-8px_rgba(61,70,93,0.35)] transition-shadow group-hover:shadow-[0_0_0_2px_#E2E8F0,0_16px_24px_-10px_rgba(61,70,93,0.45)]"
@@ -215,7 +208,6 @@ function Sticker({ item, isFlipped, isPeeled, onToggle }: StickerProps) {
           </span>
         </span>
 
-        {/* Back: the Vietnamese side */}
         <span
           aria-hidden={!isFlipped}
           className="backface-hidden rotate-y-180 absolute inset-0 flex flex-col items-start rounded-[26px] border-[6px] border-white bg-white p-4 text-left shadow-[0_0_0_2px_#E2E8F0,0_34px_40px_-14px_rgba(61,70,93,0.55)]"

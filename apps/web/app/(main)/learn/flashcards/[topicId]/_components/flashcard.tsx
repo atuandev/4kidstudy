@@ -14,7 +14,7 @@ interface FlashcardComponentProps {
   className?: string;
   onRecordReview?: (body: ReviewContentFormData) => Promise<unknown>;
   onPronunciationAssessed?: (passed: boolean) => void;
-  isReviewed?: boolean; // Whether this flashcard has been reviewed before
+  isReviewed?: boolean;
 }
 
 export function FlashcardComponent({
@@ -30,13 +30,11 @@ export function FlashcardComponent({
   const [autoplayFailed, setAutoplayFailed] = useState(false);
   const [pronunciationPassed, setPronunciationPassed] = useState(isReviewed);
 
-  // Reset per-card state when the flashcard changes (during render, not in an effect).
   const cardKey = `${flashcard.id}:${flashcard.audioUrl ?? ""}`;
   const [resetCardKey, setResetCardKey] = useState(cardKey);
   if (cardKey !== resetCardKey) {
     setResetCardKey(cardKey);
     setIsFlipped(false);
-    // Only reset pronunciation status if not already reviewed
     if (!isReviewed) {
       setPronunciationPassed(false);
     }
@@ -51,30 +49,23 @@ export function FlashcardComponent({
     try {
       setIsLoading(true);
 
-      // Wait for any existing play promise to complete or fail
       if (currentPlayPromiseRef.current) {
         try {
           await currentPlayPromiseRef.current;
-        } catch {
-          // Ignore errors from previous play attempts
-        }
+        } catch {}
       }
 
       if (audioRef.current) {
-        // Pause and reset audio before setting new source
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
 
-        // Set new source
         audioRef.current.src = flashcard.audioUrl;
 
-        // Create new play promise and store reference
         const playPromise = audioRef.current.play();
         currentPlayPromiseRef.current = playPromise;
 
         await playPromise;
 
-        // If manual play succeeds, mark user as having interacted and clear autoplay failure
         if (isManualPlay) {
           setHasUserInteracted(true);
           setAutoplayFailed(false);
@@ -83,12 +74,10 @@ export function FlashcardComponent({
     } catch (error) {
       if (error instanceof Error) {
         if (error.name === "NotAllowedError") {
-          // User hasn't interacted with document yet
           if (!isManualPlay) {
             setAutoplayFailed(true);
           }
         } else if (error.name !== "AbortError") {
-          // Only log non-abort errors to avoid console spam
           console.error("Error playing audio:", error);
         }
       }
@@ -98,14 +87,12 @@ export function FlashcardComponent({
     }
   };
 
-  // Detect user interaction
   useEffect(() => {
     const handleUserInteraction = () => {
       setHasUserInteracted(true);
       setAutoplayFailed(false);
     };
 
-    // Listen for various user interactions
     const events = ["click", "touchstart", "keydown"];
 
     events.forEach((event) => {
@@ -119,24 +106,19 @@ export function FlashcardComponent({
     };
   }, []);
 
-  // Auto-play audio when flashcard changes
   useEffect(() => {
     const autoPlayAudio = async () => {
       if (flashcard.audioUrl && !isLoading) {
-        // Reset autoplay failed state for new flashcard
         setAutoplayFailed(false);
 
-        // Add a small delay to ensure the component has fully rendered
         setTimeout(() => {
           playAudio();
         }, 300);
       }
     };
 
-    // Always try auto-play (will fail gracefully if user hasn't interacted)
     autoPlayAudio();
 
-    // Cleanup function to handle component unmount or flashcard change
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
@@ -145,9 +127,8 @@ export function FlashcardComponent({
       currentPlayPromiseRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flashcard.id, flashcard.audioUrl]); // Trigger when flashcard changes
+  }, [flashcard.id, flashcard.audioUrl]);
 
-  // Cleanup on component unmount
   useEffect(() => {
     return () => {
       if (audioRef.current) {
@@ -164,23 +145,17 @@ export function FlashcardComponent({
 
   const handleAssessmentComplete = useCallback(
     (score: number, passed: boolean) => {
-      // console.log(`[Flashcard ${flashcard.id}] Assessment complete:`, { score, passed });
       setPronunciationPassed(passed);
       onPronunciationAssessed?.(passed);
 
-      // Record review and set isMastered = true if passed (>= 50%)
       if (typeof onRecordReview === "function") {
-        // console.log(`[Flashcard ${flashcard.id}] Calling reviewContent API with isMastered=${passed}...`);
         onRecordReview({
           contentType: "FLASHCARD",
           flashcardId: flashcard.id,
           sentenceId: undefined,
-          // Only ever set mastered: a failed retry must not un-master a card already passed.
           isMastered: passed ? true : undefined,
         })
-          .then((result) => {
-            // console.log(`[Flashcard ${flashcard.id}] reviewContent success:`, result);
-          })
+          .then((result) => {})
           .catch((error: unknown) => {
             console.error(`[Flashcard ${flashcard.id}] record review failed:`, error);
           });
@@ -215,7 +190,6 @@ export function FlashcardComponent({
           )}
           onClick={handleFlip}
         >
-          {/* Front: picture, word, listen and record */}
           <div className={face} inert={isFlipped}>
             {flashcard.imageUrl && (
               <div className="relative aspect-square w-[min(15rem,62%)] -rotate-1 overflow-hidden rounded-[22px] border-[5px] border-white bg-wash shadow-sticker">
@@ -266,7 +240,6 @@ export function FlashcardComponent({
             {flipHint}
           </div>
 
-          {/* Back: the Vietnamese meaning and examples */}
           <div className={cn(face, "rotate-y-180 justify-center")} inert={!isFlipped}>
             {flashcard.imageUrl ? (
               <div className="relative mt-auto size-24 rotate-2 overflow-hidden rounded-[18px] border-4 border-white bg-wash shadow-sticker">

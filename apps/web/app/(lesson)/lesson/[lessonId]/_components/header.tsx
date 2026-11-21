@@ -29,7 +29,6 @@ type HeaderProps = {
   unitTitle: string;
   lessonTitle: string;
   profile: User;
-  /** Grade of the lesson's topic; exiting returns to that grade's practice page. */
   grade?: string;
 };
 

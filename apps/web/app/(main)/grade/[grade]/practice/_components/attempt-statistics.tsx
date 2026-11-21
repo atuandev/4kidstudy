@@ -21,12 +21,10 @@ interface AttemptStatisticsProps {
 
 type IconComponent = React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
 
-/** Learners are in Vietnam; the API buckets days on the same clock. */
 const TIME_ZONE = "Asia/Ho_Chi_Minh";
 
 const percent = (part: number, whole: number) => (whole > 0 ? (part / whole) * 100 : 0);
 
-/** Splits seconds into a number and a Vietnamese unit, for a big number with a small unit. */
 function splitDuration(totalSeconds: number): { value: string; unit: string } {
   if (totalSeconds < 60) return { value: String(totalSeconds), unit: "giây" };
   const minutes = Math.round(totalSeconds / 60);
@@ -42,7 +40,6 @@ const dayMonthParts = new Intl.DateTimeFormat("vi-VN", {
   timeZone: TIME_ZONE,
 });
 
-/** "20/11", in Vietnam time. */
 function formatDayMonth(iso: string) {
   const parts = dayMonthParts.formatToParts(new Date(iso));
   const part = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
@@ -117,7 +114,6 @@ function StatTile({ label, value, unit, icon: Icon, tone }: StatTileProps) {
   );
 }
 
-/** Lessons done, the headline numbers, and how the answers split. */
 function OverviewSheet({ stats }: AttemptStatisticsProps) {
   const done = stats.completeLessonCount;
   const total = stats.totalLessonCount;
@@ -241,7 +237,6 @@ function OverviewSheet({ stats }: AttemptStatisticsProps) {
   );
 }
 
-/** Right answers out of all answers, per exercise type. */
 function TypeSheet({ byType }: { readonly byType: PracticeStatisticsByType[] }) {
   return (
     <Sheet labelledBy="practice-types-title">
@@ -300,7 +295,6 @@ const scoreTone = (accuracyPct: number) =>
       ? "bg-sun-wash text-sun-ink"
       : "bg-cherry-wash text-cherry-deep";
 
-/** The latest finished lessons with their score. */
 function RecentSheet({ attempts }: { readonly attempts: PracticeStatisticsRecentAttempt[] }) {
   return (
     <Sheet labelledBy="practice-recent-title">
@@ -332,7 +326,6 @@ function RecentSheet({ attempts }: { readonly attempts: PracticeStatisticsRecent
   );
 }
 
-/** The learner's practice dashboard for one grade. */
 export function AttemptStatistics({ stats }: AttemptStatisticsProps) {
   if (stats.attemptCount === 0) {
     return (

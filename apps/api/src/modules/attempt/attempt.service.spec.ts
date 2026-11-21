@@ -26,7 +26,6 @@ describe('AttemptService.getPracticeStatistics', () => {
     ...overrides,
   });
 
-  /** SQL text of the nth raw query, with its parameters. */
   const rawQuery = (n: number) => {
     const [strings, ...values] = prisma.$queryRaw.mock.calls[n] as [
       TemplateStringsArray,
@@ -110,7 +109,6 @@ describe('AttemptService.getPracticeStatistics', () => {
       totalCorrectOnSecondCount: 3,
       accuracyPct: (8 / 13) * 100,
       scorePct: (80 / 120) * 100,
-      // Every type, in a fixed order, with zeros for unpractised types.
       byType: [
         {
           type: ExerciseType.SELECT_IMAGE,
@@ -268,7 +266,6 @@ describe('AttemptService.getDailyPracticeStats', () => {
 
     expect(result.days).toBe(2);
     expect(result.data).toEqual(days);
-    // Finished attempts of this user only, in the requested range.
     const [strings, ...values] = prisma.$queryRaw.mock.calls[0] as [
       TemplateStringsArray,
       ...unknown[],
@@ -362,7 +359,6 @@ describe('AttemptService.submitAttempt', () => {
       isCompleted: true,
     });
     expect(data.accuracyPct).toBeCloseTo(33.33, 1);
-    // A wrong answer earns nothing, whatever the client sent.
     expect(
       data.details.create.map((d: { points: number }) => d.points),
     ).toEqual([10, 0, 0]);

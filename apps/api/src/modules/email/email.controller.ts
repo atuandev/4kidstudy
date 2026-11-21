@@ -64,7 +64,6 @@ export class EmailController {
     return {
       success: true,
       message: 'Xác thực OTP thành công',
-      // Proof of the verified email, required by POST /users/reset-password.
       resetToken: await this.passwordResetTokens.issue(dto.email),
     };
   }

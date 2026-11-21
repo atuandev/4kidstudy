@@ -16,16 +16,10 @@ type FooterProps = {
   hintVi?: string;
   hintEn?: string;
   isFirstWrongAttempt?: boolean;
-  /** Show "pick an answer, then press Enter" while nothing is checked yet. */
   showCheckHint?: boolean;
-  /** Offer skipping a pronunciation question when there is no microphone. */
   showMicSkip?: boolean;
 };
 
-/**
- * The lesson's bottom sheet. It turns green or red after a check, with the
- * verdict and the hint rising into it, and always holds the one next action.
- */
 export const Footer = ({
   onCheck,
   onSkip,

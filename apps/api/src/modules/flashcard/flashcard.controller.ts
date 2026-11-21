@@ -12,14 +12,10 @@ import {
   HttpCode,
   UseInterceptors,
   Res,
-  // UploadedFile,
   UploadedFiles,
   BadRequestException,
 } from '@nestjs/common';
-import {
-  // FileInterceptor,
-  FileFieldsInterceptor,
-} from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { ApiConsumes } from '@nestjs/swagger';
 import {

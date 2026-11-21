@@ -10,8 +10,6 @@ export class TopicService {
   async create(createTopicDto: CreateTopicDto) {
     let order = createTopicDto.order;
 
-    // Auto-generate order if not provided
-    // When creating a new topic without order, find the highest order for the grade and increment
     if (
       order === undefined ||
       order === null ||
@@ -148,7 +146,6 @@ export class TopicService {
   }
 
   async update(id: number, updateTopicDto: UpdateTopicDto) {
-    // Check if topic exists
     await this.findOne(id);
 
     return this.prisma.topic.update({
@@ -158,7 +155,6 @@ export class TopicService {
   }
 
   async remove(id: number) {
-    // Check if topic exists
     await this.findOne(id);
 
     return this.prisma.topic.delete({

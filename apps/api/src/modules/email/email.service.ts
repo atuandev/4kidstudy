@@ -9,7 +9,6 @@ interface OTPData {
   failedAttempts: number;
 }
 
-/** Wrong guesses allowed before the OTP is discarded. */
 const MAX_OTP_ATTEMPTS = 5;
 
 @Injectable()
@@ -22,23 +21,16 @@ export class EmailService {
     private prisma: PrismaService,
   ) {}
 
-  /**
-   * Generate 6-digit OTP code
-   */
   private generateOTP(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  /**
-   * Send OTP email
-   */
   async sendOTP(email: string): Promise<Date> {
     try {
       const code = this.generateOTP();
       const createdAt = new Date();
-      const expiresAt = new Date(Date.now() + 180 * 1000); // 3 minutes
+      const expiresAt = new Date(Date.now() + 180 * 1000);
 
-      // Store OTP in memory
       this.otpStore.set(email, {
         code,
         createdAt,
@@ -46,13 +38,11 @@ export class EmailService {
         failedAttempts: 0,
       });
 
-      // Auto delete after 3 minutes
       setTimeout(() => {
         this.otpStore.delete(email);
         this.logger.log(`OTP expired and deleted for ${email}`);
       }, 180 * 1000);
 
-      // Send email
       await this.mailerService.sendMail({
         to: email,
         subject: `Mã OTP xác thực - 4KidStudy`,
@@ -118,9 +108,6 @@ export class EmailService {
     }
   }
 
-  /**
-   * Verify OTP code
-   */
   async verifyOTP(email: string, code: string): Promise<boolean> {
     const otpData = this.otpStore.get(email);
 
@@ -129,9 +116,8 @@ export class EmailService {
     }
 
     const now = new Date();
-    const timeElapsed = (now.getTime() - otpData.createdAt.getTime()) / 1000; // seconds
+    const timeElapsed = (now.getTime() - otpData.createdAt.getTime()) / 1000;
 
-    // Check if 3 minutes (180 seconds) have passed since creation
     if (timeElapsed > 180) {
       this.otpStore.delete(email);
       throw new BadRequestException(
@@ -139,7 +125,6 @@ export class EmailService {
       );
     }
 
-    // Verify code
     if (otpData.code !== code) {
       otpData.failedAttempts += 1;
       if (otpData.failedAttempts >= MAX_OTP_ATTEMPTS) {
@@ -151,10 +136,8 @@ export class EmailService {
       throw new BadRequestException('Mã OTP không chính xác');
     }
 
-    // Delete OTP after successful verification
     this.otpStore.delete(email);
 
-    // Update user isVerified status
     try {
       await this.prisma.user.update({
         where: { email },
@@ -175,9 +158,6 @@ export class EmailService {
     return true;
   }
 
-  /**
-   * Get OTP store size (for monitoring)
-   */
   getOTPStoreSize(): number {
     return this.otpStore.size;
   }

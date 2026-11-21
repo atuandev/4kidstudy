@@ -1,9 +1,6 @@
 import { z } from "zod";
 import { Gender, GradeLevel } from "@4kidstudy/contracts";
 
-/**
- * Update profile schema
- */
 export const UpdateProfileSchema = z.object({
   name: z
     .string()

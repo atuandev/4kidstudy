@@ -40,7 +40,6 @@ export function FormNewPassword() {
   });
 
   useEffect(() => {
-    // Don't redirect if we're in the middle of a successful password reset
     if (!email && !isRedirecting) {
       router.push("/forget-password");
       return;
@@ -56,13 +55,10 @@ export function FormNewPassword() {
         await resetPassword(values);
         setSuccess("Thay đổi mật khẩu thành công.");
 
-        // Set redirecting flag before clearing email
         setIsRedirecting(true);
 
-        // Clear password reset flow flag
         sessionStorage.removeItem("flowType");
 
-        // Clear email and redirect after a short delay
         setTimeout(() => {
           clearEmail();
           router.push("/login");

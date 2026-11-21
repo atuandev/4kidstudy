@@ -52,7 +52,6 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
   const isFiltered = table.getState().columnFilters.length > 0;
   const { setSelectedGrade } = useTopicFormStore();
 
-  // Update store when grade filter changes
   useEffect(() => {
     const gradeFilter = table.getColumn("grade")?.getFilterValue() as string[] | undefined;
     if (gradeFilter && gradeFilter.length === 1) {

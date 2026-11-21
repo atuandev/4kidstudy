@@ -7,13 +7,8 @@ type UseQuizLogicProps = {
   playIncorrect: () => void;
 };
 
-/** First try: 10 points. Second try: 5 points. */
 const pointsForTry = (attemptCount: number) => (attemptCount === 0 ? 10 : 5);
 
-/**
- * Checks answers and moves through the lesson. Results stay in the quiz store
- * (`recordAnswer`); the finish page saves them all at once.
- */
 export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) {
   const [pending, startTransition] = useTransition();
 
@@ -42,7 +37,6 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
   const exercise = getCurrentExercise();
   const options = getOptions();
 
-  /** Seconds spent on the current try. Read before completeExercise clears the clock. */
   const elapsedSec = () => {
     const start = useExerciseStatsStore.getState().currentExerciseStartTime;
     return start ? Math.floor((Date.now() - start) / 1000) : 0;
@@ -63,7 +57,6 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
   const handleSelect = (id: number) => {
     if (status !== "none" || !exercise) return;
 
-    // Wrong match signal from the MATCHING exercise
     if (id === -1) {
       incrementExerciseAttempt(exercise.id);
       const timeSec = elapsedSec();
@@ -75,14 +68,11 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
       return;
     }
 
-    // MATCHING sets both options via selectOptions in the component;
-    // selectOption would reset selectedOption2.
     if (exercise.type !== "MATCHING") {
       selectOption(id);
       return;
     }
 
-    // MATCHING completes itself once every pair is matched.
     if (id > 0) {
       const pointsToAward = pointsForTry(getExerciseAttemptCount(exercise.id));
       incrementExerciseAttempt(exercise.id);
@@ -94,7 +84,6 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
           exerciseId: exercise.id,
           isCorrect: true,
           selectedOptionId: id,
-          // Read at submit time so the last matched pair is included.
           selectedOption2Id: useQuizStore.getState().selectedOption2,
           timeSec,
           points: pointsToAward,
@@ -124,14 +113,12 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
     if (status === "wrong") {
       if (!exercise) return;
 
-      // Two tries used: count it wrong and move on.
       if (getExerciseAttemptCount(exercise.id) >= 2) {
         incrementWrongCount();
         nextExercise();
         return;
       }
 
-      // Otherwise allow a retry, timing it from now.
       clearSelection();
       resetPronunciation();
       startExercise();
@@ -151,7 +138,6 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
       const score = pronunciation.score;
       const overallScore = score.overall ?? 0;
 
-      // overall >= 80: 10 points; 50 < overall < 80: 5 points; otherwise wrong.
       const pointsToAward = overallScore >= 80 ? 10 : overallScore > 50 ? 5 : 0;
       const isGoodScore = pointsToAward > 0;
 
@@ -177,8 +163,6 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
       return;
     }
 
-    // MATCHING is completed in handleSelect.
-    // Standard exercises: MULTIPLE_CHOICE, SELECT_IMAGE, LISTENING
     if (!selectedOption) return;
 
     const correctOption = options.find((option) => option.isCorrect);
@@ -196,7 +180,6 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
         exerciseId: exercise.id,
         isCorrect,
         selectedOptionId: selectedOption,
-        // On a retry the store keeps the first wrong choice here.
         selectedOption2Id: exercise.type === "MATCHING" ? selectedOption2 : undefined,
         timeSec,
         points: pointsToAward,
@@ -206,11 +189,8 @@ export function useQuizLogic({ playCorrect, playIncorrect }: UseQuizLogicProps) 
 
   const isDisabled =
     pending ||
-    // For MATCHING: disable until all matches complete (status becomes 'correct')
     (exercise?.type === "MATCHING" && status === "none") ||
-    // For other exercises: disable if no option selected
     (!selectedOption && exercise?.type !== "MATCHING" && exercise?.type !== "PRONUNCIATION") ||
-    // For PRONUNCIATION: disable until completed
     (exercise?.type === "PRONUNCIATION" && pronunciation.state !== "completed");
 
   return {

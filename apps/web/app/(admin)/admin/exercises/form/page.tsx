@@ -150,14 +150,12 @@ export default function ExerciseFormPage() {
         const fetchedLessons = await getLessons();
         setAvailableLessons(fetchedLessons);
 
-        // Load existing exercises if lesson is selected
         if (storeLessonId) {
           const existingExercises = await getExerciseByLessonId(storeLessonId);
 
           if (existingExercises && existingExercises.length > 0) {
             setExistingExercisesCount(existingExercises.length);
 
-            // Convert existing exercises to form format
             const convertedExercises = existingExercises.map((ex) => ({
               id: ex.id,
               lessonId: ex.lessonId,
@@ -229,7 +227,6 @@ export default function ExerciseFormPage() {
       }
     }
 
-    // Check for duplicate options
     if (values.options && values.options.length > 0) {
       const optionIdentifiers = values.options
         .map((opt) => {
@@ -294,14 +291,12 @@ export default function ExerciseFormPage() {
     const { order, ...createData } = values;
 
     if (editingIndex !== null) {
-      // Update existing exercise
       setExerciseForms((prev) =>
         prev.map((ex, idx) => (idx === editingIndex ? (createData as CreateExerciseFormData) : ex)),
       );
       toast.success("Đã cập nhật câu hỏi");
       setEditingIndex(null);
     } else {
-      // Add new exercise
       setExerciseForms((prev) => [...prev, createData as CreateExerciseFormData]);
       toast.success(`Đã thêm câu hỏi ${exerciseForms.length + 1}. Tiếp tục tạo câu hỏi mới.`);
     }
@@ -363,7 +358,6 @@ export default function ExerciseFormPage() {
   const handleDeleteExercise = async (index: number) => {
     const exercise = exerciseForms[index];
 
-    // If exercise has an id, it's an existing exercise - need to delete from backend
     if (exercise.id) {
       try {
         await deleteExercise(exercise.id);
@@ -375,7 +369,6 @@ export default function ExerciseFormPage() {
       }
     }
 
-    // Remove from local array
     const updatedExercises = exerciseForms.filter((_, i) => i !== index);
     setExerciseForms(updatedExercises);
 
@@ -532,14 +525,12 @@ export default function ExerciseFormPage() {
 
     setIsSubmitting(true);
     try {
-      // Separate existing exercises (with id) from new exercises (without id)
       const existingExercises = exerciseForms.filter((ex) => ex.id);
       const newExercises = exerciseForms.filter((ex) => !ex.id);
 
       let updatedCount = 0;
       let createdCount = 0;
 
-      // Update existing exercises
       if (existingExercises.length > 0) {
         const updatePromises = existingExercises.map(async (exercise) => {
           const { id, ...updateData } = exercise;
@@ -554,7 +545,6 @@ export default function ExerciseFormPage() {
         }
       }
 
-      // Create new exercises
       if (newExercises.length > 0) {
         const { payload, status } = await createManyExercises(newExercises);
 
@@ -566,7 +556,6 @@ export default function ExerciseFormPage() {
         createdCount = payload.length;
       }
 
-      // Show success message
       const messages = [];
       if (updatedCount > 0) messages.push(`Cập nhật ${updatedCount} câu`);
       if (createdCount > 0) messages.push(`Tạo mới ${createdCount} câu`);
@@ -710,7 +699,6 @@ export default function ExerciseFormPage() {
         });
       }
 
-      // Same-origin route adds the admin's access token (httpOnly cookie).
       const response = await fetch(`/api/admin-import/exercises/import-excel/${lessonId}`, {
         method: "POST",
         body: formData,
@@ -725,11 +713,8 @@ export default function ExerciseFormPage() {
           try {
             const error = await response.json();
             errorMessage = error.message || errorMessage;
-          } catch {
-            // Failed to parse JSON error
-          }
+          } catch {}
         } else {
-          // Get text response for debugging
           const text = await response.text();
           console.error("Server error response:", text.substring(0, 500));
           errorMessage = `Server error: ${response.statusText}`;
@@ -752,7 +737,6 @@ export default function ExerciseFormPage() {
       setSelectedFolderFiles(null);
       setImportPreview(null);
 
-      // Reload exercises
       const existingExercises = await getExerciseByLessonId(lessonId);
       if (existingExercises && existingExercises.length > 0) {
         setExistingExercisesCount(existingExercises.length);
@@ -838,7 +822,6 @@ export default function ExerciseFormPage() {
 
   return (
     <div className="space-y-6 py-6 px-4">
-      {/* Header */}
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
@@ -872,7 +855,6 @@ export default function ExerciseFormPage() {
         </Button>
       </div>
 
-      {/* Display saved exercises */}
       {exerciseForms.length > 0 && (
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="pt-6">
@@ -902,7 +884,6 @@ export default function ExerciseFormPage() {
                     }`}
                   >
                     <CardContent className="p-4">
-                      {/* Header - Always visible */}
                       <div className="flex items-center justify-between">
                         <div
                           className="flex-1 cursor-pointer"
@@ -970,7 +951,6 @@ export default function ExerciseFormPage() {
                         </div>
                       </div>
 
-                      {/* Expanded details */}
                       {isExpanded && (
                         <div className="mt-4 pt-4 border-t space-y-3">
                           {exercise.imageUrl && (
@@ -1071,7 +1051,6 @@ export default function ExerciseFormPage() {
         </Card>
       )}
 
-      {/* Form */}
       <Form {...form}>
         <form className="space-y-6">
           <div className="grid grid-cols-2 gap-6 p-6 bg-gray-50 rounded-lg border">
@@ -1090,7 +1069,6 @@ export default function ExerciseFormPage() {
               </div>
               <Card>
                 <CardContent className="space-y-4">
-                  {/* Lesson Selection */}
                   <FormField
                     control={formControl}
                     name="lessonId"
@@ -1119,7 +1097,6 @@ export default function ExerciseFormPage() {
                     )}
                   />
 
-                  {/* Exercise Type */}
                   <FormField
                     control={formControl}
                     name="type"
@@ -1157,7 +1134,6 @@ export default function ExerciseFormPage() {
                     )}
                   />
 
-                  {/* Prompt */}
                   <FormField
                     control={formControl}
                     name="prompt"
@@ -1174,7 +1150,6 @@ export default function ExerciseFormPage() {
                     )}
                   />
 
-                  {/* Hint English */}
                   <FormField
                     control={formControl}
                     name="hintEn"
@@ -1189,7 +1164,6 @@ export default function ExerciseFormPage() {
                     )}
                   />
 
-                  {/* Hint Vietnamese */}
                   <FormField
                     control={formControl}
                     name="hintVi"
@@ -1204,7 +1178,6 @@ export default function ExerciseFormPage() {
                     )}
                   />
 
-                  {/* Target Text - Only for PRONUNCIATION */}
                   {exerciseType === "PRONUNCIATION" && (
                     <>
                       <FormField
@@ -1252,7 +1225,6 @@ export default function ExerciseFormPage() {
                     </>
                   )}
 
-                  {/* Main Image URL */}
                   {exerciseType === "MULTIPLE_CHOICE" && (
                     <FormField
                       control={formControl}
@@ -1281,7 +1253,6 @@ export default function ExerciseFormPage() {
                     />
                   )}
 
-                  {/* Audio URL - Required for LISTENING */}
                   {exerciseType === "LISTENING" && (
                     <FormField
                       control={formControl}
@@ -1312,7 +1283,6 @@ export default function ExerciseFormPage() {
                     />
                   )}
 
-                  {/* Points and Difficulty */}
                   <div className="grid gap-4 md:grid-cols-2">
                     <FormField
                       control={formControl}
@@ -1372,7 +1342,6 @@ export default function ExerciseFormPage() {
             </div>
 
             <div>
-              {/* Exercise Options */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <TypographyH3>Đáp án</TypographyH3>
@@ -1384,14 +1353,12 @@ export default function ExerciseFormPage() {
                   )}
                 </div>
 
-                {/* Display options validation errors */}
                 {form.formState.errors.options?.message && (
                   <p className="text-sm font-medium text-destructive">
                     {form.formState.errors.options.message}
                   </p>
                 )}
 
-                {/* Render option fields based on exercise type */}
                 {exerciseType === "SELECT_IMAGE" &&
                   fields.map((field, index) => (
                     <Card key={field.id}>
@@ -1694,7 +1661,6 @@ export default function ExerciseFormPage() {
             </Button>
           </div>
 
-          {/* Form Actions */}
           <div className="flex justify-between gap-2 sticky bottom-0 bg-background pt-4 pb-2 border-t">
             <Button type="button" variant="default" onClick={handleCancel} disabled={isSubmitting}>
               Hủy
@@ -1716,7 +1682,6 @@ export default function ExerciseFormPage() {
         </form>
       </Form>
 
-      {/* Import Dialog */}
       <AlertDialog open={showImportDialog} onOpenChange={setShowImportDialog}>
         <AlertDialogContent className="max-w-2xl">
           <AlertDialogHeader>
@@ -1727,7 +1692,6 @@ export default function ExerciseFormPage() {
           </AlertDialogHeader>
 
           <div className="space-y-4">
-            {/* Excel File Input */}
             <div>
               <label className="block text-sm font-medium mb-2">
                 Chọn file Excel <RequiredField />
@@ -1745,7 +1709,6 @@ export default function ExerciseFormPage() {
               )}
             </div>
 
-            {/* Folder Input */}
             {importPreview && (
               <div>
                 <label className="block text-sm font-medium mb-2">
@@ -1768,7 +1731,6 @@ export default function ExerciseFormPage() {
               </div>
             )}
 
-            {/* Preview */}
             {importPreview && (
               <div className="border rounded-lg p-4 bg-muted/50">
                 <h4 className="font-medium mb-2">Tổng quan Import</h4>

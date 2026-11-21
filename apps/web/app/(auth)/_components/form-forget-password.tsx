@@ -46,7 +46,6 @@ export function FormForgetPassword() {
         await sendEmailOTP(values.email);
         setEmail(values.email);
 
-        // Set a session flag to indicate we're in the password reset flow
         sessionStorage.setItem("flowType", "password-reset");
 
         setSuccess("Gửi mã xác thực thành công. Vui lòng kiểm tra email của bạn.");

@@ -9,9 +9,6 @@ import {
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-/**
- * DTO for pronunciation score data
- */
 export class PronunciationScoreDto {
   @IsOptional()
   @IsNumber()
@@ -40,9 +37,6 @@ export class PronunciationScoreDto {
   audioUrl?: string;
 }
 
-/**
- * DTO for submitting an exercise answer within an attempt
- */
 export class SubmitExerciseDto {
   @ApiProperty({
     description: 'Exercise ID',
