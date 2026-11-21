@@ -3,14 +3,12 @@ import type { NextRequest } from "next/server";
 import { jwtDecode, JwtPayload } from "jwt-decode";
 import { refreshAccessToken } from "./actions/auth/refresh";
 
-// Route configurations
 const ROUTES = {
   protected: ["/learn", "/practice", "/grade", "/leaderboard", "/profile"],
   admin: ["/admin"],
   auth: ["/login", "/register"],
 };
 
-// Extended JWT payload type
 interface AuthToken extends JwtPayload {
   role: string;
 }
@@ -20,35 +18,28 @@ export async function proxy(request: NextRequest) {
   const accessToken = request.cookies.get("accessToken")?.value;
   const refreshToken = request.cookies.get("refreshToken")?.value;
 
-  // Set up response with path header
   const headers = new Headers(request.headers);
   headers.set("x-current-path", pathname);
   const response = NextResponse.next({ request: { headers } });
 
-  // TODO: Remove when have refresh token
   checkExpiredToken(accessToken, request, response);
 
-  // Handle token refresh if needed
   if (accessToken && refreshToken) {
     await handleTokenRefresh(accessToken, refreshToken, response);
   }
 
-  // Route protection logic
   if (accessToken) {
     const decoded = decodeToken(accessToken);
     const isAdmin = decoded?.role.includes("ADMIN");
 
-    // Redirect authenticated users away from auth pages
     if (isMatchingRoute(pathname, ROUTES.auth)) {
       const redirectParam = request.nextUrl.searchParams.get("redirect");
       if (redirectParam) {
         return NextResponse.redirect(new URL(redirectParam, request.url));
       }
-      // Redirect admin to /admin, regular users to /learn
       return NextResponse.redirect(new URL(isAdmin ? "/admin" : "/learn", request.url));
     }
 
-    // Restrict admin routes to admin users
     if (isMatchingRoute(pathname, ROUTES.admin)) {
       if (!isAdmin) {
         return NextResponse.redirect(new URL("/learn", request.url));
@@ -61,7 +52,6 @@ export async function proxy(request: NextRequest) {
       }
     }
   } else {
-    // Redirect unauthenticated users away from protected routes
     if (isMatchingRoute(pathname, [...ROUTES.protected, ...ROUTES.admin])) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
@@ -70,9 +60,6 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-/**
- * Checks if token needs refresh and handles the refresh process
- */
 async function handleTokenRefresh(
   accessToken: string,
   refreshToken: string,
@@ -123,9 +110,6 @@ const checkExpiredToken = (
   }
 };
 
-/**
- * Safely decodes a JWT token
- */
 function decodeToken(token: string): AuthToken | null {
   try {
     return jwtDecode<AuthToken>(token);
@@ -134,11 +118,7 @@ function decodeToken(token: string): AuthToken | null {
   }
 }
 
-/**
- * Checks if a pathname matches any route in the routes array
- */
 function isMatchingRoute(pathname: string, routes: string[]): boolean {
-  // Match whole path segments, so `/learn.svg` is not mistaken for the `/learn` route.
   return routes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 }
 

@@ -21,7 +21,6 @@ interface DayPoint {
   xpEarned: number;
 }
 
-/** A day or topic with the class average beside the learner's own XP. */
 interface DayRow extends DayPoint {
   classAverage: number;
 }
@@ -38,7 +37,6 @@ interface ClassStats {
   averageXP: number;
 }
 
-/** Average per learner, rounded; the class includes the learner. */
 const perLearner = (total: number, learnerCount: number) =>
   learnerCount > 0 ? Math.round(total / learnerCount) : 0;
 
@@ -49,25 +47,17 @@ const VIEWS: { value: View; label: string }[] = [
   { value: "topic", label: "Theo chủ đề" },
 ];
 
-/** The learner's series and the class average series. */
-// Each series' label, legend text and tooltip row use the series' own colour,
-// so these are the text-safe shades (Forest, Sky Ink: at least 4.5:1 on white)
-// rather than the lighter Leaf Deep and Sky Deep. The class average is Sun Ink,
-// the same colour as the "Trung bình lớp" pill text, everywhere it appears.
 const DAY_FILL = "#15803D";
 const TOPIC_FILL = "#0369A1";
 const CLASS_STROKE = "#7A4A00";
 
-/** Tooltip rows take their series' colour instead of the shared ink. */
 const SERIES_TOOLTIP_PROPS = {
   ...TOOLTIP_PROPS,
   itemStyle: { fontWeight: 800 },
 } as const;
 
-/** Row height per topic: a 24px bar plus air. */
 const ROW_HEIGHT = 44;
 
-// Streak days are stored as UTC dates (YYYY-MM-DD), so read them in UTC.
 const shortDate = (value: string) => {
   const date = new Date(`${value}T00:00:00Z`);
   return `${date.getUTCDate()}/${date.getUTCMonth() + 1}`;
@@ -78,7 +68,6 @@ const longDate = (value: string) => {
   return `${date.getUTCDate()}/${date.getUTCMonth() + 1}/${date.getUTCFullYear()}`;
 };
 
-/** Every day in the range, oldest first, with 0 XP on days without practice. */
 function fillDays(
   points: DayPoint[],
   gradePoints: DayPoint[],
@@ -105,11 +94,6 @@ function fillDays(
   });
 }
 
-/**
- * XP earned over the chosen range, in one sheet: by day as columns, or by
- * topic as horizontal bars. Both views split the same XP, so they share the
- * range and the total.
- */
 export function XPChart() {
   const [days, setDays] = useState<number>(7);
   const [view, setView] = useState<View>("day");
@@ -149,8 +133,6 @@ export function XPChart() {
     };
   }, [days]);
 
-  // Draw the class line whenever the grade has learners; with only the
-  // learner in it, the line sits on their own bars and the pill says so.
   const showClass = classStats.learnerCount > 0;
   const toolbar = (
     <div className="flex flex-wrap items-center gap-3">
@@ -203,10 +185,6 @@ export function XPChart() {
   );
 }
 
-/**
- * The class average, in the same Sun Ink as the class line on the chart; a
- * note instead when nobody else is in the grade.
- */
 function ClassComparison({ classStats }: { readonly classStats: ClassStats }) {
   if (classStats.learnerCount <= 1) {
     return (
@@ -223,10 +201,8 @@ function ClassComparison({ classStats }: { readonly classStats: ClassStats }) {
   );
 }
 
-/** Tooltip rows: one per series, each named. */
 const xpTooltip = (value: number, name: string) => [`${value} XP`, name];
 
-/** Names the two series: the learner's bars and the class average mark. */
 function ChartLegend({ fill, mark }: { readonly fill: string; readonly mark: "line" | "tick" }) {
   return (
     <ul className="mb-2 flex flex-wrap gap-x-4 gap-y-1 text-sm font-black">
@@ -257,7 +233,6 @@ function ChartLegend({ fill, mark }: { readonly fill: string; readonly mark: "li
   );
 }
 
-/** The class average on a topic: a short upright tick across the topic's row. */
 function AverageTick({ cx, cy }: { cx?: number; cy?: number }) {
   if (cx === undefined || cy === undefined) return null;
   return <rect x={cx - 2} y={cy - 14} width={4} height={28} rx={2} fill={CLASS_STROKE} />;
@@ -383,7 +358,6 @@ function TopicBars({
               animationDuration={500}
             />
             {showClass ? (
-              // Topics are separate, so no joining line: a tick per topic.
               <Line
                 dataKey="classAverage"
                 name="Trung bình lớp"

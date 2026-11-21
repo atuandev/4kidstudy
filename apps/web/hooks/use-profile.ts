@@ -11,12 +11,6 @@ interface UseProfileResult {
   fetchProfile: () => Promise<void>;
 }
 
-/**
- * Provides the authenticated profile from the profile store and fetches it on first access.
- * Several shell components use this at once, so the in-flight check reads the store directly
- * (not a render-time snapshot), and a failed automatic fetch is not retried until
- * `fetchProfile` is called explicitly.
- */
 export function useProfile(): UseProfileResult {
   const profile = useProfileStore((state) => state.profile);
   const isLoadingProfile = useProfileStore((state) => state.isLoadingProfile);

@@ -18,7 +18,6 @@ import { WordArt } from "./_components/home/word-art";
 const INK = "text-ink";
 
 export default function Home() {
-  // Server Component: rendered once per request/build, so reading the clock is fine.
   // oxlint-disable-next-line react/purity
   const year = new Date().getFullYear();
 
@@ -54,7 +53,6 @@ export default function Home() {
       </header>
 
       <main>
-        {/* Hero: the sticker sheet rises out of the page and becomes the white section below. */}
         <section className="mx-auto grid max-w-[1200px] gap-6 px-4 pt-6 sm:gap-10 sm:px-8 sm:pt-12 lg:grid-cols-[minmax(0,4.5fr)_minmax(0,7.5fr)] lg:gap-12">
           <div className="lg:pb-20 lg:pt-4">
             <h1 className="text-balance text-[2.25rem] font-black leading-[1.04] tracking-[-0.02em] sm:text-6xl">
@@ -275,7 +273,6 @@ interface ExerciseRowProps {
   readonly shade: string;
   readonly name: string;
   readonly en: string;
-  /** Hand-placed tilt in degrees, like a sticker. */
   readonly tilt: number;
   readonly children: ReactNode;
 }
@@ -324,7 +321,6 @@ const HISTORY = [
   { label: "Số câu sai", value: "4" },
 ] as const;
 
-/** Mirrors the Practice page's history sheet for one lesson. The numbers are illustrative. */
 function HistorySticker() {
   return (
     <figure className="relative -rotate-2 rounded-[32px] border-[6px] border-white bg-white p-6 text-ink shadow-[0_30px_50px_-24px_rgba(5,46,22,0.7)] sm:p-8 lg:ml-auto lg:max-w-[30rem]">
@@ -370,7 +366,6 @@ const SCORES = [
   { label: "Đầy đủ", en: "Completeness", value: 100 },
 ] as const;
 
-/** A pronunciation result laid out like the in-app one. The numbers are illustrative. */
 function ScoreSticker() {
   return (
     <figure className="relative rotate-[1.5deg] rounded-[32px] border-[6px] border-white bg-white p-6 shadow-[0_28px_50px_-24px_rgba(122,74,0,0.55)] sm:p-8 lg:ml-auto lg:max-w-[30rem]">

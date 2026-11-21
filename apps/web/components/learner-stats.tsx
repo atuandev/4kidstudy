@@ -5,7 +5,6 @@ import { FireIcon, TrophyIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/use-profile";
 
-/** XP and streak pills; `compact` drops the unit words for the phone header. */
 export function LearnerStats({
   compact = false,
   className,

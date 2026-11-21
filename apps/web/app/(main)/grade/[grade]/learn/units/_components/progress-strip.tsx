@@ -13,10 +13,6 @@ interface ProgressStripProps {
   readonly statsPromise: Promise<GradeLearningStats>;
 }
 
-/**
- * The grade's learning progress, always on the page: three stat tiles, and tapping one
- * opens its detail list in place below the row (one at a time).
- */
 export function ProgressStrip({ statsPromise }: ProgressStripProps) {
   const stats = use(statsPromise);
   const [open, setOpen] = useState<Section | null>(null);
@@ -81,7 +77,6 @@ export function ProgressStrip({ statsPromise }: ProgressStripProps) {
   );
 }
 
-/** Placeholder with the strip's shape while the stats stream in. */
 export function ProgressStripSkeleton() {
   return (
     <div
@@ -188,12 +183,10 @@ interface ItemListProps {
   readonly empty: string;
 }
 
-/** Most-reviewed cards, filtered by topic chips; shows five until asked for more. */
 function ItemList({ items, topics, empty }: ItemListProps) {
   const [topicId, setTopicId] = useState<number | null>(null);
   const [showAll, setShowAll] = useState(false);
 
-  // Only offer chips for topics that actually have reviewed items.
   const chips = useMemo(() => {
     const used = new Set(items.map((item) => item.topicId));
     return topics.filter((topic) => used.has(topic.id));
@@ -247,7 +240,6 @@ function ItemList({ items, topics, empty }: ItemListProps) {
   );
 }
 
-/** Finished topics; each jumps to its card in the grid below. */
 function TopicList({ topics }: { readonly topics: GradeLearningStats["topTopics"] }) {
   if (topics.length === 0) {
     return <p className="py-6 text-center text-base text-ink-body">Bé chưa học xong chủ đề nào.</p>;

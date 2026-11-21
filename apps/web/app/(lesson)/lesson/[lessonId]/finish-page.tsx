@@ -15,7 +15,6 @@ import { useSaveAttempt } from "./_hooks";
 interface FinishPageProps {
   userId: number;
   lessonId: number;
-  /** Grade of the finished lesson's topic, so "continue" returns to the same grade. */
   grade?: string;
 }
 
@@ -24,8 +23,6 @@ export default function FinishPage({ userId, lessonId, grade }: FinishPageProps)
   const router = useRouter();
   const { getAccuracy } = useExerciseStatsStore();
   const isMounted = useIsClient();
-  // The whole lesson is saved in the background, once, after the last answer.
-  // Only a failure is shown, so the learner can retry.
   const { status: saveStatus, retry } = useSaveAttempt(userId, lessonId);
 
   const accuracy = getAccuracy();

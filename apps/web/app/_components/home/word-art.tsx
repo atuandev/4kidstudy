@@ -1,9 +1,5 @@
 import type { ReactElement } from "react";
 
-/**
- * Flat illustrations for the homepage sample words, drawn on a 64x64 grid so they sit in the
- * sticker's white disc at any size.
- */
 const ART: Record<string, ReactElement> = {
   apple: (
     <>

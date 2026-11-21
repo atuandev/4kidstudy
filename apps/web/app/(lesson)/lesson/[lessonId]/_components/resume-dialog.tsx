@@ -20,7 +20,6 @@ type ResumeDialogProps = {
   onRestart: () => void;
 };
 
-/** Asks whether to continue a lesson left unfinished in this browser, or start over. */
 export const ResumeDialog = ({
   progress,
   totalExercises,
@@ -32,11 +31,9 @@ export const ResumeDialog = ({
   const resumeRef = useRef<HTMLButtonElement>(null);
 
   return (
-    // Stays open until a choice is made.
     <AlertDialog open>
       <AlertDialogContent
         onEscapeKeyDown={(event) => event.preventDefault()}
-        // Focus "Làm tiếp", not Radix's default "Làm lại từ đầu", so Enter never wipes progress.
         onOpenAutoFocus={(event) => {
           event.preventDefault();
           resumeRef.current?.focus();

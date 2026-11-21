@@ -10,12 +10,9 @@ interface StreakDataPoint {
 
 interface StreakStatsResponse {
   data: StreakDataPoint[];
-  /** XP per day summed over every active learner in the user's grade. */
   gradeData: StreakDataPoint[];
   totalXP: number;
-  /** Active learners in the user's grade, the user included. */
   gradeLearnerCount: number;
-  /** Average XP per active learner in the grade over the range. */
   gradeAverageXP: number;
   days: number;
 }

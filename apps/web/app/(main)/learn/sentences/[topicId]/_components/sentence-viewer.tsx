@@ -15,7 +15,7 @@ interface SentenceViewerProps {
   topicGrade: string;
   topicId: number;
   onRecordReview?: (body: ReviewContentFormData) => Promise<unknown>;
-  initialMasteredIds?: number[]; // Sentence IDs with isMastered = true
+  initialMasteredIds?: number[];
 }
 
 export function SentenceViewer({
@@ -45,14 +45,12 @@ export function SentenceViewer({
     new Set(initialMasteredIds),
   );
 
-  // Follow the URL when ?index= changes (e.g. back/forward navigation).
   const [syncedIndexParam, setSyncedIndexParam] = useState(indexParam);
   if (indexParam !== syncedIndexParam) {
     setSyncedIndexParam(indexParam);
     setCurrentIndex(clampStudyIndex(indexParam, sentenceImages.length));
   }
 
-  // "Continue" links carry ?resume; swap it for the image actually opened so a reload stays put.
   useEffect(() => {
     if (isResume) {
       router.replace(`${basePath}?index=${currentIndex}`, { scroll: false });
@@ -60,10 +58,8 @@ export function SentenceViewer({
   }, [isResume, basePath, currentIndex, router]);
 
   const handlePronunciationAssessed = (sentenceId: number, passed: boolean) => {
-    // Track pronunciation passed in current session
     if (passed) {
       setPronunciationPassedIds((prev) => new Set(prev).add(sentenceId));
-      // Also add to mastered list immediately for UI update (backend will confirm)
       setMasteredSentenceIds((prev) => new Set(prev).add(sentenceId));
     }
   };
@@ -86,7 +82,6 @@ export function SentenceViewer({
 
   const handleReset = () => {
     setCurrentIndex(0);
-    // Clear ?index too, or a reload would jump back to the old image.
     router.replace(basePath, { scroll: false });
   };
 
@@ -103,7 +98,6 @@ export function SentenceViewer({
 
   const currentSentenceImage = sentenceImages[currentIndex];
 
-  // Check if all active sentences in the current image are mastered or passed in current session
   const currentSentences = currentSentenceImage.sentences.filter((s) => s.isActive);
   const allCompleted = currentSentences.every(
     (s) => masteredSentenceIds.has(s.id) || pronunciationPassedIds.has(s.id),

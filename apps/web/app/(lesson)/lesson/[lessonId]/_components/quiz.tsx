@@ -27,7 +27,6 @@ type QuizProps = {
   profile: User;
 };
 
-/** Vietnamese name, English echo, and the exercise tile's sticker hue (same as the homepage). */
 const EXERCISE_TITLES = {
   SELECT_IMAGE: {
     vi: "Chọn hình đúng",
@@ -67,10 +66,8 @@ const EXERCISE_TITLES = {
 } as const;
 
 export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
-  // Audio hooks - must be called first to render audio elements
   const { correctAudio, incorrectAudio, finishAudio, playCorrect, playIncorrect } = useQuizAudio();
 
-  // Session management
   const { isReady, savedProgress, resume, restart } = useQuizSession({
     userId: profile.id,
     lessonId: lesson.id,
@@ -79,7 +76,6 @@ export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
 
   const currentDuration = useQuizDuration();
 
-  // Quiz logic - pass audio play functions
   const {
     exercise,
     options,
@@ -95,7 +91,6 @@ export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
     handleContinue,
   } = useQuizLogic({ playCorrect, playIncorrect });
 
-  // Stats
   const { totalPoints, correctCount, wrongCount } = useExerciseStatsStore();
   const { updatePronunciation, getExerciseAttemptCount } = useQuizStore();
 
@@ -103,8 +98,6 @@ export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
     updatePronunciation(state, score);
   };
 
-  // Wait for this lesson's fresh store; the old one may hold a finished quiz.
-  // The audio elements still render: useAudio needs them from mount.
   if (!isReady) {
     return (
       <>
@@ -115,7 +108,6 @@ export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
     );
   }
 
-  // Quiz complete logic
   if (!exercise) {
     return (
       <>
@@ -194,7 +186,6 @@ export const Quiz = ({ lesson, lessonExercises, profile }: QuizProps) => {
           )}
 
           <Exercise
-            // Fresh state per question, so a recording never carries over.
             key={exercise.id}
             options={options}
             onSelect={handleSelect}

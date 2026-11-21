@@ -4,7 +4,6 @@ import Image from "next/image";
 
 import { useProfile } from "@/hooks/use-profile";
 
-/** The mascot at the foot of the sidebar, greeting the child by name. */
 export function SidebarBuddy() {
   const { profile } = useProfile();
   const firstName = profile?.name?.trim().split(/\s+/).at(-1);

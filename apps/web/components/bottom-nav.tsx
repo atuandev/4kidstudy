@@ -38,7 +38,6 @@ function BottomNavItem({ label, icon, href, tone }: NavItem) {
   );
 }
 
-/** Phone and tablet navigation: four big tabs that are always in reach of a thumb. */
 export function BottomNav() {
   return (
     <nav

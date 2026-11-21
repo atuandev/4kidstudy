@@ -24,7 +24,6 @@ export function MultipleChoiceExercise({
   disabled,
   imageUrl,
 }: MultipleChoiceExerciseProps) {
-  // Shuffle on the client only, so the server and hydration render match.
   const isClient = useIsClient();
   const shuffledOptions = useMemo(
     () => (isClient ? shuffleArray(options) : options),
@@ -33,7 +32,6 @@ export function MultipleChoiceExercise({
 
   return (
     <div className="space-y-6">
-      {/* Main Image (for image-to-text format), set like a sticker on the page */}
       {isValidUrl(imageUrl) && (
         <div className="flex justify-center">
           <div className="relative aspect-square w-full max-w-[180px] -rotate-2 overflow-hidden rounded-[24px] border-[6px] border-white bg-white shadow-sticker sm:max-w-[210px]">
@@ -48,7 +46,6 @@ export function MultipleChoiceExercise({
         </div>
       )}
 
-      {/* Answer Options Grid */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
         {shuffledOptions.map((option) => {
           const selected = selectedOption === option.id;

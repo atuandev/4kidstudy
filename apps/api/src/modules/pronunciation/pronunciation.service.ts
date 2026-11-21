@@ -10,16 +10,10 @@ export class PronunciationService {
   private readonly logger = new Logger(PronunciationService.name);
 
   constructor() {
-    // Set ffmpeg path to the binary from @ffmpeg-installer/ffmpeg package
     ffmpeg.setFfmpegPath(ffmpegPath);
     this.logger.log(`FFmpeg path set to: ${ffmpegPath}`);
   }
 
-  /**
-   * Convert audio buffer (MP3, WebM, OGG, etc.) to WAV buffer (16kHz, 16-bit, mono)
-   * Required format for Azure Speech SDK
-   * FFmpeg will automatically detect the input format
-   */
   private async convertAudioToWav(audioBuffer: Buffer): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
@@ -29,9 +23,9 @@ export class PronunciationService {
 
       ffmpeg(readableStream)
         .toFormat('wav')
-        .audioFrequency(16000) // 16kHz
-        .audioChannels(1) // Mono
-        .audioBitrate('256k') // 16-bit
+        .audioFrequency(16000)
+        .audioChannels(1)
+        .audioBitrate('256k')
         .on('error', (err: Error) => {
           this.logger.error(`FFmpeg conversion error: ${err.message}`);
           reject(new Error(`Audio conversion failed: ${err.message}`));
@@ -52,11 +46,9 @@ export class PronunciationService {
     referenceText: string,
   ): Promise<PronunciationAssessmentResponseDto> {
     try {
-      // 1. Convert audio to WAV (16kHz, 16-bit, mono) - supports MP3, WebM, OGG, etc.
       this.logger.log('Converting audio to WAV format...');
       const wavBuffer = await this.convertAudioToWav(audioBuffer);
 
-      // 2. Cấu hình kết nối Azure (Lấy từ .env)
       const speechKey = process.env.AZURE_SPEECH_KEY;
       const speechRegion = process.env.AZURE_SPEECH_REGION;
 
@@ -69,12 +61,8 @@ export class PronunciationService {
         speechRegion,
       );
 
-      // 3. Cấu hình định dạng âm thanh
-      // Sử dụng format mặc định (WAV 16kHz, 16-bit, mono)
       const pushStream = sdk.AudioInputStream.createPushStream();
 
-      // Đẩy WAV buffer vào stream
-      // Chuyển đổi Node.js Buffer sang ArrayBuffer một cách an toàn
       const arrayBuffer = wavBuffer.buffer.slice(
         wavBuffer.byteOffset,
         wavBuffer.byteOffset + wavBuffer.byteLength,
@@ -83,32 +71,26 @@ export class PronunciationService {
       pushStream.write(arrayBuffer);
       pushStream.close();
 
-      // 4. Cấu hình AudioConfig từ stream
       const audioConfig = sdk.AudioConfig.fromStreamInput(pushStream);
 
-      // 5. Cấu hình chấm điểm phát âm
       const pronunciationConfig = new sdk.PronunciationAssessmentConfig(
         referenceText,
         sdk.PronunciationAssessmentGradingSystem.HundredMark,
         sdk.PronunciationAssessmentGranularity.Phoneme,
-        true, // Tự động phát hiện lỗi sai
+        true,
       );
 
-      // 6. Khởi tạo Recognizer
       const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
       pronunciationConfig.applyTo(recognizer);
 
-      // 7. Bắt đầu nhận diện và trả về kết quả (dưới dạng Promise)
       return new Promise<PronunciationAssessmentResponseDto>(
         (resolve, reject) => {
           recognizer.recognizeOnceAsync(
-            // (SỬA LỖI 2) - Type đúng là SpeechRecognitionResult
             (result: sdk.SpeechRecognitionResult) => {
               if (result.reason === sdk.ResultReason.RecognizedSpeech) {
                 const assessment =
                   sdk.PronunciationAssessmentResult.fromResult(result);
 
-                // Map SDK result to DTO (Code của bạn rất tốt)
                 const response: PronunciationAssessmentResponseDto = {
                   success: true,
                   accuracy: assessment.accuracyScore,

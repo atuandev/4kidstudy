@@ -8,7 +8,6 @@ interface GradePickerProps {
   readonly className?: string;
 }
 
-/** Grade 1–5 buttons that open registration with the child's grade already selected. */
 export function GradePicker({ size = "default", className }: GradePickerProps) {
   return (
     <ul

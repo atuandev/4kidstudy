@@ -1,10 +1,6 @@
 import { refine, z } from "zod";
 import { GradeLevel } from "@4kidstudy/contracts";
 
-/**
- * Login schema based on backend LoginDto
- * Matches the validation requirements from the NestJS backend
- */
 export const LoginSchema = z.object({
   email: z
     .string("Email là bắt buộc")
@@ -18,10 +14,6 @@ export const LoginSchema = z.object({
 
 export type LoginSchemaType = z.infer<typeof LoginSchema>;
 
-/**
- * Register schema based on backend RegisterDto
- * Matches the validation requirements from the NestJS backend
- */
 export const RegisterSchema = z
   .object({
     name: z
@@ -63,9 +55,6 @@ export const VerifyEmailSchema = z.object({
 
 export type VerifyEmailSchemaType = z.infer<typeof VerifyEmailSchema>;
 
-/**
- * Forget password schema
- */
 export const ForgetPasswordSchema = z.object({
   email: z
     .string("Email là bắt buộc")
@@ -75,9 +64,6 @@ export const ForgetPasswordSchema = z.object({
 
 export type ForgetPasswordSchemaType = z.infer<typeof ForgetPasswordSchema>;
 
-/**
- * Reset password schema
- */
 export const ResetPasswordSchema = z.object({
   email: z
     .string("Email là bắt buộc")
@@ -91,9 +77,6 @@ export const ResetPasswordSchema = z.object({
 
 export type ResetPasswordSchemaType = z.infer<typeof ResetPasswordSchema>;
 
-/**
- * Change password schema
- */
 export const ChangePasswordSchema = z
   .object({
     currentPassword: z

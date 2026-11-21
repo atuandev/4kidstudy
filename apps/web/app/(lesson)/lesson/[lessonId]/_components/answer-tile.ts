@@ -1,22 +1,13 @@
 import { cn } from "@/lib/utils";
 
 type AnswerState = {
-  /** The child picked this tile. */
   selected?: boolean;
-  /** Result of the last check, for the selected tile. */
   status?: "correct" | "wrong" | "none";
-  /** Matching: this tile is already paired (stays green, no lift). */
   matched?: boolean;
-  /** Matching: this tile was part of a wrong pair. */
   wrong?: boolean;
   disabled?: boolean;
 };
 
-/**
- * One vocabulary for every answer tile in the lesson player: a white tile on a
- * slate ledge; sky when picked; a correct pick lifts off the page like a peeled
- * sticker in green; a wrong pick nudges sideways in red.
- */
 export function answerTileClass({ selected, status, matched, wrong, disabled }: AnswerState) {
   const isCorrect = selected && status === "correct";
   const isWrong = wrong || (selected && status === "wrong");
@@ -28,7 +19,6 @@ export function answerTileClass({ selected, status, matched, wrong, disabled }: 
     "focus-visible:ring-4 focus-visible:ring-sky/50",
     !isPicked && !isCorrect && !isWrong && !matched && "border-edge",
     !disabled && !matched && "cursor-pointer",
-    // Hover and press only while the tile has no verdict, so the result colour always shows.
     !disabled &&
       !matched &&
       !isCorrect &&
@@ -44,7 +34,6 @@ export function answerTileClass({ selected, status, matched, wrong, disabled }: 
   );
 }
 
-/** The small keyboard-number badge in a tile's corner. */
 export function answerKeyClass({ selected, status }: AnswerState) {
   return cn(
     "flex size-7 items-center justify-center rounded-lg border-2 bg-white text-xs font-black tabular-nums",
@@ -55,11 +44,6 @@ export function answerKeyClass({ selected, status }: AnswerState) {
   );
 }
 
-/**
- * Enter is the lesson's global "check / continue" key. Stop it from also
- * activating whichever button has focus, so one press never acts twice.
- * Space and clicks still activate the button.
- */
 export function keepEnterForCheck(event: { key: string; preventDefault: () => void }) {
   if (event.key === "Enter") event.preventDefault();
 }

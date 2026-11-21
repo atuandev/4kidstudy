@@ -4,10 +4,6 @@ import { UserRole } from '@prisma/client';
 import type { Request } from 'express';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
-/**
- * Allows the request when `req.user.role` is one of the route's @Roles().
- * Run after JwtAuthGuard, which sets `req.user`.
- */
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}

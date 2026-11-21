@@ -20,7 +20,6 @@ describe('LeaderboardService.getWeeklyLeaderboard', () => {
       { id: 2, name: 'Binh', avatarUrl: null },
       { id: 3, name: 'Chi', avatarUrl: null },
     ]);
-    // User 1 has no completed attempts this week.
     prisma.attempt.groupBy.mockResolvedValue([
       { userId: 2, _sum: { totalScore: 30 } },
       { userId: 3, _sum: { totalScore: 50 } },
@@ -28,7 +27,6 @@ describe('LeaderboardService.getWeeklyLeaderboard', () => {
 
     const result = await service.getWeeklyLeaderboard(2);
 
-    // User 1 has no points, so is counted rather than ranked.
     expect(result.entries.map((e) => [e.userId, e.totalScore, e.rank])).toEqual(
       [
         [3, 50, 1],
@@ -72,14 +70,12 @@ describe('LeaderboardService.getWeeklyLeaderboard ties', () => {
 
     const result = await service.getWeeklyLeaderboard(5);
 
-    // Ties are ordered by name: An before Binh.
     expect(result.entries.map((e) => [e.name, e.rank])).toEqual([
       ['Dung', 1],
       ['An', 2],
       ['Binh', 2],
       ['Chi', 4],
     ]);
-    // User 5 has no points this week.
     expect(result.currentUserRank).toBe(0);
     expect(result.unrankedCount).toBe(1);
   });
@@ -97,7 +93,6 @@ describe('LeaderboardService.getStreakStats', () => {
     prisma.user.findUnique.mockResolvedValue({ grade: GradeLevel.GRADE_5 });
     prisma.user.count.mockResolvedValue(4);
     prisma.streakLog.findMany
-      // The user's own logs, then the grade's.
       .mockResolvedValueOnce([{ day, xpEarned: 120 }])
       .mockResolvedValueOnce([
         { day, xpEarned: 120 },
@@ -109,7 +104,6 @@ describe('LeaderboardService.getStreakStats', () => {
     expect(result.totalXP).toBe(120);
     expect(result.gradeData).toEqual([{ date: '2026-11-20', xpEarned: 200 }]);
     expect(result.gradeLearnerCount).toBe(4);
-    // Learners without XP count too: 200 XP over 4 learners.
     expect(result.gradeAverageXP).toBe(50);
     expect(prisma.user.count).toHaveBeenCalledWith({
       where: { grade: GradeLevel.GRADE_5, isActive: true },

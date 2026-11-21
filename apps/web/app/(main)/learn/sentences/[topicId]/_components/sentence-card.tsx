@@ -14,7 +14,7 @@ interface SentenceCardProps {
   sentenceImage: SentenceImage;
   onRecordReview?: (body: ReviewContentFormData) => Promise<unknown>;
   onPronunciationAssessed?: (sentenceId: number, passed: boolean) => void;
-  masteredSentenceIds: Set<number>; // Sentences with isMastered = true from backend
+  masteredSentenceIds: Set<number>;
 }
 
 export function SentenceCard({
@@ -31,17 +31,13 @@ export function SentenceCard({
   };
 
   const handleAssessmentComplete = (sentenceId: number) => (score: number, passed: boolean) => {
-    // console.log(`[Sentence ${sentenceId}] Assessment complete:`, { score, passed });
     onPronunciationAssessed?.(sentenceId, passed);
 
-    // Record review and set isMastered = true if passed (>= 50%)
     if (typeof onRecordReview === "function") {
-      // console.log(`[Sentence ${sentenceId}] Calling reviewContent API with isMastered=${passed}...`);
       onRecordReview({
         contentType: "SENTENCE",
         flashcardId: undefined,
         sentenceId,
-        // Only ever set mastered: a failed retry must not un-master a sentence already passed.
         isMastered: passed ? true : undefined,
       })
         .then((result) => {
@@ -63,7 +59,6 @@ export function SentenceCard({
     <section className="grid grid-cols-1 gap-5 rounded-[28px] bg-white p-4 shadow-sheet-lime sm:p-6 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] md:gap-7">
       <div className="flex flex-col gap-4">
         <div className="-rotate-1 overflow-hidden rounded-[22px] border-[5px] border-white bg-wash shadow-sticker">
-          {/* Natural aspect: these pictures range from square panels to wide comic strips. */}
           <Image
             src={sentenceImage.imageUrl}
             alt="Hình minh hoạ cho các câu"
@@ -89,7 +84,6 @@ export function SentenceCard({
       ) : (
         <ol className="flex flex-col gap-3">
           {activeSentences.map((sentence, position) => {
-            // Check if sentence is mastered (isMastered = true from backend)
             const isMastered = masteredSentenceIds.has(sentence.id);
 
             return (

@@ -19,23 +19,16 @@ import {
   GradeStatsItemDto,
 } from './dtos';
 
-/**
- * Service for handling learning progress tracking
- */
 @Injectable()
 export class LearningProgressService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Get or create learning progress for a user and content
-   */
   async getOrCreateProgress(
     userId: number,
     createDto: CreateLearningProgressDto,
   ): Promise<LearningProgressResponseDto> {
     const { contentType, flashcardId, sentenceId } = createDto;
 
-    // Validate that either flashcardId or sentenceId is provided based on contentType
     if (contentType === LearningContentType.FLASHCARD && !flashcardId) {
       throw new BadRequestException(
         'flashcardId is required for FLASHCARD content type',
@@ -48,7 +41,6 @@ export class LearningProgressService {
       );
     }
 
-    // Check if progress already exists
     const existingProgress = await this.prisma.learningProgress.findFirst({
       where: {
         userId,
@@ -85,7 +77,6 @@ export class LearningProgressService {
       return this.mapToProgressResponse(existingProgress);
     }
 
-    // Verify content exists
     if (flashcardId) {
       const flashcard = await this.prisma.flashcard.findUnique({
         where: { id: flashcardId },
@@ -106,7 +97,6 @@ export class LearningProgressService {
       }
     }
 
-    // Create new progress
     const progress = await this.prisma.learningProgress.create({
       data: {
         userId,
@@ -142,16 +132,12 @@ export class LearningProgressService {
     return this.mapToProgressResponse(progress);
   }
 
-  /**
-   * Review content (increment review count and optionally mark as mastered)
-   */
   async reviewContent(
     userId: number,
     reviewDto: ReviewContentDto,
   ): Promise<LearningProgressResponseDto> {
     const { contentType, flashcardId, sentenceId, isMastered } = reviewDto;
 
-    // Find existing progress
     let progress = await this.prisma.learningProgress.findFirst({
       where: {
         userId,
@@ -161,7 +147,6 @@ export class LearningProgressService {
       },
     });
 
-    // If progress doesn't exist, create it first
     if (!progress) {
       progress = await this.prisma.learningProgress.create({
         data: {
@@ -175,7 +160,6 @@ export class LearningProgressService {
       });
     }
 
-    // Update progress (increment review count and set isMastered if passed in assessment)
     const updatedProgress = await this.prisma.learningProgress.update({
       where: { id: progress.id },
       data: {
@@ -211,9 +195,6 @@ export class LearningProgressService {
     return this.mapToProgressResponse(updatedProgress);
   }
 
-  /**
-   * Get learning progress by ID
-   */
   async getProgressById(
     id: number,
     userId: number,
@@ -248,9 +229,6 @@ export class LearningProgressService {
     return this.mapToProgressResponse(progress);
   }
 
-  /**
-   * Get paginated learning progress for a user
-   */
   async getUserProgress(
     userId: number,
     query: GetLearningProgressQueryDto,
@@ -332,15 +310,11 @@ export class LearningProgressService {
     };
   }
 
-  /**
-   * Update learning progress
-   */
   async updateProgress(
     id: number,
     userId: number,
     updateDto: UpdateLearningProgressDto,
   ): Promise<LearningProgressResponseDto> {
-    // Verify progress exists and belongs to user
     const progress = await this.prisma.learningProgress.findFirst({
       where: { id, userId },
     });
@@ -385,9 +359,6 @@ export class LearningProgressService {
     return this.mapToProgressResponse(updated);
   }
 
-  /**
-   * Delete learning progress
-   */
   async deleteProgress(id: number, userId: number): Promise<void> {
     const progress = await this.prisma.learningProgress.findFirst({
       where: { id, userId },
@@ -402,9 +373,6 @@ export class LearningProgressService {
     });
   }
 
-  /**
-   * Get learning progress statistics for a user
-   */
   async getUserStats(
     userId: number,
   ): Promise<LearningProgressStatsResponseDto> {
@@ -431,13 +399,8 @@ export class LearningProgressService {
     };
   }
 
-  /**
-   * Map learning progress to response DTO
-   */
   /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
-  private mapToProgressResponse(
-    progress: any, // Using any to handle both cases with and without nested relations
-  ): LearningProgressResponseDto {
+  private mapToProgressResponse(progress: any): LearningProgressResponseDto {
     const flashcard = progress.flashcard
       ? {
           id: progress.flashcard.id,
@@ -486,9 +449,6 @@ export class LearningProgressService {
   }
   /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
-  /**
-   * Get learning progress by topic for a user
-   */
   async getTopicProgress(
     userId: number,
     topicId: number,
@@ -499,10 +459,6 @@ export class LearningProgressService {
     return progress ?? buildTopicProgress(topicId, [], [], []);
   }
 
-  /**
-   * Get learning progress for every topic in a grade, in topic order.
-   * Runs a fixed number of queries however many topics the grade has.
-   */
   async getTopicsProgressByGrade(
     userId: number,
     grade: GradeLevel,
@@ -510,10 +466,6 @@ export class LearningProgressService {
     return this.computeTopicProgress(userId, { grade });
   }
 
-  /**
-   * Learning statistics for one grade, for the learning history dialog.
-   * Totals include inactive content, matching what the dialog has always shown.
-   */
   async getGradeLearningStats(
     userId: number,
     grade: GradeLevel,
@@ -588,7 +540,6 @@ export class LearningProgressService {
       (isFlashcard ? flashcardItems : sentenceItems).push(item);
     }
 
-    // Array.prototype.sort is stable, so ties keep most-recently-reviewed first.
     flashcardItems.sort((a, b) => b.reviewCount - a.reviewCount);
     sentenceItems.sort((a, b) => b.reviewCount - a.reviewCount);
 
@@ -696,9 +647,6 @@ export class LearningProgressService {
     );
   }
 
-  /**
-   * Get mastered flashcard IDs for a specific topic (isMastered = true)
-   */
   async getReviewedFlashcardIds(
     userId: number,
     topicId: number,
@@ -707,7 +655,7 @@ export class LearningProgressService {
       where: {
         userId,
         contentType: LearningContentType.FLASHCARD,
-        isMastered: true, // Only get mastered flashcards
+        isMastered: true,
         flashcard: {
           topicId,
         },
@@ -722,9 +670,6 @@ export class LearningProgressService {
       .filter((id): id is number => id !== null);
   }
 
-  /**
-   * Get mastered sentence IDs for a specific topic (isMastered = true)
-   */
   async getReviewedSentenceIds(
     userId: number,
     topicId: number,
@@ -733,7 +678,7 @@ export class LearningProgressService {
       where: {
         userId,
         contentType: LearningContentType.SENTENCE,
-        isMastered: true, // Only get mastered sentences
+        isMastered: true,
         sentence: {
           sentenceImage: {
             topicId,
@@ -750,11 +695,7 @@ export class LearningProgressService {
       .filter((id): id is number => id !== null);
   }
 
-  /**
-   * Get the last reviewed topic ID for a user
-   */
   async getLastReviewedTopic(userId: number): Promise<number | null> {
-    // Get the most recent learning progress entry
     const lastProgress = await this.prisma.learningProgress.findFirst({
       where: {
         userId,
@@ -784,7 +725,6 @@ export class LearningProgressService {
       return null;
     }
 
-    // Return topicId from flashcard or sentence
     if (lastProgress.flashcard) {
       return lastProgress.flashcard.topicId;
     }
@@ -807,11 +747,6 @@ type ProgressRow = {
 const toPercent = (part: number, total: number): number =>
   total > 0 ? Math.round((part / total) * 100 * 10) / 10 : 0;
 
-/**
- * Builds one topic's progress from its active content (sorted by `order`)
- * and the user's progress rows. A row counts as reviewed when it is mastered;
- * the "last reviewed" index is the furthest item the user has any row for.
- */
 function buildTopicProgress(
   topicId: number,
   flashcards: { id: number }[],

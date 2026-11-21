@@ -1,9 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-/**
- * Response DTO for real-time pronunciation assessment
- * This is the result returned immediately after assessing audio
- */
 export class PronunciationAssessmentResponseDto {
   @ApiProperty({ description: 'Assessment was successful' })
   success: boolean;

@@ -1,9 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ExerciseType } from '@prisma/client';
 
-/**
- * Response DTO for pronunciation score
- */
 export class PronunciationScoreResponseDto {
   @ApiPropertyOptional({
     description: 'Pronunciation accuracy score',
@@ -42,9 +39,6 @@ export class PronunciationScoreResponseDto {
   audioUrl?: string;
 }
 
-/**
- * Response DTO for exercise option
- */
 export class ExerciseOptionResponseDto {
   @ApiProperty({ description: 'Option ID', example: 1 })
   id: number;
@@ -86,9 +80,6 @@ export class ExerciseOptionResponseDto {
   matchKey?: string;
 }
 
-/**
- * Response DTO for exercise
- */
 export class ExerciseResponseDto {
   @ApiProperty({ description: 'Exercise ID', example: 1 })
   id: number;
@@ -173,9 +164,6 @@ export class ExerciseResponseDto {
   updatedAt: Date;
 }
 
-/**
- * Response DTO for attempt detail
- */
 export class AttemptDetailResponseDto {
   @ApiProperty({ description: 'Attempt detail ID', example: 1 })
   id: number;

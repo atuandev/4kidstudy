@@ -9,7 +9,6 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from './roles.decorator';
 
-/** Requires a valid access token (any role). */
 export const Authenticated = () =>
   applyDecorators(
     UseGuards(JwtAuthGuard),
@@ -17,7 +16,6 @@ export const Authenticated = () =>
     ApiUnauthorizedResponse({ description: 'Missing or invalid access token' }),
   );
 
-/** Requires a valid access token with the ADMIN role. */
 export const AdminOnly = () =>
   applyDecorators(
     UseGuards(JwtAuthGuard, RolesGuard),

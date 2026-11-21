@@ -3,7 +3,6 @@
 import { useExerciseStatsStore } from "@/lib/stores/exercise-stats-store";
 import { ResultCard } from "./result-card";
 
-/** The finish sheet: points earned as the headline, then the lesson's numbers. */
 export function ExerciseStatsDashboard() {
   const { totalPoints, correctCount, skippedCount, duration, getAccuracy } =
     useExerciseStatsStore();

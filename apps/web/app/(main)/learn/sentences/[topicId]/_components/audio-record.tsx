@@ -8,7 +8,7 @@ interface AudioRecordProps {
   className?: string;
   onStopPropagation?: (event: React.MouseEvent) => void;
   resetTrigger?: string | number;
-  targetText?: string; // Text to assess pronunciation against
+  targetText?: string;
   onAssessmentComplete?: (score: number, passed: boolean) => void;
 }
 
@@ -48,14 +48,11 @@ export function AudioRecord({
         const blob = new Blob(chunksRef.current, { type: "audio/wav" });
         setRecordedBlob(blob);
 
-        // Create URL for playback
         const url = URL.createObjectURL(blob);
         setRecordedAudioUrl(url);
 
         setRecordingState("recorded");
-        // console.log("Recording completed, state set to 'recorded'");
 
-        // Stop all tracks to release microphone
         stream.getTracks().forEach((track) => track.stop());
       };
 
@@ -86,12 +83,10 @@ export function AudioRecord({
       setErrorMessage("");
       setAnalysisProgress(0);
 
-      // Simulate progress
       const progressInterval = setInterval(() => {
         setAnalysisProgress((prev) => Math.min(prev + 10, 90));
       }, 300);
 
-      // Call pronunciation assessment API
       const response = await assessPronunciation(recordedBlob, targetText);
 
       clearInterval(progressInterval);
@@ -104,7 +99,6 @@ export function AudioRecord({
       setAssessmentPassed(passed);
       setRecordingState("completed");
 
-      // Notify parent component
       onAssessmentComplete?.(score, passed);
     } catch (error) {
       console.error("Error analyzing pronunciation:", error);
@@ -114,7 +108,6 @@ export function AudioRecord({
   }, [recordedBlob, targetText, onAssessmentComplete]);
 
   const resetRecording = useCallback(() => {
-    // Clean up previous object URL
     if (recordedAudioUrl) {
       URL.revokeObjectURL(recordedAudioUrl);
     }
@@ -140,26 +133,20 @@ export function AudioRecord({
     }
   }, [recordedAudioUrl]);
 
-  // Reset recording when resetTrigger changes (e.g., flashcard changes)
   useEffect(() => {
-    // Only reset if we have a previous resetTrigger value and it's different
-    // This prevents reset on initial mount
     if (
       prevResetTriggerRef.current !== undefined &&
       prevResetTriggerRef.current !== resetTrigger &&
       resetTrigger !== undefined
     ) {
-      // console.log("Resetting recording due to resetTrigger change:", prevResetTriggerRef.current, "->", resetTrigger);
       resetRecording();
     }
 
     prevResetTriggerRef.current = resetTrigger;
   }, [resetTrigger, resetRecording]);
 
-  // Cleanup on component unmount
   useEffect(() => {
     return () => {
-      // Clean up recorded audio URL
       if (recordedAudioUrl) {
         URL.revokeObjectURL(recordedAudioUrl);
       }

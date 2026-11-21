@@ -2,9 +2,6 @@ import { IsInt, IsOptional, IsEnum, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 import { LearningContentType } from '@prisma/client';
 
-/**
- * DTO for querying learning progress list
- */
 export class GetLearningProgressQueryDto {
   @IsInt()
   @IsOptional()

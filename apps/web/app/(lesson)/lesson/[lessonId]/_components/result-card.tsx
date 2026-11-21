@@ -42,7 +42,6 @@ const formatDuration = (seconds: number) => {
   return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
 };
 
-/** One result tile on the finish sheet: icon, Vietnamese label with English echo, value. */
 export const ResultCard = ({ value, variant }: ResultCardProps) => {
   const config = CONFIG[variant];
   const Icon = config.icon;

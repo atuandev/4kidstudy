@@ -99,7 +99,6 @@ export class AuthService {
       throw new ForbiddenException('Access Denied');
     }
 
-    // Generate new tokens
     const tokens = await this.generateTokens(user.id, user.email, user.role);
 
     return tokens;

@@ -7,9 +7,6 @@ import {
 } from 'class-validator';
 import { LearningContentType } from '@prisma/client';
 
-/**
- * DTO for reviewing a flashcard or sentence
- */
 export class ReviewContentDto {
   @IsEnum(LearningContentType)
   @IsNotEmpty()

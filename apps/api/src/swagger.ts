@@ -1,6 +1,5 @@
 import { DocumentBuilder } from '@nestjs/swagger';
 
-/** Global route prefix. Shared by main.ts and the OpenAPI generator. */
 export const API_PREFIX = 'api';
 
 export function createSwaggerConfig() {

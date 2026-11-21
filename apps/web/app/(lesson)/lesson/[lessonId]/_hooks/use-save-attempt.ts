@@ -9,16 +9,8 @@ import { clearLessonProgress } from "@/lib/lesson-progress";
 
 export type SaveStatus = "saving" | "saved" | "error";
 
-/**
- * Ends the session and saves the finished lesson in one request. Runs once
- * when the finish page mounts; `retry` sends the same answers again after a
- * failure. A saved attempt is never sent twice. Once saved, the lesson's
- * resumable progress is cleared; until then it stays, so a learner who leaves
- * after a failed save comes back to this page and it tries again.
- */
 export function useSaveAttempt(userId: number, lessonId: number) {
   const { fetchProfile } = useProfile();
-  // A lesson with no answers has nothing to save.
   const [status, setStatus] = useState<SaveStatus>(() =>
     useQuizStore.getState().answers.length > 0 ? "saving" : "saved",
   );
@@ -35,7 +27,6 @@ export function useSaveAttempt(userId: number, lessonId: number) {
       () => {
         clearLessonProgress(userId, lessonId);
         setStatus("saved");
-        // XP and streak changed on the server.
         void fetchProfile();
       },
       (error: unknown) => {
@@ -47,7 +38,6 @@ export function useSaveAttempt(userId: number, lessonId: number) {
   }, [userId, lessonId, fetchProfile]);
 
   useEffect(() => {
-    // Stop the clock once, before the first save.
     if (durationRef.current === null) {
       const stats = useExerciseStatsStore.getState();
       durationRef.current = stats.startTime
@@ -56,7 +46,6 @@ export function useSaveAttempt(userId: number, lessonId: number) {
       stats.endSession();
     }
 
-    // The ref also absorbs Strict Mode's second effect run.
     if (inFlightOrSavedRef.current) return;
     if (useQuizStore.getState().answers.length === 0) return;
     void send();

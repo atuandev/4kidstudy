@@ -11,7 +11,6 @@ interface FlashcardsTopicPageProps {
 
 export default async function FlashcardsTopicPage({ params }: FlashcardsTopicPageProps) {
   const { topicId } = await params;
-  // Active cards only: the saved resume index counts active cards, so the lists must match.
   const data = await getFlashcardsByTopic(parseInt(topicId, 10), true);
 
   return (

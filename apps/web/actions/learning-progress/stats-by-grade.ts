@@ -18,18 +18,18 @@ export interface GradeLearningStats {
     total: number;
     percentage: number;
     topItems: TopItem[];
-    allItems: TopItem[]; // All items for detail dialog
+    allItems: TopItem[];
   };
   sentenceStats: {
     reviewed: number;
     total: number;
     percentage: number;
     topItems: TopItem[];
-    allItems: TopItem[]; // All items for detail dialog
+    allItems: TopItem[];
   };
   topicCount: number;
   topTopics: { id: number; name: string; reviewCount: number }[];
-  topics: { id: number; name: string }[]; // For filter dropdown
+  topics: { id: number; name: string }[];
 }
 
 const EMPTY_STATS: GradeLearningStats = {
@@ -41,10 +41,6 @@ const EMPTY_STATS: GradeLearningStats = {
   topics: [],
 };
 
-/**
- * Learning statistics for the current user within one grade.
- * The API computes everything in a single request.
- */
 export async function getLearningStatsByGrade(grade: GradeValue): Promise<GradeLearningStats> {
   try {
     const { status, payload } = await http.get<GradeLearningStats>(

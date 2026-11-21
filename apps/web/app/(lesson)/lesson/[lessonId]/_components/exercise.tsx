@@ -33,10 +33,7 @@ export const Exercise = ({
   prompt,
   onPronunciationStateChange,
 }: ExerciseProps) => {
-  // Use original options order to prevent hydration mismatch
-  // Options order should be consistent between server and client
   const exerciseOptions = options;
-  // Handle specialized exercise types
   if (type === "MATCHING") {
     return (
       <MatchingExercise
@@ -89,7 +86,6 @@ export const Exercise = ({
     );
   }
 
-  // Handle standard exercise types with cards (SELECT_IMAGE only)
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fit,minmax(0,1fr))] sm:gap-4">
       {exerciseOptions.map((option, i) => (

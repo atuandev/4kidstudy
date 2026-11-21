@@ -67,7 +67,6 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
   const topicColumn = table.getColumn("topicId");
   const selectedTopicIds = (topicColumn?.getFilterValue() as string[]) ?? [];
 
-  // Update store when grade filter changes
   useEffect(() => {
     if (selectedGrades.length === 1) {
       setSelectedGrade(selectedGrades[0]);
@@ -76,7 +75,6 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
     }
   }, [selectedGrades.join(","), setSelectedGrade]);
 
-  // Update store when topic filter changes
   useEffect(() => {
     if (selectedTopicIds.length === 1) {
       setSelectedTopicId(parseInt(selectedTopicIds[0]));

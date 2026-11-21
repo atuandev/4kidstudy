@@ -5,11 +5,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/**
- * Validates if a string is a valid URL
- * @param urlString - The URL string to validate
- * @returns true if valid URL, false otherwise
- */
 export function isValidUrl(urlString: string | undefined | null): boolean {
   if (!urlString || typeof urlString !== "string") {
     return false;
@@ -23,11 +18,6 @@ export function isValidUrl(urlString: string | undefined | null): boolean {
   }
 }
 
-/**
- * Shuffles an array using the Fisher-Yates algorithm
- * @param array The array to shuffle
- * @returns A new shuffled array
- */
 export function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {

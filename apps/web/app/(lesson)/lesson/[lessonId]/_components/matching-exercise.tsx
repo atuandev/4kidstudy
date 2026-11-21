@@ -33,10 +33,8 @@ export function MatchingExercise({ options, onSelect, status, disabled }: Matchi
     leftId: number;
     rightId: number;
   } | null>(null);
-  // Which exercise (options array) completion was already reported for.
   const notifiedForRef = useRef<ExerciseOption[] | null>(null);
 
-  // Reset state when options change (new exercise), during render.
   const [optionsForState, setOptionsForState] = useState(options);
   if (options !== optionsForState) {
     setOptionsForState(options);
@@ -47,7 +45,6 @@ export function MatchingExercise({ options, onSelect, status, disabled }: Matchi
     setLastMatchedPair(null);
   }
 
-  // Group options by matchKey to create pairs
   const { leftOptions, rightOptions, pairs } = useMemo(() => {
     const pairMap = new Map<string, MatchPair>();
     const leftOpts: ExerciseOption[] = [];
@@ -78,23 +75,19 @@ export function MatchingExercise({ options, onSelect, status, disabled }: Matchi
       }
     });
 
-    // Separate into left (Vietnamese/Images) and right (English) columns
     options.forEach((option) => {
       const hasImage = !!option.imageUrl;
       const isVietnamese =
         option.text &&
         /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/.test(option.text);
 
-      // Left column: Options with images OR Vietnamese text
       if (hasImage || isVietnamese) {
         leftOpts.push(option);
       } else {
-        // Right column: English text
         rightOpts.push(option);
       }
     });
 
-    // If we don't have items in both columns, distribute evenly
     if (leftOpts.length === 0 || rightOpts.length === 0) {
       const allOpts = [...options];
       leftOpts.length = 0;
@@ -109,7 +102,6 @@ export function MatchingExercise({ options, onSelect, status, disabled }: Matchi
       });
     }
 
-    // Shuffle both columns to randomize option order
     return {
       leftOptions: shuffleArray(leftOpts),
       rightOptions: shuffleArray(rightOpts),
@@ -117,8 +109,6 @@ export function MatchingExercise({ options, onSelect, status, disabled }: Matchi
     };
   }, [options]);
 
-  // While a wrong pair's red verdict is showing, the child must press Continue first;
-  // a pair finished meanwhile would be ignored by the quiz and leave the exercise stuck.
   const isLocked = disabled || status === "wrong";
 
   const handleLeftClick = (optionId: number) => {
@@ -127,7 +117,6 @@ export function MatchingExercise({ options, onSelect, status, disabled }: Matchi
     setSelectedLeft(optionId);
     setSelectedRight(null);
 
-    // If we have a right selection, try to match
     if (selectedRight) {
       checkMatch(optionId, selectedRight);
     }
@@ -139,7 +128,6 @@ export function MatchingExercise({ options, onSelect, status, disabled }: Matchi
     setSelectedRight(optionId);
     setSelectedLeft(null);
 
-    // If we have a left selection, try to match
     if (selectedLeft) {
       checkMatch(selectedLeft, optionId);
     }
@@ -151,28 +139,21 @@ export function MatchingExercise({ options, onSelect, status, disabled }: Matchi
 
     if (!leftOption || !rightOption) return;
 
-    // Check if they have the same matchKey
     const isCorrectMatch = leftOption.matchKey === rightOption.matchKey;
 
     if (isCorrectMatch) {
-      // Add to matches
       setMatches((prev) => new Map(prev.set(leftOption.matchKey!, true)));
 
-      // Store the matched pair
       setLastMatchedPair({ leftId: leftId, rightId: rightId });
 
-      // Clear selections
       setSelectedLeft(null);
       setSelectedRight(null);
 
-      // Clear any previous wrong match state
       setWrongMatch(null);
     } else {
-      // Wrong match, show error briefly then clear
       setWrongMatch({ leftId, rightId });
 
-      // Trigger parent component's wrong state to play incorrect audio
-      onSelect(-1); // Use -1 to indicate wrong match
+      onSelect(-1);
 
       setTimeout(() => {
         setSelectedLeft(null);
@@ -188,15 +169,11 @@ export function MatchingExercise({ options, onSelect, status, disabled }: Matchi
 
   const isAllMatched = matches.size === pairs.length;
 
-  // Notify parent when all matches are complete, but only once
   useEffect(() => {
     if (isAllMatched && matches.size > 0 && notifiedForRef.current !== options && lastMatchedPair) {
       notifiedForRef.current = options;
-      // Use a small delay to ensure the last match animation completes
       setTimeout(() => {
-        // Store both matched option IDs in the quiz store
         selectOptions(lastMatchedPair.leftId, lastMatchedPair.rightId);
-        // Trigger completion state by selecting the left option
         onSelect(lastMatchedPair.leftId);
       }, 300);
     }
@@ -217,7 +194,6 @@ export function MatchingExercise({ options, onSelect, status, disabled }: Matchi
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:gap-6">
-      {/* Left Column (Vietnamese/Images) */}
       <div className="space-y-3">
         {leftOptions.map((option) => (
           <button
@@ -246,7 +222,6 @@ export function MatchingExercise({ options, onSelect, status, disabled }: Matchi
         ))}
       </div>
 
-      {/* Right Column (English) */}
       <div className="space-y-3">
         {rightOptions.map((option) => (
           <button

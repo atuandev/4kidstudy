@@ -119,7 +119,6 @@ export default function LessonFormPage() {
   const isEditMode = !!lessonId;
   const isTopicLocked = !!topicIdParam;
 
-  // Use different schemas based on mode
   const form = useForm<CreateLessonFormData | CreateLessonsFormData>({
     resolver: zodResolver(
       isTopicLocked ? CreateLessonsSchema : CreateLessonSchema,
@@ -163,7 +162,6 @@ export default function LessonFormPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formControl = form.control as any;
 
-  // Fetch topics and lesson data on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -178,7 +176,6 @@ export default function LessonFormPage() {
             setSelectedGrade(topic.grade);
           }
 
-          // Load existing lessons for this topic
           const existingLessons = await getLessons({ topicId: parsedTopicId });
 
           if (existingLessons.length > 0) {
@@ -237,7 +234,6 @@ export default function LessonFormPage() {
             coverImage: lesson.coverImage ?? "",
           });
         } else {
-          // Auto-fill from store if filter was used
           if (storeGrade) {
             setSelectedGrade(storeGrade);
             toast.success(`Đã chọn lớp: ${GRADE_LABELS[storeGrade]}`);
@@ -277,14 +273,11 @@ export default function LessonFormPage() {
         router.push("/admin/lessons");
         router.refresh();
       } else if (isTopicLocked) {
-        // Bulk create/update mode
         const bulkData = data as CreateLessonsFormData;
 
-        // Split lessons into existing (with id) and new (without id)
         const existingLessons = bulkData.lessons.filter((lesson) => lesson.id);
         const newLessons = bulkData.lessons.filter((lesson) => !lesson.id);
 
-        // Update existing lessons individually
         if (existingLessons.length > 0) {
           await Promise.all(
             existingLessons.map((lesson) =>
@@ -304,7 +297,6 @@ export default function LessonFormPage() {
           );
         }
 
-        // Create new lessons if any
         if (newLessons.length > 0) {
           const cleanedNewLessons = newLessons.map((lesson) => {
             const cleaned: NewLessonInput = {
@@ -313,13 +305,11 @@ export default function LessonFormPage() {
               status: lesson.status,
             };
 
-            // Only include optional fields if they have values
             if (lesson.theoryText) cleaned.theoryText = lesson.theoryText;
             if (lesson.phoneticsNote) cleaned.phoneticsNote = lesson.phoneticsNote;
             if (lesson.grammarNote) cleaned.grammarNote = lesson.grammarNote;
             if (lesson.audioUrl) cleaned.audioUrl = lesson.audioUrl;
             if (lesson.coverImage) cleaned.coverImage = lesson.coverImage;
-            // DO NOT send order for new lessons - let backend auto-assign
 
             return cleaned;
           });
@@ -329,7 +319,6 @@ export default function LessonFormPage() {
         toast.success("Cập nhật thành công");
         clearSelection();
       } else {
-        // Single create mode
         const singleData = data as CreateLessonFormData;
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { order, ...createData } = singleData;
@@ -413,14 +402,12 @@ export default function LessonFormPage() {
       grammarNote: "",
       audioUrl: "",
       coverImage: "",
-      // Don't set order here - backend will auto-assign
     });
   }
 
   async function handleRemoveLesson(index: number) {
     const lesson = form.getValues(`lessons.${index}` as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
-    // If lesson has an id, it exists in the database and needs to be deleted
     if (lesson.id) {
       try {
         await deleteLesson(lesson.id);
@@ -431,7 +418,6 @@ export default function LessonFormPage() {
         toast.error("Xóa bài luyện tập thất bại");
       }
     } else {
-      // Just remove from form array if it's a new lesson not yet saved
       remove(index);
     }
   }
@@ -462,7 +448,6 @@ export default function LessonFormPage() {
 
   return (
     <div className="max-w-4xl space-y-6 py-6 px-4">
-      {/* Header */}
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
@@ -497,13 +482,11 @@ export default function LessonFormPage() {
             : "Thêm bài luyện tập mới"}
       </TypographyH3>
 
-      {/* Form */}
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
           className="space-y-6"
         >
-          {/* Grade and Topic Selection */}
           <div className="grid gap-4 md:grid-cols-2">
             <FormItem className="flex flex-col">
               <FormLabel>
@@ -562,7 +545,6 @@ export default function LessonFormPage() {
             />
           </div>
 
-          {/* Bulk Mode: List of Lessons */}
           {isTopicLocked ? (
             <>
               <Separator className="my-6" />
@@ -642,7 +624,6 @@ export default function LessonFormPage() {
 
                       {isExpanded && (
                         <CardContent className="space-y-4 pt-0">
-                          {/* Title */}
                           <FormField
                             control={formControl}
                             name={`lessons.${index}.title`}
@@ -659,7 +640,6 @@ export default function LessonFormPage() {
                             )}
                           />
 
-                          {/* Description */}
                           <FormField
                             control={formControl}
                             name={`lessons.${index}.description`}
@@ -680,7 +660,6 @@ export default function LessonFormPage() {
                             )}
                           />
 
-                          {/* Status */}
                           <FormField
                             control={formControl}
                             name={`lessons.${index}.status`}
@@ -710,7 +689,6 @@ export default function LessonFormPage() {
 
                           <Separator />
 
-                          {/* Theory Text */}
                           <FormField
                             control={formControl}
                             name={`lessons.${index}.theoryText`}
@@ -729,7 +707,6 @@ export default function LessonFormPage() {
                             )}
                           />
 
-                          {/* Phonetics Note */}
                           <FormField
                             control={formControl}
                             name={`lessons.${index}.phoneticsNote`}
@@ -748,7 +725,6 @@ export default function LessonFormPage() {
                             )}
                           />
 
-                          {/* Grammar Note */}
                           <FormField
                             control={formControl}
                             name={`lessons.${index}.grammarNote`}
@@ -769,7 +745,6 @@ export default function LessonFormPage() {
 
                           <Separator />
 
-                          {/* Cover Image */}
                           <FormField
                             control={formControl}
                             name={`lessons.${index}.coverImage`}
@@ -796,7 +771,6 @@ export default function LessonFormPage() {
                             )}
                           />
 
-                          {/* Audio URL */}
                           <FormField
                             control={formControl}
                             name={`lessons.${index}.audioUrl`}
@@ -830,9 +804,7 @@ export default function LessonFormPage() {
               </div>
             </>
           ) : (
-            /* Single Mode: Original Form Fields */
             <>
-              {/* Title */}
               <FormField
                 control={formControl}
                 name="title"
@@ -849,7 +821,6 @@ export default function LessonFormPage() {
                 )}
               />
 
-              {/* Description */}
               <FormField
                 control={formControl}
                 name="description"
@@ -866,7 +837,6 @@ export default function LessonFormPage() {
                 )}
               />
 
-              {/* Order and Status */}
               <div className={`grid gap-4 ${isEditMode ? "md:grid-cols-2" : "md:grid-cols-1"}`}>
                 {isEditMode && (
                   <FormField
@@ -918,7 +888,6 @@ export default function LessonFormPage() {
 
               <Separator />
 
-              {/* Theory Text */}
               <FormField
                 control={formControl}
                 name="theoryText"
@@ -936,7 +905,6 @@ export default function LessonFormPage() {
                 )}
               />
 
-              {/* Phonetics Note */}
               <FormField
                 control={formControl}
                 name="phoneticsNote"
@@ -952,7 +920,6 @@ export default function LessonFormPage() {
                 )}
               />
 
-              {/* Grammar Note */}
               <FormField
                 control={formControl}
                 name="grammarNote"
@@ -970,7 +937,6 @@ export default function LessonFormPage() {
 
               <Separator />
 
-              {/* Cover Image */}
               <FormField
                 control={formControl}
                 name="coverImage"
@@ -1000,7 +966,6 @@ export default function LessonFormPage() {
                 )}
               />
 
-              {/* Audio URL */}
               <FormField
                 control={formControl}
                 name="audioUrl"
@@ -1030,7 +995,6 @@ export default function LessonFormPage() {
             </>
           )}
 
-          {/* Form Actions */}
           <div className="flex justify-end gap-2 sticky bottom-0 bg-background pt-4 pb-2">
             <Button type="button" onClick={handleCancel} disabled={isSubmitting}>
               Hủy

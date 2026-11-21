@@ -1,16 +1,10 @@
 import { Topic } from "./topic";
 import { LessonStatus } from "@4kidstudy/contracts";
 
-/**
- * Lesson status values (from the Prisma schema via @4kidstudy/contracts)
- */
 export const LESSON_STATUS = LessonStatus;
 
 export type { LessonStatus };
 
-/**
- * Lesson interface representing a learning lesson with all related data
- */
 export interface Lesson {
   id: number;
   topicId: number;
@@ -32,9 +26,6 @@ export interface Lesson {
   };
 }
 
-/**
- * Lesson summary interface for list views (without nested relations)
- */
 export interface LessonSummary {
   id: number;
   topicId: number;

@@ -1,9 +1,6 @@
 import { IsInt, IsOptional, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
-/**
- * DTO for querying attempts
- */
 export class GetAttemptsQueryDto {
   @IsOptional()
   @IsInt()

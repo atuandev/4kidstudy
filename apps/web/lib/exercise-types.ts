@@ -9,7 +9,6 @@ import type { ExerciseType } from "@/types";
 
 type IconComponent = React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
 
-/** Exercise names and tile hues, matching the lesson player's exercise tiles. */
 export const EXERCISE_TYPES: Record<
   ExerciseType,
   { vi: string; en: string; icon: IconComponent; tile: string }

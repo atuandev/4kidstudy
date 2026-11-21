@@ -9,14 +9,11 @@ import { cn } from "@/lib/utils";
 interface ErrorSheetProps {
   readonly error: Error & { digest?: string };
   readonly reset: () => void;
-  /** What failed to load, in plain Vietnamese. */
   readonly description?: string;
-  /** Where "Trang chủ" goes; omitted hides the button. */
   readonly homeHref?: string;
   readonly className?: string;
 }
 
-/** The error-boundary sheet: mascot, what happened, try again. */
 export function ErrorSheet({
   error,
   reset,

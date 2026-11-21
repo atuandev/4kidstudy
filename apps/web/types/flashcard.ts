@@ -1,6 +1,3 @@
-/**
- * Flashcard interface representing an individual flashcard
- */
 export interface Flashcard {
   id: number;
   topicId: number;

@@ -14,7 +14,6 @@ const GRADE_LABELS: Record<string, string> = {
   GRADE_5: "Lớp 5",
 };
 
-/** Rank disc: gold, silver and bronze stickers for the top three, a plain disc after. */
 const RANK_DISC: Record<number, string> = {
   1: "bg-sun text-ink shadow-[0_3px_0_#B78A00]",
   2: "bg-edge text-ink shadow-[0_3px_0_#CBD5E1]",
@@ -101,7 +100,6 @@ export function WeeklyLeaderboard() {
     fetchData();
   }, []);
 
-  // Found by id, not rank: learners with equal scores share a rank.
   const ownIndex = entries.findIndex((entry) => entry.userId === currentUserId);
   const isRanked = ownIndex !== -1;
   const othersUnranked = unrankedCount - (isRanked ? 0 : 1);
@@ -173,14 +171,12 @@ export function WeeklyLeaderboard() {
               </ol>
             )}
 
-            {/* Dots when learners sit between the top 10 and the learner's own row. */}
             {ownIndex > 10 && (
               <p aria-hidden="true" className="py-1 text-center text-lg font-black text-ink-body">
                 ⋮
               </p>
             )}
 
-            {/* The learner's own row stays visible when they are below the top 10. */}
             {ownIndex >= 10 && (
               <div className="mt-2 border-t-2 border-wash pt-3">
                 <p className="mb-1.5 px-3 text-sm font-extrabold text-ink-body">Hạng của bạn</p>
@@ -188,7 +184,6 @@ export function WeeklyLeaderboard() {
               </div>
             )}
 
-            {/* No points this week: say so rather than rank the learner last. */}
             {!isRanked && entries.length > 0 && (
               <p className="mt-3 rounded-2xl bg-sun-wash px-3.5 py-2.5 text-sm font-bold text-sun-ink">
                 Bạn chưa có điểm tuần này. Học một bài để vào bảng nhé!

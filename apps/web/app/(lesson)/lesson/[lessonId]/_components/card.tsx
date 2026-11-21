@@ -37,8 +37,6 @@ export const Card = ({
   matchKey,
   isMatched,
 }: CardProps) => {
-  // Initialize audio - always render to prevent useAudio ref issues
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [audio, _, controls] = useAudio({
     src: audioSrc || "/correct.wav",
   });
@@ -64,7 +62,6 @@ export const Card = ({
 
   useKey(shortcut, handleClick, {}, [handleClick]);
 
-  // Handle different card layouts based on exercise type
   const renderCard = () => {
     switch (type) {
       case "SELECT_IMAGE":

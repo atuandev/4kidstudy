@@ -1,25 +1,16 @@
 import { z } from "zod";
 import { LessonStatus } from "@4kidstudy/contracts";
 
-/**
- * Lesson status enum (from the Prisma schema via @4kidstudy/contracts)
- */
 export const LESSON_STATUS = LessonStatus;
 
 export type { LessonStatus };
 
-/**
- * Lesson status labels for UI display
- */
 export const lessonStatusLabels: Record<LessonStatus, string> = {
   PUBLISHED: "Hoạt động",
   DRAFT: "Bản nháp",
   ARCHIVED: "Không hoạt động",
 };
 
-/**
- * Schema for creating/updating a lesson
- */
 export const CreateLessonSchema = z.object({
   topicId: z
     .number({
@@ -59,7 +50,6 @@ export const CreateLessonSchema = z.object({
 
 export type CreateLessonFormData = z.infer<typeof CreateLessonSchema>;
 
-/** A new lesson for bulk create: no topicId/order; empty optional fields omitted. */
 export type NewLessonInput = Pick<CreateLessonFormData, "title" | "description" | "status"> &
   Partial<
     Pick<
@@ -68,9 +58,6 @@ export type NewLessonInput = Pick<CreateLessonFormData, "title" | "description" 
     >
   >;
 
-/**
- * Schema for lesson item in bulk create (without topicId, with optional id)
- */
 export const LessonWithOptionalIdSchema = z.object({
   id: z.number().optional(),
 
@@ -104,9 +91,6 @@ export const LessonWithOptionalIdSchema = z.object({
   coverImage: z.string().optional().default(""),
 });
 
-/**
- * Schema for bulk creating lessons
- */
 export const CreateLessonsSchema = z.object({
   topicId: z
     .number({

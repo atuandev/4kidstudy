@@ -26,11 +26,9 @@ interface RecorderControlsProps {
   readonly onPlayback: (event: React.MouseEvent) => void;
   readonly onAnalyze: (event: React.MouseEvent) => void;
   readonly onReset: (event: React.MouseEvent) => void;
-  /** Swallows clicks on non-button areas (the flashcard flips on click). */
   readonly onSurfaceClick?: (event: React.MouseEvent) => void;
 }
 
-/** Record → listen back → score, in the lesson's vocabulary (cherry mic, leaf/cherry verdict). */
 export function RecorderControls({
   state,
   score,

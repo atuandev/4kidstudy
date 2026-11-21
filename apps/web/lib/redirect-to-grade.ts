@@ -14,10 +14,6 @@ type SearchParams = Record<string, string | string[] | undefined>;
 const isGradeValue = (value: unknown): value is GradeValue =>
   GRADES.some((grade) => grade.value === value);
 
-/**
- * Sends a grade-less URL (`/practice`, `/learn/units`) to its `/grade/[grade]/...` page.
- * Picks the grade from the legacy `?grade=GRADE_N` param, then the student's profile, then grade 1.
- */
 export async function redirectToGrade(
   section: GradeSection,
   searchParams: SearchParams,
@@ -33,8 +29,6 @@ export async function redirectToGrade(
     if (isGradeValue(profile.grade)) {
       grade = profile.grade;
     }
-  } catch {
-    // Not signed in or the API failed: fall back to grade 1.
-  }
+  } catch {}
   redirect(buildGradePath(grade, section));
 }

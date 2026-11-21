@@ -11,7 +11,6 @@ export async function getSentenceImages() {
   return payload;
 }
 
-/** A topic's sentence images; pass `activeOnly` for the learner view (hidden images and sentences left out). */
 export async function getSentenceImagesByTopicId(topicId: number, activeOnly = false) {
   const query = activeOnly ? "?isActive=true" : "";
   const { payload } = await http.get<SentenceImage[]>(`/sentences/images/topic/${topicId}${query}`);
